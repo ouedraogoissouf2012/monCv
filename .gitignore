@@ -1,0 +1,39 @@
+# ========================
+# Secrets & Environnement
+# ========================
+.env
+*.env
+!.env.example
+
+# ========================
+# Backend Java/Maven
+# ========================
+backend/target/
+backend/.mvn/
+*.class
+*.jar
+*.war
+
+# ========================
+# Mobile Flutter
+# ========================
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+
+# ========================
+# IDE
+# ========================
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db

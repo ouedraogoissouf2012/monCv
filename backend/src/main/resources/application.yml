@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: cv-mobile-backend
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cvmobile}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:seven}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+server:
+  port: ${SERVER_PORT:8082}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
