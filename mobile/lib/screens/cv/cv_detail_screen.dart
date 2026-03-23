@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
+import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 import 'cv_form_screen.dart';
 
@@ -16,12 +20,33 @@ class CvDetailScreen extends StatefulWidget {
 }
 
 class _CvDetailScreenState extends State<CvDetailScreen> {
+  bool _isDownloadingPdf = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CvProvider>().loadCvById(widget.cvId);
     });
+  }
+
+  Future<void> _downloadPdf() async {
+    setState(() => _isDownloadingPdf = true);
+    try {
+      final bytes = await ApiService().downloadCvPdf(widget.cvId);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/cv-${widget.cvId}.pdf');
+      await file.writeAsBytes(bytes);
+      await OpenFile.open(file.path);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur PDF : $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloadingPdf = false);
+    }
   }
 
   @override
@@ -41,6 +66,20 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
           appBar: AppBar(
             title: Text(cv.titre),
             actions: [
+              _isDownloadingPdf
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.picture_as_pdf),
+                      tooltip: 'Télécharger PDF',
+                      onPressed: _downloadPdf,
+                    ),
               IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () {
