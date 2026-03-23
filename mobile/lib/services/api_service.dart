@@ -200,4 +200,17 @@ class ApiService {
       throw Exception('Erreur lors de la suppression du CV');
     }
   }
+
+  Future<List<int>> downloadCvPdf(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/pdf'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Erreur lors du téléchargement du PDF');
+    }
+  }
 }
