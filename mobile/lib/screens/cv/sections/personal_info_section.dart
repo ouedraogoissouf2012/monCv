@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../models/cv.dart';
 
 class PersonalInfoSection extends StatefulWidget {
@@ -31,6 +33,9 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
   late TextEditingController _portfolioController;
   late TextEditingController _resumeController;
 
+  String? _photoPath;
+  final _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +52,36 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
     _linkedInController = TextEditingController(text: info?.linkedIn);
     _portfolioController = TextEditingController(text: info?.portfolio);
     _resumeController = TextEditingController(text: info?.resumeProfessionnel);
+    _photoPath = info?.photoUrl;
+  }
+
+  Future<void> _pickPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galerie'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Appareil photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    final picked = await _picker.pickImage(source: source, imageQuality: 80);
+    if (picked != null) {
+      setState(() => _photoPath = picked.path);
+      _updatePersonalInfo();
+    }
   }
 
   @override
@@ -80,6 +115,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
       linkedIn: _linkedInController.text.isNotEmpty ? _linkedInController.text : null,
       portfolio: _portfolioController.text.isNotEmpty ? _portfolioController.text : null,
       resumeProfessionnel: _resumeController.text.isNotEmpty ? _resumeController.text : null,
+      photoUrl: _photoPath,
     ));
   }
 
@@ -91,6 +127,36 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Photo de profil
+          Center(
+            child: GestureDetector(
+              onTap: _pickPhoto,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey.shade200,
+                    backgroundImage: _photoPath != null
+                        ? FileImage(File(_photoPath!))
+                        : null,
+                    child: _photoPath == null
+                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.blue,
+                      child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
