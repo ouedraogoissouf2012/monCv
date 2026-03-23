@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,7 +9,6 @@ import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
-import 'cv_form_screen.dart';
 
 class CvDetailScreen extends StatefulWidget {
   final int cvId;
@@ -82,14 +82,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                     ),
               IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CvFormScreen(cv: cv),
-                    ),
-                  );
-                },
+                onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
           ),
