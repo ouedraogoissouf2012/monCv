@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
@@ -113,7 +114,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
     }
 
     if (success && mounted) {
-      Navigator.pop(context);
+      context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(isEditing ? 'CV mis a jour' : 'CV cree avec succes'),
