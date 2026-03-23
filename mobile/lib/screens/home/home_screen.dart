@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/responsive_layout.dart';
 import '../cv/cv_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,17 +28,30 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
+    final isDesktop = Responsive.isDesktop(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appName),
         actions: [
+          if (isDesktop)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ElevatedButton.icon(
+                onPressed: () => context.push('/cvs/create'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Nouveau CV'),
+              ),
+            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle),
             onSelected: (value) {
-              if (value == 'logout') {
-                _showLogoutDialog();
-              }
+              if (value == 'logout') _showLogoutDialog();
             },
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -86,16 +101,38 @@ class _HomeScreenState extends State<HomeScreen> {
             return _buildEmptyState();
           }
 
+          if (isDesktop) {
+            return TwoColumnLayout(
+              sidebar: const CvListScreen(),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.touch_app_outlined,
+                        size: 64, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Sélectionnez un CV pour voir les détails',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           return const CvListScreen();
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/cvs/create'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Nouveau CV'),
-      ),
+      floatingActionButton: isDesktop
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => context.push('/cvs/create'),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: const Text('Nouveau CV'),
+            ),
     );
   }
 
