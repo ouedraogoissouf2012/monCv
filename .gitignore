@@ -28,7 +28,8 @@ mobile/.packages
 # ========================
 .idea/
 *.iml
-.vscode/
+.vscode/*
+!.vscode/launch.json
 *.suo
 *.user
 

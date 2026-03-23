@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:8082/api'; // Pour emulateur Android
-  // static const String baseUrl = 'http://localhost:8082/api'; // Pour iOS/Web
+  // Valeur injectée au moment du build via --dart-define=API_BASE_URL=...
+  // Défaut : émulateur Android. Changer selon l'environnement :
+  //   Émulateur Android  → http://10.0.2.2:8082/api
+  //   Simulateur iOS     → http://localhost:8082/api
+  //   Appareil physique  → http://<IP_LAN>:8082/api
+  //   Production         → https://api.moncv.com/api
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8082/api',
+  );
 
   static const String authEndpoint = '/auth';
   static const String usersEndpoint = '/users';
