@@ -23,6 +23,9 @@ class _CvFormScreenState extends State<CvFormScreen> {
   int _currentPage = 0;
   final int _totalPages = 5;
 
+  final _titreFormKey = GlobalKey<FormState>();
+  final _personalInfoFormKey = GlobalKey<FormState>();
+
   late TextEditingController _titreController;
   PersonalInfo? _personalInfo;
   List<Education> _educations = [];
@@ -55,6 +58,11 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   void _nextPage() {
+    if (_currentPage == 0) {
+      final titreOk = _titreFormKey.currentState?.validate() ?? false;
+      final infoOk = _personalInfoFormKey.currentState?.validate() ?? false;
+      if (!titreOk || !infoOk) return;
+    }
     if (_currentPage < _totalPages - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -73,10 +81,12 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   Future<void> _saveCv() async {
-    if (_titreController.text.isEmpty) {
+    final titreOk = _titreFormKey.currentState?.validate() ?? false;
+    final infoOk = _personalInfoFormKey.currentState?.validate() ?? false;
+    if (!titreOk || !infoOk) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Veuillez entrer un titre pour le CV'),
+          content: Text('Veuillez corriger les champs obligatoires'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -137,12 +147,16 @@ class _CvFormScreenState extends State<CvFormScreen> {
           // Titre du CV
           Padding(
             padding: const EdgeInsets.all(16),
-            child: TextFormField(
-              controller: _titreController,
-              decoration: const InputDecoration(
-                labelText: 'Titre du CV',
-                hintText: 'Ex: Developpeur Full Stack',
-                prefixIcon: Icon(Icons.title),
+            child: Form(
+              key: _titreFormKey,
+              child: TextFormField(
+                controller: _titreController,
+                decoration: const InputDecoration(
+                  labelText: 'Titre du CV *',
+                  hintText: 'Ex: Developpeur Full Stack',
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Titre requis' : null,
               ),
             ),
           ),
@@ -196,6 +210,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
                 PersonalInfoSection(
                   personalInfo: _personalInfo,
                   onChanged: (info) => setState(() => _personalInfo = info),
+                  formKey: _personalInfoFormKey,
                 ),
                 EducationSection(
                   educations: _educations,

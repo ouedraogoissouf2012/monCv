@@ -4,11 +4,13 @@ import '../../../models/cv.dart';
 class PersonalInfoSection extends StatefulWidget {
   final PersonalInfo? personalInfo;
   final Function(PersonalInfo) onChanged;
+  final GlobalKey<FormState>? formKey;
 
   const PersonalInfoSection({
     super.key,
     this.personalInfo,
     required this.onChanged,
+    this.formKey,
   });
 
   @override
@@ -83,7 +85,9 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Form(
+      key: widget.formKey,
+      child: SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -92,18 +96,20 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
               Expanded(
                 child: TextFormField(
                   controller: _prenomController,
-                  decoration: const InputDecoration(labelText: 'Prenom'),
+                  decoration: const InputDecoration(labelText: 'Prénom *'),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _updatePersonalInfo(),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Prénom requis' : null,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: TextFormField(
                   controller: _nomController,
-                  decoration: const InputDecoration(labelText: 'Nom'),
+                  decoration: const InputDecoration(labelText: 'Nom *'),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _updatePersonalInfo(),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Nom requis' : null,
                 ),
               ),
             ],
@@ -121,11 +127,17 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           TextFormField(
             controller: _emailController,
             decoration: const InputDecoration(
-              labelText: 'Email',
+              labelText: 'Email *',
               prefixIcon: Icon(Icons.email),
             ),
             keyboardType: TextInputType.emailAddress,
             onChanged: (_) => _updatePersonalInfo(),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Email requis';
+              final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+              if (!emailRegex.hasMatch(v.trim())) return 'Email invalide';
+              return null;
+            },
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -209,6 +221,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 32),
         ],
       ),
+    ),
     );
   }
 }
