@@ -1,142 +1,130 @@
 import 'package:flutter/material.dart';
-import '../../utils/constants.dart';
-import '../auth/login_screen.dart';
-import '../auth/register_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../utils/responsive.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          children: [
-            const Icon(Icons.description_outlined, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              AppStrings.appName,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                Icon(Icons.description_outlined, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text('MonCV',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        )),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => context.go('/login'),
+                child: const Text('Connexion'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            ),
-            child: const Text(AppStrings.login),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: FilledButton(
+                  onPressed: () => context.go('/register'),
+                  child: const Text('Créer un compte'),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RegisterScreen()),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: const Text(AppStrings.createAccount),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _HeroSection(),
+                _FeaturesSection(),
+                _CtaSection(),
+              ],
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(context),
-            _buildFeaturesSection(context),
-            _buildCtaSection(context),
-          ],
-        ),
-      ),
     );
   }
+}
 
-  Widget _buildHeroSection(BuildContext context) {
+class _HeroSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDesktop = Responsive.isDesktop(context);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withValues(alpha: 0.08),
-            Colors.white,
-          ],
-        ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 80 : 24,
+        vertical: isDesktop ? 80 : 48,
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.description_outlined,
-            size: 80,
-            color: AppColors.primary,
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(Icons.description_outlined,
+                size: 44, color: colorScheme.primary),
           ),
           const SizedBox(height: 24),
           Text(
-            'Créez votre CV professionnel\nen quelques minutes',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  height: 1.3,
-                ),
+            'Créez votre CV\nprofessionnel',
             textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Une application simple et efficace pour créer, gérer\net télécharger vos CVs au format PDF.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-            textAlign: TextAlign.center,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Text(
+              'Concevez, personnalisez et exportez votre CV en PDF en quelques minutes. Simple, rapide et professionnel.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    height: 1.6,
+                  ),
+            ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Wrap(
-            spacing: 16,
-            runSpacing: 16,
+            spacing: 12,
+            runSpacing: 12,
             alignment: WrapAlignment.center,
             children: [
-              ElevatedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 16),
-                ),
-                icon: const Icon(Icons.rocket_launch_outlined),
+              FilledButton.icon(
+                onPressed: () => context.go('/register'),
+                icon: const Icon(Icons.add),
                 label: const Text('Commencer gratuitement'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
+                style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 16),
+                      horizontal: 24, vertical: 16),
                 ),
-                icon: const Icon(Icons.login),
-                label: const Text(AppStrings.login),
+              ),
+              OutlinedButton(
+                onPressed: () => context.go('/login'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 16),
+                ),
+                child: const Text('Se connecter'),
               ),
             ],
           ),
@@ -144,104 +132,58 @@ class LandingScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildFeaturesSection(BuildContext context) {
+class _FeaturesSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = Responsive.isDesktop(context);
+
     final features = [
-      (
-        Icons.edit_note_outlined,
-        'Formulaire guidé',
-        'Remplissez section par section : infos personnelles, formations, expériences, compétences et langues.'
-      ),
-      (
-        Icons.picture_as_pdf_outlined,
-        'Export PDF',
-        'Téléchargez votre CV en PDF professionnel prêt à envoyer aux recruteurs.'
-      ),
-      (
-        Icons.cloud_sync_outlined,
-        'Sauvegarde en ligne',
-        'Vos CVs sont sauvegardés en ligne et accessibles depuis n\'importe quel appareil.'
-      ),
-      (
-        Icons.devices_outlined,
-        'Mobile & Web',
-        'Utilisez l\'application sur votre smartphone ou directement dans votre navigateur.'
-      ),
+      (Icons.edit_note_outlined, 'Créez facilement',
+          'Remplissez vos informations guidé par une interface intuitive.'),
+      (Icons.picture_as_pdf_outlined, 'Exportez en PDF',
+          'Générez un PDF professionnel d\'un simple clic.'),
+      (Icons.devices_outlined, 'Accédez partout',
+          'Web, mobile, tablette — votre CV toujours avec vous.'),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 80 : 24,
+        vertical: 48,
+      ),
       child: Column(
         children: [
           Text(
             'Tout ce dont vous avez besoin',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 48),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final crossAxisCount = constraints.maxWidth > 700 ? 2 : 1;
-              return GridView.count(
-                crossAxisCount: crossAxisCount,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 24,
-                mainAxisSpacing: 24,
-                childAspectRatio: constraints.maxWidth > 700 ? 2.8 : 3.5,
-                children: features
-                    .map((f) => _FeatureCard(icon: f.$1, title: f.$2, description: f.$3))
-                    .toList(),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCtaSection(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
-      color: AppColors.primary,
-      child: Column(
-        children: [
-          Text(
-            'Prêt à créer votre CV ?',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Rejoignez des milliers d\'utilisateurs qui ont déjà créé leur CV avec MonCV.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w700,
                 ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RegisterScreen()),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-            ),
-            child: const Text(
-              'Créer mon compte gratuit',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
+          isDesktop
+              ? Row(
+                  children: features
+                      .map((f) => Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: _FeatureCard(
+                                  icon: f.$1, title: f.$2, desc: f.$3),
+                            ),
+                          ))
+                      .toList(),
+                )
+              : Column(
+                  children: features
+                      .map((f) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _FeatureCard(
+                                icon: f.$1, title: f.$2, desc: f.$3),
+                          ))
+                      .toList(),
+                ),
         ],
       ),
     );
@@ -251,52 +193,94 @@ class LandingScreen extends StatelessWidget {
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String description;
-
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
+  final String desc;
+  const _FeatureCard({required this.icon, required this.title, required this.desc});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 28),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppColors.textPrimary,
-                ),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
+              child: Icon(icon, color: colorScheme.primary, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(desc,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      height: 1.5,
+                    )),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _CtaSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Prêt à créer votre CV ?',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Rejoignez des milliers de professionnels qui font confiance à MonCV.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.go('/register'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: colorScheme.primary,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+            ),
+            child: const Text('Créer mon CV gratuitement',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
     );
   }
 }
