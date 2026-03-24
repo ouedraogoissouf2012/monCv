@@ -20,10 +20,6 @@ class CvFormScreen extends StatefulWidget {
 }
 
 class _CvFormScreenState extends State<CvFormScreen> {
-  late PageController _pageController;
-  int _currentPage = 0;
-  final int _totalPages = 5;
-
   final _titreFormKey = GlobalKey<FormState>();
   final _personalInfoFormKey = GlobalKey<FormState>();
 
@@ -34,12 +30,13 @@ class _CvFormScreenState extends State<CvFormScreen> {
   List<Skill> _skills = [];
   List<Language> _languages = [];
 
+  bool _isLoading = false;
+
   bool get isEditing => widget.cv != null;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
     _titreController = TextEditingController(text: widget.cv?.titre ?? '');
 
     if (widget.cv != null) {
@@ -53,35 +50,11 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
     _titreController.dispose();
     super.dispose();
   }
 
-  void _nextPage() {
-    if (_currentPage == 0) {
-      final titreOk = _titreFormKey.currentState?.validate() ?? false;
-      final infoOk = _personalInfoFormKey.currentState?.validate() ?? false;
-      if (!titreOk || !infoOk) return;
-    }
-    if (_currentPage < _totalPages - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  Future<void> _saveCv() async {
+  Future<void> _save() async {
     final titreOk = _titreFormKey.currentState?.validate() ?? false;
     final infoOk = _personalInfoFormKey.currentState?.validate() ?? false;
     if (!titreOk || !infoOk) {
@@ -93,6 +66,8 @@ class _CvFormScreenState extends State<CvFormScreen> {
       );
       return;
     }
+
+    setState(() => _isLoading = true);
 
     final cv = Cv(
       id: widget.cv?.id,
@@ -113,7 +88,10 @@ class _CvFormScreenState extends State<CvFormScreen> {
       success = await cvProvider.createCv(cv);
     }
 
-    if (success && mounted) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -121,7 +99,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
           backgroundColor: AppColors.success,
         ),
       );
-    } else if (mounted) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(cvProvider.error ?? 'Erreur'),
@@ -135,152 +113,140 @@ class _CvFormScreenState extends State<CvFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? AppStrings.editCv : AppStrings.createCv),
-        actions: [
-          TextButton(
-            onPressed: _saveCv,
-            child: const Text('Enregistrer'),
-          ),
-        ],
+        title: Text(isEditing ? 'Modifier le CV' : 'Nouveau CV'),
       ),
       body: Column(
         children: [
-          // Titre du CV
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _titreFormKey,
-              child: TextFormField(
-                controller: _titreController,
-                decoration: const InputDecoration(
-                  labelText: 'Titre du CV *',
-                  hintText: 'Ex: Developpeur Full Stack',
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Titre requis' : null,
-              ),
-            ),
-          ),
-
-          // Progress indicator
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: List.generate(_totalPages, (index) {
-                return Expanded(
-                  child: Container(
-                    height: 4,
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    decoration: BoxDecoration(
-                      color: index <= _currentPage
-                          ? AppColors.primary
-                          : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Page title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              _getPageTitle(_currentPage),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Page content
           Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (page) {
-                setState(() {
-                  _currentPage = page;
-                });
-              },
-              children: [
-                PersonalInfoSection(
-                  personalInfo: _personalInfo,
-                  onChanged: (info) => setState(() => _personalInfo = info),
-                  formKey: _personalInfoFormKey,
-                ),
-                EducationSection(
-                  educations: _educations,
-                  onChanged: (list) => setState(() => _educations = list),
-                ),
-                ExperienceSection(
-                  experiences: _experiences,
-                  onChanged: (list) => setState(() => _experiences = list),
-                ),
-                SkillsSection(
-                  skills: _skills,
-                  onChanged: (list) => setState(() => _skills = list),
-                ),
-                LanguagesSection(
-                  languages: _languages,
-                  onChanged: (list) => setState(() => _languages = list),
-                ),
-              ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Column(
+                children: [
+                  // Titre du CV
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _titreFormKey,
+                        child: TextFormField(
+                          controller: _titreController,
+                          decoration: const InputDecoration(
+                            labelText: 'Titre du CV *',
+                            hintText: 'Ex: Developpeur Full Stack',
+                            prefixIcon: Icon(Icons.title),
+                          ),
+                          validator: (v) =>
+                              (v == null || v.trim().isEmpty) ? 'Titre requis' : null,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  _SectionCard(
+                    title: 'Informations personnelles',
+                    icon: Icons.person_outline,
+                    child: PersonalInfoSection(
+                      personalInfo: _personalInfo,
+                      onChanged: (info) => setState(() => _personalInfo = info),
+                      formKey: _personalInfoFormKey,
+                    ),
+                  ),
+                  _SectionCard(
+                    title: 'Expériences',
+                    icon: Icons.work_outline,
+                    child: ExperienceSection(
+                      experiences: _experiences,
+                      onChanged: (list) => setState(() => _experiences = list),
+                    ),
+                  ),
+                  _SectionCard(
+                    title: 'Formations',
+                    icon: Icons.school_outlined,
+                    child: EducationSection(
+                      educations: _educations,
+                      onChanged: (list) => setState(() => _educations = list),
+                    ),
+                  ),
+                  _SectionCard(
+                    title: 'Compétences',
+                    icon: Icons.star_outline,
+                    child: SkillsSection(
+                      skills: _skills,
+                      onChanged: (list) => setState(() => _skills = list),
+                    ),
+                  ),
+                  _SectionCard(
+                    title: 'Langues',
+                    icon: Icons.language_outlined,
+                    child: LanguagesSection(
+                      languages: _languages,
+                      onChanged: (list) => setState(() => _languages = list),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // Navigation buttons
+          // Sticky save button
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                if (_currentPage > 0)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _previousPage,
-                      child: const Text('Precedent'),
-                    ),
-                  ),
-                if (_currentPage > 0) const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        _currentPage < _totalPages - 1 ? _nextPage : _saveCv,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      _currentPage < _totalPages - 1 ? 'Suivant' : 'Terminer',
-                    ),
-                  ),
-                ),
-              ],
+            padding: EdgeInsets.fromLTRB(
+                16, 8, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isLoading ? null : _save,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Enregistrer',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  String _getPageTitle(int page) {
-    switch (page) {
-      case 0:
-        return 'Informations personnelles';
-      case 1:
-        return 'Formations';
-      case 2:
-        return 'Experiences';
-      case 3:
-        return 'Competences';
-      case 4:
-        return 'Langues';
-      default:
-        return '';
-    }
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Widget child;
+  const _SectionCard({required this.title, required this.icon, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        title: Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        initiallyExpanded: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: child,
+          ),
+        ],
+      ),
+    );
   }
 }
