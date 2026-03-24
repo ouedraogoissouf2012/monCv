@@ -1,33 +1,33 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/cv.dart';
+import 'token_storage.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TokenStorage _storage = TokenStorage();
   String? _accessToken;
 
   Future<String?> get accessToken async {
-    _accessToken ??= await _storage.read(key: 'access_token');
+    _accessToken ??= await _storage.read('access_token');
     return _accessToken;
   }
 
   Future<void> setTokens(String accessToken, String refreshToken) async {
     _accessToken = accessToken;
-    await _storage.write(key: 'access_token', value: accessToken);
-    await _storage.write(key: 'refresh_token', value: refreshToken);
+    await _storage.write('access_token', accessToken);
+    await _storage.write('refresh_token', refreshToken);
   }
 
   Future<void> clearTokens() async {
     _accessToken = null;
-    await _storage.delete(key: 'access_token');
-    await _storage.delete(key: 'refresh_token');
+    await _storage.delete('access_token');
+    await _storage.delete('refresh_token');
   }
 
   Future<Map<String, String>> _getHeaders({bool withAuth = true}) async {
