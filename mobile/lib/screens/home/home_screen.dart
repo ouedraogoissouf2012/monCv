@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return const _EmptyState();
           }
           final crossAxisCount = isDesktop
-              ? (MediaQuery.of(context).size.width > 1200 ? 3 : 2)
+              ? (MediaQuery.of(context).size.width >= 1200 ? 3 : 2)
               : 1;
           return GridView.builder(
             padding: EdgeInsets.all(isDesktop ? 24 : 16),
