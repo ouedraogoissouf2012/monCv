@@ -92,7 +92,7 @@ Largeur 200px, items verticaux avec icône + label :
 - État vide : illustration + message + CTA
 
 ### 4. `ProfileScreen` (`/profile`)
-- Infos utilisateur (nom, prénom, email)
+- Infos utilisateur (nom, prénom, email) — **lecture seule** (pas d'édition dans cette version)
 - **Sélecteur de thème** : 3 cards cliquables avec preview couleur + nom
 - Bouton déconnexion
 
@@ -102,9 +102,10 @@ Largeur 200px, items verticaux avec icône + label :
 - Bouton `Télécharger PDF`
 
 ### 6. `CvFormScreen`
-- Formulaire multi-étapes (stepper) ou scroll continu
-- Sections : Infos perso → Expériences → Formations → Compétences → Langues
-- Validation par section avant navigation
+- Formulaire **scroll continu** (pas de stepper) — `SingleChildScrollView` avec sections collapsibles
+- Sections dans l'ordre : Infos perso → Expériences → Formations → Compétences → Langues
+- Bouton `Enregistrer` fixe en bas (sticky)
+- Validation globale à la soumission (pas par section)
 
 ---
 
@@ -177,6 +178,7 @@ Permissions iOS (`Info.plist`) :
 - `flutter analyze` : 0 erreur
 - Les 3 thèmes s'appliquent instantanément et persistent entre sessions
 - Navigation bottom nav (mobile) + sidebar (web) fonctionnelle
-- Cartes CV affichent stats correctes depuis le modèle `Cv`
+- Cartes CV affichent stats correctes depuis le modèle `Cv` (badge **Complet** = `personalInfo` rempli + au moins 1 expérience ou 1 formation ; sinon **Incomplet**)
+- Widget tests ajoutés pour : `CvCard`, `AppScaffold`, `ThemeSelector`
 - Android et iOS configurés (compilables)
 - Aucune régression sur les tests existants
