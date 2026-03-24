@@ -4,8 +4,14 @@ import '../models/user.dart';
 import '../services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final ApiService _apiService;
+  final FlutterSecureStorage _storage;
+
+  AuthProvider({ApiService? apiService, FlutterSecureStorage? storage})
+      : _apiService = apiService ?? ApiService(),
+        _storage = storage ?? const FlutterSecureStorage() {
+    _checkAuthStatus();
+  }
 
   User? _user;
   bool _isLoading = false;
@@ -16,10 +22,6 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _isAuthenticated;
-
-  AuthProvider() {
-    _checkAuthStatus();
-  }
 
   Future<void> _checkAuthStatus() async {
     final token = await _storage.read(key: 'access_token');
