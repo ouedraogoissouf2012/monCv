@@ -1,0 +1,51 @@
+# ========================
+# Secrets & Environnement
+# ========================
+.env
+*.env
+!.env.example
+
+# ========================
+# Backend Java/Maven
+# ========================
+backend/target/
+backend/.mvn/
+*.class
+*.jar
+*.war
+
+# ========================
+# Mobile Flutter
+# ========================
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+
+# ========================
+# IDE
+# ========================
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+*.suo
+*.user
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# JVM Crash Logs
+# ========================
+hs_err_pid*.log
+replay_pid*.log
+
+# ========================
+# Claude Code
+# ========================
+.claude/
