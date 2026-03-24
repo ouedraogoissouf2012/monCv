@@ -144,7 +144,7 @@ class _FeaturesSection extends StatelessWidget {
           'Remplissez vos informations guidé par une interface intuitive.'),
       (Icons.picture_as_pdf_outlined, 'Exporter PDF',
           'Générez un PDF professionnel d\'un simple clic.'),
-      (Icons.devices_outlined, 'Accédez partout',
+      (Icons.devices_outlined, 'Accéder partout',
           'Web, mobile, tablette — votre CV toujours avec vous.'),
     ];
 
