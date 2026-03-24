@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                               color: colorScheme.onSurface.withValues(alpha: 0.6))),
                       TextButton(
-                        onPressed: () => context.push('/register'),
+                        onPressed: () => context.go('/register'),
                         child: const Text('Créer un compte'),
                       ),
                     ],
