@@ -8,7 +8,6 @@ import 'package:open_file/open_file.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/api_service.dart';
-import '../../utils/constants.dart';
 
 class CvDetailScreen extends StatefulWidget {
   final int cvId;
@@ -30,7 +29,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     });
   }
 
-  Future<void> _downloadPdf() async {
+  Future<void> _downloadPdf(BuildContext context) async {
+    if (_isDownloadingPdf) return;
     setState(() => _isDownloadingPdf = true);
     try {
       final bytes = await ApiService().downloadCvPdf(widget.cvId);
@@ -40,8 +40,12 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
       await OpenFile.open(file.path);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur PDF : $e'), backgroundColor: AppColors.error),
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur PDF : $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(this.context).colorScheme.error,
+          ),
         );
       }
     } finally {
@@ -63,60 +67,102 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(cv.titre),
-            actions: [
-              _isDownloadingPdf
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      ),
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.picture_as_pdf),
-                      tooltip: 'Télécharger PDF',
-                      onPressed: _downloadPdf,
-                    ),
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+          body: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(context, cv),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildPersonalInfoTile(context, cv.personalInfo),
+                    _buildExperiencesTile(context, cv.experiences),
+                    _buildFormationsTile(context, cv.educations),
+                    _buildCompetencesTile(context, cv.skills),
+                    _buildLanguesTile(context, cv.languages),
+                    const SizedBox(height: 80),
+                  ],
+                ),
               ),
             ],
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (cv.personalInfo != null) _buildPersonalInfoSection(cv.personalInfo!),
-                if (cv.experiences.isNotEmpty) _buildExperiencesSection(cv.experiences),
-                if (cv.educations.isNotEmpty) _buildEducationsSection(cv.educations),
-                if (cv.skills.isNotEmpty) _buildSkillsSection(cv.skills),
-                if (cv.languages.isNotEmpty) _buildLanguagesSection(cv.languages),
-              ],
-            ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+            child: const Icon(Icons.edit),
           ),
         );
       },
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 24),
-      child: Row(
+  SliverAppBar _buildSliverAppBar(BuildContext context, Cv cv) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SliverAppBar(
+      expandedHeight: 180,
+      pinned: true,
+      floating: false,
+      actions: [
+        _isDownloadingPdf
+            ? const Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                tooltip: 'Télécharger PDF',
+                onPressed: () => _downloadPdf(context),
+              ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          cv.titre,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ExpansionTile(
+        leading: Icon(icon, color: colorScheme.primary),
+        title: Text(
+          title,
+          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        initiallyExpanded: true,
         children: [
-          Icon(icon, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
             ),
           ),
         ],
@@ -124,212 +170,263 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     );
   }
 
-  Widget _buildPersonalInfoSection(PersonalInfo info) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
-                  child: Text(
-                    info.fullName.isNotEmpty ? info.fullName[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.fullName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (info.titrePoste != null)
-                        Text(
-                          info.titrePoste!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 32),
-            if (info.email != null) _buildInfoRow(Icons.email, info.email!),
-            if (info.telephone != null) _buildInfoRow(Icons.phone, info.telephone!),
-            if (info.adresse != null || info.ville != null)
-              _buildInfoRow(
-                Icons.location_on,
-                [info.adresse, info.ville, info.pays].where((e) => e != null).join(', '),
-              ),
-            if (info.linkedIn != null) _buildInfoRow(Icons.link, info.linkedIn!),
-            if (info.resumeProfessionnel != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                'A propos',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(info.resumeProfessionnel!),
-            ],
-          ],
-        ),
-      ),
+  Widget _buildEmptyText(BuildContext context) {
+    return Text(
+      'Aucune information',
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.grey,
+          ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildPersonalInfoTile(BuildContext context, PersonalInfo? info) {
+    return _buildSectionCard(
+      context: context,
+      icon: Icons.person_outline,
+      title: 'Infos personnelles',
+      children: info == null
+          ? [_buildEmptyText(context)]
+          : [
+              if (info.prenom != null || info.nom != null)
+                _buildInfoRow(
+                  context,
+                  Icons.badge_outlined,
+                  [info.prenom, info.nom]
+                      .where((e) => e != null && e.isNotEmpty)
+                      .join(' '),
+                ),
+              if (info.email != null)
+                _buildInfoRow(context, Icons.email_outlined, info.email!),
+              if (info.telephone != null)
+                _buildInfoRow(context, Icons.phone_outlined, info.telephone!),
+              if (info.adresse != null)
+                _buildInfoRow(
+                    context, Icons.location_on_outlined, info.adresse!),
+              if (info.titrePoste != null)
+                _buildInfoRow(context, Icons.work_outline, info.titrePoste!),
+              if (info.resumeProfessionnel != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'A propos',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  info.resumeProfessionnel!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+              if (info.prenom == null &&
+                  info.nom == null &&
+                  info.email == null &&
+                  info.telephone == null &&
+                  info.adresse == null &&
+                  info.titrePoste == null &&
+                  info.resumeProfessionnel == null)
+                _buildEmptyText(context),
+            ],
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.textSecondary),
+          Icon(icon, size: 18, color: Colors.grey),
           const SizedBox(width: 12),
-          Expanded(child: Text(text)),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildExperiencesSection(List<Experience> experiences) {
+  Widget _buildExperiencesTile(
+      BuildContext context, List<Experience> experiences) {
+    final colorScheme = Theme.of(context).colorScheme;
     final dateFormat = DateFormat('MMM yyyy', 'fr_FR');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Experiences', Icons.work),
-        ...experiences.map((exp) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      exp.poste ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      exp.entreprise ?? '',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : ''} - ${exp.actuel ? 'Present' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '')}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    if (exp.description != null) ...[
-                      const SizedBox(height: 8),
-                      Text(exp.description!),
-                    ],
-                  ],
-                ),
-              ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildEducationsSection(List<Education> educations) {
-    final dateFormat = DateFormat('yyyy');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Formations', Icons.school),
-        ...educations.map((edu) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      edu.diplome ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      edu.etablissement ?? '',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    if (edu.domaine != null)
+    return _buildSectionCard(
+      context: context,
+      icon: Icons.work_outline,
+      title: 'Expériences',
+      children: experiences.isEmpty
+          ? [_buildEmptyText(context)]
+          : experiences
+              .map(
+                (exp) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (exp.poste != null)
+                        Text(
+                          exp.poste!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      if (exp.entreprise != null)
+                        Text(
+                          exp.entreprise!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colorScheme.primary),
+                        ),
                       Text(
-                        edu.domaine!,
-                        style: TextStyle(color: AppColors.textSecondary),
+                        '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : '?'}'
+                        ' - '
+                        '${exp.actuel ? 'Présent' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '?')}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: Colors.grey),
                       ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : ''} - ${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : ''}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                      if (exp.description != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          exp.description!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                      if (experiences.last != exp)
+                        const Divider(height: 16),
+                    ],
+                  ),
                 ),
-              ),
-            )),
-      ],
+              )
+              .toList(),
     );
   }
 
-  Widget _buildSkillsSection(List<Skill> skills) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Competences', Icons.star),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: skills.map((skill) => Chip(
-                label: Text(skill.nom ?? ''),
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-              )).toList(),
-        ),
-      ],
+  Widget _buildFormationsTile(
+      BuildContext context, List<Education> educations) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dateFormat = DateFormat('yyyy');
+    return _buildSectionCard(
+      context: context,
+      icon: Icons.school_outlined,
+      title: 'Formations',
+      children: educations.isEmpty
+          ? [_buildEmptyText(context)]
+          : educations
+              .map(
+                (edu) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (edu.diplome != null)
+                        Text(
+                          edu.diplome!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      if (edu.etablissement != null)
+                        Text(
+                          edu.etablissement!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colorScheme.primary),
+                        ),
+                      if (edu.domaine != null)
+                        Text(
+                          edu.domaine!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                      Text(
+                        '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : '?'}'
+                        ' - '
+                        '${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : '?'}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: Colors.grey),
+                      ),
+                      if (educations.last != edu)
+                        const Divider(height: 16),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
     );
   }
 
-  Widget _buildLanguagesSection(List<Language> languages) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Langues', Icons.language),
-        ...languages.map((lang) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(lang.langue ?? ''),
-              trailing: Chip(
-                label: Text(lang.niveau ?? ''),
-                backgroundColor: AppColors.accent.withOpacity(0.2),
+  Widget _buildCompetencesTile(BuildContext context, List<Skill> skills) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return _buildSectionCard(
+      context: context,
+      icon: Icons.star_outline,
+      title: 'Compétences',
+      children: skills.isEmpty
+          ? [_buildEmptyText(context)]
+          : [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: skills.map((skill) {
+                  final label = skill.niveau != null
+                      ? '${skill.nom ?? ''} (${skill.niveau}/5)'
+                      : skill.nom ?? '';
+                  return Chip(
+                    label: Text(label),
+                    backgroundColor:
+                        colorScheme.primary.withValues(alpha: 0.12),
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                  );
+                }).toList(),
               ),
-            )),
-      ],
+            ],
+    );
+  }
+
+  Widget _buildLanguesTile(BuildContext context, List<Language> languages) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return _buildSectionCard(
+      context: context,
+      icon: Icons.language_outlined,
+      title: 'Langues',
+      children: languages.isEmpty
+          ? [_buildEmptyText(context)]
+          : languages
+              .map(
+                (lang) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        lang.langue ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      if (lang.niveau != null)
+                        Chip(
+                          label: Text(lang.niveau!),
+                          backgroundColor:
+                              colorScheme.secondary.withValues(alpha: 0.15),
+                          labelStyle: TextStyle(color: colorScheme.secondary),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                        ),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
     );
   }
 }
