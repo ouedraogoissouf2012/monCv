@@ -46,9 +46,9 @@ class LandingScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _HeroSection(),
-                _FeaturesSection(),
-                _CtaSection(),
+                const _HeroSection(),
+                const _FeaturesSection(),
+                const _CtaSection(),
               ],
             ),
           ),
@@ -59,6 +59,8 @@ class LandingScreen extends StatelessWidget {
 }
 
 class _HeroSection extends StatelessWidget {
+  const _HeroSection();
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -135,18 +137,20 @@ class _HeroSection extends StatelessWidget {
 }
 
 class _FeaturesSection extends StatelessWidget {
+  const _FeaturesSection();
+
+  static const features = [
+    (Icons.edit_note_outlined, 'Créer un CV',
+        'Remplissez vos informations guidé par une interface intuitive.'),
+    (Icons.picture_as_pdf_outlined, 'Exporter PDF',
+        'Générez un PDF professionnel d\'un simple clic.'),
+    (Icons.devices_outlined, 'Accéder partout',
+        'Web, mobile, tablette — votre CV toujours avec vous.'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
-
-    final features = [
-      (Icons.edit_note_outlined, 'Créer un CV',
-          'Remplissez vos informations guidé par une interface intuitive.'),
-      (Icons.picture_as_pdf_outlined, 'Exporter PDF',
-          'Générez un PDF professionnel d\'un simple clic.'),
-      (Icons.devices_outlined, 'Accéder partout',
-          'Web, mobile, tablette — votre CV toujours avec vous.'),
-    ];
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -233,6 +237,8 @@ class _FeatureCard extends StatelessWidget {
 }
 
 class _CtaSection extends StatelessWidget {
+  const _CtaSection();
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
