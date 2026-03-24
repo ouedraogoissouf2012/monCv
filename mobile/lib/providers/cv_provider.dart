@@ -3,7 +3,9 @@ import '../models/cv.dart';
 import '../services/api_service.dart';
 
 class CvProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+
+  CvProvider({ApiService? apiService}) : _apiService = apiService ?? ApiService();
 
   List<Cv> _cvs = [];
   Cv? _currentCv;
