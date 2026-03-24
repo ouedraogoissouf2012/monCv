@@ -112,7 +112,7 @@ class _HeroSection extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => context.go('/register'),
                 icon: const Icon(Icons.add),
-                label: const Text('Commencer gratuitement'),
+                label: const Text('Créer un compte free'),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 16),
@@ -140,9 +140,9 @@ class _FeaturesSection extends StatelessWidget {
     final isDesktop = Responsive.isDesktop(context);
 
     final features = [
-      (Icons.edit_note_outlined, 'Créez facilement',
+      (Icons.edit_note_outlined, 'Créer un CV',
           'Remplissez vos informations guidé par une interface intuitive.'),
-      (Icons.picture_as_pdf_outlined, 'Exportez en PDF',
+      (Icons.picture_as_pdf_outlined, 'Exporter PDF',
           'Générez un PDF professionnel d\'un simple clic.'),
       (Icons.devices_outlined, 'Accédez partout',
           'Web, mobile, tablette — votre CV toujours avec vous.'),
