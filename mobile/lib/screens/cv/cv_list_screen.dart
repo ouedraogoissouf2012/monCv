@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../utils/constants.dart';
-import 'cv_form_screen.dart';
-import 'cv_detail_screen.dart';
 
 class CvListScreen extends StatelessWidget {
   const CvListScreen({super.key});
@@ -46,14 +45,7 @@ class _CvCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CvDetailScreen(cvId: cv.id!),
-            ),
-          );
-        },
+        onTap: () => context.push('/cvs/${cv.id}'),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -102,12 +94,7 @@ class _CvCard extends StatelessWidget {
                     icon: const Icon(Icons.more_vert),
                     onSelected: (value) {
                       if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CvFormScreen(cv: cv),
-                          ),
-                        );
+                        context.push('/cvs/${cv.id}/edit', extra: cv);
                       } else if (value == 'delete') {
                         _showDeleteDialog(context);
                       }

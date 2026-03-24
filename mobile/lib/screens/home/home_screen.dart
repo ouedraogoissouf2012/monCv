@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../utils/constants.dart';
 import '../cv/cv_list_screen.dart';
-import '../cv/cv_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -90,14 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CvFormScreen(),
-            ),
-          );
-        },
+        onPressed: () => context.push('/cvs/create'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
@@ -136,14 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CvFormScreen(),
-                  ),
-                );
-              },
+              onPressed: () => context.push('/cvs/create'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

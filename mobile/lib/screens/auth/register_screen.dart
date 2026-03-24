@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
@@ -41,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success && mounted) {
-        Navigator.pop(context);
+        context.go('/home');
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -224,7 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.go('/login'),
                       child: const Text(AppStrings.login),
                     ),
                   ],
