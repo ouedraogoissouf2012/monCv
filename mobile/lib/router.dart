@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/cv/cv_detail_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/landing/landing_screen.dart';
 
 class AppRouter {
   static GoRouter create(AuthProvider authProvider) {
@@ -17,13 +19,21 @@ class AppRouter {
       redirect: (context, state) {
         final isLoggedIn = authProvider.isAuthenticated;
         final location = state.matchedLocation;
-        final isPublic = location == '/login' || location == '/register';
+        final isPublic = location == '/login' ||
+            location == '/register' ||
+            location == '/landing';
 
-        if (!isLoggedIn && !isPublic) return '/login';
+        if (!isLoggedIn && !isPublic) {
+          return kIsWeb ? '/landing' : '/login';
+        }
         if (isLoggedIn && isPublic) return '/home';
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/landing',
+          builder: (context, state) => const LandingScreen(),
+        ),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
