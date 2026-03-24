@@ -191,70 +191,69 @@ class ExperienceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: experiences.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        if (experiences.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.work, size: 48, color: Colors.grey.shade300),
+                const SizedBox(height: 8),
+                Text(
+                  'Aucune experience',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: experiences.length,
+            itemBuilder: (context, index) {
+              final exp = experiences[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(exp.poste ?? 'Sans titre'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.work, size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucune experience',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      Text(exp.entreprise ?? ''),
+                      if (exp.actuel)
+                        const Text(
+                          'Poste actuel',
+                          style: TextStyle(
+                            color: AppColors.success,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _editExperience(context, index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: AppColors.error),
+                        onPressed: () => _deleteExperience(index),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: experiences.length,
-                  itemBuilder: (context, index) {
-                    final exp = experiences[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(exp.poste ?? 'Sans titre'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(exp.entreprise ?? ''),
-                            if (exp.actuel)
-                              const Text(
-                                'Poste actuel',
-                                style: TextStyle(
-                                  color: AppColors.success,
-                                  fontSize: 12,
-                                ),
-                              ),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _editExperience(context, index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: AppColors.error),
-                              onPressed: () => _deleteExperience(index),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () => _addExperience(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter une experience'),
+              );
+            },
           ),
+        OutlinedButton.icon(
+          onPressed: () => _addExperience(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter une experience'),
         ),
       ],
     );

@@ -174,57 +174,56 @@ class EducationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: educations.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        if (educations.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.school, size: 48, color: Colors.grey.shade300),
+                const SizedBox(height: 8),
+                Text(
+                  'Aucune formation',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: educations.length,
+            itemBuilder: (context, index) {
+              final edu = educations[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(edu.diplome ?? 'Sans titre'),
+                  subtitle: Text(edu.etablissement ?? ''),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.school, size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucune formation',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _editEducation(context, index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: AppColors.error),
+                        onPressed: () => _deleteEducation(index),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: educations.length,
-                  itemBuilder: (context, index) {
-                    final edu = educations[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(edu.diplome ?? 'Sans titre'),
-                        subtitle: Text(edu.etablissement ?? ''),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _editEducation(context, index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: AppColors.error),
-                              onPressed: () => _deleteEducation(index),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () => _addEducation(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter une formation'),
+              );
+            },
           ),
+        OutlinedButton.icon(
+          onPressed: () => _addEducation(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter une formation'),
         ),
       ],
     );
