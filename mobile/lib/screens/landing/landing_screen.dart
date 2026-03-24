@@ -43,12 +43,12 @@ class LandingScreen extends StatelessWidget {
               ),
             ],
           ),
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: Column(
               children: [
-                const _HeroSection(),
-                const _FeaturesSection(),
-                const _CtaSection(),
+                _HeroSection(),
+                _FeaturesSection(),
+                _CtaSection(),
               ],
             ),
           ),
