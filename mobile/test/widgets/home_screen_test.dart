@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
@@ -8,7 +9,6 @@ import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
-import 'package:cv_mobile/utils/constants.dart';
 
 class MockAuthProvider extends Mock implements AuthProvider {}
 class MockCvProvider extends Mock implements CvProvider {}
@@ -31,15 +31,37 @@ User _fakeUser() => User(
     );
 
 Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
-  return MaterialApp(
+  final router = GoRouter(
+    initialLocation: '/home',
+    routes: [
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+            ChangeNotifierProvider<CvProvider>.value(value: cvProvider),
+          ],
+          child: const HomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/cvs/create',
+        builder: (context, state) => const Scaffold(body: Text('Create CV')),
+      ),
+      GoRoute(
+        path: '/cvs/:id',
+        builder: (context, state) => const Scaffold(body: Text('CV Detail')),
+      ),
+      GoRoute(
+        path: '/cvs/:id/edit',
+        builder: (context, state) => const Scaffold(body: Text('CV Edit')),
+      ),
+    ],
+  );
+
+  return MaterialApp.router(
     theme: ThemeData(useMaterial3: true),
-    home: MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-        ChangeNotifierProvider<CvProvider>.value(value: cvProvider),
-      ],
-      child: const HomeScreen(),
-    ),
+    routerConfig: router,
   );
 }
 
@@ -65,21 +87,21 @@ void main() {
   });
 
   group('HomeScreen', () {
-    testWidgets('affiche le titre de l\'application dans l\'AppBar', (tester) async {
+    testWidgets('affiche le titre Mes CVs dans l\'AppBar', (tester) async {
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text(AppStrings.appName), findsOneWidget);
+      expect(find.text('Mes CVs'), findsWidgets);
     });
 
     testWidgets('affiche l\'état vide quand il n\'y a pas de CVs', (tester) async {
       when(() => mockCv.cvs).thenReturn([]);
 
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      expect(find.text('Aucun CV'), findsOneWidget);
-      expect(find.text('Creez votre premier CV professionnel'), findsOneWidget);
+      expect(find.text('Aucun CV pour l\'instant'), findsOneWidget);
+      expect(find.text('Créez votre premier CV professionnel'), findsOneWidget);
     });
 
     testWidgets('affiche la liste des CVs quand il y en a', (tester) async {
@@ -89,7 +111,7 @@ void main() {
       ]);
 
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('CV Développeur'), findsOneWidget);
       expect(find.text('CV Designer'), findsOneWidget);
@@ -107,7 +129,7 @@ void main() {
 
     testWidgets('affiche le FAB Nouveau CV quand la liste est vide', (tester) async {
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Nouveau CV'), findsWidgets);
     });
