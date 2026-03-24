@@ -156,69 +156,68 @@ class LanguagesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: languages.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        if (languages.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.language, size: 48, color: Colors.grey.shade300),
+                const SizedBox(height: 8),
+                Text(
+                  'Aucune langue',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: languages.length,
+            itemBuilder: (context, index) {
+              final lang = languages[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    child: Text(
+                      lang.langue?.substring(0, 2).toUpperCase() ?? '',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(lang.langue ?? ''),
+                  subtitle: Text(
+                    '${lang.niveau} - ${niveauDescriptions[lang.niveau] ?? ''}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.language, size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucune langue',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () => _editLanguage(context, index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
+                        onPressed: () => _deleteLanguage(index),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: languages.length,
-                  itemBuilder: (context, index) {
-                    final lang = languages[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          child: Text(
-                            lang.langue?.substring(0, 2).toUpperCase() ?? '',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        title: Text(lang.langue ?? ''),
-                        subtitle: Text(
-                          '${lang.niveau} - ${niveauDescriptions[lang.niveau] ?? ''}',
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () => _editLanguage(context, index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
-                              onPressed: () => _deleteLanguage(index),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () => _addLanguage(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter une langue'),
+              );
+            },
           ),
+        OutlinedButton.icon(
+          onPressed: () => _addLanguage(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter une langue'),
         ),
       ],
     );

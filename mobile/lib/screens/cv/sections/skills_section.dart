@@ -154,72 +154,68 @@ class SkillsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: skills.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        if (skills.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.star, size: 48, color: Colors.grey.shade300),
+                const SizedBox(height: 8),
+                Text(
+                  'Aucune competence',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: skills.length,
+            itemBuilder: (context, index) {
+              final skill = skills[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(skill.nom ?? ''),
+                  subtitle: skill.categorie != null ? Text(skill.categorie!) : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.star, size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucune competence',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      Row(
+                        children: List.generate(5, (i) {
+                          return Icon(
+                            Icons.star,
+                            size: 16,
+                            color: i < (skill.niveau ?? 0)
+                                ? AppColors.warning
+                                : Colors.grey.shade300,
+                          );
+                        }),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () => _editSkill(context, index),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
+                        onPressed: () => _deleteSkill(index),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: skills.length,
-                  itemBuilder: (context, index) {
-                    final skill = skills[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(skill.nom ?? ''),
-                        subtitle: skill.categorie != null
-                            ? Text(skill.categorie!)
-                            : null,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Niveau indicator
-                            Row(
-                              children: List.generate(5, (i) {
-                                return Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: i < (skill.niveau ?? 0)
-                                      ? AppColors.warning
-                                      : Colors.grey.shade300,
-                                );
-                              }),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              onPressed: () => _editSkill(context, index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
-                              onPressed: () => _deleteSkill(index),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: OutlinedButton.icon(
-            onPressed: () => _addSkill(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter une competence'),
+              );
+            },
           ),
+        OutlinedButton.icon(
+          onPressed: () => _addSkill(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter une competence'),
         ),
       ],
     );
