@@ -67,6 +67,10 @@ class _CvFormScreenState extends State<CvFormScreen> {
       return;
     }
 
+    // Capture context-dependent objects BEFORE any await
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
     setState(() => _isLoading = true);
 
     final cv = Cv(
@@ -92,15 +96,15 @@ class _CvFormScreenState extends State<CvFormScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
+      router.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(isEditing ? 'CV mis a jour' : 'CV cree avec succes'),
           backgroundColor: AppColors.success,
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text(cvProvider.error ?? 'Erreur'),
           backgroundColor: AppColors.error,
