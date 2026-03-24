@@ -1,8 +1,8 @@
+// mobile/lib/screens/auth/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../utils/constants.dart';
 import '../../widgets/responsive_layout.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -14,228 +14,178 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nomController = TextEditingController();
-  final _prenomController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _prenomCtrl = TextEditingController();
+  final _nomCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
-    _nomController.dispose();
-    _prenomController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _prenomCtrl.dispose();
+    _nomCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        nom: _nomController.text.trim(),
-        prenom: _prenomController.text.trim(),
+    if (!_formKey.currentState!.validate()) return;
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.register(
+      email: _emailCtrl.text.trim(),
+      password: _passwordCtrl.text,
+      prenom: _prenomCtrl.text.trim(),
+      nom: _nomCtrl.text.trim(),
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.error ?? 'Erreur d\'inscription'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
-
-      if (success && mounted) {
-        context.go('/home');
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error ?? 'Erreur lors de l\'inscription'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.register),
-      ),
       body: SafeArea(
         child: CenteredFormLayout(
           child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 24),
-                Text(
-                  'Creez votre compte',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Remplissez les informations ci-dessous',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                const SizedBox(height: 32),
-
-                // Champ prenom
-                TextFormField(
-                  controller: _prenomController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.firstName,
-                    prefixIcon: Icon(Icons.person_outlined),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Champ nom
-                TextFormField(
-                  controller: _nomController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.lastName,
-                    prefixIcon: Icon(Icons.person_outlined),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Champ email
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.email,
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Veuillez entrer un email valide';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Champ mot de passe
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: AppStrings.password,
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+                      child: Icon(Icons.person_add_outlined,
+                          size: 32, color: colorScheme.primary),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un mot de passe';
-                    }
-                    if (value.length < 6) {
-                      return 'Le mot de passe doit contenir au moins 6 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Champ confirmation mot de passe
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: AppStrings.confirmPassword,
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Créer un compte',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez confirmer votre mot de passe';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Les mots de passe ne correspondent pas';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Bouton inscription
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, _) {
-                    return ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _register,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rejoignez MonCV gratuitement',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _prenomCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(labelText: 'Prénom'),
+                          validator: (v) =>
+                              (v == null || v.isEmpty) ? 'Requis' : null,
+                        ),
                       ),
-                      child: authProvider.isLoading
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nomCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(labelText: 'Nom'),
+                          validator: (v) =>
+                              (v == null || v.isEmpty) ? 'Requis' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Requis';
+                      if (!v.contains('@')) return 'Email invalide';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _passwordCtrl,
+                    obscureText: _obscure,
+                    decoration: InputDecoration(
+                      labelText: 'Mot de passe',
+                      prefixIcon: const Icon(Icons.lock_outlined),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Requis';
+                      if (v.length < 6) return 'Minimum 6 caractères';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Consumer<AuthProvider>(
+                    builder: (_, auth, __) => FilledButton(
+                      onPressed: auth.isLoading ? null : _register,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: auth.isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(Colors.white)),
                             )
-                          : const Text(AppStrings.register),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Lien connexion
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppStrings.hasAccount,
-                      style: TextStyle(color: AppColors.textSecondary),
+                          : const Text('Créer mon compte',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text(AppStrings.login),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Déjà un compte ?',
+                          style: TextStyle(
+                              color: colorScheme.onSurface.withValues(alpha: 0.6))),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: const Text('Se connecter'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
