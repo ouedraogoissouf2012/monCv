@@ -29,8 +29,10 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     });
   }
 
-  Future<void> _downloadPdf(BuildContext context) async {
+  Future<void> _downloadPdf() async {
     if (_isDownloadingPdf) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
     setState(() => _isDownloadingPdf = true);
     try {
       final bytes = await ApiService().downloadCvPdf(widget.cvId);
@@ -40,11 +42,11 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
       await OpenFile.open(file.path);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(this.context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Erreur PDF : $e'),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(this.context).colorScheme.error,
+            backgroundColor: errorColor,
           ),
         );
       }
@@ -86,7 +88,9 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+            onPressed: cv.id != null
+                ? () => context.push('/cvs/${cv.id}/edit', extra: cv)
+                : null,
             child: const Icon(Icons.edit),
           ),
         );
@@ -116,7 +120,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
             : IconButton(
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 tooltip: 'Télécharger PDF',
-                onPressed: () => _downloadPdf(context),
+                onPressed: _downloadPdf,
               ),
       ],
       flexibleSpace: FlexibleSpaceBar(
@@ -256,52 +260,54 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
       title: 'Expériences',
       children: experiences.isEmpty
           ? [_buildEmptyText(context)]
-          : experiences
-              .map(
-                (exp) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (exp.poste != null)
+          : experiences.asMap().entries.map(
+                (entry) {
+                  final idx = entry.key;
+                  final exp = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (exp.poste != null)
+                          Text(
+                            exp.poste!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        if (exp.entreprise != null)
+                          Text(
+                            exp.entreprise!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: colorScheme.primary),
+                          ),
                         Text(
-                          exp.poste!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      if (exp.entreprise != null)
-                        Text(
-                          exp.entreprise!,
+                          '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : '?'}'
+                          ' - '
+                          '${exp.actuel ? 'Présent' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '?')}',
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
-                              ?.copyWith(color: colorScheme.primary),
+                              ?.copyWith(color: Colors.grey),
                         ),
-                      Text(
-                        '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : '?'}'
-                        ' - '
-                        '${exp.actuel ? 'Présent' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '?')}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: Colors.grey),
-                      ),
-                      if (exp.description != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          exp.description!,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                        if (exp.description != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            exp.description!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        if (idx < experiences.length - 1)
+                          const Divider(height: 16),
                       ],
-                      if (experiences.last != exp)
-                        const Divider(height: 16),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
+                    ),
+                  );
+                },
+              ).toList(),
     );
   }
 
@@ -315,53 +321,55 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
       title: 'Formations',
       children: educations.isEmpty
           ? [_buildEmptyText(context)]
-          : educations
-              .map(
-                (edu) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (edu.diplome != null)
+          : educations.asMap().entries.map(
+                (entry) {
+                  final idx = entry.key;
+                  final edu = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (edu.diplome != null)
+                          Text(
+                            edu.diplome!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        if (edu.etablissement != null)
+                          Text(
+                            edu.etablissement!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: colorScheme.primary),
+                          ),
+                        if (edu.domaine != null)
+                          Text(
+                            edu.domaine!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: Colors.grey),
+                          ),
                         Text(
-                          edu.diplome!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      if (edu.etablissement != null)
-                        Text(
-                          edu.etablissement!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: colorScheme.primary),
-                        ),
-                      if (edu.domaine != null)
-                        Text(
-                          edu.domaine!,
+                          '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : '?'}'
+                          ' - '
+                          '${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : '?'}',
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
                               ?.copyWith(color: Colors.grey),
                         ),
-                      Text(
-                        '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : '?'}'
-                        ' - '
-                        '${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : '?'}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: Colors.grey),
-                      ),
-                      if (educations.last != edu)
-                        const Divider(height: 16),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
+                        if (idx < educations.length - 1)
+                          const Divider(height: 16),
+                      ],
+                    ),
+                  );
+                },
+              ).toList(),
     );
   }
 
