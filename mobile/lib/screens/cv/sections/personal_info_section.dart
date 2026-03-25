@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../models/cv.dart';
 
 class PersonalInfoSection extends StatefulWidget {
@@ -20,102 +18,68 @@ class PersonalInfoSection extends StatefulWidget {
 }
 
 class _PersonalInfoSectionState extends State<PersonalInfoSection> {
-  late TextEditingController _nomController;
-  late TextEditingController _prenomController;
-  late TextEditingController _emailController;
-  late TextEditingController _telephoneController;
-  late TextEditingController _adresseController;
-  late TextEditingController _villeController;
-  late TextEditingController _codePostalController;
-  late TextEditingController _paysController;
-  late TextEditingController _titrePosteController;
-  late TextEditingController _linkedInController;
-  late TextEditingController _portfolioController;
-  late TextEditingController _resumeController;
-
-  String? _photoPath;
-  final _picker = ImagePicker();
+  late TextEditingController _nomCtrl;
+  late TextEditingController _prenomCtrl;
+  late TextEditingController _emailCtrl;
+  late TextEditingController _telCtrl;
+  late TextEditingController _adresseCtrl;
+  late TextEditingController _villeCtrl;
+  late TextEditingController _cpCtrl;
+  late TextEditingController _paysCtrl;
+  late TextEditingController _titrePosteCtrl;
+  late TextEditingController _linkedInCtrl;
+  late TextEditingController _portfolioCtrl;
+  late TextEditingController _resumeCtrl;
 
   @override
   void initState() {
     super.initState();
-    final info = widget.personalInfo;
-    _nomController = TextEditingController(text: info?.nom);
-    _prenomController = TextEditingController(text: info?.prenom);
-    _emailController = TextEditingController(text: info?.email);
-    _telephoneController = TextEditingController(text: info?.telephone);
-    _adresseController = TextEditingController(text: info?.adresse);
-    _villeController = TextEditingController(text: info?.ville);
-    _codePostalController = TextEditingController(text: info?.codePostal);
-    _paysController = TextEditingController(text: info?.pays);
-    _titrePosteController = TextEditingController(text: info?.titrePoste);
-    _linkedInController = TextEditingController(text: info?.linkedIn);
-    _portfolioController = TextEditingController(text: info?.portfolio);
-    _resumeController = TextEditingController(text: info?.resumeProfessionnel);
-    _photoPath = info?.photoUrl;
-  }
-
-  Future<void> _pickPhoto() async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galerie'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Appareil photo'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (source == null) return;
-    final picked = await _picker.pickImage(source: source, imageQuality: 80);
-    if (picked != null) {
-      setState(() => _photoPath = picked.path);
-      _updatePersonalInfo();
-    }
+    final i = widget.personalInfo;
+    _nomCtrl = TextEditingController(text: i?.nom);
+    _prenomCtrl = TextEditingController(text: i?.prenom);
+    _emailCtrl = TextEditingController(text: i?.email);
+    _telCtrl = TextEditingController(text: i?.telephone);
+    _adresseCtrl = TextEditingController(text: i?.adresse);
+    _villeCtrl = TextEditingController(text: i?.ville);
+    _cpCtrl = TextEditingController(text: i?.codePostal);
+    _paysCtrl = TextEditingController(text: i?.pays);
+    _titrePosteCtrl = TextEditingController(text: i?.titrePoste);
+    _linkedInCtrl = TextEditingController(text: i?.linkedIn);
+    _portfolioCtrl = TextEditingController(text: i?.portfolio);
+    _resumeCtrl = TextEditingController(text: i?.resumeProfessionnel);
   }
 
   @override
   void dispose() {
-    _nomController.dispose();
-    _prenomController.dispose();
-    _emailController.dispose();
-    _telephoneController.dispose();
-    _adresseController.dispose();
-    _villeController.dispose();
-    _codePostalController.dispose();
-    _paysController.dispose();
-    _titrePosteController.dispose();
-    _linkedInController.dispose();
-    _portfolioController.dispose();
-    _resumeController.dispose();
+    _nomCtrl.dispose();
+    _prenomCtrl.dispose();
+    _emailCtrl.dispose();
+    _telCtrl.dispose();
+    _adresseCtrl.dispose();
+    _villeCtrl.dispose();
+    _cpCtrl.dispose();
+    _paysCtrl.dispose();
+    _titrePosteCtrl.dispose();
+    _linkedInCtrl.dispose();
+    _portfolioCtrl.dispose();
+    _resumeCtrl.dispose();
     super.dispose();
   }
 
-  void _updatePersonalInfo() {
+  void _notify() {
     widget.onChanged(PersonalInfo(
-      nom: _nomController.text.isNotEmpty ? _nomController.text : null,
-      prenom: _prenomController.text.isNotEmpty ? _prenomController.text : null,
-      email: _emailController.text.isNotEmpty ? _emailController.text : null,
-      telephone: _telephoneController.text.isNotEmpty ? _telephoneController.text : null,
-      adresse: _adresseController.text.isNotEmpty ? _adresseController.text : null,
-      ville: _villeController.text.isNotEmpty ? _villeController.text : null,
-      codePostal: _codePostalController.text.isNotEmpty ? _codePostalController.text : null,
-      pays: _paysController.text.isNotEmpty ? _paysController.text : null,
-      titrePoste: _titrePosteController.text.isNotEmpty ? _titrePosteController.text : null,
-      linkedIn: _linkedInController.text.isNotEmpty ? _linkedInController.text : null,
-      portfolio: _portfolioController.text.isNotEmpty ? _portfolioController.text : null,
-      resumeProfessionnel: _resumeController.text.isNotEmpty ? _resumeController.text : null,
-      photoUrl: _photoPath,
+      nom: _nomCtrl.text.isNotEmpty ? _nomCtrl.text : null,
+      prenom: _prenomCtrl.text.isNotEmpty ? _prenomCtrl.text : null,
+      email: _emailCtrl.text.isNotEmpty ? _emailCtrl.text : null,
+      telephone: _telCtrl.text.isNotEmpty ? _telCtrl.text : null,
+      adresse: _adresseCtrl.text.isNotEmpty ? _adresseCtrl.text : null,
+      ville: _villeCtrl.text.isNotEmpty ? _villeCtrl.text : null,
+      codePostal: _cpCtrl.text.isNotEmpty ? _cpCtrl.text : null,
+      pays: _paysCtrl.text.isNotEmpty ? _paysCtrl.text : null,
+      titrePoste: _titrePosteCtrl.text.isNotEmpty ? _titrePosteCtrl.text : null,
+      linkedIn: _linkedInCtrl.text.isNotEmpty ? _linkedInCtrl.text : null,
+      portfolio: _portfolioCtrl.text.isNotEmpty ? _portfolioCtrl.text : null,
+      resumeProfessionnel: _resumeCtrl.text.isNotEmpty ? _resumeCtrl.text : null,
     ));
   }
 
@@ -123,171 +87,183 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
   Widget build(BuildContext context) {
     return Form(
       key: widget.formKey,
-      child: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Photo de profil
-          Center(
-            child: GestureDetector(
-              onTap: _pickPhoto,
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey.shade200,
-                    backgroundImage: _photoPath != null
-                        ? FileImage(File(_photoPath!))
-                        : null,
-                    child: _photoPath == null
-                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.blue,
-                      child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+          // ── Identité ───────────────────────────────────
+          const _GroupLabel('IDENTITÉ'),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
-                  controller: _prenomController,
+                  controller: _prenomCtrl,
                   decoration: const InputDecoration(labelText: 'Prénom *'),
                   textCapitalization: TextCapitalization.words,
-                  onChanged: (_) => _updatePersonalInfo(),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Prénom requis' : null,
+                  onChanged: (_) => _notify(),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Requis' : null,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
-                  controller: _nomController,
+                  controller: _nomCtrl,
                   decoration: const InputDecoration(labelText: 'Nom *'),
                   textCapitalization: TextCapitalization.words,
-                  onChanged: (_) => _updatePersonalInfo(),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Nom requis' : null,
+                  onChanged: (_) => _notify(),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Requis' : null,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
-            controller: _titrePosteController,
+            controller: _titrePosteCtrl,
             decoration: const InputDecoration(
               labelText: 'Titre du poste',
-              hintText: 'Ex: Developpeur Web',
+              hintText: 'Ex : Développeur Web Senior',
             ),
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+
+          // ── Coordonnées ────────────────────────────────
+          const SizedBox(height: 20),
+          const _GroupLabel('COORDONNÉES'),
           TextFormField(
-            controller: _emailController,
+            controller: _emailCtrl,
             decoration: const InputDecoration(
               labelText: 'Email *',
-              prefixIcon: Icon(Icons.email),
+              prefixIcon: Icon(Icons.email_outlined, size: 20),
             ),
             keyboardType: TextInputType.emailAddress,
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email requis';
-              final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
-              if (!emailRegex.hasMatch(v.trim())) return 'Email invalide';
+              if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
+                return 'Email invalide';
+              }
               return null;
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
-            controller: _telephoneController,
+            controller: _telCtrl,
             decoration: const InputDecoration(
-              labelText: 'Telephone',
-              prefixIcon: Icon(Icons.phone),
+              labelText: 'Téléphone',
+              prefixIcon: Icon(Icons.phone_outlined, size: 20),
             ),
             keyboardType: TextInputType.phone,
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+
+          // ── Localisation ───────────────────────────────
+          const SizedBox(height: 20),
+          const _GroupLabel('LOCALISATION'),
           TextFormField(
-            controller: _adresseController,
+            controller: _adresseCtrl,
             decoration: const InputDecoration(
               labelText: 'Adresse',
-              prefixIcon: Icon(Icons.location_on),
+              prefixIcon: Icon(Icons.location_on_outlined, size: 20),
             ),
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 flex: 2,
                 child: TextFormField(
-                  controller: _villeController,
+                  controller: _villeCtrl,
                   decoration: const InputDecoration(labelText: 'Ville'),
-                  onChanged: (_) => _updatePersonalInfo(),
+                  onChanged: (_) => _notify(),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
-                  controller: _codePostalController,
+                  controller: _cpCtrl,
                   decoration: const InputDecoration(labelText: 'Code postal'),
                   keyboardType: TextInputType.number,
-                  onChanged: (_) => _updatePersonalInfo(),
+                  onChanged: (_) => _notify(),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
-            controller: _paysController,
-            decoration: const InputDecoration(labelText: 'Pays'),
-            onChanged: (_) => _updatePersonalInfo(),
+            controller: _paysCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Pays',
+              prefixIcon: Icon(Icons.flag_outlined, size: 20),
+            ),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+
+          // ── En ligne ───────────────────────────────────
+          const SizedBox(height: 20),
+          const _GroupLabel('EN LIGNE'),
           TextFormField(
-            controller: _linkedInController,
+            controller: _linkedInCtrl,
             decoration: const InputDecoration(
               labelText: 'LinkedIn',
-              prefixIcon: Icon(Icons.link),
-              hintText: 'https://linkedin.com/in/...',
+              prefixIcon: Icon(Icons.link_rounded, size: 20),
+              hintText: 'linkedin.com/in/...',
             ),
             keyboardType: TextInputType.url,
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
-            controller: _portfolioController,
+            controller: _portfolioCtrl,
             decoration: const InputDecoration(
               labelText: 'Portfolio / Site web',
-              prefixIcon: Icon(Icons.language),
+              prefixIcon: Icon(Icons.language_rounded, size: 20),
             ),
             keyboardType: TextInputType.url,
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 16),
+
+          // ── À propos ───────────────────────────────────
+          const SizedBox(height: 20),
+          const _GroupLabel('À PROPOS'),
           TextFormField(
-            controller: _resumeController,
+            controller: _resumeCtrl,
             decoration: const InputDecoration(
-              labelText: 'Resume professionnel',
-              hintText: 'Decrivez-vous en quelques phrases...',
+              labelText: 'Résumé professionnel',
+              hintText: 'Décrivez-vous en quelques phrases...',
               alignLabelWithHint: true,
             ),
             maxLines: 4,
-            onChanged: (_) => _updatePersonalInfo(),
+            onChanged: (_) => _notify(),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 4),
         ],
       ),
-    ),
+    );
+  }
+}
+
+// ── Widget helper ─────────────────────────────────────────────
+
+class _GroupLabel extends StatelessWidget {
+  final String text;
+  const _GroupLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.9,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/cv.dart';
-import '../../../utils/constants.dart';
+import 'form_sheet.dart';
 
 class SkillsSection extends StatelessWidget {
   final List<Skill> skills;
@@ -12,212 +12,253 @@ class SkillsSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _addSkill(BuildContext context) {
-    _showSkillDialog(context, null, (skill) {
-      onChanged([...skills, skill]);
-    });
+  void _add(BuildContext context) =>
+      _showSheet(context, null, (s) => onChanged([...skills, s]));
+
+  void _edit(BuildContext context, int i) =>
+      _showSheet(context, skills[i], (s) {
+        final list = List<Skill>.from(skills);
+        list[i] = s;
+        onChanged(list);
+      });
+
+  void _delete(int i) {
+    final list = List<Skill>.from(skills);
+    list.removeAt(i);
+    onChanged(list);
   }
 
-  void _editSkill(BuildContext context, int index) {
-    _showSkillDialog(context, skills[index], (skill) {
-      final newList = List<Skill>.from(skills);
-      newList[index] = skill;
-      onChanged(newList);
-    });
-  }
-
-  void _deleteSkill(int index) {
-    final newList = List<Skill>.from(skills);
-    newList.removeAt(index);
-    onChanged(newList);
-  }
-
-  void _showSkillDialog(
+  void _showSheet(
     BuildContext context,
     Skill? skill,
     Function(Skill) onSave,
   ) {
-    final nomController = TextEditingController(text: skill?.nom);
-    final categorieController = TextEditingController(text: skill?.categorie);
+    final nomCtrl = TextEditingController(text: skill?.nom);
+    final catCtrl = TextEditingController(text: skill?.categorie);
     int niveau = skill?.niveau ?? 3;
 
-    showModalBottomSheet(
+    showFormSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
+      title: skill == null ? 'Ajouter une compétence' : 'Modifier la compétence',
+      icon: Icons.psychology_outlined,
+      builder: (ctx, setState) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: nomCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Compétence *',
+              hintText: 'Ex : JavaScript, Python, Photoshop...',
+              prefixIcon: Icon(Icons.code_rounded, size: 20),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: catCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Catégorie (optionnel)',
+              hintText: 'Ex : Développement, Design, Gestion...',
+              prefixIcon: Icon(Icons.folder_outlined, size: 20),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Niveau
+          Row(
             children: [
               Text(
-                skill == null ? 'Ajouter une competence' : 'Modifier la competence',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                'Niveau',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: Theme.of(ctx).colorScheme.primary,
                 ),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: nomController,
-                decoration: const InputDecoration(
-                  labelText: 'Competence',
-                  hintText: 'Ex: JavaScript, Python, Excel...',
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _levelLabel(niveau),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(ctx).colorScheme.primary,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: categorieController,
-                decoration: const InputDecoration(
-                  labelText: 'Categorie (optionnel)',
-                  hintText: 'Ex: Programmation, Bureautique...',
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Niveau: $niveau/5',
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              Slider(
-                value: niveau.toDouble(),
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: _getLevelLabel(niveau),
-                activeColor: AppColors.primary,
-                onChanged: (value) {
-                  setState(() => niveau = value.toInt());
-                },
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Debutant', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  Text('Expert', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                ],
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (nomController.text.isNotEmpty) {
-                    onSave(Skill(
-                      id: skill?.id,
-                      nom: nomController.text,
-                      niveau: niveau,
-                      categorie: categorieController.text.isNotEmpty
-                          ? categorieController.text
-                          : null,
-                    ));
-                    Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Enregistrer'),
-              ),
-              const SizedBox(height: 16),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          SliderTheme(
+            data: SliderTheme.of(ctx).copyWith(
+              trackHeight: 6,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+            ),
+            child: Slider(
+              value: niveau.toDouble(),
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: _levelLabel(niveau),
+              onChanged: (v) => setState(() => niveau = v.toInt()),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Débutant',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(ctx)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.45))),
+              Text('Expert',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(ctx)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.45))),
+            ],
+          ),
+        ],
       ),
+      onSave: () {
+        if (nomCtrl.text.isNotEmpty) {
+          onSave(Skill(
+            id: skill?.id,
+            nom: nomCtrl.text,
+            niveau: niveau,
+            categorie: catCtrl.text.isNotEmpty ? catCtrl.text : null,
+          ));
+        }
+      },
     );
   }
 
-  String _getLevelLabel(int niveau) {
-    switch (niveau) {
-      case 1:
-        return 'Debutant';
-      case 2:
-        return 'Intermediaire';
-      case 3:
-        return 'Avance';
-      case 4:
-        return 'Confirme';
-      case 5:
-        return 'Expert';
-      default:
-        return '';
-    }
-  }
+  static String _levelLabel(int n) => switch (n) {
+        1 => 'Débutant',
+        2 => 'Intermédiaire',
+        3 => 'Avancé',
+        4 => 'Confirmé',
+        _ => 'Expert',
+      };
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (skills.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star, size: 48, color: Colors.grey.shade300),
-                const SizedBox(height: 8),
-                Text(
-                  'Aucune competence',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
-            ),
+          const SectionEmptyState(
+            icon: Icons.psychology_outlined,
+            label: 'Aucune compétence ajoutée',
           )
         else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: skills.length,
-            itemBuilder: (context, index) {
-              final skill = skills[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(skill.nom ?? ''),
-                  subtitle: skill.categorie != null ? Text(skill.categorie!) : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: List.generate(5, (i) {
-                          return Icon(
-                            Icons.star,
-                            size: 16,
-                            color: i < (skill.niveau ?? 0)
-                                ? AppColors.warning
-                                : Colors.grey.shade300,
-                          );
-                        }),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 20),
-                        onPressed: () => _editSkill(context, index),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
-                        onPressed: () => _deleteSkill(index),
-                      ),
-                    ],
-                  ),
-                ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: skills.asMap().entries.map((entry) {
+              final i = entry.key;
+              final s = entry.value;
+              return _SkillChip(
+                skill: s,
+                onEdit: () => _edit(context, i),
+                onDelete: () => _delete(i),
               );
-            },
+            }).toList(),
           ),
-        OutlinedButton.icon(
-          onPressed: () => _addSkill(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Ajouter une competence'),
+        const SizedBox(height: 8),
+        SectionAddButton(
+          label: 'Ajouter une compétence',
+          onTap: () => _add(context),
         ),
       ],
+    );
+  }
+}
+
+class _SkillChip extends StatelessWidget {
+  final Skill skill;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _SkillChip({
+    required this.skill,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+            color: colorScheme.primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 12),
+          Text(
+            skill.nom ?? '',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          // Niveau en points
+          const SizedBox(width: 6),
+          Row(
+            children: List.generate(
+              5,
+              (i) => Container(
+                width: 5,
+                height: 5,
+                margin: const EdgeInsets.only(right: 2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: i < (skill.niveau ?? 0)
+                      ? colorScheme.primary
+                      : colorScheme.primary.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: onEdit,
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              child: Icon(Icons.edit_outlined,
+                  size: 14,
+                  color: colorScheme.primary.withValues(alpha: 0.7)),
+            ),
+          ),
+          InkWell(
+            onTap: onDelete,
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 6, 10, 6),
+              child: Icon(Icons.close_rounded,
+                  size: 14, color: colorScheme.error.withValues(alpha: 0.7)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
