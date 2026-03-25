@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/cv.dart';
-import '../../../utils/constants.dart';
+import 'form_sheet.dart';
 
 class ExperienceSection extends StatelessWidget {
   final List<Experience> experiences;
@@ -12,179 +12,134 @@ class ExperienceSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _addExperience(BuildContext context) {
-    _showExperienceDialog(context, null, (experience) {
-      onChanged([...experiences, experience]);
-    });
+  void _add(BuildContext context) =>
+      _showSheet(context, null, (e) => onChanged([...experiences, e]));
+
+  void _edit(BuildContext context, int i) =>
+      _showSheet(context, experiences[i], (e) {
+        final list = List<Experience>.from(experiences);
+        list[i] = e;
+        onChanged(list);
+      });
+
+  void _delete(int i) {
+    final list = List<Experience>.from(experiences);
+    list.removeAt(i);
+    onChanged(list);
   }
 
-  void _editExperience(BuildContext context, int index) {
-    _showExperienceDialog(context, experiences[index], (experience) {
-      final newList = List<Experience>.from(experiences);
-      newList[index] = experience;
-      onChanged(newList);
-    });
-  }
-
-  void _deleteExperience(int index) {
-    final newList = List<Experience>.from(experiences);
-    newList.removeAt(index);
-    onChanged(newList);
-  }
-
-  void _showExperienceDialog(
+  void _showSheet(
     BuildContext context,
-    Experience? experience,
+    Experience? exp,
     Function(Experience) onSave,
   ) {
-    final entrepriseController =
-        TextEditingController(text: experience?.entreprise);
-    final posteController = TextEditingController(text: experience?.poste);
-    final lieuController = TextEditingController(text: experience?.lieu);
-    final descriptionController =
-        TextEditingController(text: experience?.description);
-    DateTime? dateDebut = experience?.dateDebut;
-    DateTime? dateFin = experience?.dateFin;
-    bool actuel = experience?.actuel ?? false;
+    final posteCtrl = TextEditingController(text: exp?.poste);
+    final entrepriseCtrl = TextEditingController(text: exp?.entreprise);
+    final lieuCtrl = TextEditingController(text: exp?.lieu);
+    final descCtrl = TextEditingController(text: exp?.description);
+    DateTime? debut = exp?.dateDebut;
+    DateTime? fin = exp?.dateFin;
+    bool actuel = exp?.actuel ?? false;
 
-    showModalBottomSheet(
+    showFormSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  experience == null ? 'Ajouter une experience' : 'Modifier l\'experience',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: posteController,
-                  decoration: const InputDecoration(labelText: 'Poste'),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: entrepriseController,
-                  decoration: const InputDecoration(labelText: 'Entreprise'),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: lieuController,
-                  decoration: const InputDecoration(labelText: 'Lieu'),
-                ),
-                const SizedBox(height: 12),
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Poste actuel'),
-                  value: actuel,
-                  onChanged: (value) {
-                    setState(() {
-                      actuel = value ?? false;
-                      if (actuel) dateFin = null;
-                    });
-                  },
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Debut'),
-                        subtitle: Text(
-                          dateDebut != null
-                              ? '${dateDebut!.month}/${dateDebut!.year}'
-                              : 'Selectionner',
-                        ),
-                        onTap: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: dateDebut ?? DateTime.now(),
-                            firstDate: DateTime(1950),
-                            lastDate: DateTime.now(),
-                          );
-                          if (date != null) {
-                            setState(() => dateDebut = date);
-                          }
-                        },
-                      ),
-                    ),
-                    if (!actuel)
-                      Expanded(
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('Fin'),
-                          subtitle: Text(
-                            dateFin != null
-                                ? '${dateFin!.month}/${dateFin!.year}'
-                                : 'Selectionner',
-                          ),
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: dateFin ?? DateTime.now(),
-                              firstDate: DateTime(1950),
-                              lastDate: DateTime.now(),
-                            );
-                            if (date != null) {
-                              setState(() => dateFin = date);
-                            }
-                          },
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description des taches',
-                    hintText: 'Decrivez vos responsabilites...',
-                  ),
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    onSave(Experience(
-                      id: experience?.id,
-                      entreprise: entrepriseController.text,
-                      poste: posteController.text,
-                      lieu: lieuController.text,
-                      dateDebut: dateDebut,
-                      dateFin: dateFin,
-                      description: descriptionController.text,
-                      actuel: actuel,
-                    ));
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Enregistrer'),
-                ),
-                const SizedBox(height: 16),
-              ],
+      title: exp == null ? 'Ajouter une expérience' : 'Modifier l\'expérience',
+      icon: Icons.work_outline_rounded,
+      builder: (ctx, setState) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: posteCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Intitulé du poste *',
+              prefixIcon: Icon(Icons.badge_outlined, size: 20),
             ),
           ),
-        ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: entrepriseCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Entreprise',
+              prefixIcon: Icon(Icons.business_outlined, size: 20),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: lieuCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Lieu',
+              prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SectionCurrentSwitch(
+            value: actuel,
+            onChanged: (v) => setState(() {
+              actuel = v;
+              if (actuel) fin = null;
+            }),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: SectionDateButton(
+                  label: 'Début',
+                  date: debut,
+                  onTap: () async {
+                    final d = await showDatePicker(
+                      context: ctx,
+                      initialDate: debut ?? DateTime.now(),
+                      firstDate: DateTime(1950),
+                      lastDate: DateTime.now(),
+                    );
+                    if (d != null) setState(() => debut = d);
+                  },
+                ),
+              ),
+              if (!actuel) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SectionDateButton(
+                    label: 'Fin',
+                    date: fin,
+                    onTap: () async {
+                      final d = await showDatePicker(
+                        context: ctx,
+                        initialDate: fin ?? DateTime.now(),
+                        firstDate: DateTime(1950),
+                        lastDate: DateTime.now(),
+                      );
+                      if (d != null) setState(() => fin = d);
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: descCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Description des responsabilités',
+              hintText: 'Décrivez vos missions principales...',
+              alignLabelWithHint: true,
+            ),
+            maxLines: 3,
+          ),
+        ],
       ),
+      onSave: () => onSave(Experience(
+        id: exp?.id,
+        poste: posteCtrl.text,
+        entreprise: entrepriseCtrl.text,
+        lieu: lieuCtrl.text,
+        dateDebut: debut,
+        dateFin: fin,
+        description: descCtrl.text,
+        actuel: actuel,
+      )),
     );
   }
 
@@ -192,68 +147,34 @@ class ExperienceSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (experiences.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.work, size: 48, color: Colors.grey.shade300),
-                const SizedBox(height: 8),
-                Text(
-                  'Aucune experience',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
-            ),
+          const SectionEmptyState(
+            icon: Icons.work_outline_rounded,
+            label: 'Aucune expérience ajoutée',
           )
         else
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: experiences.length,
-            itemBuilder: (context, index) {
-              final exp = experiences[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(exp.poste ?? 'Sans titre'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(exp.entreprise ?? ''),
-                      if (exp.actuel)
-                        const Text(
-                          'Poste actuel',
-                          style: TextStyle(
-                            color: AppColors.success,
-                            fontSize: 12,
-                          ),
-                        ),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _editExperience(context, index),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: AppColors.error),
-                        onPressed: () => _deleteExperience(index),
-                      ),
-                    ],
-                  ),
-                ),
+            itemBuilder: (ctx, i) {
+              final exp = experiences[i];
+              return SectionItemTile(
+                title: exp.poste?.isNotEmpty == true ? exp.poste! : 'Sans titre',
+                subtitle: exp.entreprise ?? '',
+                badge: exp.actuel ? 'En poste' : null,
+                badgeColor: Colors.green,
+                onEdit: () => _edit(ctx, i),
+                onDelete: () => _delete(i),
               );
             },
           ),
-        OutlinedButton.icon(
-          onPressed: () => _addExperience(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Ajouter une experience'),
+        const SizedBox(height: 8),
+        SectionAddButton(
+          label: 'Ajouter une expérience',
+          onTap: () => _add(context),
         ),
       ],
     );
