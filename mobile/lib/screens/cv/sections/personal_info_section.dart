@@ -145,8 +145,15 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
         setState(() {
           _photoUrl = ApiConstants.baseUrl.replaceAll('/api', '') + url;
         });
-      } catch (_) {
-        // Upload echoue mais la photo est affichee localement
+      } catch (e) {
+        // Upload echoue — la photo reste affichee localement via _photoBytes
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Photo visible localement (upload: $e)'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ));
+        }
       }
       _notify();
     } catch (e) {

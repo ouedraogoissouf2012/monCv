@@ -1,27 +1,42 @@
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../models/cv.dart';
+
+// ── Charger photo depuis URL ────────────────────────────────────────────────
+
+Future<pw.MemoryImage?> _loadPhoto(String? url) async {
+  if (url == null || url.isEmpty) return null;
+  try {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return pw.MemoryImage(response.bodyBytes);
+    }
+  } catch (_) {}
+  return null;
+}
 
 // ── Point d'entrée ──────────────────────────────────────────────────────────
 
 Future<Uint8List> generateCvPdf(Cv cv) async {
   final style = cv.style;
   final color = PdfColor.fromInt(style.primaryColor.toARGB32());
+  final photo = await _loadPhoto(cv.personalInfo?.photoUrl);
 
   switch (style.templateId) {
     case 'classique':
-      return _buildClassique(cv, color);
+      return _buildClassique(cv, color, photo: photo);
     case 'minimaliste':
-      return _buildMinimaliste(cv, color);
+      return _buildMinimaliste(cv, color, photo: photo);
     case 'creatif':
-      return _buildCreatif(cv, color);
+      return _buildCreatif(cv, color, photo: photo);
     case 'executive':
-      return _buildExecutive(cv, color);
+      return _buildExecutive(cv, color, photo: photo);
     case 'moderne':
     default:
-      return _buildModerne(cv, color);
+      return _buildModerne(cv, color, photo: photo);
   }
 }
 
@@ -131,23 +146,7 @@ pw.Widget _datePill(String text, PdfColor accent) => pw.Text(
     );
 
 // Barre de competence visuelle
-pw.Widget _skillBar(int niveau, PdfColor accent) {
-  final filled = niveau.clamp(1, 5);
-  return pw.Row(
-    mainAxisSize: pw.MainAxisSize.min,
-    children: List.generate(5, (i) => pw.Container(
-      width: 12,
-      height: 3,
-      margin: const pw.EdgeInsets.only(right: 1.5),
-      decoration: pw.BoxDecoration(
-        color: i < filled
-            ? accent
-            : PdfColor(accent.red, accent.green, accent.blue, 0.15),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(1.5)),
-      ),
-    )),
-  );
-}
+
 
 // Bullet dot
 pw.Widget _dot(PdfColor accent) => pw.Container(
@@ -285,23 +284,36 @@ pw.Widget _educationItem(Education e, PdfColor accent) => pw.Padding(
       ),
     );
 
-// Skills: separer et afficher en chips individuels
+// Skills: barres de progression (identique au preview)
 pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
   final splitNames = _splitSkills(skills);
-  return pw.Wrap(
-    spacing: 6,
-    runSpacing: 5,
-    children: splitNames.map((name) => pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: pw.BoxDecoration(
-        color: PdfColor(accent.red, accent.green, accent.blue, 0.08),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-      ),
-      child: pw.Text(name,
-          style: pw.TextStyle(
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey900)),
+  return pw.Column(
+    children: splitNames.map((name) => pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 5),
+      child: pw.Row(children: [
+        pw.SizedBox(
+          width: 90,
+          child: pw.Text(name, style: pw.TextStyle(
+            fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900,
+          )),
+        ),
+        pw.Expanded(
+          child: pw.ClipRRect(
+            horizontalRadius: 1.5, verticalRadius: 1.5,
+            child: pw.LinearProgressIndicator(
+              value: 0.6, minHeight: 3,
+              backgroundColor: PdfColor(accent.red, accent.green, accent.blue, 0.12),
+              valueColor: accent,
+            ),
+          ),
+        ),
+        pw.SizedBox(width: 6),
+        pw.SizedBox(
+          width: 35,
+          child: pw.Text('Bon', textAlign: pw.TextAlign.right,
+            style: pw.TextStyle(fontSize: 7, color: accent, fontWeight: pw.FontWeight.bold)),
+        ),
+      ]),
     )).toList(),
   );
 }
@@ -421,24 +433,6 @@ pw.Widget _projectItem(Project p, PdfColor accent) => pw.Padding(
       ),
     );
 
-pw.Widget _miniDots(int niveau, PdfColor accent) {
-  final filled = niveau.clamp(1, 5);
-  return pw.Row(
-    mainAxisSize: pw.MainAxisSize.min,
-    children: List.generate(5, (i) => pw.Container(
-          width: 5,
-          height: 5,
-          margin: const pw.EdgeInsets.only(right: 2),
-          decoration: pw.BoxDecoration(
-            color: i < filled
-                ? accent
-                : PdfColor(accent.red, accent.green, accent.blue, 0.2),
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2.5)),
-          ),
-        )),
-  );
-}
-
 // Sidebar mini bar for Créatif template
 pw.Widget _miniBar(int niveau, PdfColor color) {
   final filled = niveau.clamp(1, 5);
@@ -462,7 +456,7 @@ pw.Widget _miniBar(int niveau, PdfColor color) {
 
 // ── TEMPLATE 1 : MODERNE ─────────────────────────────────────────────────────
 
-Future<Uint8List> _buildModerne(Cv cv, PdfColor accent) async {
+Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
   final contactItems = <String>[
@@ -484,6 +478,12 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent) async {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
+            if (photo != null) ...[
+              pw.ClipOval(
+                child: pw.Image(photo, width: 60, height: 60, fit: pw.BoxFit.cover),
+              ),
+              pw.SizedBox(height: 8),
+            ],
             pw.Text(
               _sanitize('${info?.prenom ?? ''} ${info?.nom ?? ''}').trim().toUpperCase(),
               textAlign: pw.TextAlign.center,
@@ -617,7 +617,7 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent) async {
 
 // ── TEMPLATE 2 : CLASSIQUE ───────────────────────────────────────────────────
 
-Future<Uint8List> _buildClassique(Cv cv, PdfColor accent) async {
+Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
@@ -693,7 +693,7 @@ Future<Uint8List> _buildClassique(Cv cv, PdfColor accent) async {
 
 // ── TEMPLATE 3 : MINIMALISTE ─────────────────────────────────────────────────
 
-Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent) async {
+Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
@@ -763,7 +763,7 @@ Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent) async {
 
 // ── TEMPLATE 4 : CRÉATIF (sidebar) ───────────────────────────────────────────
 
-Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent) async {
+Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
   const sidebarWidth = 185.0;
@@ -783,6 +783,13 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent) async {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              // Photo
+              if (photo != null) ...[
+                pw.Center(child: pw.ClipOval(
+                  child: pw.Image(photo, width: 55, height: 55, fit: pw.BoxFit.cover),
+                )),
+                pw.SizedBox(height: 10),
+              ],
               // Nom
               pw.Text(
                 _sanitize('${info?.prenom ?? ''}\n${info?.nom ?? ''}'.trim()),
@@ -929,7 +936,7 @@ pw.Widget _sideItem(String text) => pw.Padding(
 
 // ── TEMPLATE 5 : EXECUTIVE ───────────────────────────────────────────────────
 
-Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent) async {
+Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
