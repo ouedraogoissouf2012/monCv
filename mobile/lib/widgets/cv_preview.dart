@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/cv.dart';
-import '../models/cv_style.dart';
 
-/// Aperçu document d'un CV — rendu identique au PDF généré.
+/// Preview du CV — reproduit exactement le layout de chaque template PDF.
 class CvPreviewWidget extends StatelessWidget {
   final Cv cv;
   const CvPreviewWidget({super.key, required this.cv});
@@ -18,895 +17,593 @@ class CvPreviewWidget extends StatelessWidget {
           child: Material(
             elevation: 6,
             borderRadius: BorderRadius.circular(4),
-            child: _CvDocument(cv: cv),
+            child: _buildTemplate(),
           ),
         ),
       ),
     );
   }
-}
 
-// ── Document principal ────────────────────────────────────────────────────────
-
-class _CvDocument extends StatelessWidget {
-  final Cv cv;
-  const _CvDocument({required this.cv});
-
-  TextStyle _font(TextStyle base) {
-    try {
-      return GoogleFonts.getFont(cv.style.fontFamily, textStyle: base);
-    } catch (_) {
-      return base;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = cv.style.primaryColor;
-    final info = cv.personalInfo;
-    final templateId = cv.style.templateId;
-    final name = '${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim().isNotEmpty
-        ? '${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim()
-        : cv.titre;
-
-    TextStyle baseStyle;
-    try {
-      baseStyle = GoogleFonts.getFont(cv.style.fontFamily,
-          textStyle: const TextStyle(fontSize: 12, color: Color(0xFF374151)));
-    } catch (_) {
-      baseStyle = const TextStyle(fontSize: 12, color: Color(0xFF374151));
-    }
-
-    return DefaultTextStyle(
-      style: baseStyle,
-      child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // ── En-tête adapte au template ──
-        _buildHeader(templateId, accent, info, name),
-
-        // ── Corps ──
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 16, 28, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Profil
-              if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
-                _SectionTitle(title: 'PROFIL', accent: accent),
-                const SizedBox(height: 8),
-                Text(
-                  info!.resumeProfessionnel!,
-                  style: _font(const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF374151))),
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // 2. Competences + Langues cote a cote
-              if (cv.skills.isNotEmpty || cv.languages.isNotEmpty) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (cv.skills.isNotEmpty)
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _SectionTitle(title: 'COMPETENCES', accent: accent),
-                            const SizedBox(height: 8),
-                            _SkillsGrid(skills: cv.skills, accent: accent),
-                          ],
-                        ),
-                      ),
-                    if (cv.skills.isNotEmpty && cv.languages.isNotEmpty)
-                      const SizedBox(width: 20),
-                    if (cv.languages.isNotEmpty)
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _SectionTitle(title: 'LANGUES', accent: accent),
-                            const SizedBox(height: 8),
-                            _LanguagesRow(languages: cv.languages, accent: accent),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // 3. Experiences
-              if (cv.experiences.isNotEmpty) ...[
-                _SectionTitle(title: 'EXPERIENCES PROFESSIONNELLES', accent: accent),
-                const SizedBox(height: 8),
-                ...cv.experiences.map((e) => _ExperienceEntry(exp: e, accent: accent)),
-                const SizedBox(height: 4),
-              ],
-
-              // 4. Formations
-              if (cv.educations.isNotEmpty) ...[
-                _SectionTitle(title: 'FORMATIONS', accent: accent),
-                const SizedBox(height: 8),
-                ...cv.educations.map((e) => _EducationEntry(edu: e, accent: accent)),
-                const SizedBox(height: 4),
-              ],
-
-              // 5. Certifications + Projets cote a cote
-              if (cv.certifications.isNotEmpty || cv.projects.isNotEmpty) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (cv.certifications.isNotEmpty)
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _SectionTitle(title: 'CERTIFICATIONS', accent: accent),
-                            const SizedBox(height: 8),
-                            ...cv.certifications.map((c) => _CertEntry(cert: c, accent: accent)),
-                          ],
-                        ),
-                      ),
-                    if (cv.certifications.isNotEmpty && cv.projects.isNotEmpty)
-                      const SizedBox(width: 20),
-                    if (cv.projects.isNotEmpty)
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _SectionTitle(title: 'PROJETS', accent: accent),
-                            const SizedBox(height: 8),
-                            ...cv.projects.map((p) => _ProjectEntry(proj: p, accent: accent)),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    ),
-    );
-  }
-
-  Widget _buildHeader(String templateId, Color accent, PersonalInfo? info, String name) {
-    switch (templateId) {
+  Widget _buildTemplate() {
+    switch (cv.style.templateId) {
       case 'classique':
-        return _headerClassique(accent, info, name);
+        return _ClassiqueTemplate(cv: cv);
       case 'minimaliste':
-        return _headerMinimaliste(accent, info, name);
+        return _MinimalisteTemplate(cv: cv);
       case 'creatif':
-        return _headerCreatif(accent, info, name);
+        return _CreatifTemplate(cv: cv);
       case 'executive':
-        return _headerExecutive(accent, info, name);
+        return _ExecutiveTemplate(cv: cv);
       case 'moderne':
       default:
-        return _headerModerne(accent, info, name);
+        return _ModerneTemplate(cv: cv);
     }
   }
-
-  // ── Moderne: header colore pleine largeur ──
-  Widget _headerModerne(Color accent, PersonalInfo? info, String name) {
-    return Container(
-      decoration: BoxDecoration(
-        color: accent,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-      ),
-      padding: const EdgeInsets.fromLTRB(28, 28, 28, 22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(name.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: _font(const TextStyle(
-                fontSize: 26, fontWeight: FontWeight.w800,
-                color: Colors.white, letterSpacing: 2, height: 1.1,
-              ))),
-          if (info?.titrePoste?.isNotEmpty == true) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(info!.titrePoste!,
-                  style: _font(TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700, color: accent,
-                  ))),
-            ),
-          ],
-          const SizedBox(height: 14),
-          Container(height: 0.5, width: 200, color: Colors.white),
-          const SizedBox(height: 10),
-          _contactRow(info, Colors.white),
-        ],
-      ),
-    );
-  }
-
-  // ── Classique: header centre, nom + titre + separateur ──
-  Widget _headerClassique(Color accent, PersonalInfo? info, String name) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(28, 28, 28, 16),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-      ),
-      child: Column(
-        children: [
-          Text(name,
-              textAlign: TextAlign.center,
-              style: _font(const TextStyle(
-                fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF111827),
-              ))),
-          if (info?.titrePoste?.isNotEmpty == true) ...[
-            const SizedBox(height: 4),
-            Text(info!.titrePoste!,
-                style: _font(TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: accent,
-                ))),
-          ],
-          const SizedBox(height: 10),
-          _contactRow(info, const Color(0xFF6B7280)),
-          const SizedBox(height: 12),
-          Container(height: 2.5, color: accent),
-          const SizedBox(height: 1),
-          Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
-        ],
-      ),
-    );
-  }
-
-  // ── Minimaliste: nom grand + contact discret ──
-  Widget _headerMinimaliste(Color accent, PersonalInfo? info, String name) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(name,
-              style: _font(const TextStyle(
-                fontSize: 30, fontWeight: FontWeight.w800, color: Color(0xFF111827),
-              ))),
-          if (info?.titrePoste?.isNotEmpty == true)
-            Text(info!.titrePoste!,
-                style: _font(const TextStyle(
-                  fontSize: 13, color: Color(0xFF9CA3AF),
-                ))),
-          const SizedBox(height: 10),
-          _contactRow(info, const Color(0xFF9CA3AF)),
-          const SizedBox(height: 14),
-          Container(height: 0.8, color: const Color(0xFFE5E7EB)),
-        ],
-      ),
-    );
-  }
-
-  // ── Creatif: sidebar coloree + contenu a droite ──
-  Widget _headerCreatif(Color accent, PersonalInfo? info, String name) {
-    return Container(
-      decoration: BoxDecoration(
-        color: accent,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    style: _font(const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1,
-                    ))),
-                if (info?.titrePoste?.isNotEmpty == true) ...[
-                  const SizedBox(height: 4),
-                  Text(info!.titrePoste!,
-                      style: _font(TextStyle(
-                        fontSize: 11, fontStyle: FontStyle.italic,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ))),
-                ],
-              ],
-            ),
-          ),
-          Container(width: 1, height: 50, color: Colors.white.withValues(alpha: 0.3)),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (info?.email?.isNotEmpty == true)
-                _iconContact(Icons.email_outlined, info!.email!),
-              if (info?.telephone?.isNotEmpty == true)
-                _iconContact(Icons.phone_outlined, info!.telephone!),
-              if (info?.ville?.isNotEmpty == true)
-                _iconContact(Icons.location_on_outlined,
-                    [info!.ville, info.pays].where((s) => s?.isNotEmpty == true).join(', ')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Executive: nom gauche, contact droite, barre epaisse ──
-  Widget _headerExecutive(Color accent, PersonalInfo? info, String name) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(28, 28, 28, 16),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name,
-                        style: _font(const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF111827),
-                        ))),
-                    if (info?.titrePoste?.isNotEmpty == true)
-                      Text(info!.titrePoste!,
-                          style: _font(TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w700, color: accent,
-                          ))),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (info?.email?.isNotEmpty == true)
-                    Text(info!.email!, style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
-                  if (info?.telephone?.isNotEmpty == true)
-                    Text(info!.telephone!, style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
-                  if (info?.ville?.isNotEmpty == true)
-                    Text([info!.ville, info.pays].where((s) => s?.isNotEmpty == true).join(', '),
-                        style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(height: 3, color: accent),
-          const SizedBox(height: 1),
-          Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
-        ],
-      ),
-    );
-  }
-
-  Widget _contactRow(PersonalInfo? info, Color color) {
-    final items = <String>[
-      if (info?.email?.isNotEmpty == true) info!.email!,
-      if (info?.telephone?.isNotEmpty == true) info!.telephone!,
-      if (info?.ville?.isNotEmpty == true)
-        [info!.ville, info.pays].where((s) => s?.isNotEmpty == true).join(', '),
-    ];
-    return Text(
-      items.join('  |  '),
-      textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 10, color: color),
-    );
-  }
-
-  Widget _iconContact(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 11),
-          const SizedBox(width: 5),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 10)),
-        ],
-      ),
-    );
-  }
 }
 
-// ── Titre de section ──────────────────────────────────────────────────────────
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final Color accent;
-  const _SectionTitle({required this.title, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 16,
-          decoration: BoxDecoration(
-            color: accent,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: accent,
-            letterSpacing: 1.0,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            height: 1,
-            color: accent.withValues(alpha: 0.2),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Helpers date ──────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPERS PARTAGES
+// ══════════════════════════════════════════════════════════════════════════════
 
 String _fmt(DateTime? d) {
   if (d == null) return '';
   return '${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
-// ── Expérience ────────────────────────────────────────────────────────────────
-
-class _ExperienceEntry extends StatelessWidget {
-  final Experience exp;
-  final Color accent;
-  const _ExperienceEntry({required this.exp, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    final dateEnd = exp.actuel ? 'Present' : _fmt(exp.dateFin);
-    final period = [_fmt(exp.dateDebut), dateEnd]
-        .where((s) => s.isNotEmpty)
-        .join(' - ');
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5, right: 10),
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: accent,
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            exp.poste ?? '',
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
-                          ),
-                          if (exp.entreprise?.isNotEmpty == true)
-                            Text(
-                              [exp.entreprise, if (exp.lieu?.isNotEmpty == true) exp.lieu]
-                                  .join(' — '),
-                              style: const TextStyle(
-                                  fontSize: 11, color: Color(0xFF6B7280), fontWeight: FontWeight.w500),
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (period.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          period,
-                          style: TextStyle(
-                              fontSize: 10, color: accent, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                if (exp.actuel) ...[
-                  const SizedBox(height: 3),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text('En poste',
-                        style: TextStyle(
-                            fontSize: 9, color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
-                  ),
-                ],
-                if (exp.description?.isNotEmpty == true) ...[
-                  const SizedBox(height: 5),
-                  Text(
-                    exp.description!,
-                    style: const TextStyle(fontSize: 11, height: 1.55, color: Color(0xFF4B5563)),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+String _dateRange(DateTime? debut, DateTime? fin, {bool actuel = false}) {
+  final d = _fmt(debut);
+  if (actuel || fin == null && debut != null) return d.isEmpty ? 'En cours' : '$d - En cours';
+  final f = _fmt(fin);
+  if (d.isEmpty && f.isEmpty) return '';
+  if (f.isEmpty) return d;
+  if (d == f) return d;
+  if (debut?.year == fin?.year) return '${debut!.year}';
+  return '$d - $f';
 }
 
-// ── Formation ─────────────────────────────────────────────────────────────────
-
-class _EducationEntry extends StatelessWidget {
-  final Education edu;
-  final Color accent;
-  const _EducationEntry({required this.edu, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    final enCours = edu.dateFin == null && edu.dateDebut != null;
-    final dateEnd = enCours ? 'En cours' : _fmt(edu.dateFin);
-    final period = [_fmt(edu.dateDebut), dateEnd]
-        .where((s) => s.isNotEmpty)
-        .join(' - ');
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5, right: 10),
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            edu.diplome ?? '',
-                            style: const TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
-                          ),
-                          if (edu.etablissement?.isNotEmpty == true)
-                            Text(
-                              edu.etablissement!,
-                              style: const TextStyle(
-                                  fontSize: 11, color: Color(0xFF6B7280), fontWeight: FontWeight.w500),
-                            ),
-                          if (edu.domaine?.isNotEmpty == true)
-                            Text(edu.domaine!,
-                                style: const TextStyle(fontSize: 10, color: Color(0xFF9CA3AF))),
-                        ],
-                      ),
-                    ),
-                    if (period.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(period,
-                            style: TextStyle(
-                                fontSize: 10, color: accent, fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                  ],
-                ),
-                if (edu.description?.isNotEmpty == true) ...[
-                  const SizedBox(height: 5),
-                  Text(edu.description!,
-                      style: const TextStyle(fontSize: 11, height: 1.55, color: Color(0xFF4B5563))),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Competences ───────────────────────────────────────────────────────────────
-
-class _SkillsGrid extends StatelessWidget {
-  final List<Skill> skills;
-  final Color accent;
-  const _SkillsGrid({required this.skills, required this.accent});
-
-  List<_SkillData> _splitSkills() {
-    final result = <_SkillData>[];
-    for (final s in skills) {
-      final nom = s.nom ?? '';
-      final parts = nom.split(RegExp(r'[,;/]+'));
-      for (final p in parts) {
-        final trimmed = p.trim();
-        if (trimmed.isNotEmpty) {
-          result.add(_SkillData(trimmed, s.niveau ?? 3));
-        }
-      }
-    }
-    return result;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final splitSkills = _splitSkills();
-    return Column(
-      children: splitSkills.map((s) {
-        final level = s.niveau.clamp(1, 5);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 110,
-                child: Text(s.name,
-                    style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-              ),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: level / 5,
-                    minHeight: 5,
-                    backgroundColor: accent.withValues(alpha: 0.12),
-                    valueColor: AlwaysStoppedAnimation(accent),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  _levelLabel(level),
-                  style: TextStyle(fontSize: 9, color: accent, fontWeight: FontWeight.w600),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  String _levelLabel(int level) {
-    switch (level) {
-      case 1: return 'Debutant';
-      case 2: return 'Base';
-      case 3: return 'Bon';
-      case 4: return 'Avance';
-      case 5: return 'Expert';
-      default: return 'Bon';
+List<String> _splitSkills(List<Skill> skills) {
+  final result = <String>[];
+  for (final s in skills) {
+    for (final p in (s.nom ?? '').split(RegExp(r'[,;/]+'))) {
+      final t = p.trim();
+      if (t.isNotEmpty) result.add(t);
     }
   }
+  return result;
 }
 
-class _SkillData {
-  final String name;
-  final int niveau;
-  _SkillData(this.name, this.niveau);
+String _niveauLabel(String? n) {
+  switch (n) {
+    case 'A1': return 'Debutant';
+    case 'A2': return 'Elementaire';
+    case 'B1': return 'Intermediaire';
+    case 'B2': return 'Avance';
+    case 'C1': return 'Courant';
+    case 'C2': return 'Bilingue';
+    case 'NATIF': return 'Langue maternelle';
+    default: return n ?? '';
+  }
 }
 
-// ── Langues ───────────────────────────────────────────────────────────────────
+double _niveauToDouble(String? n) {
+  switch (n) {
+    case 'A1': return 0.15;
+    case 'A2': return 0.30;
+    case 'B1': return 0.50;
+    case 'B2': return 0.65;
+    case 'C1': return 0.82;
+    case 'C2': return 0.95;
+    case 'NATIF': return 1.0;
+    default: return 0.5;
+  }
+}
 
-class _LanguagesRow extends StatelessWidget {
-  final List<Language> languages;
-  final Color accent;
-  const _LanguagesRow({required this.languages, required this.accent});
+TextStyle _font(String fontFamily, TextStyle base) {
+  try {
+    return GoogleFonts.getFont(fontFamily, textStyle: base);
+  } catch (_) {
+    return base;
+  }
+}
 
-  static const _niveauLabels = {
-    'A1': 'Debutant',
-    'A2': 'Elementaire',
-    'B1': 'Intermediaire',
-    'B2': 'Avance',
-    'C1': 'Courant',
-    'C2': 'Bilingue',
-    'NATIF': 'Langue maternelle',
-  };
+// ── Section header partage ──
+Widget _sectionTitle(String title, Color accent) => Padding(
+  padding: const EdgeInsets.only(bottom: 6, top: 12),
+  child: Row(
+    children: [
+      Container(width: 3, height: 13, decoration: BoxDecoration(
+        color: accent, borderRadius: BorderRadius.circular(1.5),
+      )),
+      const SizedBox(width: 8),
+      Text(title.toUpperCase(), style: TextStyle(
+        fontSize: 10, fontWeight: FontWeight.w700, color: accent, letterSpacing: 1.5,
+      )),
+      const SizedBox(width: 10),
+      Expanded(child: Container(height: 0.5, color: accent.withValues(alpha: 0.3))),
+    ],
+  ),
+);
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
+// ── Experience entry ──
+Widget _expEntry(Experience e, Color accent) {
+  final date = _dateRange(e.dateDebut, e.dateFin, actuel: e.actuel);
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: languages.map((l) {
-        final label = _niveauLabels[l.niveau] ?? l.niveau ?? '';
-        final level = _niveauToLevel(l.niveau);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(l.langue ?? '',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
-                  Text(label,
-                      style: TextStyle(fontSize: 10, color: accent, fontWeight: FontWeight.w600)),
-                ],
-              ),
-              const SizedBox(height: 4),
-              // Barre de progression
-              ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: LinearProgressIndicator(
-                  value: level,
-                  minHeight: 4,
-                  backgroundColor: accent.withValues(alpha: 0.12),
-                  valueColor: AlwaysStoppedAnimation(accent),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  double _niveauToLevel(String? niveau) {
-    switch (niveau) {
-      case 'A1': return 0.15;
-      case 'A2': return 0.30;
-      case 'B1': return 0.50;
-      case 'B2': return 0.65;
-      case 'C1': return 0.82;
-      case 'C2': return 0.95;
-      case 'NATIF': return 1.0;
-      default: return 0.5;
-    }
-  }
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Text(e.poste ?? '', style: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1a1a1a),
+            ))),
+            if (date.isNotEmpty)
+              Text(date, style: TextStyle(fontSize: 9, color: accent, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        if (e.entreprise?.isNotEmpty == true || e.lieu?.isNotEmpty == true)
+          Text([e.entreprise, e.lieu].where((s) => s?.isNotEmpty == true).join(' - '),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+        if (e.description?.isNotEmpty == true) ...[
+          const SizedBox(height: 4),
+          ..._buildDescLines(e.description!, accent),
+        ],
+      ],
+    ),
+  );
 }
 
-// ── Certifications ────────────────────────────────────────────────────────────
+List<Widget> _buildDescLines(String desc, Color accent) {
+  final lines = desc.split('\n').where((l) => l.trim().isNotEmpty).toList();
+  if (lines.length <= 1 && !desc.contains('- ')) {
+    return [Text(desc, style: const TextStyle(fontSize: 10, color: Color(0xFF374151), height: 1.4))];
+  }
+  return lines.map((line) {
+    final t = line.trim();
+    final isBullet = t.startsWith('- ') || t.startsWith('* ');
+    final text = isBullet ? t.substring(2) : t;
+    if (isBullet) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 2, left: 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 4, height: 4, margin: const EdgeInsets.only(top: 5, right: 6),
+            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2))),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 10, color: Color(0xFF374151), height: 1.4))),
+        ]),
+      );
+    }
+    return Text(text, style: const TextStyle(fontSize: 10, color: Color(0xFF374151), height: 1.4));
+  }).toList();
+}
 
-class _CertEntry extends StatelessWidget {
-  final Certification cert;
-  final Color accent;
-  const _CertEntry({required this.cert, required this.accent});
+// ── Education entry ──
+Widget _eduEntry(Education e, Color accent) {
+  final date = _dateRange(e.dateDebut, e.dateFin);
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Expanded(child: Text(e.diplome ?? '', style: const TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1a1a1a)))),
+          if (date.isNotEmpty)
+            Text(date, style: TextStyle(fontSize: 9, color: accent, fontWeight: FontWeight.w700)),
+        ]),
+        if (e.etablissement?.isNotEmpty == true)
+          Text(e.etablissement!, style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+        if (e.description?.isNotEmpty == true)
+          Text(e.description!, style: const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      ],
+    ),
+  );
+}
+
+// ── Competences avec barres ──
+Widget _skillsBars(List<Skill> skills, Color accent) {
+  final names = _splitSkills(skills);
+  return Column(children: names.map((name) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(children: [
+      SizedBox(width: 100, child: Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
+      Expanded(child: ClipRRect(
+        borderRadius: BorderRadius.circular(2),
+        child: LinearProgressIndicator(value: 0.6, minHeight: 4,
+          backgroundColor: accent.withValues(alpha: 0.12), valueColor: AlwaysStoppedAnimation(accent)),
+      )),
+      const SizedBox(width: 6),
+      SizedBox(width: 50, child: Text('Bon', textAlign: TextAlign.right,
+          style: TextStyle(fontSize: 8, color: accent, fontWeight: FontWeight.w600))),
+    ]),
+  )).toList());
+}
+
+// ── Langues avec barres ──
+Widget _langBars(List<Language> langs, Color accent) => Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: langs.map((l) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(l.langue ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+        Text(_niveauLabel(l.niveau), style: TextStyle(fontSize: 8, color: accent, fontWeight: FontWeight.w600)),
+      ]),
+      const SizedBox(height: 3),
+      ClipRRect(borderRadius: BorderRadius.circular(2),
+        child: LinearProgressIndicator(value: _niveauToDouble(l.niveau), minHeight: 4,
+          backgroundColor: accent.withValues(alpha: 0.12), valueColor: AlwaysStoppedAnimation(accent))),
+    ]),
+  )).toList(),
+);
+
+// ── Certification entry ──
+Widget _certEntry(Certification c, Color accent) => Padding(
+  padding: const EdgeInsets.only(bottom: 5),
+  child: Row(children: [
+    Container(width: 5, height: 5, margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2.5))),
+    Expanded(child: Text(c.nom ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
+    Text(_fmt(c.dateObtention), style: TextStyle(fontSize: 9, color: accent, fontWeight: FontWeight.w600)),
+  ]),
+);
+
+// ── Project entry ──
+Widget _projEntry(Project p, Color accent) => Padding(
+  padding: const EdgeInsets.only(bottom: 6),
+  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(p.nom ?? '', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+    if (p.technologies?.isNotEmpty == true)
+      Text(p.technologies!, style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+    if (p.description?.isNotEmpty == true)
+      Text(p.description!, style: const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+  ]),
+);
+
+// ── Body sections (ordre: Profil > Competences+Langues > Experiences > Formations > Certif+Projets) ──
+Widget _bodySections(Cv cv, Color accent) => Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    if (cv.personalInfo?.resumeProfessionnel?.isNotEmpty == true) ...[
+      _sectionTitle('Profil', accent),
+      Text(cv.personalInfo!.resumeProfessionnel!,
+          style: const TextStyle(fontSize: 10, height: 1.5, color: Color(0xFF374151))),
+    ],
+    if (cv.skills.isNotEmpty || cv.languages.isNotEmpty)
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (cv.skills.isNotEmpty)
+          Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionTitle('Competences', accent),
+            _skillsBars(cv.skills, accent),
+          ])),
+        if (cv.skills.isNotEmpty && cv.languages.isNotEmpty) const SizedBox(width: 20),
+        if (cv.languages.isNotEmpty)
+          Expanded(flex: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionTitle('Langues', accent),
+            _langBars(cv.languages, accent),
+          ])),
+      ]),
+    if (cv.experiences.isNotEmpty) ...[
+      _sectionTitle('Experiences professionnelles', accent),
+      ...cv.experiences.map((e) => _expEntry(e, accent)),
+    ],
+    if (cv.educations.isNotEmpty) ...[
+      _sectionTitle('Formations', accent),
+      ...cv.educations.map((e) => _eduEntry(e, accent)),
+    ],
+    if (cv.certifications.isNotEmpty || cv.projects.isNotEmpty)
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (cv.certifications.isNotEmpty)
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionTitle('Certifications', accent),
+            ...cv.certifications.map((c) => _certEntry(c, accent)),
+          ])),
+        if (cv.certifications.isNotEmpty && cv.projects.isNotEmpty) const SizedBox(width: 20),
+        if (cv.projects.isNotEmpty)
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionTitle('Projets', accent),
+            ...cv.projects.map((p) => _projEntry(p, accent)),
+          ])),
+      ]),
+  ],
+);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 1 : MODERNE — header colore centre + body
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ModerneTemplate extends StatelessWidget {
+  final Cv cv;
+  const _ModerneTemplate({required this.cv});
 
   @override
   Widget build(BuildContext context) {
-    final expired = cert.dateExpiration != null &&
-        cert.dateExpiration!.isBefore(DateTime.now());
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(right: 10),
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
+    final accent = cv.style.primaryColor;
+    final info = cv.personalInfo;
+    final contact = [
+      if (info?.email?.isNotEmpty == true) info!.email!,
+      if (info?.telephone?.isNotEmpty == true) info!.telephone!,
+      if (info?.ville?.isNotEmpty == true)
+        '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
+    ].join('   |   ');
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.fromLTRB(32, 28, 32, 22),
+          decoration: BoxDecoration(
+            color: accent,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
           ),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(cert.nom ?? '',
-                          style: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                      if (cert.organisme?.isNotEmpty == true)
-                        Text(cert.organisme!,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                    ],
-                  ),
-                ),
-                if (cert.dateObtention != null) ...[
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(_fmt(cert.dateObtention),
-                          style: TextStyle(fontSize: 10, color: accent, fontWeight: FontWeight.w600)),
-                      if (expired)
-                        const Text('Expire',
-                            style: TextStyle(fontSize: 9, color: Colors.orange, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+          child: Column(children: [
+            Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim().toUpperCase(),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 3)),
+            if (info?.titrePoste?.isNotEmpty == true) ...[
+              const SizedBox(height: 6),
+              Text(info!.titrePoste!, style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9), fontStyle: FontStyle.italic)),
+            ],
+            const SizedBox(height: 12),
+            Container(height: 0.4, width: 200, color: Colors.white.withValues(alpha: 0.4)),
+            const SizedBox(height: 10),
+            Text(contact, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: Colors.white)),
+          ]),
+        ),
+        // Body
+        Padding(padding: const EdgeInsets.fromLTRB(32, 8, 32, 24), child: _bodySections(cv, accent)),
+      ]),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 2 : CLASSIQUE — header blanc centre + double barre
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ClassiqueTemplate extends StatelessWidget {
+  final Cv cv;
+  const _ClassiqueTemplate({required this.cv});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = cv.style.primaryColor;
+    final info = cv.personalInfo;
+    final contact = [
+      if (info?.email?.isNotEmpty == true) info!.email!,
+      if (info?.telephone?.isNotEmpty == true) info!.telephone!,
+      if (info?.ville?.isNotEmpty == true) info!.ville!,
+    ].join('   |   ');
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 28, 32, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Center(child: Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: accent))),
+          if (info?.titrePoste?.isNotEmpty == true)
+            Center(child: Text(info!.titrePoste!, style: TextStyle(fontSize: 12, color: accent, fontWeight: FontWeight.w600))),
+          const SizedBox(height: 8),
+          Center(child: Text(contact, style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280)))),
+          const SizedBox(height: 10),
+          Container(height: 2.5, color: accent),
+          const SizedBox(height: 1),
+          Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
+          _bodySections(cv, accent),
+        ]),
       ),
     );
   }
 }
 
-// ── Projets ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 3 : MINIMALISTE — nom grand gauche, contact discret
+// ══════════════════════════════════════════════════════════════════════════════
 
-class _ProjectEntry extends StatelessWidget {
-  final Project proj;
-  final Color accent;
-  const _ProjectEntry({required this.proj, required this.accent});
+class _MinimalisteTemplate extends StatelessWidget {
+  final Cv cv;
+  const _MinimalisteTemplate({required this.cv});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final accent = cv.style.primaryColor;
+    final info = cv.personalInfo;
+    final contact = [
+      if (info?.email?.isNotEmpty == true) info!.email!,
+      if (info?.telephone?.isNotEmpty == true) info!.telephone!,
+      if (info?.ville?.isNotEmpty == true) info!.ville!,
+    ].join('   |   ');
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(36, 32, 36, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+          if (info?.titrePoste?.isNotEmpty == true)
+            Text(info!.titrePoste!, style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+          const SizedBox(height: 8),
+          Text(contact, style: const TextStyle(fontSize: 9, color: Color(0xFF9CA3AF))),
+          const SizedBox(height: 14),
+          Container(height: 0.8, color: const Color(0xFFE5E7EB)),
+          _bodySections(cv, accent),
+        ]),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 4 : CREATIF — sidebar coloree + contenu droite (identique au PDF)
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _CreatifTemplate extends StatelessWidget {
+  final Cv cv;
+  const _CreatifTemplate({required this.cv});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = cv.style.primaryColor;
+    final info = cv.personalInfo;
+    final splitNames = _splitSkills(cv.skills);
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      child: IntrinsicHeight(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // ── Sidebar ──
           Container(
-            margin: const EdgeInsets.only(top: 5, right: 10),
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(proj.nom ?? '',
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                if (proj.technologies?.isNotEmpty == true)
-                  Container(
-                    margin: const EdgeInsets.only(top: 3),
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(proj.technologies!,
-                        style: TextStyle(fontSize: 10, color: accent, fontWeight: FontWeight.w600)),
-                  ),
-                if (proj.description?.isNotEmpty == true) ...[
-                  const SizedBox(height: 4),
-                  Text(proj.description!,
-                      style: const TextStyle(fontSize: 11, height: 1.55, color: Color(0xFF4B5563))),
-                ],
+            width: 180,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), bottomLeft: Radius.circular(4)),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${info?.prenom ?? ''}\n${info?.nom ?? ''}'.trim(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
+              if (info?.titrePoste?.isNotEmpty == true) ...[
+                const SizedBox(height: 6),
+                Container(height: 0.4, color: Colors.white),
+                const SizedBox(height: 6),
+                Text(info!.titrePoste!, style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: 0.85), fontStyle: FontStyle.italic)),
               ],
+              const SizedBox(height: 20),
+              _sideLabel('CONTACT'),
+              if (info?.email?.isNotEmpty == true) _sideText(info!.email!),
+              if (info?.telephone?.isNotEmpty == true) _sideText(info!.telephone!),
+              if (info?.ville?.isNotEmpty == true) _sideText(info!.ville!),
+              // Competences
+              if (splitNames.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _sideLabel('COMPETENCES'),
+                ...splitNames.take(10).map((name) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(name, style: const TextStyle(fontSize: 8.5, color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Row(children: List.generate(5, (i) => Container(
+                      width: 8, height: 3.5,
+                      margin: const EdgeInsets.only(right: 2),
+                      decoration: BoxDecoration(
+                        color: i < 3 ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ))),
+                  ]),
+                )),
+              ],
+              // Langues
+              if (cv.languages.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _sideLabel('LANGUES'),
+                ...cv.languages.map((l) => Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(l.langue ?? '', style: const TextStyle(fontSize: 8.5, color: Colors.white)),
+                    Text(l.niveau ?? '', style: const TextStyle(fontSize: 7.5, color: Colors.white, fontWeight: FontWeight.w700)),
+                  ]),
+                )),
+              ],
+              // Certifications
+              if (cv.certifications.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _sideLabel('CERTIFICATIONS'),
+                ...cv.certifications.map((c) => Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(c.nom ?? '', style: const TextStyle(fontSize: 8.5, color: Colors.white)),
+                )),
+              ],
+            ]),
+          ),
+          // ── Contenu principal ──
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
+                  _sectionTitle('Resume', accent),
+                  Text(info!.resumeProfessionnel!, style: const TextStyle(fontSize: 10, height: 1.4, color: Color(0xFF374151))),
+                ],
+                if (cv.experiences.isNotEmpty) ...[
+                  _sectionTitle('Experiences', accent),
+                  ...cv.experiences.map((e) => _expEntry(e, accent)),
+                ],
+                if (cv.educations.isNotEmpty) ...[
+                  _sectionTitle('Formations', accent),
+                  ...cv.educations.map((e) => _eduEntry(e, accent)),
+                ],
+                if (cv.projects.isNotEmpty) ...[
+                  _sectionTitle('Projets', accent),
+                  ...cv.projects.map((p) => _projEntry(p, accent)),
+                ],
+              ]),
             ),
           ),
-        ],
+        ]),
+      ),
+    );
+  }
+
+  Widget _sideLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(text, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 1.2)),
+      const SizedBox(height: 3),
+      Container(height: 0.4, color: Colors.white),
+    ]),
+  );
+
+  Widget _sideText(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 3),
+    child: Text(text, style: const TextStyle(fontSize: 8.5, color: Colors.white)),
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 5 : EXECUTIVE — nom gauche, contact droite, barre epaisse
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ExecutiveTemplate extends StatelessWidget {
+  final Cv cv;
+  const _ExecutiveTemplate({required this.cv});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = cv.style.primaryColor;
+    final info = cv.personalInfo;
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 28, 32, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              if (info?.titrePoste?.isNotEmpty == true)
+                Text(info!.titrePoste!, style: TextStyle(fontSize: 12, color: accent, fontWeight: FontWeight.w700)),
+            ])),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (info?.email?.isNotEmpty == true)
+                Text(info!.email!, style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+              if (info?.telephone?.isNotEmpty == true)
+                Text(info!.telephone!, style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+              if (info?.ville?.isNotEmpty == true)
+                Text('${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
+                    style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+            ]),
+          ]),
+          const SizedBox(height: 8),
+          Container(height: 3, color: accent),
+          const SizedBox(height: 1),
+          Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
+          _bodySections(cv, accent),
+        ]),
       ),
     );
   }

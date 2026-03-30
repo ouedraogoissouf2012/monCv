@@ -186,7 +186,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () {
-                        print('[AI-SHEET] Appliquer pressed! result keys: ${_result?.keys}');
+                        // print('[AI-SHEET] Appliquer pressed! result keys: ${_result?.keys}');
                         Navigator.of(context).pop(_result);
                       },
                       icon: const Icon(Icons.check_rounded),

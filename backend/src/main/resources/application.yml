@@ -48,7 +48,7 @@ jwt:
 # AI Configuration (DeepSeek — compatible OpenAI)
 ai:
   deepseek:
-    api-key: ${DEEPSEEK_API_KEY:***REVOKED-DEEPSEEK-KEY***}
+    api-key: ${DEEPSEEK_API_KEY:}
     model: ${AI_MODEL:deepseek-chat}
     base-url: https://api.deepseek.com/v1
 
