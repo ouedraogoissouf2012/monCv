@@ -338,9 +338,19 @@ class _ModerneTemplate extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
           ),
           child: Column(children: [
+            // Photo
+            if (info?.photoUrl?.isNotEmpty == true) ...[
+              ClipOval(
+                child: Image.network(info!.photoUrl!, width: 70, height: 70, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => CircleAvatar(radius: 35,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    child: Icon(Icons.person, color: Colors.white.withValues(alpha: 0.7), size: 32))),
+              ),
+              const SizedBox(height: 10),
+            ],
             Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim().toUpperCase(),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 3)),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 3)),
             if (info?.titrePoste?.isNotEmpty == true) ...[
               const SizedBox(height: 6),
               Text(info!.titrePoste!, style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9), fontStyle: FontStyle.italic)),
@@ -463,6 +473,16 @@ class _CreatifTemplate extends StatelessWidget {
             ),
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              // Photo dans sidebar
+              if (info?.photoUrl?.isNotEmpty == true) ...[
+                Center(child: ClipOval(
+                  child: Image.network(info!.photoUrl!, width: 60, height: 60, fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => CircleAvatar(radius: 30,
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      child: Icon(Icons.person, color: Colors.white.withValues(alpha: 0.7), size: 28))),
+                )),
+                const SizedBox(height: 10),
+              ],
               Text('${info?.prenom ?? ''}\n${info?.nom ?? ''}'.trim(),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
               if (info?.titrePoste?.isNotEmpty == true) ...[
