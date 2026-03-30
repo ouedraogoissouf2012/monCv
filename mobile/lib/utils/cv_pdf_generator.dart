@@ -614,7 +614,6 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent) async {
   return doc.save();
 }
 
-// (removed _headerContactItem - now inline in header)
 
 // ── TEMPLATE 2 : CLASSIQUE ───────────────────────────────────────────────────
 

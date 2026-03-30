@@ -107,11 +107,11 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                     backgroundColor: Colors.transparent,
                     builder: (_) => AiEnhanceSheet(cv: cv),
                   );
-                  print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
+                  // print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
                   if (result != null && mounted) {
-                    print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
+                    // print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
                     final ok = await context.read<CvProvider>().applyAiEnhancements(cv.id!, result);
-                    print('[AI-DETAIL] applyAiEnhancements returned: $ok');
+                    // print('[AI-DETAIL] applyAiEnhancements returned: $ok');
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
