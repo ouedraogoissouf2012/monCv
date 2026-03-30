@@ -21,4 +21,6 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     Optional<Cv> findByIdWithDetails(@Param("id") Long id);
 
     boolean existsByIdAndUserId(Long id, Long userId);
+
+    Optional<Cv> findByPublicToken(String publicToken);
 }

@@ -51,6 +51,17 @@ public class Cv {
     @Builder.Default
     private List<Language> languages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Certification> certifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Project> projects = new ArrayList<>();
+
+    @Column(name = "public_token", unique = true)
+    private String publicToken;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -106,5 +117,25 @@ public class Cv {
     public void removeLanguage(Language language) {
         languages.remove(language);
         language.setCv(null);
+    }
+
+    public void addCertification(Certification certification) {
+        certifications.add(certification);
+        certification.setCv(this);
+    }
+
+    public void removeCertification(Certification certification) {
+        certifications.remove(certification);
+        certification.setCv(null);
+    }
+
+    public void addProject(Project project) {
+        projects.add(project);
+        project.setCv(this);
+    }
+
+    public void removeProject(Project project) {
+        projects.remove(project);
+        project.setCv(null);
     }
 }

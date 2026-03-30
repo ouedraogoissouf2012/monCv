@@ -22,8 +22,18 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 server:
   port: ${SERVER_PORT:8082}
+
+# Upload
+upload:
+  dir: ${UPLOAD_DIR:${user.home}/cv-uploads/photos}
 
 # CORS
 cors:
@@ -31,9 +41,16 @@ cors:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:cvMobileDevSecretKey2024AtLeast32CharsLong!}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# AI Configuration (DeepSeek — compatible OpenAI)
+ai:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY:sk-8895223b67ab4e4f8eccf1a8f4ec19e5}
+    model: ${AI_MODEL:deepseek-chat}
+    base-url: https://api.deepseek.com/v1
 
 # Swagger Configuration
 springdoc:

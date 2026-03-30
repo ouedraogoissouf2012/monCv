@@ -1,13 +1,13 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 import '../../models/cv.dart';
+import '../../models/cv_style.dart';
 import '../../providers/cv_provider.dart';
-import '../../services/api_service.dart';
+import '../../utils/pdf_saver.dart';
+import '../../utils/cv_pdf_generator.dart';
+import '../../widgets/cv_preview.dart';
+import '../../widgets/ai_enhance_sheet.dart';
 
 class CvDetailScreen extends StatefulWidget {
   final int cvId;
@@ -29,30 +29,46 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     });
   }
 
-  Future<void> _downloadPdf() async {
+  Future<void> _downloadPdf(Cv cv) async {
     if (_isDownloadingPdf) return;
     final messenger = ScaffoldMessenger.of(context);
-    final errorColor = Theme.of(context).colorScheme.error;
+    final colorScheme = Theme.of(context).colorScheme;
     setState(() => _isDownloadingPdf = true);
     try {
-      final bytes = await ApiService().downloadCvPdf(widget.cvId);
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/cv-${widget.cvId}.pdf');
-      await file.writeAsBytes(bytes);
-      await OpenFile.open(file.path);
+      final bytes = await generateCvPdf(cv);
+      await savePdfBytes(bytes, 'cv-${widget.cvId}.pdf');
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text('PDF telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ));
+      }
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Erreur PDF : $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: errorColor,
-          ),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text('Erreur PDF : $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: colorScheme.error,
+        ));
       }
     } finally {
       if (mounted) setState(() => _isDownloadingPdf = false);
     }
+  }
+
+  void _openCustomizePanel(BuildContext context, Cv cv) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _CvStylePage(
+          cv: cv,
+          onStyleChanged: (newStyle) {
+            context.read<CvProvider>().updateCvStyle(cv.id!, newStyle);
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,372 +85,482 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
         }
 
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              _buildSliverAppBar(context, cv),
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    _buildPersonalInfoTile(context, cv.personalInfo),
-                    _buildExperiencesTile(context, cv.experiences),
-                    _buildFormationsTile(context, cv.educations),
-                    _buildCompetencesTile(context, cv.skills),
-                    _buildLanguesTile(context, cv.languages),
-                    const SizedBox(height: 80),
-                  ],
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              cv.titre,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.auto_awesome_rounded),
+                tooltip: 'Ameliorer avec l\'IA',
+                onPressed: () async {
+                  final result = await showModalBottomSheet<Map<String, dynamic>>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => AiEnhanceSheet(cv: cv),
+                  );
+                  print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
+                  if (result != null && mounted) {
+                    print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
+                    final ok = await context.read<CvProvider>().applyAiEnhancements(cv.id!, result);
+                    print('[AI-DETAIL] applyAiEnhancements returned: $ok');
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+                    ));
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.palette_outlined),
+                tooltip: 'Personnaliser',
+                onPressed: () => _openCustomizePanel(context, cv),
+              ),
+              if (_isDownloadingPdf)
+                const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  tooltip: 'Telecharger PDF',
+                  onPressed: () => _downloadPdf(cv),
                 ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Modifier',
+                onPressed: () =>
+                    context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: cv.id != null
-                ? () => context.push('/cvs/${cv.id}/edit', extra: cv)
-                : null,
-            child: const Icon(Icons.edit),
-          ),
+          body: CvPreviewWidget(cv: cv),
         );
       },
     );
   }
+}
 
-  SliverAppBar _buildSliverAppBar(BuildContext context, Cv cv) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return SliverAppBar(
-      expandedHeight: 180,
-      pinned: true,
-      floating: false,
-      actions: [
-        _isDownloadingPdf
-            ? const Padding(
-                padding: EdgeInsets.all(12),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            : IconButton(
-                icon: const Icon(Icons.picture_as_pdf_outlined),
-                tooltip: 'Télécharger PDF',
-                onPressed: _downloadPdf,
-              ),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          cv.titre,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [colorScheme.primary, colorScheme.secondary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
-    );
+// ── Page plein ecran de personnalisation ─────────────────────────────────────
+
+class _CvStylePage extends StatefulWidget {
+  final Cv cv;
+  final ValueChanged<CvStyle> onStyleChanged;
+
+  const _CvStylePage({required this.cv, required this.onStyleChanged});
+
+  @override
+  State<_CvStylePage> createState() => _CvStylePageState();
+}
+
+class _CvStylePageState extends State<_CvStylePage> {
+  late CvStyle _style;
+  bool _showPreview = false;
+  bool _downloading = false;
+  double _optionsWidth = 300;
+
+  @override
+  void initState() {
+    super.initState();
+    _style = widget.cv.style;
   }
 
-  Widget _buildSectionCard({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required List<Widget> children,
-  }) {
+  void _apply(CvStyle newStyle) {
+    setState(() => _style = newStyle);
+    widget.onStyleChanged(newStyle);
+  }
+
+  Cv get _styledCv => widget.cv.copyWith(style: _style);
+
+  Future<void> _download() async {
+    setState(() => _downloading = true);
+    try {
+      final bytes = await generateCvPdf(_styledCv);
+      await savePdfBytes(bytes, 'cv-${widget.cv.id}.pdf');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('PDF telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Erreur : $e'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: ExpansionTile(
-        leading: Icon(icon, color: colorScheme.primary),
-        title: Text(
-          title,
-          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= 900;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-        initiallyExpanded: true,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: children,
+        title: const Text('Personnaliser le CV',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        actions: [
+          if (!isWide)
+            TextButton.icon(
+              onPressed: () => setState(() => _showPreview = !_showPreview),
+              icon: Icon(
+                _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
+                size: 18,
+              ),
+              label: Text(_showPreview ? 'Options' : 'Apercu'),
             ),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEmptyText(BuildContext context) {
-    return Text(
-      'Aucune information',
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey,
-          ),
-    );
-  }
-
-  Widget _buildPersonalInfoTile(BuildContext context, PersonalInfo? info) {
-    return _buildSectionCard(
-      context: context,
-      icon: Icons.person_outline,
-      title: 'Infos personnelles',
-      children: info == null
-          ? [_buildEmptyText(context)]
-          : [
-              if (info.prenom != null || info.nom != null)
-                _buildInfoRow(
-                  context,
-                  Icons.badge_outlined,
-                  [info.prenom, info.nom]
-                      .where((e) => e != null && e.isNotEmpty)
-                      .join(' '),
-                ),
-              if (info.email != null)
-                _buildInfoRow(context, Icons.email_outlined, info.email!),
-              if (info.telephone != null)
-                _buildInfoRow(context, Icons.phone_outlined, info.telephone!),
-              if (info.adresse != null)
-                _buildInfoRow(
-                    context, Icons.location_on_outlined, info.adresse!),
-              if (info.titrePoste != null)
-                _buildInfoRow(context, Icons.work_outline, info.titrePoste!),
-              if (info.resumeProfessionnel != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'A propos',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w600,
+      body: Column(
+        children: [
+          Expanded(
+            child: isWide
+                ? Row(
+                    children: [
+                      SizedBox(
+                        width: _optionsWidth,
+                        child: _buildOptionsPane(colorScheme),
                       ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  info.resumeProfessionnel!,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                      GestureDetector(
+                        onHorizontalDragUpdate: (details) {
+                          setState(() {
+                            _optionsWidth = (_optionsWidth + details.delta.dx)
+                                .clamp(200.0, screenWidth * 0.5);
+                          });
+                        },
+                        child: const _DraggableDivider(),
+                      ),
+                      Expanded(child: _buildPreviewPane()),
+                    ],
+                  )
+                : _showPreview
+                    ? _buildPreviewPane()
+                    : _buildOptionsPane(colorScheme),
+          ),
+          // Barre du bas
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              border: Border(
+                top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (!isWide) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => setState(() => _showPreview = !_showPreview),
+                      icon: Icon(
+                        _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
+                        size: 18,
+                      ),
+                      label: Text(_showPreview ? 'Options' : 'Apercu'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: _style.primaryColor),
+                        foregroundColor: _style.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  flex: 2,
+                  child: FilledButton.icon(
+                    onPressed: _downloading ? null : _download,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _style.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _downloading
+                        ? const SizedBox(
+                            width: 18, height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.download_rounded, size: 20),
+                    label: const Text('Telecharger PDF'),
+                  ),
                 ),
               ],
-              if (info.prenom == null &&
-                  info.nom == null &&
-                  info.email == null &&
-                  info.telephone == null &&
-                  info.adresse == null &&
-                  info.titrePoste == null &&
-                  info.resumeProfessionnel == null)
-                _buildEmptyText(context),
-            ],
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildExperiencesTile(
-      BuildContext context, List<Experience> experiences) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat('MMM yyyy', 'fr_FR');
-    return _buildSectionCard(
-      context: context,
-      icon: Icons.work_outline,
-      title: 'Expériences',
-      children: experiences.isEmpty
-          ? [_buildEmptyText(context)]
-          : experiences.asMap().entries.map(
-                (entry) {
-                  final idx = entry.key;
-                  final exp = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (exp.poste != null)
-                          Text(
-                            exp.poste!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        if (exp.entreprise != null)
-                          Text(
-                            exp.entreprise!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: colorScheme.primary),
-                          ),
-                        Text(
-                          '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : '?'}'
-                          ' - '
-                          '${exp.actuel ? 'Présent' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '?')}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
-                        ),
-                        if (exp.description != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            exp.description!,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                        if (idx < experiences.length - 1)
-                          const Divider(height: 16),
-                      ],
-                    ),
-                  );
-                },
-              ).toList(),
-    );
-  }
-
-  Widget _buildFormationsTile(
-      BuildContext context, List<Education> educations) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat('yyyy');
-    return _buildSectionCard(
-      context: context,
-      icon: Icons.school_outlined,
-      title: 'Formations',
-      children: educations.isEmpty
-          ? [_buildEmptyText(context)]
-          : educations.asMap().entries.map(
-                (entry) {
-                  final idx = entry.key;
-                  final edu = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (edu.diplome != null)
-                          Text(
-                            edu.diplome!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        if (edu.etablissement != null)
-                          Text(
-                            edu.etablissement!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: colorScheme.primary),
-                          ),
-                        if (edu.domaine != null)
-                          Text(
-                            edu.domaine!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: Colors.grey),
-                          ),
-                        Text(
-                          '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : '?'}'
-                          ' - '
-                          '${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : '?'}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
-                        ),
-                        if (idx < educations.length - 1)
-                          const Divider(height: 16),
-                      ],
-                    ),
-                  );
-                },
-              ).toList(),
-    );
-  }
-
-  Widget _buildCompetencesTile(BuildContext context, List<Skill> skills) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return _buildSectionCard(
-      context: context,
-      icon: Icons.star_outline,
-      title: 'Compétences',
-      children: skills.isEmpty
-          ? [_buildEmptyText(context)]
-          : [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: skills.map((skill) {
-                  final label = skill.niveau != null
-                      ? '${skill.nom ?? ''} (${skill.niveau}/5)'
-                      : skill.nom ?? '';
-                  return Chip(
-                    label: Text(label),
-                    backgroundColor:
-                        colorScheme.primary.withValues(alpha: 0.12),
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                  );
-                }).toList(),
-              ),
-            ],
-    );
-  }
-
-  Widget _buildLanguesTile(BuildContext context, List<Language> languages) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return _buildSectionCard(
-      context: context,
-      icon: Icons.language_outlined,
-      title: 'Langues',
-      children: languages.isEmpty
-          ? [_buildEmptyText(context)]
-          : languages
-              .map(
-                (lang) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        lang.langue ?? '',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      if (lang.niveau != null)
-                        Chip(
-                          label: Text(lang.niveau!),
-                          backgroundColor:
-                              colorScheme.secondary.withValues(alpha: 0.15),
-                          labelStyle: TextStyle(color: colorScheme.secondary),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ),
-                    ],
+  Widget _buildPreviewPane() {
+    return Container(
+      color: const Color(0xFFF5F5F5),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _style.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _style.primaryColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    '${CvStyle.templates.firstWhere((t) => t.id == _style.templateId).label} / ${_style.fontFamily}',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _style.primaryColor),
                   ),
                 ),
-              )
-              .toList(),
+                const Spacer(),
+                Text('Apercu en direct',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: CvPreviewWidget(cv: _styledCv),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionsPane(ColorScheme colorScheme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Templates en grille 2 colonnes
+        _optionLabel('Template', colorScheme),
+        const SizedBox(height: 8),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 2.2,
+          children: CvStyle.templates.map((t) {
+            final selected = _style.templateId == t.id;
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(templateId: t.id)),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: selected
+                        ? _style.primaryColor
+                        : colorScheme.outline.withValues(alpha: 0.3),
+                    width: selected ? 2 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  color: selected
+                      ? _style.primaryColor.withValues(alpha: 0.06)
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.description_outlined,
+                        color: t.previewColor, size: 16),
+                    const SizedBox(width: 6),
+                    Text(t.label,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.normal)),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+
+        // Couleurs
+        _optionLabel('Couleur', colorScheme),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: CvStyle.paletteColors.map((c) {
+            final selected = _style.primaryColor.toARGB32() == c.toARGB32();
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(primaryColor: c)),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: c,
+                  shape: BoxShape.circle,
+                  border: selected
+                      ? Border.all(color: colorScheme.onSurface, width: 2.5)
+                      : null,
+                ),
+                child: selected
+                    ? const Icon(Icons.check, color: Colors.white, size: 16)
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+
+        // Police
+        _optionLabel('Police', colorScheme),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: CvStyle.fontFamilies.map((f) {
+            final selected = _style.fontFamily == f;
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(fontFamily: f)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: selected
+                        ? _style.primaryColor
+                        : colorScheme.outline.withValues(alpha: 0.3),
+                    width: selected ? 2 : 1,
+                  ),
+                  color: selected
+                      ? _style.primaryColor.withValues(alpha: 0.1)
+                      : null,
+                ),
+                child: Text(f,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: selected ? _style.primaryColor : null,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _optionLabel(String text, ColorScheme colorScheme) {
+    return Text(text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
+          letterSpacing: 0.5,
+        ));
+  }
+}
+
+// ── Separateur draggable ────────────────────────────────────────
+
+class _DraggableDivider extends StatefulWidget {
+  const _DraggableDivider();
+
+  @override
+  State<_DraggableDivider> createState() => _DraggableDividerState();
+}
+
+class _DraggableDividerState extends State<_DraggableDivider> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.outline;
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 16,
+        color: _hovering
+            ? color.withValues(alpha: 0.15)
+            : color.withValues(alpha: 0.05),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 4, height: 4,
+                margin: const EdgeInsets.only(bottom: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Container(
+                width: 4, height: 4,
+                margin: const EdgeInsets.only(bottom: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Container(
+                width: 4, height: 4,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

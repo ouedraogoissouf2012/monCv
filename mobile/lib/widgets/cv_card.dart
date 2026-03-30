@@ -7,6 +7,9 @@ class CvCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDownloadPdf;
+  final VoidCallback onDelete;
+  final VoidCallback onDuplicate;
+  final VoidCallback onShare;
 
   const CvCard({
     super.key,
@@ -14,11 +17,10 @@ class CvCard extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDownloadPdf,
+    required this.onDelete,
+    required this.onDuplicate,
+    required this.onShare,
   });
-
-  bool get _isComplete =>
-      cv.personalInfo != null &&
-      (cv.experiences.isNotEmpty || cv.educations.isNotEmpty);
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
@@ -30,9 +32,23 @@ class CvCard extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  Color _scoreColor(int score) {
+    if (score >= 80) return const Color(0xFF10B981);
+    if (score >= 50) return const Color(0xFFF59E0B);
+    return const Color(0xFFEF4444);
+  }
+
+  String _scoreLabel(int score) {
+    if (score >= 80) return 'Complet';
+    if (score >= 50) return 'En cours';
+    return 'Incomplet';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final score = cv.completionScore;
+    final scoreColor = _scoreColor(score);
 
     return Card(
       child: InkWell(
@@ -43,7 +59,7 @@ class CvCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header : titre + badge statut
+              // Header : titre + menu actions
               Row(
                 children: [
                   Expanded(
@@ -56,25 +72,84 @@ class CvCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
+                  // Score badge
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _isComplete
-                          ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                          : const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      color: scoreColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      _isComplete ? 'Complet' : 'Incomplet',
+                      '$score%',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: _isComplete
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFF59E0B),
-                            fontWeight: FontWeight.w600,
+                            color: scoreColor,
+                            fontWeight: FontWeight.w700,
                           ),
                     ),
+                  ),
+                  // Popup menu
+                  PopupMenuButton<_CvCardAction>(
+                    icon: Icon(Icons.more_vert,
+                        size: 20,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6)),
+                    padding: EdgeInsets.zero,
+                    onSelected: (action) {
+                      switch (action) {
+                        case _CvCardAction.edit:
+                          onEdit();
+                        case _CvCardAction.duplicate:
+                          onDuplicate();
+                        case _CvCardAction.share:
+                          onShare();
+                        case _CvCardAction.delete:
+                          onDelete();
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: _CvCardAction.edit,
+                        child: ListTile(
+                          leading: Icon(Icons.edit_outlined),
+                          title: Text('Modifier'),
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: _CvCardAction.duplicate,
+                        child: ListTile(
+                          leading: Icon(Icons.copy_outlined),
+                          title: Text('Dupliquer'),
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: _CvCardAction.share,
+                        child: ListTile(
+                          leading: Icon(Icons.share_outlined),
+                          title: Text('Partager'),
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: _CvCardAction.delete,
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline,
+                              color: Theme.of(context).colorScheme.error),
+                          title: Text('Supprimer',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.error)),
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -85,6 +160,33 @@ class CvCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
+              ),
+              const SizedBox(height: 10),
+              // Barre de progression
+              Row(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: score / 100,
+                        minHeight: 5,
+                        backgroundColor:
+                            colorScheme.onSurface.withValues(alpha: 0.08),
+                        valueColor: AlwaysStoppedAnimation(scoreColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _scoreLabel(score),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: scoreColor,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               // Stats
@@ -109,9 +211,11 @@ class CvCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Divider(height: 1, color: colorScheme.onSurface.withValues(alpha: 0.1)),
+              Divider(
+                  height: 1,
+                  color: colorScheme.onSurface.withValues(alpha: 0.1)),
               const SizedBox(height: 10),
-              // Actions
+              // Actions principales
               Row(
                 children: [
                   Expanded(
@@ -132,14 +236,6 @@ class CvCard extends StatelessWidget {
                     ),
                     child: const Text('PDF'),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined),
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -149,3 +245,5 @@ class CvCard extends StatelessWidget {
     );
   }
 }
+
+enum _CvCardAction { edit, duplicate, share, delete }

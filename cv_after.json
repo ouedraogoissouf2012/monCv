@@ -1,0 +1,117 @@
+{
+  "titre": "dévolopeur full",
+  "personalInfo": {
+    "nom": "OUEDRAOGO",
+    "prenom": "Issouf",
+    "email": "issoufouedraogo@gmail.com",
+    "telephone": "002250544210112",
+    "adresse": "PORT BOUET",
+    "ville": "ABIDJAN",
+    "codePostal": null,
+    "pays": "COTE D'IVOIRE",
+    "photoUrl": null,
+    "linkedIn": null,
+    "portfolio": null,
+    "titrePoste": "Developpeur",
+    "resumeProfessionnel": "Je suis developpeur web"
+  },
+  "educations": [
+    {
+      "id": 34,
+      "etablissement": "Université Aube Nouvelle de BOBO DIOULASSOU",
+      "diplome": "LICENCE",
+      "domaine": "",
+      "dateDebut": "2020-03-27",
+      "dateFin": "2020-03-27",
+      "description": "obtention du BAC"
+    },
+    {
+      "id": 35,
+      "etablissement": "Lycée moderne Port Bouet ",
+      "diplome": "BAC",
+      "domaine": "",
+      "dateDebut": "2014-03-27",
+      "dateFin": "2014-03-27",
+      "description": "obtention du bac"
+    },
+    {
+      "id": 36,
+      "etablissement": "Lycée moderne Port Bouet",
+      "diplome": "BEPC",
+      "domaine": "",
+      "dateDebut": "2010-03-27",
+      "dateFin": "2010-03-31",
+      "description": "obtention du bpc"
+    },
+    {
+      "id": 37,
+      "etablissement": "Lycé moderne port bouet",
+      "diplome": "CEP",
+      "domaine": "primaire",
+      "dateDebut": "2006-02-27",
+      "dateFin": "2006-03-27",
+      "description": ""
+    }
+  ],
+  "experiences": [
+    {
+      "id": 18,
+      "entreprise": "DIGIT AFRICAN",
+      "poste": "Dév\"loppeur Ã African DIGIT",
+      "lieu": "ABIDJAN",
+      "dateDebut": "2026-01-04",
+      "dateFin": "2026-03-24",
+      "description": "developpeur web",
+      "actuel": false
+    },
+    {
+      "id": 19,
+      "entreprise": "nsia banque",
+      "poste": "stagiaire à nsia banque ",
+      "lieu": "Abidjan",
+      "dateDebut": "2025-01-27",
+      "dateFin": "2026-01-31",
+      "description": "developpeur web",
+      "actuel": false
+    }
+  ],
+  "skills": [
+    {
+      "id": 10,
+      "nom": "JAVA ,ANGULAR,FLUTTER",
+      "niveau": 2,
+      "categorie": null
+    }
+  ],
+  "languages": [
+    {
+      "id": 18,
+      "langue": "Français",
+      "niveau": "C1"
+    },
+    {
+      "id": 19,
+      "langue": "Anglais",
+      "niveau": "B1"
+    }
+  ],
+  "certifications": [
+    {
+      "id": 17,
+      "nom": "formateur",
+      "organisme": null,
+      "dateObtention": "2018-03-27",
+      "dateExpiration": null,
+      "credentialUrl": null
+    },
+    {
+      "id": 18,
+      "nom": "test formateur",
+      "organisme": null,
+      "dateObtention": "2026-03-02",
+      "dateExpiration": "2026-03-25",
+      "credentialUrl": null
+    }
+  ],
+  "projects": []
+}

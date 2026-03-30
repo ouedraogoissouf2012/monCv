@@ -1,6 +1,8 @@
 // mobile/lib/widgets/app_scaffold.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/responsive.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -136,6 +138,13 @@ class _Sidebar extends StatelessWidget {
               onTap: () => onTap(i),
             );
           }),
+          const Spacer(),
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.all(8),
+            child: _LogoutButton(),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -225,6 +234,61 @@ class _BottomNav extends StatelessWidget {
           label: 'Profil',
         ),
       ],
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Déconnexion'),
+            content: const Text('Voulez-vous vous déconnecter ?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Annuler'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.error,
+                ),
+                child: const Text('Déconnecter'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) {
+          await context.read<AuthProvider>().logout();
+          if (context.mounted) context.go('/login');
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(Icons.logout_rounded, size: 20,
+                color: colorScheme.error.withValues(alpha: 0.8)),
+            const SizedBox(width: 12),
+            Text(
+              'Déconnexion',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
