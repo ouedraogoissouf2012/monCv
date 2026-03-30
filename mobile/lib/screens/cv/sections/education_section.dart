@@ -40,6 +40,7 @@ class EducationSection extends StatelessWidget {
     final descCtrl = TextEditingController(text: edu?.description);
     DateTime? debut = edu?.dateDebut;
     DateTime? fin = edu?.dateFin;
+    bool enCours = edu?.dateFin == null && edu != null ? false : false;
 
     showFormSheet(
       context: context,
@@ -92,24 +93,58 @@ class EducationSection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: SectionDateButton(
-                  label: 'Fin',
-                  date: fin,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: fin ?? DateTime.now(),
-                      firstDate: DateTime(1950),
-                      lastDate:
-                          DateTime.now().add(const Duration(days: 365 * 5)),
-                    );
-                    if (d != null) setState(() => fin = d);
-                  },
-                ),
+                child: enCours
+                    ? Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Theme.of(ctx)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'En cours',
+                            style: TextStyle(
+                              color: Theme.of(ctx).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      )
+                    : SectionDateButton(
+                        label: 'Fin',
+                        date: fin,
+                        onTap: () async {
+                          final d = await showDatePicker(
+                            context: ctx,
+                            initialDate: fin ?? DateTime.now(),
+                            firstDate: DateTime(1950),
+                            lastDate: DateTime.now()
+                                .add(const Duration(days: 365 * 5)),
+                          );
+                          if (d != null) setState(() => fin = d);
+                        },
+                      ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            value: enCours,
+            onChanged: (v) => setState(() {
+              enCours = v ?? false;
+              if (enCours) fin = null;
+            }),
+            title: const Text('Formation en cours',
+                style: TextStyle(fontSize: 13)),
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+          const SizedBox(height: 4),
           TextFormField(
             controller: descCtrl,
             decoration: const InputDecoration(
@@ -126,7 +161,7 @@ class EducationSection extends StatelessWidget {
         diplome: diplomeCtrl.text,
         domaine: domaineCtrl.text,
         dateDebut: debut,
-        dateFin: fin,
+        dateFin: enCours ? null : fin,
         description: descCtrl.text,
       )),
     );

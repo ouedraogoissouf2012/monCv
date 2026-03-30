@@ -4,9 +4,9 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/services/api_service.dart';
+import 'package:cv_mobile/repositories/auth_repository.dart';
 
-class MockApiService extends Mock implements ApiService {}
+class MockAuthRepository extends Mock implements AuthRepository {}
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
 AuthResponse _fakeAuthResponse() => AuthResponse(
@@ -18,23 +18,21 @@ AuthResponse _fakeAuthResponse() => AuthResponse(
     );
 
 void main() {
-  late MockApiService mockApi;
+  late MockAuthRepository mockRepo;
   late MockFlutterSecureStorage mockStorage;
 
   setUp(() {
-    mockApi = MockApiService();
+    mockRepo = MockAuthRepository();
     mockStorage = MockFlutterSecureStorage();
-    // Pas de token stocké au démarrage → _checkAuthStatus ne fait rien
     when(() => mockStorage.read(key: 'access_token')).thenAnswer((_) async => null);
   });
 
   AuthProvider buildProvider() =>
-      AuthProvider(apiService: mockApi, storage: mockStorage);
+      AuthProvider(repository: mockRepo, storage: mockStorage);
 
   group('AuthProvider', () {
     test('état initial : non authentifié, pas de chargement', () async {
       final provider = buildProvider();
-      // Attendre que _checkAuthStatus se termine
       await Future.microtask(() {});
       expect(provider.isAuthenticated, false);
       expect(provider.isLoading, false);
@@ -42,7 +40,7 @@ void main() {
     });
 
     test('login succès : isAuthenticated=true, user défini', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
+      when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
           .thenAnswer((_) async => _fakeAuthResponse());
 
       final provider = buildProvider();
@@ -56,7 +54,7 @@ void main() {
     });
 
     test('login échec : isAuthenticated=false, error défini', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
+      when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
           .thenThrow(Exception('Email ou mot de passe incorrect'));
 
       final provider = buildProvider();
@@ -69,7 +67,7 @@ void main() {
     });
 
     test('register succès : isAuthenticated=true', () async {
-      when(() => mockApi.register(
+      when(() => mockRepo.register(
             email: any(named: 'email'),
             password: any(named: 'password'),
             nom: any(named: 'nom'),
@@ -89,7 +87,7 @@ void main() {
     });
 
     test('register échec : error défini', () async {
-      when(() => mockApi.register(
+      when(() => mockRepo.register(
             email: any(named: 'email'),
             password: any(named: 'password'),
             nom: any(named: 'nom'),
@@ -109,9 +107,9 @@ void main() {
     });
 
     test('logout : remet isAuthenticated=false', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
+      when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
           .thenAnswer((_) async => _fakeAuthResponse());
-      when(() => mockApi.logout()).thenAnswer((_) async {});
+      when(() => mockRepo.logout()).thenAnswer((_) async {});
 
       final provider = buildProvider();
       await provider.login(email: 'test@test.com', password: 'pass');
@@ -123,7 +121,7 @@ void main() {
     });
 
     test('clearError : remet error à null', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
+      when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
           .thenThrow(Exception('Erreur'));
 
       final provider = buildProvider();

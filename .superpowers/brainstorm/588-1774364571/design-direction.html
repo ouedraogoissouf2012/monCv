@@ -1,0 +1,89 @@
+<h2>Quelle direction de design pour MonCV ?</h2>
+<p class="subtitle">Choisis l'ambiance générale de l'application — mobile et web</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="minimal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #f8faff; padding: 20px; border-radius: 8px;">
+      <div style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom: 12px;">
+          <div style="width:36px; height:36px; background: #1976D2; border-radius: 8px;"></div>
+          <div>
+            <div style="height:10px; width:80px; background:#1a1a2e; border-radius:4px; margin-bottom:4px;"></div>
+            <div style="height:8px; width:50px; background:#ccc; border-radius:4px;"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1; height:60px; background:#f0f4ff; border-radius:8px; border-left: 3px solid #1976D2;"></div>
+          <div style="flex:1; height:60px; background:#f0f4ff; border-radius:8px; border-left: 3px solid #1976D2;"></div>
+        </div>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <div style="height:8px; width:60%; background:#eee; border-radius:4px; margin-bottom:8px;"></div>
+        <div style="height:8px; width:40%; background:#eee; border-radius:4px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>🎯 Moderne & Minimal</h3>
+      <p>Inspiré de <strong>Linear, Notion</strong>. Fond blanc, typographie nette, ombres subtiles, espacement généreux. Professionnel et épuré. Facile à lire.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="vibrant" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 20px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+      <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="width:36px; height:36px; background: white; border-radius: 50%; opacity: 0.9;"></div>
+          <div>
+            <div style="height:10px; width:80px; background:white; border-radius:4px; margin-bottom:4px; opacity:0.9;"></div>
+            <div style="height:8px; width:50px; background:white; border-radius:4px; opacity:0.5;"></div>
+          </div>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); height:50px; border-radius:8px;"></div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1; background:rgba(255,255,255,0.9); border-radius:10px; padding:10px; text-align:center;">
+          <div style="width:20px;height:20px;background:#764ba2;border-radius:50%;margin:0 auto 6px;"></div>
+          <div style="height:6px;width:40px;background:#aaa;border-radius:4px;margin:auto;"></div>
+        </div>
+        <div style="flex:1; background:rgba(255,255,255,0.9); border-radius:10px; padding:10px; text-align:center;">
+          <div style="width:20px;height:20px;background:#667eea;border-radius:50%;margin:0 auto 6px;"></div>
+          <div style="height:6px;width:40px;background:#aaa;border-radius:4px;margin:auto;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>🚀 Vibrant & Dynamique</h3>
+      <p>Inspiré de <strong>Canva, Figma</strong>. Dégradés violet-bleu, couleurs vives, cartes colorées. Moderne et énergique. Donne envie d'utiliser l'app.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="premium" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #0f1117; padding: 20px; border-radius: 8px;">
+      <div style="background: #1a1d2e; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,215,0,0.15);">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="width:36px; height:36px; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 8px;"></div>
+          <div>
+            <div style="height:10px; width:80px; background:#e0e0e0; border-radius:4px; margin-bottom:4px;"></div>
+            <div style="height:8px; width:50px; background:#555; border-radius:4px;"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1; height:55px; background:#252840; border-radius:8px; border: 1px solid rgba(255,215,0,0.2);"></div>
+          <div style="flex:1; height:55px; background:#252840; border-radius:8px; border: 1px solid rgba(255,215,0,0.2);"></div>
+        </div>
+      </div>
+      <div style="background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.08)); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,215,0,0.2);">
+        <div style="height:8px; width:70%; background:#555; border-radius:4px; margin-bottom:6px;"></div>
+        <div style="height:8px; width:45%; background:#444; border-radius:4px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>✨ Premium & Élégant</h3>
+      <p>Inspiré de <strong>Apple, Stripe</strong>. Fond sombre, accents dorés/bleus, glassmorphism. Luxueux et haut de gamme. Démarque-toi.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top: 24px;">Clique sur un style pour le sélectionner, ou dis-moi dans le terminal ce que tu préfères.</p>

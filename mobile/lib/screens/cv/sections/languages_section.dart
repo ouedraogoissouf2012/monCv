@@ -23,6 +23,23 @@ class LanguagesSection extends StatelessWidget {
     'NATIF': 'Langue maternelle',
   };
 
+  // Liste de langues pour l'autocomplétion
+  static const _allLanguages = [
+    'Français', 'Anglais', 'Espagnol', 'Portugais', 'Allemand',
+    'Italien', 'Néerlandais', 'Russe', 'Chinois (Mandarin)', 'Japonais',
+    'Coréen', 'Arabe', 'Hindi', 'Bengali', 'Turc', 'Vietnamien',
+    'Thaïlandais', 'Polonais', 'Ukrainien', 'Roumain', 'Tchèque',
+    'Grec', 'Hongrois', 'Suédois', 'Norvégien', 'Danois', 'Finnois',
+    'Hébreu', 'Persan', 'Swahili', 'Haoussa', 'Yoruba', 'Igbo',
+    'Amharique', 'Somali', 'Wolof', 'Bambara', 'Dioula', 'Lingala',
+    'Kikongo', 'Peul', 'Mooré', 'Baoulé', 'Bété', 'Sénoufo',
+    'Malinké', 'Soussou', 'Créole', 'Tamoul', 'Ourdou', 'Malais',
+    'Indonésien', 'Tagalog', 'Catalan', 'Basque', 'Galicien',
+    'Serbe', 'Croate', 'Bosniaque', 'Bulgare', 'Slovaque', 'Slovène',
+    'Lituanien', 'Letton', 'Estonien', 'Géorgien', 'Arménien',
+    'Kazakh', 'Ouzbek', 'Azerbaïdjanais', 'Mongol',
+  ];
+
   void _add(BuildContext context) =>
       _showSheet(context, null, (l) => onChanged([...languages, l]));
 
@@ -44,7 +61,7 @@ class LanguagesSection extends StatelessWidget {
     Language? lang,
     Function(Language) onSave,
   ) {
-    final langCtrl = TextEditingController(text: lang?.langue);
+    String langueText = lang?.langue ?? '';
     String? selectedNiveau = lang?.niveau;
 
     showFormSheet(
@@ -55,13 +72,56 @@ class LanguagesSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
-            controller: langCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Langue *',
-              hintText: 'Ex : Français, Anglais, Espagnol...',
-              prefixIcon: Icon(Icons.language_rounded, size: 20),
-            ),
+          Autocomplete<String>(
+            initialValue: TextEditingValue(text: langueText),
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text.isEmpty) return const [];
+              final query = textEditingValue.text.toLowerCase();
+              return _allLanguages.where(
+                  (l) => l.toLowerCase().startsWith(query));
+            },
+            onSelected: (String selection) {
+              langueText = selection;
+            },
+            fieldViewBuilder: (ctx2, ctrl, focusNode, onFieldSubmitted) {
+              return TextFormField(
+                controller: ctrl,
+                focusNode: focusNode,
+                decoration: const InputDecoration(
+                  labelText: 'Langue *',
+                  hintText: 'Tapez pour chercher (ex : fr → Français)',
+                  prefixIcon: Icon(Icons.language_rounded, size: 20),
+                ),
+                onChanged: (v) => langueText = v,
+              );
+            },
+            optionsViewBuilder: (ctx2, onSelected, options) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(12),
+                  child: ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(maxHeight: 180, maxWidth: 280),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (ctx3, index) {
+                        final option = options.elementAt(index);
+                        return ListTile(
+                          dense: true,
+                          title: Text(option,
+                              style: const TextStyle(fontSize: 13)),
+                          onTap: () => onSelected(option),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 20),
           Text(
@@ -129,10 +189,10 @@ class LanguagesSection extends StatelessWidget {
         ],
       ),
       onSave: () {
-        if (langCtrl.text.isNotEmpty && selectedNiveau != null) {
+        if (langueText.isNotEmpty && selectedNiveau != null) {
           onSave(Language(
             id: lang?.id,
-            langue: langCtrl.text,
+            langue: langueText,
             niveau: selectedNiveau,
           ));
         }

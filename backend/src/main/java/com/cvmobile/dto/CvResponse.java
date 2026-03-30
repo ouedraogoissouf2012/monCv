@@ -24,6 +24,9 @@ public class CvResponse {
     private List<ExperienceDto> experiences;
     private List<SkillDto> skills;
     private List<LanguageDto> languages;
+    private List<CertificationDto> certifications;
+    private List<ProjectDto> projects;
+    private String publicToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -44,6 +47,13 @@ public class CvResponse {
                 .languages(cv.getLanguages().stream()
                         .map(LanguageDto::fromEntity)
                         .collect(Collectors.toList()))
+                .certifications(cv.getCertifications().stream()
+                        .map(CertificationDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .projects(cv.getProjects().stream()
+                        .map(ProjectDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .publicToken(cv.getPublicToken())
                 .createdAt(cv.getCreatedAt())
                 .updatedAt(cv.getUpdatedAt())
                 .build();
@@ -176,6 +186,56 @@ public class CvResponse {
                     .id(language.getId())
                     .langue(language.getLangue())
                     .niveau(language.getNiveau())
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CertificationDto {
+        private Long id;
+        private String nom;
+        private String organisme;
+        private LocalDate dateObtention;
+        private LocalDate dateExpiration;
+        private String credentialUrl;
+
+        public static CertificationDto fromEntity(com.cvmobile.model.Certification c) {
+            return CertificationDto.builder()
+                    .id(c.getId())
+                    .nom(c.getNom())
+                    .organisme(c.getOrganisme())
+                    .dateObtention(c.getDateObtention())
+                    .dateExpiration(c.getDateExpiration())
+                    .credentialUrl(c.getCredentialUrl())
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProjectDto {
+        private Long id;
+        private String nom;
+        private String description;
+        private String technologies;
+        private String lien;
+        private LocalDate dateDebut;
+        private LocalDate dateFin;
+
+        public static ProjectDto fromEntity(com.cvmobile.model.Project p) {
+            return ProjectDto.builder()
+                    .id(p.getId())
+                    .nom(p.getNom())
+                    .description(p.getDescription())
+                    .technologies(p.getTechnologies())
+                    .lien(p.getLien())
+                    .dateDebut(p.getDateDebut())
+                    .dateFin(p.getDateFin())
                     .build();
         }
     }

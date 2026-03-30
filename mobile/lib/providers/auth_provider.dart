@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
-import '../services/api_service.dart';
+import '../repositories/auth_repository.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService;
+  final AuthRepository _repository;
   final FlutterSecureStorage _storage;
 
-  AuthProvider({ApiService? apiService, FlutterSecureStorage? storage})
-      : _apiService = apiService ?? ApiService(),
+  AuthProvider({AuthRepository? repository, FlutterSecureStorage? storage})
+      : _repository = repository ?? HttpAuthRepository(),
         _storage = storage ?? const FlutterSecureStorage() {
     _checkAuthStatus();
   }
@@ -27,29 +27,23 @@ class AuthProvider with ChangeNotifier {
     final token = await _storage.read(key: 'access_token');
     if (token != null) {
       try {
-        _user = await _apiService.getCurrentUser();
+        _user = await _repository.getCurrentUser();
         _isAuthenticated = true;
       } catch (e) {
-        await _apiService.clearTokens();
+        await _repository.clearTokens();
         _isAuthenticated = false;
       }
       notifyListeners();
     }
   }
 
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final authResponse = await _apiService.login(
-        email: email,
-        password: password,
-      );
+      final authResponse = await _repository.login(email: email, password: password);
       _user = authResponse.user;
       _isAuthenticated = true;
       _isLoading = false;
@@ -74,7 +68,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final authResponse = await _apiService.register(
+      final authResponse = await _repository.register(
         email: email,
         password: password,
         nom: nom,
@@ -94,7 +88,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _apiService.logout();
+    await _repository.logout();
     _user = null;
     _isAuthenticated = false;
     notifyListeners();
@@ -105,7 +99,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _user = await _apiService.updateProfile(nom: nom, prenom: prenom);
+      _user = await _repository.updateProfile(nom: nom, prenom: prenom);
       _isLoading = false;
       notifyListeners();
     } catch (e) {

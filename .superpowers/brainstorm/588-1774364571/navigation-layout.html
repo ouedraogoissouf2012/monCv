@@ -1,0 +1,142 @@
+<h2>Structure de navigation de l'app</h2>
+<p class="subtitle">Comment l'utilisateur navigue — mobile à gauche, web à droite</p>
+
+<div class="split">
+
+  <!-- Option A -->
+  <div class="mockup">
+    <div class="mockup-header">Option A — Bottom Nav (mobile) + Sidebar (web)</div>
+    <div class="mockup-body" style="display:flex; gap:16px; align-items:flex-start;">
+
+      <!-- Mobile -->
+      <div style="flex:1; text-align:center;">
+        <div style="font-size:11px; color:#888; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Mobile</div>
+        <div style="width:120px; height:220px; background:#f5f5f5; border-radius:16px; margin:0 auto; overflow:hidden; border:2px solid #ddd; display:flex; flex-direction:column;">
+          <div style="background:#1976D2; color:white; padding:8px; font-size:9px; font-weight:bold;">MonCV</div>
+          <div style="flex:1; padding:8px;">
+            <div style="background:white; border-radius:6px; height:40px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+            <div style="background:white; border-radius:6px; height:40px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+            <div style="background:white; border-radius:6px; height:40px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+          </div>
+          <div style="background:white; border-top:1px solid #eee; padding:6px 0; display:flex; justify-content:space-around;">
+            <div style="text-align:center;">
+              <div style="width:16px;height:16px;background:#1976D2;border-radius:4px;margin:0 auto 2px;"></div>
+              <div style="font-size:7px;color:#1976D2;">CVs</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="width:16px;height:16px;background:#ccc;border-radius:50%;margin:0 auto 2px;"></div>
+              <div style="font-size:7px;color:#999;">Profil</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="width:16px;height:16px;background:#ccc;border-radius:4px;margin:0 auto 2px;"></div>
+              <div style="font-size:7px;color:#999;">Thème</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Web -->
+      <div style="flex:2; text-align:center;">
+        <div style="font-size:11px; color:#888; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Web</div>
+        <div style="background:#f5f5f5; border-radius:8px; overflow:hidden; border:2px solid #ddd; display:flex; height:180px;">
+          <div style="width:60px; background:#1a237e; padding:8px; display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:7px; color:white; font-weight:bold; margin-bottom:4px;">M</div>
+            <div style="background:rgba(255,255,255,0.2); border-radius:4px; padding:4px; font-size:7px; color:white;">📄 CVs</div>
+            <div style="padding:4px; font-size:7px; color:rgba(255,255,255,0.6);">👤 Profil</div>
+            <div style="padding:4px; font-size:7px; color:rgba(255,255,255,0.6);">🎨 Thème</div>
+          </div>
+          <div style="flex:1; padding:10px;">
+            <div style="background:white; border-radius:6px; padding:8px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+              <div style="height:6px; width:60%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+              <div style="height:6px; width:40%; background:#eee; border-radius:3px;"></div>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+              <div style="height:6px; width:70%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+              <div style="height:6px; width:50%; background:#eee; border-radius:3px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p style="font-size:12px; color:#666; margin-top:8px;">Standard et familier. Barre basse sur mobile, sidebar fixe sur web.</p>
+  </div>
+
+  <!-- Option B -->
+  <div class="mockup">
+    <div class="mockup-header">Option B — Drawer (mobile) + Top Nav (web)</div>
+    <div class="mockup-body" style="display:flex; gap:16px; align-items:flex-start;">
+
+      <!-- Mobile -->
+      <div style="flex:1; text-align:center;">
+        <div style="font-size:11px; color:#888; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Mobile</div>
+        <div style="width:120px; height:220px; background:#f5f5f5; border-radius:16px; margin:0 auto; overflow:hidden; border:2px solid #ddd; display:flex; flex-direction:column;">
+          <div style="background:#1976D2; color:white; padding:8px; font-size:9px; font-weight:bold; display:flex; align-items:center; gap:4px;">
+            <div style="font-size:12px;">☰</div> MonCV
+          </div>
+          <div style="flex:1; padding:8px;">
+            <div style="background:white; border-radius:6px; height:40px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+            <div style="background:white; border-radius:6px; height:40px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+            <div style="background:white; border-radius:6px; height:40px; box-shadow:0 1px 4px rgba(0,0,0,0.1);"></div>
+          </div>
+          <div style="background:#1976D2; margin:8px; border-radius:20px; padding:6px; text-align:center; color:white; font-size:9px;">+ Nouveau CV</div>
+        </div>
+      </div>
+
+      <!-- Web -->
+      <div style="flex:2; text-align:center;">
+        <div style="font-size:11px; color:#888; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Web</div>
+        <div style="background:#f5f5f5; border-radius:8px; overflow:hidden; border:2px solid #ddd; height:180px; display:flex; flex-direction:column;">
+          <div style="background:white; border-bottom:1px solid #eee; padding:6px 12px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-size:10px; font-weight:bold; color:#1976D2;">MonCV</div>
+            <div style="display:flex; gap:10px; font-size:9px; color:#555;">
+              <span style="color:#1976D2; font-weight:bold;">Mes CVs</span>
+              <span>Profil</span>
+              <span>🎨</span>
+            </div>
+          </div>
+          <div style="flex:1; padding:10px; display:flex; gap:8px;">
+            <div style="flex:1; background:white; border-radius:6px; padding:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+              <div style="height:6px; width:60%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+              <div style="height:6px; width:40%; background:#eee; border-radius:3px;"></div>
+            </div>
+            <div style="flex:1; background:white; border-radius:6px; padding:8px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+              <div style="height:6px; width:70%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+              <div style="height:6px; width:50%; background:#eee; border-radius:3px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p style="font-size:12px; color:#666; margin-top:8px;">Drawer latéral sur mobile, navbar horizontale sur web. Plus de place pour le contenu.</p>
+  </div>
+
+</div>
+
+<div style="margin-top: 20px;">
+  <h3>Ou une option hybride :</h3>
+  <div class="options">
+    <div class="option" data-choice="A" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Bottom Nav + Sidebar</h3>
+        <p>Standard mobile/web. Navigation immédiate, toujours visible.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="B" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Drawer + Top Nav</h3>
+        <p>Plus d'espace pour le contenu. Navigation dans le hamburger menu.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="C" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Bottom Nav (mobile) + Top Nav (web)</h3>
+        <p>Le meilleur des deux mondes selon la plateforme.</p>
+      </div>
+    </div>
+  </div>
+</div>

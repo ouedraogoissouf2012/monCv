@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/cv.dart';
@@ -201,11 +204,129 @@ class ApiService {
     }
   }
 
-  Future<List<int>> downloadCvPdf(int id) async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/pdf'),
+  /// Upload une photo de profil et retourne son URL relative.
+  /// L'URL complète s'obtient avec [ApiConstants.baseUrl] + url.
+  Future<String> uploadPhoto(XFile photo) async {
+    final token = await accessToken;
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}/uploads/photo'),
+    );
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(
+      await http.MultipartFile.fromPath('file', photo.path),
+    );
+
+    final streamed = await request.send();
+    final body = await streamed.stream.bytesToString();
+
+    if (streamed.statusCode == 200) {
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      return json['url'] as String;
+    } else {
+      throw Exception('Erreur lors de l\'upload de la photo');
+    }
+  }
+
+  /// Upload une photo à partir de bytes (pour le web).
+  Future<String> uploadPhotoBytes(
+    Uint8List bytes,
+    String filename,
+    String mimeType,
+  ) async {
+    final token = await accessToken;
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}/uploads/photo'),
+    );
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(
+      http.MultipartFile.fromBytes('file', bytes,
+          filename: filename,
+          contentType: MediaType.parse(mimeType)),
+    );
+
+    final streamed = await request.send();
+    final body = await streamed.stream.bytesToString();
+
+    if (streamed.statusCode == 200) {
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      return json['url'] as String;
+    } else {
+      throw Exception('Erreur lors de l\'upload de la photo');
+    }
+  }
+
+  Future<Cv> duplicateCv(int id) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
       headers: await _getHeaders(),
     );
+
+    if (response.statusCode == 201) {
+      return Cv.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Erreur lors de la duplication du CV');
+    }
+  }
+
+  Future<List<String>> getAiSuggestions({
+    required String poste,
+    String? entreprise,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/suggest'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'poste': poste,
+        if (entreprise != null && entreprise.isNotEmpty) 'entreprise': entreprise,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final suggestions = data['suggestions'] as List<dynamic>;
+      return suggestions.cast<String>();
+    } else {
+      throw Exception('Erreur lors de la génération des suggestions');
+    }
+  }
+
+  Future<Cv> generateShareLink(int id) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return Cv.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Erreur lors de la génération du lien');
+    }
+  }
+
+  Future<Map<String, dynamic>> enhanceCv(int cvId, String level) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/enhance-cv'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'cvId': cvId, 'level': level}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Erreur lors de l\'amélioration IA');
+    }
+  }
+
+  Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'}) async {
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/pdf?template=$template',
+    );
+    final response = await http.get(uri, headers: await _getHeaders());
 
     if (response.statusCode == 200) {
       return response.bodyBytes;

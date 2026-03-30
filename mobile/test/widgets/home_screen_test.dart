@@ -80,6 +80,7 @@ void main() {
 
     when(() => mockCv.cvs).thenReturn([]);
     when(() => mockCv.isLoading).thenReturn(false);
+    when(() => mockCv.isOffline).thenReturn(false);
     when(() => mockCv.error).thenReturn(null);
     when(() => mockCv.loadCvs()).thenAnswer((_) async {});
     when(() => mockCv.addListener(any())).thenReturn(null);

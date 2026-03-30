@@ -387,6 +387,34 @@ class SectionDateButton extends StatelessWidget {
   }
 }
 
+// ── AiSuggestButton ───────────────────────────────────────────
+
+class AiSuggestButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const AiSuggestButton({super.key, required this.isLoading, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton.icon(
+        onPressed: isLoading ? null : onPressed,
+        icon: isLoading
+            ? const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.auto_awesome, size: 16),
+        label: Text(isLoading ? 'Génération…' : 'Suggestions IA'),
+        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+      ),
+    );
+  }
+}
+
 // ── SectionCurrentSwitch ──────────────────────────────────────
 
 class SectionCurrentSwitch extends StatelessWidget {

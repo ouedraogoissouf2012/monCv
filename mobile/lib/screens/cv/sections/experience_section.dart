@@ -1,6 +1,89 @@
 import 'package:flutter/material.dart';
 import '../../../models/cv.dart';
+import '../../../services/api_service.dart';
 import 'form_sheet.dart';
+
+Future<void> showSuggestionsSheet(
+  BuildContext context,
+  List<String> suggestions,
+  TextEditingController controller,
+) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.5,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      builder: (_, scrollCtrl) => Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(Icons.auto_awesome, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'Suggestions IA',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'Appuyez sur une suggestion pour l\'ajouter à la description.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ),
+          const Divider(height: 20),
+          Expanded(
+            child: ListView.separated(
+              controller: scrollCtrl,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              itemCount: suggestions.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) => InkWell(
+                onTap: () {
+                  final current = controller.text.trim();
+                  controller.text =
+                      current.isEmpty ? '• ${suggestions[i]}' : '$current\n• ${suggestions[i]}';
+                  Navigator.of(ctx).pop();
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text('• ${suggestions[i]}', style: const TextStyle(fontSize: 13)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 class ExperienceSection extends StatelessWidget {
   final List<Experience> experiences;
@@ -40,6 +123,7 @@ class ExperienceSection extends StatelessWidget {
     DateTime? debut = exp?.dateDebut;
     DateTime? fin = exp?.dateFin;
     bool actuel = exp?.actuel ?? false;
+    bool isLoadingAi = false;
 
     showFormSheet(
       context: context,
@@ -127,6 +211,40 @@ class ExperienceSection extends StatelessWidget {
               alignLabelWithHint: true,
             ),
             maxLines: 3,
+          ),
+          const SizedBox(height: 6),
+          AiSuggestButton(
+            isLoading: isLoadingAi,
+            onPressed: () async {
+              setState(() => isLoadingAi = true);
+              try {
+                final suggestions = await ApiService().getAiSuggestions(
+                  poste: posteCtrl.text,
+                  entreprise: entrepriseCtrl.text,
+                );
+                if (!ctx.mounted) return;
+                await showSuggestionsSheet(ctx, suggestions, descCtrl);
+              } catch (e) {
+                if (!ctx.mounted) return;
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Suggestions IA indisponibles — clé OpenAI non configurée sur le serveur',
+                    ),
+                    backgroundColor: Theme.of(ctx).colorScheme.errorContainer,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    action: SnackBarAction(
+                      label: 'OK',
+                      onPressed: () {},
+                    ),
+                  ),
+                );
+              } finally {
+                if (ctx.mounted) setState(() => isLoadingAi = false);
+              }
+            },
           ),
         ],
       ),

@@ -24,6 +24,8 @@ public class CvRequest {
     private List<ExperienceDto> experiences;
     private List<SkillDto> skills;
     private List<LanguageDto> languages;
+    private List<CertificationDto> certifications;
+    private List<ProjectDto> projects;
 
     @Data
     @Builder
@@ -93,5 +95,32 @@ public class CvRequest {
         private Long id;
         private String langue;
         private Language.NiveauLangue niveau;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CertificationDto {
+        private Long id;
+        private String nom;
+        private String organisme;
+        private LocalDate dateObtention;
+        private LocalDate dateExpiration;
+        private String credentialUrl;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProjectDto {
+        private Long id;
+        private String nom;
+        private String description;
+        private String technologies;
+        private String lien;
+        private LocalDate dateDebut;
+        private LocalDate dateFin;
     }
 }

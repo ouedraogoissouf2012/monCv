@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,6 +80,18 @@ public class CvService {
             }
         }
 
+        if (request.getCertifications() != null) {
+            for (CvRequest.CertificationDto certDto : request.getCertifications()) {
+                cv.addCertification(mapCertification(certDto));
+            }
+        }
+
+        if (request.getProjects() != null) {
+            for (CvRequest.ProjectDto projDto : request.getProjects()) {
+                cv.addProject(mapProject(projDto));
+            }
+        }
+
         cv = cvRepository.save(cv);
         return CvResponse.fromEntity(cv);
     }
@@ -127,7 +140,108 @@ public class CvService {
             }
         }
 
+        cv.getCertifications().clear();
+        if (request.getCertifications() != null) {
+            for (CvRequest.CertificationDto certDto : request.getCertifications()) {
+                cv.addCertification(mapCertification(certDto));
+            }
+        }
+
+        cv.getProjects().clear();
+        if (request.getProjects() != null) {
+            for (CvRequest.ProjectDto projDto : request.getProjects()) {
+                cv.addProject(mapProject(projDto));
+            }
+        }
+
         cv = cvRepository.save(cv);
+        return CvResponse.fromEntity(cv);
+    }
+
+    @Transactional
+    public CvResponse duplicateCv(Long cvId, Long userId) {
+        Cv original = cvRepository.findByIdAndUserId(cvId, userId)
+                .orElseThrow(() -> new RuntimeException("CV non trouve"));
+        User user = userService.findById(userId);
+
+        Cv copy = Cv.builder()
+                .titre("Copie de " + original.getTitre())
+                .user(user)
+                .build();
+
+        if (original.getPersonalInfo() != null) {
+            PersonalInfo pi = original.getPersonalInfo();
+            copy.setPersonalInfo(PersonalInfo.builder()
+                    .nom(pi.getNom()).prenom(pi.getPrenom()).email(pi.getEmail())
+                    .telephone(pi.getTelephone()).adresse(pi.getAdresse())
+                    .ville(pi.getVille()).codePostal(pi.getCodePostal()).pays(pi.getPays())
+                    .photoUrl(pi.getPhotoUrl()).linkedIn(pi.getLinkedIn())
+                    .portfolio(pi.getPortfolio()).titrePoste(pi.getTitrePoste())
+                    .resumeProfessionnel(pi.getResumeProfessionnel())
+                    .build());
+        }
+
+        copy = cvRepository.save(copy);
+
+        for (Education e : original.getEducations()) {
+            copy.addEducation(Education.builder()
+                    .etablissement(e.getEtablissement()).diplome(e.getDiplome())
+                    .domaine(e.getDomaine()).dateDebut(e.getDateDebut())
+                    .dateFin(e.getDateFin()).description(e.getDescription())
+                    .build());
+        }
+        for (Experience e : original.getExperiences()) {
+            copy.addExperience(Experience.builder()
+                    .entreprise(e.getEntreprise()).poste(e.getPoste())
+                    .lieu(e.getLieu()).dateDebut(e.getDateDebut())
+                    .dateFin(e.getDateFin()).description(e.getDescription())
+                    .actuel(e.getActuel())
+                    .build());
+        }
+        for (Skill s : original.getSkills()) {
+            copy.addSkill(Skill.builder()
+                    .nom(s.getNom()).niveau(s.getNiveau()).categorie(s.getCategorie())
+                    .build());
+        }
+        for (Language l : original.getLanguages()) {
+            copy.addLanguage(Language.builder()
+                    .langue(l.getLangue()).niveau(l.getNiveau())
+                    .build());
+        }
+        for (Certification c : original.getCertifications()) {
+            copy.addCertification(Certification.builder()
+                    .nom(c.getNom()).organisme(c.getOrganisme())
+                    .dateObtention(c.getDateObtention())
+                    .dateExpiration(c.getDateExpiration())
+                    .credentialUrl(c.getCredentialUrl())
+                    .build());
+        }
+        for (Project p : original.getProjects()) {
+            copy.addProject(Project.builder()
+                    .nom(p.getNom()).description(p.getDescription())
+                    .technologies(p.getTechnologies()).lien(p.getLien())
+                    .dateDebut(p.getDateDebut()).dateFin(p.getDateFin())
+                    .build());
+        }
+
+        copy = cvRepository.save(copy);
+        return CvResponse.fromEntity(copy);
+    }
+
+    @Transactional
+    public CvResponse generateShareToken(Long cvId, Long userId) {
+        Cv cv = cvRepository.findByIdAndUserId(cvId, userId)
+                .orElseThrow(() -> new RuntimeException("CV non trouve"));
+        if (cv.getPublicToken() == null) {
+            cv.setPublicToken(UUID.randomUUID().toString().replace("-", ""));
+            cv = cvRepository.save(cv);
+        }
+        return CvResponse.fromEntity(cv);
+    }
+
+    public CvResponse getCvByPublicToken(String token) {
+        Cv cv = cvRepository.findByPublicToken(token)
+                .orElseThrow(() -> new RuntimeException("Lien invalide ou expiré"));
         return CvResponse.fromEntity(cv);
     }
 
@@ -192,6 +306,27 @@ public class CvService {
         return Language.builder()
                 .langue(dto.getLangue())
                 .niveau(dto.getNiveau())
+                .build();
+    }
+
+    private Certification mapCertification(CvRequest.CertificationDto dto) {
+        return Certification.builder()
+                .nom(dto.getNom())
+                .organisme(dto.getOrganisme())
+                .dateObtention(dto.getDateObtention())
+                .dateExpiration(dto.getDateExpiration())
+                .credentialUrl(dto.getCredentialUrl())
+                .build();
+    }
+
+    private Project mapProject(CvRequest.ProjectDto dto) {
+        return Project.builder()
+                .nom(dto.getNom())
+                .description(dto.getDescription())
+                .technologies(dto.getTechnologies())
+                .lien(dto.getLien())
+                .dateDebut(dto.getDateDebut())
+                .dateFin(dto.getDateFin())
                 .build();
     }
 }
