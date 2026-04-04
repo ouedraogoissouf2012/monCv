@@ -8,8 +8,7 @@ import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
-import '../../utils/pdf_saver.dart';
-import '../../utils/cv_pdf_generator.dart';
+import '../../services/pdf_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -233,8 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     try {
-      final bytes = await generateCvPdf(cv);
-      await savePdfBytes(bytes, 'cv-${cv.id}.pdf');
+      await PdfService().downloadPdf(cv);
       messenger.showSnackBar(
         const SnackBar(
           content: Text('PDF téléchargé ✓'),

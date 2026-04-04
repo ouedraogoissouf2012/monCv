@@ -37,7 +37,7 @@ upload:
 
 # CORS
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:*,http://10.0.2.2:*}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost:8082,http://10.0.2.2:8082}
 
 # JWT Configuration
 jwt:
