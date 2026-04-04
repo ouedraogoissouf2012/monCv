@@ -1,6 +1,6 @@
 package com.cvmobile.controller;
 
-import com.cvmobile.dto.*;;
+import com.cvmobile.dto.*;
 import com.cvmobile.service.AiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
