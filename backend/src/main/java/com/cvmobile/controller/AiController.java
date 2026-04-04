@@ -29,6 +29,13 @@ public class AiController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/adapt-cv")
+    @Operation(summary = "Adapter un CV a une offre d'emploi (cree une variante)")
+    public ResponseEntity<EnhanceCvResponse> adaptCv(@Valid @RequestBody AdaptCvRequest request) {
+        EnhanceCvResponse response = aiService.adaptCvToJob(request.getCvId(), request.getJobDescription());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/generate-resume")
     @Operation(summary = "Generer un resume professionnel avec l'IA")
     public ResponseEntity<java.util.Map<String, String>> generateResume(

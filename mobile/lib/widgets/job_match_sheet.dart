@@ -13,8 +13,23 @@ class JobMatchSheet extends StatefulWidget {
 class _JobMatchSheetState extends State<JobMatchSheet> {
   final _controller = TextEditingController();
   bool _loading = false;
+  bool _creatingVariant = false;
   Map<String, dynamic>? _result;
   String? _error;
+
+  Future<void> _createVariant() async {
+    setState(() => _creatingVariant = true);
+    try {
+      final adapted = await ApiService().adaptCvToJob(widget.cvId, _controller.text.trim());
+      if (!mounted) return;
+      Navigator.pop(context, adapted); // Retourne le resultat au parent
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erreur: $e'), behavior: SnackBarBehavior.floating));
+      setState(() => _creatingVariant = false);
+    }
+  }
 
   Future<void> _analyze() async {
     if (_controller.text.trim().length < 20) {
@@ -149,6 +164,22 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 const SizedBox(height: 12),
               ],
 
+              // Bouton creer variante
+              const SizedBox(height: 4),
+              SizedBox(width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _creatingVariant ? null : _createVariant,
+                  icon: _creatingVariant
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.content_copy_rounded, size: 18),
+                  label: Text(_creatingVariant ? 'Creation...' : 'Creer une variante adaptee'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                )),
+              const SizedBox(height: 8),
               // Bouton re-analyser
               SizedBox(width: double.infinity,
                 child: OutlinedButton(
