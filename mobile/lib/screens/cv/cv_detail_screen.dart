@@ -7,6 +7,7 @@ import '../../providers/cv_provider.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/cv_preview.dart';
 import '../../widgets/ai_enhance_sheet.dart';
+import '../../widgets/job_match_sheet.dart';
 
 class CvDetailScreen extends StatefulWidget {
   final int cvId;
@@ -118,6 +119,21 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                     ));
                   }
                 },
+              ),
+              IconButton(
+                icon: const Icon(Icons.work_outline_rounded),
+                tooltip: 'Adapter a une offre',
+                onPressed: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => DraggableScrollableSheet(
+                    initialChildSize: 0.85,
+                    minChildSize: 0.5,
+                    maxChildSize: 0.95,
+                    builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
+                  ),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.palette_outlined),

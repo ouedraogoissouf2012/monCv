@@ -1,6 +1,7 @@
 package com.cvmobile.service;
 
 import com.cvmobile.dto.EnhanceCvResponse;
+import com.cvmobile.dto.JobMatchResponse;
 import com.cvmobile.dto.SuggestResponse;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
@@ -55,6 +56,147 @@ public class AiService {
                 .suggestions(generateMockSuggestions(poste, entreprise))
                 .aiGenerated(false)
                 .build();
+    }
+
+    // ── Analyse offre d'emploi + score ATS ─────────────────────────────────
+
+    public JobMatchResponse matchJob(Long cvId, String jobDescription) {
+        Cv cv = cvRepository.findById(cvId)
+                .orElseThrow(() -> new IllegalArgumentException("CV non trouve"));
+
+        if (apiKey == null || apiKey.isBlank()) {
+            return buildFallbackMatch(cv, jobDescription);
+        }
+
+        try {
+            return callDeepSeekMatch(cv, jobDescription);
+        } catch (Exception e) {
+            log.warn("DeepSeek match failed: {}", e.getMessage());
+            return buildFallbackMatch(cv, jobDescription);
+        }
+    }
+
+    private JobMatchResponse callDeepSeekMatch(Cv cv, String jobDescription) {
+        String prompt = buildMatchPrompt(cv, jobDescription);
+        String rawContent = callDeepSeekRaw(prompt, 1500);
+        log.info("DeepSeek match response:\n{}", rawContent);
+
+        // Parse score
+        int score = 50;
+        java.util.regex.Matcher scoreMatcher = java.util.regex.Pattern.compile("SCORE:\\s*(\\d+)").matcher(rawContent);
+        if (scoreMatcher.find()) {
+            score = Math.min(100, Integer.parseInt(scoreMatcher.group(1)));
+        }
+
+        // Parse matched keywords
+        List<String> matched = extractListSection(rawContent, "MOTS_CLES_PRESENTS:");
+        List<String> missing = extractListSection(rawContent, "MOTS_CLES_MANQUANTS:");
+        List<String> suggestions = extractListSection(rawContent, "SUGGESTIONS:");
+        String optimizedResume = extractBetweenMarkers(rawContent, "RESUME_OPTIMISE:",
+                List.of("MOTS_CLES_PRESENTS:", "MOTS_CLES_MANQUANTS:", "SUGGESTIONS:", "SCORE:", "---"));
+
+        return JobMatchResponse.builder()
+                .score(score)
+                .matchedKeywords(matched)
+                .missingKeywords(missing)
+                .suggestions(suggestions)
+                .optimizedResume(optimizedResume.isBlank() ? null : optimizedResume)
+                .aiGenerated(true)
+                .build();
+    }
+
+    private String buildMatchPrompt(Cv cv, String jobDescription) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Tu es un expert en recrutement et en optimisation de CV pour les ATS. ");
+        sb.append("Analyse ce CV par rapport a cette offre d'emploi et donne un score de correspondance.\n\n");
+        sb.append("Reponds EXACTEMENT dans ce format :\n\n");
+        sb.append("SCORE: (nombre de 0 a 100)\n\n");
+        sb.append("MOTS_CLES_PRESENTS:\n- mot1\n- mot2\n\n");
+        sb.append("MOTS_CLES_MANQUANTS:\n- mot1\n- mot2\n\n");
+        sb.append("SUGGESTIONS:\n- suggestion1\n- suggestion2\n- suggestion3\n\n");
+        sb.append("RESUME_OPTIMISE:\n(resume professionnel reecrit pour correspondre a cette offre)\n\n");
+
+        sb.append("---\nOFFRE D'EMPLOI :\n").append(jobDescription).append("\n\n");
+
+        sb.append("---\nCV DU CANDIDAT :\n");
+        if (cv.getPersonalInfo() != null) {
+            sb.append("Poste : ").append(cv.getPersonalInfo().getTitrePoste()).append("\n");
+            sb.append("Resume : ").append(cv.getPersonalInfo().getResumeProfessionnel()).append("\n\n");
+        }
+        sb.append("Competences : ");
+        sb.append(cv.getSkills().stream().map(Skill::getNom).collect(Collectors.joining(", ")));
+        sb.append("\n\nExperiences :\n");
+        for (Experience exp : cv.getExperiences()) {
+            sb.append("- ").append(exp.getPoste()).append(" chez ").append(exp.getEntreprise());
+            sb.append(" : ").append(exp.getDescription() != null ? exp.getDescription() : "(vide)").append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    private List<String> extractListSection(String content, String marker) {
+        String section = extractBetweenMarkers(content, marker,
+                List.of("MOTS_CLES_PRESENTS:", "MOTS_CLES_MANQUANTS:", "SUGGESTIONS:", "RESUME_OPTIMISE:", "SCORE:", "---"));
+        if (section.isBlank()) return List.of();
+        return Arrays.stream(section.split("\n"))
+                .map(String::trim)
+                .filter(l -> !l.isBlank())
+                .map(l -> l.replaceAll("^[\\-\\*•]+\\s*", ""))
+                .filter(l -> !l.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    private JobMatchResponse buildFallbackMatch(Cv cv, String jobDescription) {
+        // Analyse basique sans IA : chercher les mots de l'offre dans le CV
+        String cvText = buildCvText(cv).toLowerCase();
+        String[] jobWords = jobDescription.toLowerCase().split("\\W+");
+        List<String> matched = new java.util.ArrayList<>();
+        List<String> missing = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        java.util.Set<String> stopWords = java.util.Set.of(
+                "le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "en",
+                "pour", "avec", "dans", "sur", "par", "au", "aux", "est", "sont",
+                "nous", "vous", "il", "elle", "ce", "cette", "son", "sa", "ses",
+                "qui", "que", "dont", "ou", "plus", "moins", "tres", "bien", "etre",
+                "avoir", "faire", "entre", "votre", "notre", "leur");
+
+        for (String word : jobWords) {
+            if (word.length() < 4 || stopWords.contains(word) || seen.contains(word)) continue;
+            seen.add(word);
+            if (cvText.contains(word)) {
+                matched.add(word);
+            } else {
+                missing.add(word);
+            }
+        }
+
+        int score = matched.isEmpty() && missing.isEmpty() ? 0
+                : (int) ((matched.size() * 100.0) / (matched.size() + missing.size()));
+
+        return JobMatchResponse.builder()
+                .score(score)
+                .matchedKeywords(matched.stream().limit(15).collect(Collectors.toList()))
+                .missingKeywords(missing.stream().limit(10).collect(Collectors.toList()))
+                .suggestions(List.of(
+                        "Ajoutez les mots-cles manquants dans votre resume professionnel",
+                        "Adaptez vos descriptions d'experience au vocabulaire de l'offre",
+                        "Mentionnez les technologies specifiques demandees"))
+                .aiGenerated(false)
+                .build();
+    }
+
+    private String buildCvText(Cv cv) {
+        StringBuilder sb = new StringBuilder();
+        if (cv.getPersonalInfo() != null) {
+            sb.append(cv.getPersonalInfo().getTitrePoste()).append(" ");
+            sb.append(cv.getPersonalInfo().getResumeProfessionnel()).append(" ");
+        }
+        cv.getExperiences().forEach(e -> {
+            sb.append(e.getPoste()).append(" ").append(e.getDescription()).append(" ");
+        });
+        cv.getSkills().forEach(s -> sb.append(s.getNom()).append(" "));
+        cv.getEducations().forEach(e -> sb.append(e.getDiplome()).append(" ").append(e.getDescription()).append(" "));
+        return sb.toString();
     }
 
     // ── Amélioration CV (Lite / Medium / Max) ──────────────────────────────
