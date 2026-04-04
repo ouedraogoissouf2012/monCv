@@ -23,11 +23,10 @@ class _StepInfo {
 }
 
 const _kSteps = [
-  _StepInfo(Icons.title_rounded, 'Titre', 'Nommez votre CV'),
-  _StepInfo(Icons.person_outline_rounded, 'Identité', 'Coordonnées & profil'),
-  _StepInfo(Icons.work_outline_rounded, 'Expériences', 'Parcours professionnel'),
-  _StepInfo(Icons.school_outlined, 'Formations', 'Diplômes & études'),
-  _StepInfo(Icons.psychology_outlined, 'Compétences', 'Skills & langues'),
+  _StepInfo(Icons.person_outline_rounded, 'Identite', 'Coordonnees & profil'),
+  _StepInfo(Icons.work_outline_rounded, 'Experiences', 'Parcours professionnel'),
+  _StepInfo(Icons.school_outlined, 'Formations', 'Diplomes & etudes'),
+  _StepInfo(Icons.psychology_outlined, 'Competences', 'Skills & langues'),
   _StepInfo(Icons.verified_outlined, 'Extras', 'Certifications & projets'),
 ];
 
@@ -42,11 +41,8 @@ class CvFormScreen extends StatefulWidget {
 }
 
 class _CvFormScreenState extends State<CvFormScreen> {
-  final _titreFormKey = GlobalKey<FormState>();
   final _personalInfoFormKey = GlobalKey<FormState>();
   final _pageController = PageController();
-
-  late TextEditingController _titreController;
   PersonalInfo? _personalInfo;
   List<Education> _educations = [];
   List<Experience> _experiences = [];
@@ -63,7 +59,6 @@ class _CvFormScreenState extends State<CvFormScreen> {
   @override
   void initState() {
     super.initState();
-    _titreController = TextEditingController(text: widget.cv?.titre ?? '');
     if (widget.cv != null) {
       _personalInfo = widget.cv!.personalInfo;
       _educations = List.from(widget.cv!.educations);
@@ -75,16 +70,25 @@ class _CvFormScreenState extends State<CvFormScreen> {
     }
   }
 
+  // Genere le titre automatiquement depuis le titre du poste ou le nom
+  String get _autoTitre {
+    final poste = _personalInfo?.titrePoste;
+    if (poste != null && poste.trim().isNotEmpty) return poste;
+    final prenom = _personalInfo?.prenom ?? '';
+    final nom = _personalInfo?.nom ?? '';
+    if (prenom.isNotEmpty || nom.isNotEmpty) return 'CV $prenom $nom'.trim();
+    return 'Mon CV';
+  }
+
   @override
   void dispose() {
-    _titreController.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
   Cv get _currentCv => Cv(
         id: widget.cv?.id,
-        titre: _titreController.text.isNotEmpty ? _titreController.text : 'Mon CV',
+        titre: widget.cv?.titre ?? _autoTitre,
         personalInfo: _personalInfo,
         educations: _educations,
         experiences: _experiences,
@@ -97,16 +101,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
   bool _stepComplete(int index) {
     switch (index) {
       case 0:
-        return _titreController.text.trim().isNotEmpty;
-      case 1:
         return _personalInfo?.prenom != null && _personalInfo?.email != null;
-      case 2:
+      case 1:
         return _experiences.isNotEmpty;
-      case 3:
+      case 2:
         return _educations.isNotEmpty;
-      case 4:
+      case 3:
         return _skills.isNotEmpty || _languages.isNotEmpty;
-      case 5:
+      case 4:
         return _certifications.isNotEmpty || _projects.isNotEmpty;
       default:
         return false;
@@ -115,17 +117,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   int get _completionPercent {
     int done = 0;
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 5; i++) {
       if (_stepComplete(i)) done++;
     }
-    return ((done / 6) * 100).round();
+    return ((done / 5) * 100).round();
   }
 
   bool _validateCurrentStep() {
     if (_currentStep == 0) {
-      return _titreFormKey.currentState?.validate() ?? false;
-    }
-    if (_currentStep == 1) {
       return _personalInfoFormKey.currentState?.validate() ?? false;
     }
     return true;
@@ -143,7 +142,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   void _next() {
     if (!_validateCurrentStep()) return;
-    if (_currentStep < 5) _goToStep(_currentStep + 1);
+    if (_currentStep < 4) _goToStep(_currentStep + 1);
   }
 
   void _previous() {
@@ -151,7 +150,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   Future<void> _save() async {
-    if (!(_titreFormKey.currentState?.validate() ?? false)) {
+    if (!(_personalInfoFormKey.currentState?.validate() ?? false)) {
       _goToStep(0);
       return;
     }
@@ -228,7 +227,6 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   List<Widget> get _stepContents => [
-        _StepTitre(formKey: _titreFormKey, controller: _titreController),
         PersonalInfoSection(
           personalInfo: _personalInfo,
           onChanged: (info) => setState(() => _personalInfo = info),
@@ -360,7 +358,7 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLastStep = currentStep == 5;
+    final isLastStep = currentStep == 4;
 
     return Column(
       children: [
@@ -379,7 +377,7 @@ class _MobileLayout extends StatelessWidget {
           child: PageView.builder(
             controller: pageController,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 6,
+            itemCount: 5,
             itemBuilder: (_, i) => SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
               child: stepContents[i],
@@ -750,7 +748,7 @@ class _DesktopLayout extends StatelessWidget {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: 6,
+                  itemCount: 5,
                   itemBuilder: (_, i) {
                     final isActive = i == currentStep;
                     final isDone = stepComplete(i);
@@ -869,110 +867,6 @@ class _DesktopLayout extends StatelessWidget {
                 currentStep: currentStep,
                 onStepTap: onStepTap,
               ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Étape 0 — Titre du CV ──────────────────────────────────────
-
-class _StepTitre extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
-  final TextEditingController controller;
-
-  const _StepTitre({required this.formKey, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Commençons par le début',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Donnez un titre à votre CV pour l\'identifier facilement.',
-          style: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
-              fontSize: 14),
-        ),
-        const SizedBox(height: 36),
-        Form(
-          key: formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelText: 'Titre du CV *',
-              hintText: 'Ex : Développeur Flutter Senior',
-              prefixIcon:
-                  Icon(Icons.title_rounded, color: colorScheme.primary),
-              filled: true,
-              fillColor: colorScheme.surfaceContainerLowest,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Titre requis' : null,
-          ),
-        ),
-        const SizedBox(height: 28),
-        // Carte conseils
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colorScheme.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.15)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Icon(Icons.lightbulb_outline_rounded,
-                    size: 15, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Conseils pour un bon titre',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.primary,
-                        fontSize: 13)),
-              ]),
-              const SizedBox(height: 10),
-              ...[
-                'Indiquez votre poste cible : "Chef de projet digital"',
-                'Ajoutez le contexte si besoin : "CV Finance — Alternance 2025"',
-                'Évitez les titres génériques comme "Mon CV"',
-              ].map((t) => Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.check_circle_outline_rounded,
-                              size: 14,
-                              color:
-                                  colorScheme.primary.withValues(alpha: 0.7)),
-                          const SizedBox(width: 6),
-                          Expanded(
-                              child: Text(t,
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.7)))),
-                        ]),
-                  )),
             ],
           ),
         ),
@@ -1183,7 +1077,7 @@ class _DesktopNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isLast = currentStep == 5;
+    final isLast = currentStep == 4;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
