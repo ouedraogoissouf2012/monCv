@@ -1,5 +1,6 @@
 // mobile/lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,16 @@ class _MyAppState extends State<MyApp> {
             debugShowCheckedModeBanner: false,
             routerConfig: _router,
             theme: AppThemes.get(themeProvider.mode),
+            locale: const Locale('fr', 'FR'),
+            supportedLocales: const [
+              Locale('fr', 'FR'),
+              Locale('en', 'US'),
+            ],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
           );
         },
       ),
