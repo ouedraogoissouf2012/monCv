@@ -29,6 +29,18 @@ public class AiController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/generate-resume")
+    @Operation(summary = "Generer un resume professionnel avec l'IA")
+    public ResponseEntity<java.util.Map<String, String>> generateResume(
+            @RequestBody GenerateResumeRequest request) {
+        var response = aiService.generateResume(
+                request.getTitrePoste(),
+                request.getCompetences(),
+                request.getExperience()
+        );
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/enhance-cv")
     @Operation(summary = "Améliorer le CV avec l'IA (LITE / MEDIUM / MAX)")
     public ResponseEntity<EnhanceCvResponse> enhanceCv(@Valid @RequestBody EnhanceCvRequest request) {

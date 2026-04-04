@@ -38,6 +38,47 @@ public class AiService {
         this.cvRepository = cvRepository;
     }
 
+    // ── Generation de resume professionnel ─────────────────────────────────
+
+    public Map<String, String> generateResume(String titrePoste, String competences, String experience) {
+        if (apiKey == null || apiKey.isBlank()) {
+            return Map.of("resume", buildFallbackResume(titrePoste));
+        }
+        try {
+            String prompt = "Tu es un expert en redaction de CV professionnels. "
+                    + "Ecris un resume professionnel percutant de 3-4 phrases pour un CV. "
+                    + "REGLES: "
+                    + "- Commence par le titre du poste et les annees d'experience "
+                    + "- Mentionne les competences cles "
+                    + "- Inclus un resultat chiffre si possible "
+                    + "- JAMAIS de mots cliches (motive, dynamique, passionne, rigoureux) "
+                    + "- Utilise des verbes d'action concrets "
+                    + "- Reponds UNIQUEMENT avec le texte du resume, rien d'autre\n\n"
+                    + "Poste: " + (titrePoste != null ? titrePoste : "non precise") + "\n"
+                    + "Competences: " + (competences != null ? competences : "non precisees") + "\n"
+                    + "Experience: " + (experience != null ? experience : "non precisee");
+
+            String result = callDeepSeekRaw(prompt, 500).strip();
+            // Nettoyer les guillemets eventuels
+            result = result.replaceAll("^\"|\"$", "");
+            return Map.of("resume", result);
+        } catch (Exception e) {
+            log.warn("DeepSeek resume generation failed: {}", e.getMessage());
+            return Map.of("resume", buildFallbackResume(titrePoste));
+        }
+    }
+
+    private String buildFallbackResume(String titrePoste) {
+        if (titrePoste == null || titrePoste.isBlank()) {
+            return "Professionnel experimente avec une expertise technique solide. "
+                    + "Capable de concevoir et livrer des solutions adaptees aux besoins metier. "
+                    + "A la recherche d'un nouveau defi pour apporter de la valeur a une equipe performante.";
+        }
+        return titrePoste + " avec une experience confirmee dans le domaine. "
+                + "Expert dans la conception et la mise en oeuvre de solutions performantes. "
+                + "Reconnu pour la qualite du travail livre et l'atteinte des objectifs fixes.";
+    }
+
     // ── Suggestions bullet points ───────────────────────────────────────────
 
     public SuggestResponse generateSuggestions(String poste, String entreprise) {

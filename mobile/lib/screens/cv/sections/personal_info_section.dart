@@ -496,32 +496,90 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
           // ── À propos ───────────────────────────────────
           const SizedBox(height: 20),
-          const _GroupLabel('À PROPOS'),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Optionnel — un résumé court de votre profil professionnel',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: colorScheme.onSurface.withValues(alpha: 0.45),
-                ),
+          Row(
+            children: [
+              const _GroupLabel('À PROPOS'),
+              const Spacer(),
+              _AiResumeButton(
+                onGenerated: (text) {
+                  setState(() => _resumeCtrl.text = text);
+                  _notify();
+                },
+                titrePoste: _titrePosteCtrl.text,
               ),
-            ),
+            ],
           ),
           TextFormField(
             controller: _resumeCtrl,
             decoration: const InputDecoration(
-              labelText: 'Résumé professionnel',
-              hintText: 'Ex : Développeur Full Stack avec 3 ans d\'expérience en Flutter et Spring Boot...',
+              labelText: 'Resume professionnel',
+              hintText: 'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
               alignLabelWithHint: true,
-              helperText: 'Optionnel — 2 à 3 phrases maximum',
+              helperText: 'Cliquez sur le bouton IA pour generer automatiquement',
             ),
             maxLines: 4,
             onChanged: (_) => _notify(),
           ),
           const SizedBox(height: 4),
         ],
+      ),
+    );
+  }
+}
+
+// ── Bouton IA pour generer le resume ──────────────────────────
+
+class _AiResumeButton extends StatefulWidget {
+  final Function(String) onGenerated;
+  final String titrePoste;
+  const _AiResumeButton({required this.onGenerated, required this.titrePoste});
+
+  @override
+  State<_AiResumeButton> createState() => _AiResumeButtonState();
+}
+
+class _AiResumeButtonState extends State<_AiResumeButton> {
+  bool _loading = false;
+
+  Future<void> _generate() async {
+    setState(() => _loading = true);
+    try {
+      final resume = await ApiService().generateResume(
+        widget.titrePoste,
+        null,
+        null,
+      );
+      if (!mounted) return;
+      widget.onGenerated(resume);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Resume genere par l\'IA'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Color(0xFF10B981),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erreur: $e'),
+        behavior: SnackBarBehavior.floating,
+      ));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: _loading ? null : _generate,
+      icon: _loading
+          ? const SizedBox(width: 14, height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.auto_awesome_rounded, size: 16),
+      label: Text(_loading ? 'Generation...' : 'Generer avec l\'IA',
+          style: const TextStyle(fontSize: 11)),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        foregroundColor: const Color(0xFF8B5CF6),
       ),
     );
   }

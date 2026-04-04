@@ -322,6 +322,24 @@ class ApiService {
     }
   }
 
+  Future<String> generateResume(String? titrePoste, String? competences, String? experience) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'titrePoste': titrePoste ?? '',
+        'competences': competences ?? '',
+        'experience': experience ?? '',
+      }),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['resume'] as String? ?? '';
+    } else {
+      throw Exception('Erreur lors de la generation');
+    }
+  }
+
   Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
