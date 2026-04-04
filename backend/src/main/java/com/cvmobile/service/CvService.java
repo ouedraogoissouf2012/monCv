@@ -110,16 +110,16 @@ public class CvService {
             copy.setPersonalInfo(copyPersonalInfo(original.getPersonalInfo()));
         }
 
-        copy = cvRepository.save(copy);
+        Cv savedCopy = cvRepository.save(copy);
 
-        original.getEducations().forEach(e -> copy.addEducation(copyEducation(e)));
-        original.getExperiences().forEach(e -> copy.addExperience(copyExperience(e)));
-        original.getSkills().forEach(s -> copy.addSkill(copySkill(s)));
-        original.getLanguages().forEach(l -> copy.addLanguage(copyLanguage(l)));
-        original.getCertifications().forEach(c -> copy.addCertification(copyCertification(c)));
-        original.getProjects().forEach(p -> copy.addProject(copyProject(p)));
+        original.getEducations().forEach(e -> savedCopy.addEducation(copyEducation(e)));
+        original.getExperiences().forEach(e -> savedCopy.addExperience(copyExperience(e)));
+        original.getSkills().forEach(s -> savedCopy.addSkill(copySkill(s)));
+        original.getLanguages().forEach(l -> savedCopy.addLanguage(copyLanguage(l)));
+        original.getCertifications().forEach(c -> savedCopy.addCertification(copyCertification(c)));
+        original.getProjects().forEach(p -> savedCopy.addProject(copyProject(p)));
 
-        Cv saved = cvRepository.save(copy);
+        Cv saved = cvRepository.save(savedCopy);
         log.info("CV duplique: original={}, copie={}, userId={}", cvId, saved.getId(), userId);
         return CvResponse.fromEntity(saved);
     }
