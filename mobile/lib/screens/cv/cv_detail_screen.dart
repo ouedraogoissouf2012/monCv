@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/cv.dart';
 import '../../models/cv_style.dart';
 import '../../providers/cv_provider.dart';
-import '../../utils/pdf_saver.dart';
-import '../../utils/cv_pdf_generator.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/cv_preview.dart';
 import '../../widgets/ai_enhance_sheet.dart';
 
@@ -35,8 +34,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     setState(() => _isDownloadingPdf = true);
     try {
-      final bytes = await generateCvPdf(cv);
-      await savePdfBytes(bytes, 'cv-${widget.cvId}.pdf');
+      await PdfService().downloadPdf(cv);
       if (mounted) {
         messenger.showSnackBar(const SnackBar(
           content: Text('PDF telecharge'),
@@ -190,8 +188,7 @@ class _CvStylePageState extends State<_CvStylePage> {
   Future<void> _download() async {
     setState(() => _downloading = true);
     try {
-      final bytes = await generateCvPdf(_styledCv);
-      await savePdfBytes(bytes, 'cv-${widget.cv.id}.pdf');
+      await PdfService().downloadPdf(_styledCv);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('PDF telecharge'),
