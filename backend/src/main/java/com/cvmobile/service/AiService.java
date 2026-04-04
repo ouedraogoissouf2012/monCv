@@ -38,6 +38,101 @@ public class AiService {
         this.cvRepository = cvRepository;
     }
 
+    // ── Adaptation CV a une offre (variante) ──────────────────────────────
+
+    public EnhanceCvResponse adaptCvToJob(Long cvId, String jobDescription) {
+        Cv cv = cvRepository.findById(cvId)
+                .orElseThrow(() -> new IllegalArgumentException("CV non trouve"));
+
+        if (apiKey == null || apiKey.isBlank()) {
+            return buildFallbackEnhancement(cv, "MAX");
+        }
+
+        try {
+            String prompt = buildAdaptPrompt(cv, jobDescription);
+            String rawContent = callDeepSeekRaw(prompt, 3000);
+            log.info("DeepSeek adapt response:\n{}", rawContent);
+
+            // Reutilise le meme parsing que enhanceCv
+            List<String> allMarkers = new java.util.ArrayList<>();
+            allMarkers.add("TITRE_POSTE:");
+            allMarkers.add("RESUME:");
+            for (Experience exp : cv.getExperiences()) allMarkers.add("EXP_" + exp.getId() + ":");
+            allMarkers.add("COMPETENCES:");
+
+            String titrePoste = extractBetweenMarkers(rawContent, "TITRE_POSTE:", allMarkers);
+            String resume = extractBetweenMarkers(rawContent, "RESUME:", allMarkers);
+
+            List<EnhanceCvResponse.ExperienceEnhancement> expEnhancements = new java.util.ArrayList<>();
+            for (Experience exp : cv.getExperiences()) {
+                String marker = "EXP_" + exp.getId() + ":";
+                String enhanced = extractBetweenMarkers(rawContent, marker, allMarkers);
+                if (enhanced.isBlank()) enhanced = exp.getDescription() != null ? exp.getDescription() : "";
+                expEnhancements.add(EnhanceCvResponse.ExperienceEnhancement.builder()
+                        .id(exp.getId()).poste(exp.getPoste()).description(enhanced).build());
+            }
+
+            String competencesRaw = extractBetweenMarkers(rawContent, "COMPETENCES:", allMarkers);
+            List<EnhanceCvResponse.SkillEnhancement> skills = new java.util.ArrayList<>();
+            if (!competencesRaw.isBlank()) {
+                for (String part : competencesRaw.split("[,\\n]")) {
+                    String name = part.replaceAll("^[\\-\\*•]+\\s*", "").strip();
+                    if (!name.isBlank()) {
+                        skills.add(EnhanceCvResponse.SkillEnhancement.builder().nom(name).niveau(3).build());
+                    }
+                }
+            }
+
+            return EnhanceCvResponse.builder()
+                    .titrePoste(titrePoste.isBlank() ? null : titrePoste)
+                    .resumeProfessionnel(resume.isBlank() ? null : resume)
+                    .experiences(expEnhancements)
+                    .skills(skills.isEmpty() ? null : skills)
+                    .aiGenerated(true)
+                    .level("ADAPT")
+                    .build();
+        } catch (Exception e) {
+            log.warn("DeepSeek adapt failed: {}", e.getMessage());
+            return buildFallbackEnhancement(cv, "MAX");
+        }
+    }
+
+    private String buildAdaptPrompt(Cv cv, String jobDescription) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Tu es un expert en recrutement. Adapte ce CV pour correspondre a cette offre d'emploi. ");
+        sb.append(ANTI_CLICHES_RULE);
+        sb.append(QUANTIFICATION_RULE);
+        sb.append("IMPORTANT: Adapte le vocabulaire, les mots-cles et les descriptions pour ");
+        sb.append("maximiser le score ATS par rapport a l'offre. ");
+        sb.append("Ajoute les competences demandees dans l'offre si le candidat pourrait les avoir.\n\n");
+
+        sb.append("Reponds EXACTEMENT dans ce format :\n\n");
+        sb.append("TITRE_POSTE:\n(titre adapte a l'offre)\n\n");
+        sb.append("RESUME:\n(resume reecrit pour l'offre)\n\n");
+
+        for (Experience exp : cv.getExperiences()) {
+            sb.append("EXP_").append(exp.getId()).append(":\n");
+            sb.append("(description adaptee avec les mots-cles de l'offre)\n\n");
+        }
+
+        sb.append("COMPETENCES:\n(competences adaptees a l'offre, separees par virgules)\n\n");
+
+        sb.append("---\nOFFRE D'EMPLOI :\n").append(jobDescription).append("\n\n");
+
+        sb.append("---\nCV ACTUEL :\n");
+        if (cv.getPersonalInfo() != null) {
+            sb.append("Poste: ").append(cv.getPersonalInfo().getTitrePoste()).append("\n");
+            sb.append("Resume: ").append(cv.getPersonalInfo().getResumeProfessionnel()).append("\n");
+        }
+        sb.append("Competences: ").append(cv.getSkills().stream().map(Skill::getNom).collect(Collectors.joining(", "))).append("\n");
+        for (Experience exp : cv.getExperiences()) {
+            sb.append("EXP_").append(exp.getId()).append(": ").append(exp.getPoste());
+            sb.append(" | ").append(exp.getDescription() != null ? exp.getDescription() : "(vide)").append("\n");
+        }
+
+        return sb.toString();
+    }
+
     // ── Generation de resume professionnel ─────────────────────────────────
 
     public Map<String, String> generateResume(String titrePoste, String competences, String experience) {

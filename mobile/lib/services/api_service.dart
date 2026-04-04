@@ -340,6 +340,19 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> adaptCvToJob(int cvId, String jobDescription) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/adapt-cv'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'cvId': cvId, 'jobDescription': jobDescription}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Erreur lors de l\'adaptation');
+    }
+  }
+
   Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
