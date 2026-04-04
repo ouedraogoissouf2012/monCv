@@ -187,21 +187,45 @@ public class AiService {
         return content.substring(contentStart, nextMarker).strip();
     }
 
+    // Mots cliches a remplacer par des formulations concretes
+    private static final String ANTI_CLICHES_RULE =
+            "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots : motive, determine, dynamique, passionne, "
+            + "polyvalent, rigoureux, autonome, force de proposition, esprit d'equipe. "
+            + "Remplace-les par des RESULTATS CONCRETS et des VERBES D'ACTION au passe compose: "
+            + "Concu, Developpe, Optimise, Reduit, Augmente, Deploye, Automatise, Implemente, Dirige, Livre. ";
+
+    private static final String QUANTIFICATION_RULE =
+            "REGLE CHIFFRES: Chaque bullet point DOIT contenir au moins UN chiffre mesurable. "
+            + "Exemples: 'Reduit le temps de chargement de 40%', 'Gere une equipe de 5 personnes', "
+            + "'Livre 12 fonctionnalites en 3 sprints', 'Augmente la couverture de tests de 20% a 85%'. "
+            + "Si le candidat n'a pas fourni de chiffres, invente des chiffres REALISTES et CREDIBLES "
+            + "bases sur le contexte du poste. ";
+
     private String buildEnhancePrompt(Cv cv, String level) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Tu es un expert en redaction de CV professionnels. ");
+        sb.append("Tu es un expert en redaction de CV professionnels, specialise en optimisation ATS ");
+        sb.append("(Applicant Tracking System). Tu connais les attentes des recruteurs en 2026. ");
 
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
                     "Corrige uniquement l'orthographe et la grammaire. "
-                    + "Garde exactement le meme sens et les memes mots. ");
-            case "MEDIUM" -> sb.append(
+                    + "Garde exactement le meme sens et les memes mots. "
+                    + "Ne reformule PAS, ne change PAS la structure. ");
+            case "MEDIUM" -> {
+                sb.append(
                     "Corrige l'orthographe, reformule pour plus d'impact professionnel. "
-                    + "Ameliore la structure sans changer les faits. ");
-            default -> sb.append( // MAX
-                    "Optimise completement ce CV : orthographe, verbes d'action percutants, "
-                    + "mots-cles ATS, quantification des resultats, restructuration pour impact maximal. "
-                    + "Pour les competences, separe-les individuellement si elles sont en bloc. ");
+                    + "Ameliore la structure des phrases. Utilise des verbes d'action. ");
+                sb.append(ANTI_CLICHES_RULE);
+            }
+            default -> { // MAX
+                sb.append(
+                    "Optimise completement ce CV pour un maximum d'impact ATS et recruteur. ");
+                sb.append(ANTI_CLICHES_RULE);
+                sb.append(QUANTIFICATION_RULE);
+                sb.append("Pour les competences, separe-les individuellement si elles sont en bloc ");
+                sb.append("et ajoute des competences pertinentes liees au poste. ");
+                sb.append("Pour le resume, ecris 3-4 phrases percutantes avec des chiffres cles. ");
+            }
         }
 
         sb.append("\nReponds en francais uniquement. ");

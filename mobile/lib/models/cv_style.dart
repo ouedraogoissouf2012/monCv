@@ -42,6 +42,12 @@ class CvStyle {
       description: 'Format cadre supérieur, sobre et impactant',
       previewColor: Color(0xFF1E3A5F),
     ),
+    CvTemplateInfo(
+      id: 'ats',
+      label: 'ATS-Safe',
+      description: '100% compatible ATS — 1 colonne, pas de graphiques',
+      previewColor: Color(0xFF111827),
+    ),
   ];
 
   static const List<Color> paletteColors = [
