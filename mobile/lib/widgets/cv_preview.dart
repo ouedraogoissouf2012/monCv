@@ -34,6 +34,8 @@ class CvPreviewWidget extends StatelessWidget {
         return _CreatifTemplate(cv: cv);
       case 'executive':
         return _ExecutiveTemplate(cv: cv);
+      case 'ats':
+        return _AtsTemplate(cv: cv);
       case 'moderne':
       default:
         return _ModerneTemplate(cv: cv);
@@ -623,6 +625,116 @@ class _ExecutiveTemplate extends StatelessWidget {
           const SizedBox(height: 1),
           Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
           _bodySections(cv, accent),
+        ]),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 6 : ATS-SAFE — 1 colonne, texte pur, 100% compatible ATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _AtsTemplate extends StatelessWidget {
+  final Cv cv;
+  const _AtsTemplate({required this.cv});
+
+  @override
+  Widget build(BuildContext context) {
+    final info = cv.personalInfo;
+    const black = Color(0xFF111827);
+    const grey = Color(0xFF6B7280);
+    final splitNames = _splitSkills(cv.skills);
+    final contact = [
+      if (info?.email?.isNotEmpty == true) info!.email!,
+      if (info?.telephone?.isNotEmpty == true) info!.telephone!,
+      if (info?.ville?.isNotEmpty == true)
+        '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
+    ].join('  |  ');
+
+    Widget atsSection(String title) => Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title.toUpperCase(), style: const TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w800, color: black, letterSpacing: 1,
+        )),
+        const SizedBox(height: 2),
+        Container(height: 1, color: black),
+      ]),
+    );
+
+    return DefaultTextStyle(
+      style: _font(cv.style.fontFamily, const TextStyle(fontSize: 11, color: black)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(36, 32, 36, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: black)),
+          if (info?.titrePoste?.isNotEmpty == true)
+            Text(info!.titrePoste!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: grey)),
+          const SizedBox(height: 6),
+          Text(contact, style: const TextStyle(fontSize: 10, color: grey)),
+          if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
+            atsSection('Profil'),
+            Text(info!.resumeProfessionnel!, style: const TextStyle(fontSize: 11, height: 1.5, color: black)),
+          ],
+          if (splitNames.isNotEmpty) ...[
+            atsSection('Competences'),
+            Text(splitNames.join('  -  '), style: const TextStyle(fontSize: 11, color: black)),
+          ],
+          if (cv.languages.isNotEmpty) ...[
+            atsSection('Langues'),
+            Text(cv.languages.map((l) => '${l.langue ?? ''} (${_niveauLabel(l.niveau)})').join('  -  '),
+                style: const TextStyle(fontSize: 11, color: black)),
+          ],
+          if (cv.experiences.isNotEmpty) ...[
+            atsSection('Experience professionnelle'),
+            ...cv.experiences.map((e) {
+              final date = _dateRange(e.dateDebut, e.dateFin, actuel: e.actuel);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(e.poste ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: black))),
+                    if (date.isNotEmpty) Text(date, style: const TextStyle(fontSize: 10, color: grey)),
+                  ]),
+                  Text([e.entreprise, e.lieu].where((s) => s?.isNotEmpty == true).join(', '),
+                      style: const TextStyle(fontSize: 10, color: grey)),
+                  if (e.description?.isNotEmpty == true) ...[
+                    const SizedBox(height: 3),
+                    ..._buildDescLines(e.description!, black),
+                  ],
+                ]),
+              );
+            }),
+          ],
+          if (cv.educations.isNotEmpty) ...[
+            atsSection('Formation'),
+            ...cv.educations.map((e) {
+              final date = _dateRange(e.dateDebut, e.dateFin);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(e.diplome ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: black))),
+                    if (date.isNotEmpty) Text(date, style: const TextStyle(fontSize: 10, color: grey)),
+                  ]),
+                  if (e.etablissement?.isNotEmpty == true)
+                    Text(e.etablissement!, style: const TextStyle(fontSize: 10, color: grey)),
+                ]),
+              );
+            }),
+          ],
+          if (cv.certifications.isNotEmpty) ...[
+            atsSection('Certifications'),
+            ...cv.certifications.map((c) => Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Row(children: [
+                Expanded(child: Text(c.nom ?? '', style: const TextStyle(fontSize: 11, color: black))),
+                Text(_fmt(c.dateObtention), style: const TextStyle(fontSize: 10, color: grey)),
+              ]),
+            )),
+          ],
         ]),
       ),
     );
