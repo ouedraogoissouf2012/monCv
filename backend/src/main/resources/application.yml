@@ -52,6 +52,22 @@ ai:
     model: ${AI_MODEL:deepseek-chat}
     base-url: https://api.deepseek.com/v1
 
+# Actuator / Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+info:
+  app:
+    name: MonCV Backend
+    version: 1.0.0
+    description: API de creation de CV professionnels
+
 # Swagger Configuration
 springdoc:
   api-docs:
