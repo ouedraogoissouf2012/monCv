@@ -202,20 +202,39 @@ Widget _eduEntry(Education e, Color accent) {
   );
 }
 
-// ── Competences avec barres ──
+// ── Competences avec barres et vrai niveau ──
+String _skillLabel(int n) {
+  switch (n.clamp(1, 5)) {
+    case 1: return 'Debutant';
+    case 2: return 'Base';
+    case 3: return 'Bon';
+    case 4: return 'Avance';
+    case 5: return 'Expert';
+    default: return 'Bon';
+  }
+}
+
 Widget _skillsBars(List<Skill> skills, Color accent) {
-  final names = _splitSkills(skills);
-  return Column(children: names.map((name) => Padding(
+  // Separer les skills en bloc avec leur niveau
+  final data = <MapEntry<String, int>>[];
+  for (final s in skills) {
+    final parts = (s.nom ?? '').split(RegExp(r'[,;/]+'));
+    for (final p in parts) {
+      final t = p.trim();
+      if (t.isNotEmpty) data.add(MapEntry(t, s.niveau ?? 3));
+    }
+  }
+  return Column(children: data.map((s) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(children: [
-      SizedBox(width: 100, child: Text(name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
+      SizedBox(width: 100, child: Text(s.key, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600))),
       Expanded(child: ClipRRect(
         borderRadius: BorderRadius.circular(2),
-        child: LinearProgressIndicator(value: 0.6, minHeight: 4,
+        child: LinearProgressIndicator(value: s.value / 5, minHeight: 4,
           backgroundColor: accent.withValues(alpha: 0.12), valueColor: AlwaysStoppedAnimation(accent)),
       )),
       const SizedBox(width: 6),
-      SizedBox(width: 50, child: Text('Bon', textAlign: TextAlign.right,
+      SizedBox(width: 50, child: Text(_skillLabel(s.value), textAlign: TextAlign.right,
           style: TextStyle(fontSize: 8, color: accent, fontWeight: FontWeight.w600))),
     ]),
   )).toList());

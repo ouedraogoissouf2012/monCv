@@ -62,19 +62,39 @@ String _dateRange(DateTime? debut, DateTime? fin, {bool actuel = false}) {
   return '$d - $f';
 }
 
-// Separe les competences en bloc en competences individuelles
-List<String> _splitSkills(List<Skill> skills) {
-  final result = <String>[];
+// Separe les competences en bloc en competences individuelles avec niveau
+class _SkillData {
+  final String name;
+  final int niveau;
+  _SkillData(this.name, this.niveau);
+}
+
+List<_SkillData> _splitSkillsWithLevel(List<Skill> skills) {
+  final result = <_SkillData>[];
   for (final s in skills) {
     final nom = s.nom ?? '';
-    // Separer par virgule, point-virgule, slash
+    final niveau = s.niveau ?? 3;
     final parts = nom.split(RegExp(r'[,;/]+'));
     for (final p in parts) {
       final trimmed = p.trim();
-      if (trimmed.isNotEmpty) result.add(trimmed);
+      if (trimmed.isNotEmpty) result.add(_SkillData(trimmed, niveau));
     }
   }
   return result;
+}
+
+List<String> _splitSkills(List<Skill> skills) =>
+    _splitSkillsWithLevel(skills).map((s) => s.name).toList();
+
+String _skillLevelLabel(int niveau) {
+  switch (niveau.clamp(1, 5)) {
+    case 1: return 'Debutant';
+    case 2: return 'Base';
+    case 3: return 'Bon';
+    case 4: return 'Avance';
+    case 5: return 'Expert';
+    default: return 'Bon';
+  }
 }
 
 // Remplace les caractères Unicode non supportés par la police PDF par défaut
@@ -286,16 +306,16 @@ pw.Widget _educationItem(Education e, PdfColor accent) => pw.Padding(
       ),
     );
 
-// Skills: barres de progression (identique au preview)
+// Skills: barres de progression avec vrai niveau
 pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
-  final splitNames = _splitSkills(skills);
+  final splitData = _splitSkillsWithLevel(skills);
   return pw.Column(
-    children: splitNames.map((name) => pw.Padding(
+    children: splitData.map((s) => pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 5),
       child: pw.Row(children: [
         pw.SizedBox(
           width: 90,
-          child: pw.Text(name, style: pw.TextStyle(
+          child: pw.Text(s.name, style: pw.TextStyle(
             fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900,
           )),
         ),
@@ -303,7 +323,7 @@ pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
           child: pw.ClipRRect(
             horizontalRadius: 1.5, verticalRadius: 1.5,
             child: pw.LinearProgressIndicator(
-              value: 0.6, minHeight: 3,
+              value: s.niveau / 5, minHeight: 3,
               backgroundColor: PdfColor(accent.red, accent.green, accent.blue, 0.12),
               valueColor: accent,
             ),
@@ -311,8 +331,8 @@ pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
         ),
         pw.SizedBox(width: 6),
         pw.SizedBox(
-          width: 35,
-          child: pw.Text('Bon', textAlign: pw.TextAlign.right,
+          width: 45,
+          child: pw.Text(_skillLevelLabel(s.niveau), textAlign: pw.TextAlign.right,
             style: pw.TextStyle(fontSize: 7, color: accent, fontWeight: pw.FontWeight.bold)),
         ),
       ]),
@@ -1001,15 +1021,27 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
         pw.SizedBox(height: 6),
       ],
       if (cv.skills.isNotEmpty || cv.languages.isNotEmpty) ...[
-        _sectionHeader('Compétences & Langues', accent),
-        pw.SizedBox(height: 4),
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             if (cv.skills.isNotEmpty)
-              pw.Expanded(child: _skillsSection(cv.skills, accent)),
+              pw.Expanded(
+                flex: 3,
+                child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                  _sectionHeader('Competences', accent),
+                  _skillsSection(cv.skills, accent),
+                ]),
+              ),
+            if (cv.skills.isNotEmpty && cv.languages.isNotEmpty)
+              pw.SizedBox(width: 24),
             if (cv.languages.isNotEmpty)
-              pw.Expanded(child: _languagesSection(cv.languages, accent)),
+              pw.Expanded(
+                flex: 2,
+                child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                  _sectionHeader('Langues', accent),
+                  _languagesSection(cv.languages, accent),
+                ]),
+              ),
           ],
         ),
       ],
