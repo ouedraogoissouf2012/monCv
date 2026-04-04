@@ -511,15 +511,54 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           ),
           TextFormField(
             controller: _resumeCtrl,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Resume professionnel',
               hintText: 'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
               alignLabelWithHint: true,
-              helperText: 'Cliquez sur le bouton IA pour generer automatiquement',
+              helperText: _resumeCtrl.text.isEmpty
+                  ? 'Cliquez sur le bouton IA pour generer automatiquement'
+                  : _resumeCtrl.text.length < 100
+                      ? 'Resume trop court — utilisez l\'IA pour l\'ameliorer'
+                      : 'Bon resume (${_resumeCtrl.text.length} caracteres)',
+              helperStyle: TextStyle(
+                color: _resumeCtrl.text.isEmpty
+                    ? null
+                    : _resumeCtrl.text.length < 100
+                        ? const Color(0xFFEF4444)
+                        : const Color(0xFF10B981),
+                fontWeight: _resumeCtrl.text.length < 100 && _resumeCtrl.text.isNotEmpty
+                    ? FontWeight.w600 : null,
+              ),
             ),
             maxLines: 4,
-            onChanged: (_) => _notify(),
+            onChanged: (_) {
+              _notify();
+              setState(() {}); // Rafraichir le helperText
+            },
           ),
+          // Indicateur qualite resume
+          if (_resumeCtrl.text.isNotEmpty && _resumeCtrl.text.length < 100)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEF4444)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Un resume trop court reduit vos chances. Utilisez le bouton IA pour generer un resume percutant.',
+                      style: TextStyle(fontSize: 11, color: Colors.red[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 4),
         ],
       ),
