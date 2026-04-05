@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/error_helper.dart';
 
 // ── Palette ─────────────────────────────────────────────────────
 const _kBlue = Color(0xFF1847D6);
@@ -52,14 +53,8 @@ class _LoginScreenState extends State<LoginScreen>
     final ok = await auth.login(
         email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Erreur de connexion'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      ErrorHelper.showError(context, auth.error ?? 'Erreur de connexion',
+          onRetry: _login);
     }
   }
 

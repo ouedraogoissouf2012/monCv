@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/error_helper.dart';
 
 // Même palette que login
 const _kBlue = Color(0xFF1847D6);
@@ -83,14 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       nom: _nomCtrl.text.trim(),
     );
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Erreur d\'inscription'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      ErrorHelper.showError(context, auth.error ?? 'Erreur d\'inscription');
     }
   }
 
