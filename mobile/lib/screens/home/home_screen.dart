@@ -5,6 +5,8 @@ import '../../providers/cv_provider.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../services/api_service.dart';
 import '../../services/pdf_service.dart';
 import '../../services/share_service.dart';
 
@@ -24,6 +26,52 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _importCv(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      // Ouvrir le file picker
+      final picker = ImagePicker();
+      final result = await picker.pickMedia();
+      if (result == null || !mounted) return;
+
+      final bytes = await result.readAsBytes();
+      final name = result.name;
+
+      if (!name.endsWith('.pdf') && !name.endsWith('.docx')) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text('Format non supporte. Utilisez PDF ou DOCX.'),
+          behavior: SnackBarBehavior.floating,
+        ));
+        return;
+      }
+
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Import en cours... L\'IA analyse votre CV'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 10),
+      ));
+
+      final cv = await ApiService().importCv(bytes, name);
+      if (!mounted) return;
+
+      // Recharger la liste
+      await context.read<CvProvider>().loadCvs();
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(
+        content: Text('CV "${cv.titre}" importe avec succes'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(
+        content: Text('Erreur: $e'),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
@@ -33,6 +81,14 @@ class _HomeScreenState extends State<HomeScreen> {
       title: 'Mes CVs',
       actions: isDesktop
           ? [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: OutlinedButton.icon(
+                  onPressed: () => _importCv(context),
+                  icon: const Icon(Icons.upload_file_rounded, size: 18),
+                  label: const Text('Importer'),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: FilledButton.icon(
