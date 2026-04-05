@@ -27,7 +27,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nomCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
   bool _obscure = true;
+  bool _obscureConfirm = true;
+  double _passwordStrength = 0;
+  String _passwordLabel = '';
+  Color _passwordColor = Colors.grey;
+
+  void _checkPasswordStrength(String password) {
+    double strength = 0;
+    if (password.length >= 6) strength += 0.2;
+    if (password.length >= 8) strength += 0.1;
+    if (password.length >= 12) strength += 0.1;
+    if (password.contains(RegExp(r'[A-Z]'))) strength += 0.15;
+    if (password.contains(RegExp(r'[a-z]'))) strength += 0.1;
+    if (password.contains(RegExp(r'[0-9]'))) strength += 0.15;
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) strength += 0.2;
+
+    String label;
+    Color color;
+    if (strength < 0.3) {
+      label = 'Faible'; color = Colors.red;
+    } else if (strength < 0.6) {
+      label = 'Moyen'; color = Colors.orange;
+    } else if (strength < 0.8) {
+      label = 'Bon'; color = const Color(0xFF2563EB);
+    } else {
+      label = 'Fort'; color = const Color(0xFF10B981);
+    }
+
+    setState(() {
+      _passwordStrength = strength.clamp(0, 1);
+      _passwordLabel = label;
+      _passwordColor = color;
+    });
+  }
 
   @override
   void dispose() {
@@ -35,6 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nomCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -198,12 +233,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 14),
+              // Mot de passe
               _buildField(
                 label: 'Mot de passe',
                 icon: Icons.lock_outline,
                 controller: _passwordCtrl,
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                 obscure: _obscure,
+                onChanged: _checkPasswordStrength,
                 suffixIcon: GestureDetector(
                   onTap: () => setState(() => _obscure = !_obscure),
                   child: Icon(
@@ -214,6 +251,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Requis';
                   if (v.length < 6) return 'Minimum 6 caractères';
+                  return null;
+                },
+              ),
+              // Indicateur de force
+              if (_passwordCtrl.text.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: _passwordStrength,
+                        minHeight: 4,
+                        backgroundColor: _kBorder,
+                        valueColor: AlwaysStoppedAnimation(_passwordColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(_passwordLabel, style: TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: _passwordColor)),
+                ]),
+              ],
+              const SizedBox(height: 14),
+              // Confirmation mot de passe
+              _buildField(
+                label: 'Confirmer le mot de passe',
+                icon: Icons.lock_outline,
+                controller: _confirmCtrl,
+                hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                obscure: _obscureConfirm,
+                suffixIcon: GestureDetector(
+                  onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  child: Icon(
+                    _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    size: 18, color: _kMuted,
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Requis';
+                  if (v != _passwordCtrl.text) return 'Les mots de passe ne correspondent pas';
                   return null;
                 },
               ),
@@ -302,15 +380,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool obscure = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
+    ValueChanged<String>? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label.toUpperCase(),
+          label,
           style: const TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w500,
-            letterSpacing: 0.8, color: _kMuted,
+            fontSize: 12, fontWeight: FontWeight.w500,
+            color: _kMuted,
           ),
         ),
         const SizedBox(height: 7),
@@ -319,6 +398,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           keyboardType: keyboardType,
           obscureText: obscure,
           validator: validator,
+          onChanged: onChanged,
           textCapitalization: keyboardType == TextInputType.text
               ? TextCapitalization.words
               : TextCapitalization.none,
