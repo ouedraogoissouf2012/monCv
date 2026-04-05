@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import '../../../models/cv.dart';
 import '../../../services/api_service.dart';
+import '../../../services/ai_service.dart';
 import '../../../utils/constants.dart';
 
 class PersonalInfoSection extends StatefulWidget {
@@ -583,10 +584,8 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
   Future<void> _generate() async {
     setState(() => _loading = true);
     try {
-      final resume = await ApiService().generateResume(
-        widget.titrePoste,
-        null,
-        null,
+      final resume = await AiCvService().generateResume(
+        titrePoste: widget.titrePoste,
       );
       if (!mounted) return;
       widget.onGenerated(resume);

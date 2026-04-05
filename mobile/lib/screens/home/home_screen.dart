@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
-import '../../services/api_service.dart';
-import '../../utils/constants.dart';
 import '../../services/pdf_service.dart';
+import '../../services/share_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -153,13 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final cv = await ApiService().generateShareLink(cvId);
-      if (!mounted) return;
-
-      final token = cv.shareToken;
-      if (token == null) return;
-
-      final url = '${ApiConstants.baseUrl}/cvs/public/$token';
+      final url = await ShareService().generateShareLink(cvId);
+      if (!mounted || url == null) return;
 
       await showDialog(
         context: context,
@@ -195,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             FilledButton.icon(
               onPressed: () {
-                Clipboard.setData(ClipboardData(text: url));
+                ShareService().copyToClipboard(url);
                 Navigator.pop(ctx);
                 messenger.showSnackBar(
                   const SnackBar(
