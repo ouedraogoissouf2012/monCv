@@ -5,6 +5,7 @@ import com.cvmobile.dto.CvResponse;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.CvImportService;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.PdfGenerationService;
@@ -32,6 +33,7 @@ public class CvController {
     private final CvService cvService;
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;
+    private final CvImportService cvImportService;
     private final CvRepository cvRepository;
 
     @GetMapping
@@ -67,6 +69,16 @@ public class CvController {
             @AuthenticationPrincipal User user) {
         CvResponse cv = cvService.updateCv(id, request, user.getId());
         return ResponseEntity.ok(cv);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Importer un CV depuis un fichier PDF ou DOCX")
+    public ResponseEntity<CvResponse> importCv(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @AuthenticationPrincipal User user) {
+        CvRequest parsed = cvImportService.importCv(file);
+        CvResponse created = cvService.createCv(parsed, user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/{id}/pdf")

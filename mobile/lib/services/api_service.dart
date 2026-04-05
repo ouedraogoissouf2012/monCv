@@ -322,6 +322,31 @@ class ApiService {
     }
   }
 
+  Future<Cv> importCv(Uint8List bytes, String filename) async {
+    final token = await accessToken;
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/import'),
+    );
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    final mimeType = filename.endsWith('.pdf') ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    request.files.add(http.MultipartFile.fromBytes('file', bytes,
+        filename: filename,
+        contentType: MediaType.parse(mimeType)));
+
+    final streamed = await request.send();
+    final body = await streamed.stream.bytesToString();
+    if (streamed.statusCode == 201) {
+      return Cv.fromJson(jsonDecode(body));
+    } else {
+      final error = jsonDecode(body);
+      throw Exception(error['message'] ?? 'Erreur lors de l\'import');
+    }
+  }
+
   Future<List<int>> downloadCvDocx(int id) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
     final response = await http.get(uri, headers: await _getHeaders());

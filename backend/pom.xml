@@ -117,11 +117,18 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- DOCX Generation -->
+        <!-- DOCX Generation + Import -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
+        </dependency>
+
+        <!-- PDF Text Extraction -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
         <!-- Test -->
