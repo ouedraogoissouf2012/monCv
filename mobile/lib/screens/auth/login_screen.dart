@@ -191,13 +191,7 @@ class _LoginScreenState extends State<LoginScreen>
               const SizedBox(height: 20),
               // Bouton Se connecter
               _buildLoginButton(),
-              const SizedBox(height: 20),
-              // Séparateur
-              _buildSeparator(),
-              const SizedBox(height: 20),
-              // Social buttons
-              _buildSocials(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               // Signup link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -361,51 +355,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildSeparator() {
-    return const Row(
-      children: [
-        Expanded(child: Divider(color: _kBorder, thickness: 0.5)),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'ou continuer avec',
-            style: TextStyle(fontSize: 12, color: _kMuted, letterSpacing: 0.5),
-          ),
-        ),
-        Expanded(child: Divider(color: _kBorder, thickness: 0.5)),
-      ],
-    );
-  }
-
-  Widget _buildSocials() {
-    return Row(
-      children: [
-        Expanded(
-          child: _SocialButton(
-            label: 'Google',
-            icon: _googleIcon(),
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _SocialButton(
-            label: 'Facebook',
-            icon: const Icon(Icons.facebook, size: 18, color: Color(0xFF1877F2)),
-            onTap: () {},
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _googleIcon() {
-    return SizedBox(
-      width: 16, height: 16,
-      child: CustomPaint(painter: _GoogleIconPainter()),
-    );
-  }
-
   Widget _buildFeatures() {
     return Container(
       padding: const EdgeInsets.only(top: 16),
@@ -421,38 +370,6 @@ class _LoginScreenState extends State<LoginScreen>
           SizedBox(width: 20),
           _FeatureChip('Partage public'),
         ],
-      ),
-    );
-  }
-}
-
-// ── Social Button ────────────────────────────────────────────────
-
-class _SocialButton extends StatelessWidget {
-  final String label;
-  final Widget icon;
-  final VoidCallback onTap;
-  const _SocialButton({required this.label, required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 42,
-        decoration: BoxDecoration(
-          color: _kFieldBg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _kBorder, width: 0.5),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontSize: 13, color: _kText)),
-          ],
-        ),
       ),
     );
   }
@@ -593,33 +510,3 @@ class _FloatingOrbState extends State<_FloatingOrb>
   }
 }
 
-// ── Google Icon Painter ─────────────────────────────────────────
-
-class _GoogleIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Blue
-    final bluePaint = Paint()..color = const Color(0xFF4285F4);
-    canvas.drawCircle(Offset(w * 0.5, h * 0.5), w * 0.45, bluePaint);
-
-    // White center
-    final whitePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(w * 0.5, h * 0.5), w * 0.25, whitePaint);
-
-    // Simplified G shape
-    canvas.drawRect(
-      Rect.fromLTWH(w * 0.48, h * 0.35, w * 0.45, h * 0.15),
-      bluePaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(w * 0.48, h * 0.35, w * 0.45, h * 0.15),
-      whitePaint..color = const Color(0xFF4285F4),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
-}
