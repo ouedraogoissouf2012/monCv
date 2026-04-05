@@ -67,7 +67,7 @@ public class CvService {
         }
 
         cv = cvRepository.save(cv);
-        addCollections(cv, request);
+        addNewCollections(cv, request);
         cv = cvRepository.save(cv);
 
         log.info("CV cree: id={}, titre='{}', userId={}", cv.getId(), cv.getTitre(), userId);
@@ -86,8 +86,7 @@ public class CvService {
             cv.setPersonalInfo(mapPersonalInfo(request.getPersonalInfo()));
         }
 
-        clearCollections(cv);
-        addCollections(cv, request);
+        smartMergeCollections(cv, request);
 
         cv = cvRepository.save(cv);
         log.info("CV mis a jour: id={}, userId={}", cvId, userId);
@@ -155,20 +154,12 @@ public class CvService {
                 .orElseThrow(() -> new ResourceNotFoundException("CV", "id", cvId));
     }
 
-    private void clearCollections(Cv cv) {
-        cv.getEducations().clear();
-        cv.getExperiences().clear();
-        cv.getSkills().clear();
-        cv.getLanguages().clear();
-        cv.getCertifications().clear();
-        cv.getProjects().clear();
-    }
-
-    private void addCollections(Cv cv, CvRequest request) {
-        if (request.getEducations() != null)
-            request.getEducations().forEach(d -> cv.addEducation(mapEducation(d)));
+    /** Ajout simple de collections (pour la creation uniquement). */
+    private void addNewCollections(Cv cv, CvRequest request) {
         if (request.getExperiences() != null)
             request.getExperiences().forEach(d -> cv.addExperience(mapExperience(d)));
+        if (request.getEducations() != null)
+            request.getEducations().forEach(d -> cv.addEducation(mapEducation(d)));
         if (request.getSkills() != null)
             request.getSkills().forEach(d -> cv.addSkill(mapSkill(d)));
         if (request.getLanguages() != null)
@@ -177,6 +168,169 @@ public class CvService {
             request.getCertifications().forEach(d -> cv.addCertification(mapCertification(d)));
         if (request.getProjects() != null)
             request.getProjects().forEach(d -> cv.addProject(mapProject(d)));
+    }
+
+    /**
+     * Smart merge : compare les collections existantes avec les nouvelles.
+     * - Si l'element a un ID qui existe deja → update in place
+     * - Si l'element n'a pas d'ID → insert (nouveau)
+     * - Si un element existant n'est plus dans la requete → delete
+     *
+     * Avantage : les IDs restent stables entre les updates.
+     */
+    private void smartMergeCollections(Cv cv, CvRequest request) {
+        mergeExperiences(cv, request.getExperiences());
+        mergeEducations(cv, request.getEducations());
+        mergeSkills(cv, request.getSkills());
+        mergeLanguages(cv, request.getLanguages());
+        mergeCertifications(cv, request.getCertifications());
+        mergeProjects(cv, request.getProjects());
+    }
+
+    private void mergeExperiences(Cv cv, List<CvRequest.ExperienceDto> dtos) {
+        if (dtos == null) { cv.getExperiences().clear(); return; }
+        var existing = cv.getExperiences();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Experience::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.ExperienceDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        // Supprimer ceux qui ne sont plus dans la requete
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                // Update existant
+                var exp = existingById.get(dto.getId());
+                exp.setPoste(dto.getPoste());
+                exp.setEntreprise(dto.getEntreprise());
+                exp.setLieu(dto.getLieu());
+                exp.setDateDebut(dto.getDateDebut());
+                exp.setDateFin(dto.getDateFin());
+                exp.setDescription(dto.getDescription());
+                exp.setActuel(dto.getActuel() != null ? dto.getActuel() : false);
+            } else {
+                // Nouveau
+                cv.addExperience(mapExperience(dto));
+            }
+        }
+    }
+
+    private void mergeEducations(Cv cv, List<CvRequest.EducationDto> dtos) {
+        if (dtos == null) { cv.getEducations().clear(); return; }
+        var existing = cv.getEducations();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Education::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.EducationDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                var edu = existingById.get(dto.getId());
+                edu.setEtablissement(dto.getEtablissement());
+                edu.setDiplome(dto.getDiplome());
+                edu.setDomaine(dto.getDomaine());
+                edu.setDateDebut(dto.getDateDebut());
+                edu.setDateFin(dto.getDateFin());
+                edu.setDescription(dto.getDescription());
+            } else {
+                cv.addEducation(mapEducation(dto));
+            }
+        }
+    }
+
+    private void mergeSkills(Cv cv, List<CvRequest.SkillDto> dtos) {
+        if (dtos == null) { cv.getSkills().clear(); return; }
+        var existing = cv.getSkills();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Skill::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.SkillDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                var skill = existingById.get(dto.getId());
+                skill.setNom(dto.getNom());
+                skill.setNiveau(dto.getNiveau());
+                skill.setCategorie(dto.getCategorie());
+            } else {
+                cv.addSkill(mapSkill(dto));
+            }
+        }
+    }
+
+    private void mergeLanguages(Cv cv, List<CvRequest.LanguageDto> dtos) {
+        if (dtos == null) { cv.getLanguages().clear(); return; }
+        var existing = cv.getLanguages();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Language::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.LanguageDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                var lang = existingById.get(dto.getId());
+                lang.setLangue(dto.getLangue());
+                lang.setNiveau(dto.getNiveau());
+            } else {
+                cv.addLanguage(mapLanguage(dto));
+            }
+        }
+    }
+
+    private void mergeCertifications(Cv cv, List<CvRequest.CertificationDto> dtos) {
+        if (dtos == null) { cv.getCertifications().clear(); return; }
+        var existing = cv.getCertifications();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Certification::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.CertificationDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                var cert = existingById.get(dto.getId());
+                cert.setNom(dto.getNom());
+                cert.setOrganisme(dto.getOrganisme());
+                cert.setDateObtention(dto.getDateObtention());
+                cert.setDateExpiration(dto.getDateExpiration());
+                cert.setCredentialUrl(dto.getCredentialUrl());
+            } else {
+                cv.addCertification(mapCertification(dto));
+            }
+        }
+    }
+
+    private void mergeProjects(Cv cv, List<CvRequest.ProjectDto> dtos) {
+        if (dtos == null) { cv.getProjects().clear(); return; }
+        var existing = cv.getProjects();
+        var existingById = existing.stream().filter(e -> e.getId() != null)
+                .collect(java.util.stream.Collectors.toMap(Project::getId, e -> e));
+        var newIds = dtos.stream().map(CvRequest.ProjectDto::getId)
+                .filter(id -> id != null).collect(java.util.stream.Collectors.toSet());
+
+        existing.removeIf(e -> e.getId() != null && !newIds.contains(e.getId()));
+
+        for (var dto : dtos) {
+            if (dto.getId() != null && existingById.containsKey(dto.getId())) {
+                var proj = existingById.get(dto.getId());
+                proj.setNom(dto.getNom());
+                proj.setDescription(dto.getDescription());
+                proj.setTechnologies(dto.getTechnologies());
+                proj.setLien(dto.getLien());
+                proj.setDateDebut(dto.getDateDebut());
+                proj.setDateFin(dto.getDateFin());
+            } else {
+                cv.addProject(mapProject(dto));
+            }
+        }
     }
 
     // ── Mappers DTO -> Entity ────────────────────────────────────
