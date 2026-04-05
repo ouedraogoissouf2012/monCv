@@ -123,17 +123,42 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               IconButton(
                 icon: const Icon(Icons.work_outline_rounded),
                 tooltip: 'Adapter a une offre',
-                onPressed: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => DraggableScrollableSheet(
-                    initialChildSize: 0.85,
-                    minChildSize: 0.5,
-                    maxChildSize: 0.95,
-                    builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
-                  ),
-                ),
+                onPressed: () async {
+                  final adapted = await showModalBottomSheet<Map<String, dynamic>>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => DraggableScrollableSheet(
+                      initialChildSize: 0.85,
+                      minChildSize: 0.5,
+                      maxChildSize: 0.95,
+                      builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
+                    ),
+                  );
+                  // Si l'utilisateur a clique "Creer une variante", dupliquer le CV avec les modifs IA
+                  if (adapted != null && mounted) {
+                    final cvProvider = context.read<CvProvider>();
+                    // Dupliquer d'abord
+                    final duplicated = await cvProvider.duplicateCv(cv.id!);
+                    if (duplicated && mounted) {
+                      // Appliquer les modifications IA sur la copie
+                      final newCv = cvProvider.cvs.firstWhere(
+                        (c) => c.titre.startsWith('Copie de'),
+                        orElse: () => cv,
+                      );
+                      if (newCv.id != null) {
+                        await cvProvider.applyAiEnhancements(newCv.id!, adapted);
+                      }
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Variante adaptee creee'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Color(0xFF10B981),
+                        ));
+                      }
+                    }
+                  }
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.palette_outlined),
