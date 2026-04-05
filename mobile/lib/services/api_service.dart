@@ -322,6 +322,16 @@ class ApiService {
     }
   }
 
+  Future<List<int>> downloadCvDocx(int id) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
+    final response = await http.get(uri, headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Erreur lors du telechargement DOCX');
+    }
+  }
+
   Future<String> generateResume(String? titrePoste, String? competences, String? experience) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),

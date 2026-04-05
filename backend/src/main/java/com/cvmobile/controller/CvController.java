@@ -4,7 +4,9 @@ import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
+import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvService;
+import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.PdfGenerationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +31,8 @@ public class CvController {
 
     private final CvService cvService;
     private final PdfGenerationService pdfGenerationService;
+    private final DocxGenerationService docxGenerationService;
+    private final CvRepository cvRepository;
 
     @GetMapping
     @Operation(summary = "Obtenir tous les CV de l'utilisateur connecte")
@@ -85,6 +89,31 @@ public class CvController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(pdf);
+    }
+
+    @GetMapping("/{id}/docx")
+    @Operation(summary = "Telecharger le CV en DOCX (Word) — ATS-friendly")
+    public ResponseEntity<byte[]> downloadCvDocx(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        // Charger l'entite complete (pas le DTO) pour la generation DOCX
+        var cv = cvRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new RuntimeException("CV non trouve"));
+        if (!cv.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        try {
+            byte[] docx = docxGenerationService.generate(cv);
+            String filename = "cv-" + id + ".docx";
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .body(docx);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/{id}/duplicate")
