@@ -23,3 +23,12 @@ jwt:
 
 cors:
   allowed-origins: http://localhost:3000
+
+upload:
+  dir: ${java.io.tmpdir}/cv-test-uploads
+
+ai:
+  deepseek:
+    api-key:
+    model: deepseek-chat
+    base-url: https://api.deepseek.com/v1
