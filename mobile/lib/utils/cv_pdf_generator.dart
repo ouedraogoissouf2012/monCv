@@ -303,8 +303,56 @@ pw.Widget _educationItem(Education e, PdfColor accent) => pw.Padding(
       ),
     );
 
-// Skills: barres de progression avec vrai niveau
+// Skills: detecte si l'IA a retourne des categories (Backend: X, Y | Frontend: Z)
+// et les affiche proprement
 pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
+  // Verifier si les skills contiennent des categories (format "Categorie: skill1, skill2")
+  final hasCategories = skills.any((s) =>
+      (s.nom ?? '').contains(':') || (s.nom ?? '').contains('|'));
+
+  if (hasCategories) {
+    return _skillsCategorized(skills, accent);
+  }
+  return _skillsSimple(skills, accent);
+}
+
+// Affichage categorise: "Backend: Java, Spring Boot"
+pw.Widget _skillsCategorized(List<Skill> skills, PdfColor accent) {
+  // Joindre tous les skills et parser les categories
+  final allText = skills.map((s) => s.nom ?? '').join(', ');
+  // Separer par | pour obtenir les categories
+  final categories = allText.split('|').map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: categories.map((cat) {
+      // Format: "Categorie: skill1, skill2" ou juste "skill1, skill2"
+      final parts = cat.split(':');
+      if (parts.length >= 2) {
+        final label = _sanitize(parts[0].trim());
+        final items = _sanitize(parts.sublist(1).join(':').trim());
+        return pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 4),
+          child: pw.RichText(
+            text: pw.TextSpan(children: [
+              pw.TextSpan(text: '$label : ', style: pw.TextStyle(
+                fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: accent)),
+              pw.TextSpan(text: items, style: const pw.TextStyle(
+                fontSize: 8.5, color: PdfColors.grey800)),
+            ]),
+          ),
+        );
+      }
+      return pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Text(_sanitize(cat), style: _bodyStyle(size: 8.5)),
+      );
+    }).toList(),
+  );
+}
+
+// Affichage simple avec barres de progression
+pw.Widget _skillsSimple(List<Skill> skills, PdfColor accent) {
   final splitData = _splitSkillsWithLevel(skills);
   return pw.Column(
     children: splitData.map((s) => pw.Padding(
@@ -312,7 +360,7 @@ pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
       child: pw.Row(children: [
         pw.SizedBox(
           width: 90,
-          child: pw.Text(s.name, style: pw.TextStyle(
+          child: pw.Text(_sanitize(s.name), style: pw.TextStyle(
             fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900,
           )),
         ),
@@ -326,7 +374,6 @@ pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
             ),
           ),
         ),
-        // Pas de label texte — la barre suffit
       ]),
     )).toList(),
   );
@@ -371,10 +418,10 @@ pw.Widget _languagesSection(List<Language> langs, PdfColor accent) => pw.Column(
 
 String _niveauLabel(String? n) {
   switch (n) {
-    case 'A1': return 'Debutant';
-    case 'A2': return 'Elementaire';
-    case 'B1': return 'Intermediaire';
-    case 'B2': return 'Avance';
+    case 'A1': return 'Débutant';
+    case 'A2': return 'Élémentaire';
+    case 'B1': return 'Intermédiaire';
+    case 'B2': return 'Avancé';
     case 'C1': return 'Courant';
     case 'C2': return 'Bilingue';
     case 'NATIF': return 'Langue maternelle';
@@ -557,7 +604,7 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          _sectionHeader('Competences', accent),
+                          _sectionHeader('Compétences', accent),
                           _skillsSection(cv.skills, accent),
                         ],
                       ),
@@ -580,7 +627,7 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
 
             // 3. Experiences
             if (cv.experiences.isNotEmpty) ...[
-              _sectionHeader('Experiences professionnelles', accent),
+              _sectionHeader('Expériences professionnelles', accent),
               ...cv.experiences.map((e) => _experienceItem(e, accent)),
             ],
 
@@ -750,7 +797,7 @@ Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? pho
         pw.SizedBox(height: 16),
       ],
       if (cv.experiences.isNotEmpty) ...[
-        _sectionHeader('Expériences', accent),
+        _sectionHeader('Expériences professionnelles', accent),
         ...cv.experiences.map((e) => _experienceItem(e, accent)),
         pw.SizedBox(height: 8),
       ],
@@ -835,7 +882,7 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
               // Competences separees avec barres
               if (splitNames.isNotEmpty) ...[
                 pw.SizedBox(height: 18),
-                _sideSection('COMPETENCES'),
+                _sideSection('COMPÉTENCES'),
                 ...splitNames.take(10).map((name) => pw.Padding(
                       padding: const pw.EdgeInsets.only(bottom: 5),
                       child: pw.Column(
@@ -896,7 +943,7 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
                   pw.SizedBox(height: 16),
                 ],
                 if (cv.experiences.isNotEmpty) ...[
-                  _sectionHeader('Expériences', accent),
+                  _sectionHeader('Expériences professionnelles', accent),
                   ...cv.experiences.map((e) => _experienceItem(e, accent)),
                   pw.SizedBox(height: 8),
                 ],
@@ -1003,7 +1050,7 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
         pw.SizedBox(height: 12),
       ],
       if (cv.experiences.isNotEmpty) ...[
-        _sectionHeader('Expériences', accent),
+        _sectionHeader('Expériences professionnelles', accent),
         ...cv.experiences.map((e) => _experienceItem(e, accent)),
         pw.SizedBox(height: 6),
       ],
@@ -1020,7 +1067,7 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
               pw.Expanded(
                 flex: 3,
                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  _sectionHeader('Competences', accent),
+                  _sectionHeader('Compétences', accent),
                   _skillsSection(cv.skills, accent),
                 ]),
               ),
@@ -1103,7 +1150,7 @@ Future<Uint8List> _buildAts(Cv cv, PdfColor accent) async {
             style: pw.TextStyle(fontSize: 10, color: black, lineSpacing: 1.3)),
       ],
       if (splitNames.isNotEmpty) ...[
-        atsSection('Competences'),
+        atsSection('Compétences'),
         pw.Text(splitNames.join('  -  '), style: pw.TextStyle(fontSize: 10, color: black)),
       ],
       if (cv.languages.isNotEmpty) ...[

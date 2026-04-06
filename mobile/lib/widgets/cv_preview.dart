@@ -76,10 +76,10 @@ List<String> _splitSkills(List<Skill> skills) {
 
 String _niveauLabel(String? n) {
   switch (n) {
-    case 'A1': return 'Debutant';
-    case 'A2': return 'Elementaire';
-    case 'B1': return 'Intermediaire';
-    case 'B2': return 'Avance';
+    case 'A1': return 'Débutant';
+    case 'A2': return 'Élémentaire';
+    case 'B1': return 'Intermédiaire';
+    case 'B2': return 'Avancé';
     case 'C1': return 'Courant';
     case 'C2': return 'Bilingue';
     case 'NATIF': return 'Langue maternelle';
@@ -520,7 +520,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Competences
               if (splitNames.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _sideLabel('COMPETENCES'),
+                _sideLabel('COMPÉTENCES'),
                 ...splitNames.take(10).map((name) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
