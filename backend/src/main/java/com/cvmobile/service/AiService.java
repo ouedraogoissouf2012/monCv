@@ -404,10 +404,21 @@ public class AiService {
             + "Cela rend le CV naturel et pas détectable comme généré par IA. ";
 
     private static final String QUANTIFICATION_RULE =
-            "REGLE CHIFFRES: Utilise les chiffres que le candidat a fournis. "
-            + "Si le candidat n'a PAS fourni de chiffre, utilise un PLACEHOLDER comme [X%] ou [X projets] "
-            + "que l'utilisateur remplacera. NE JAMAIS INVENTER de chiffres. "
-            + "Exemples corrects: 'Réduit le temps de réponse de 30%', 'Gestion d'une équipe de [X] personnes'. ";
+            "REGLE CHIFFRES: CONSERVE tous les chiffres que le candidat a fournis. "
+            + "Si le candidat a ecrit '5 applications' ou '30%', GARDE ces chiffres. "
+            + "Si une description n'a AUCUN chiffre, ajoute des metriques CREDIBLES basees sur le contexte "
+            + "(pas des placeholders, mais des estimations raisonnables). "
+            + "Chaque bullet point devrait avoir au moins UN element mesurable. ";
+
+    private static final String PROJECT_RULE =
+            "REGLE PROJETS: Pour les projets personnels, ENRICHIS la description. "
+            + "Ajoute 3-4 bullet points avec: technologies utilisees, fonctionnalites cles, "
+            + "nombre d'utilisateurs si applicable. NE JAMAIS reduire une description de projet. ";
+
+    private static final String SKILL_CATEGORY_RULE =
+            "REGLE COMPETENCES: Regroupe les competences par categorie si possible. "
+            + "Format: 'Backend: Java, Spring Boot | Frontend: Angular, TypeScript | DevOps: Docker, CI/CD' "
+            + "LIMITE a 10 competences maximum. Garde les acronymes intacts (CI/CD, API REST, etc.). ";
 
     private String buildEnhancePrompt(Cv cv, String level) {
         StringBuilder sb = new StringBuilder();
@@ -436,8 +447,8 @@ public class AiService {
                 sb.append(ANTI_CLICHES_RULE);
                 sb.append(STYLE_RULE);
                 sb.append(QUANTIFICATION_RULE);
-                sb.append("Pour les compétences, sépare-les individuellement si elles sont en bloc. ");
-                sb.append("LIMITE les compétences à 10 maximum (les plus pertinentes). ");
+                sb.append(SKILL_CATEGORY_RULE);
+                sb.append(PROJECT_RULE);
                 sb.append("Pour le résumé, écris 3-4 phrases percutantes. ");
             }
         }
