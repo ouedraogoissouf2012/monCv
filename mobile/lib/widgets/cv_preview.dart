@@ -118,7 +118,7 @@ Widget _sectionTitle(String title, Color accent) => Padding(
       )),
       const SizedBox(width: 8),
       Text(title.toUpperCase(), style: TextStyle(
-        fontSize: 10, fontWeight: FontWeight.w700, color: accent, letterSpacing: 1.5,
+        fontSize: 10, fontWeight: FontWeight.w700, color: accent, letterSpacing: 0.8,
       )),
       const SizedBox(width: 10),
       Expanded(child: Container(height: 0.5, color: accent.withValues(alpha: 0.3))),
