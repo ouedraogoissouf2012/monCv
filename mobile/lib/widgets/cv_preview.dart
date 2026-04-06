@@ -66,7 +66,7 @@ String _dateRange(DateTime? debut, DateTime? fin, {bool actuel = false}) {
 List<String> _splitSkills(List<Skill> skills) {
   final result = <String>[];
   for (final s in skills) {
-    for (final p in (s.nom ?? '').split(RegExp(r'[,;/]+'))) {
+    for (final p in (s.nom ?? '').split(RegExp(r'[,;]+'))) {
       final t = p.trim();
       if (t.isNotEmpty) result.add(t);
     }
@@ -218,7 +218,7 @@ Widget _skillsBars(List<Skill> skills, Color accent) {
   // Separer les skills en bloc avec leur niveau
   final data = <MapEntry<String, int>>[];
   for (final s in skills) {
-    final parts = (s.nom ?? '').split(RegExp(r'[,;/]+'));
+    final parts = (s.nom ?? '').split(RegExp(r'[,;]+'));
     for (final p in parts) {
       final t = p.trim();
       if (t.isNotEmpty) data.add(MapEntry(t, s.niveau ?? 3));

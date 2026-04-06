@@ -74,7 +74,9 @@ List<_SkillData> _splitSkillsWithLevel(List<Skill> skills) {
   for (final s in skills) {
     final nom = s.nom ?? '';
     final niveau = s.niveau ?? 3;
-    final parts = nom.split(RegExp(r'[,;/]+'));
+    // Separer par virgule et point-virgule, mais PAS par /
+    // (pour garder CI/CD, API REST, etc.)
+    final parts = nom.split(RegExp(r'[,;]+'));
     for (final p in parts) {
       final trimmed = p.trim();
       if (trimmed.isNotEmpty) result.add(_SkillData(trimmed, niveau));
