@@ -340,10 +340,19 @@ public class AiService {
                     .build());
         }
 
-        // Etape 4+5 : Nettoyage qualite (grammaire, markdown, accents)
+        // Etape 4+5 : Nettoyage qualite (grammaire, markdown, accents, repetitions)
         String cleanedTitre = qualityService.clean(titrePoste);
         String cleanedResume = qualityService.clean(resume);
-        expEnhancements.forEach(e -> e.setDescription(qualityService.clean(e.getDescription())));
+
+        // Supprimer la ligne d'en-tete repetee dans les descriptions
+        List<Experience> originalExps = cv.getExperiences();
+        for (int i = 0; i < expEnhancements.size() && i < originalExps.size(); i++) {
+            var enh = expEnhancements.get(i);
+            var orig = originalExps.get(i);
+            String cleaned = qualityService.clean(enh.getDescription());
+            cleaned = qualityService.removeRepeatedTitle(cleaned, orig.getPoste(), orig.getEntreprise());
+            enh.setDescription(cleaned);
+        }
         eduEnhancements.forEach(e -> e.setDescription(qualityService.clean(e.getDescription())));
 
         return EnhanceCvResponse.builder()
@@ -390,18 +399,22 @@ public class AiService {
             + "Ne JAMAIS utiliser de markdown (pas de ** ni de * ni de #). Texte brut uniquement. ";
 
     private static final String ANTI_CLICHES_RULE =
-            "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots : motivé, déterminé, dynamique, passionné, "
-            + "polyvalent, rigoureux, autonome, force de proposition, esprit d'équipe, proactif. "
-            + "Remplace-les par des RESULTATS CONCRETS. ";
+            "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots ou expressions : "
+            + "motivé, déterminé, dynamique, passionné, polyvalent, rigoureux, autonome, "
+            + "force de proposition, esprit d'équipe, proactif, réactif, "
+            + "approche orientée résultats, expérience avérée, cycles optimisés, "
+            + "forte capacité, sens du détail, grande aisance. "
+            + "Remplace-les par des FAITS CONCRETS et MESURABLES. ";
 
     private static final String STYLE_RULE =
             "REGLE DE STYLE NATUREL: "
-            + "VARIE les structures de phrases. Ne PAS toujours commencer par un verbe d'action. "
-            + "Alterne entre : "
-            + "- Forme nominale : 'Conception et développement de 5 applications web' "
-            + "- Forme active : 'Développé 5 applications web en Java/Angular' "
-            + "- Contexte + résultat : 'Au sein d'une équipe Agile de 4 personnes, livré 100% des sprints dans les délais' "
-            + "Cela rend le CV naturel et pas détectable comme généré par IA. ";
+            + "VARIE les structures de phrases mais garde un style HOMOGENE au sein de chaque experience. "
+            + "Choisis UN style par experience et garde-le pour tous les bullets de cette experience. "
+            + "Styles possibles: "
+            + "- Participe passe singulier : 'Développé 5 applications web en Java/Angular' "
+            + "- Contexte + résultat : 'Au sein d'une équipe Agile, livraison de 100% des sprints' "
+            + "NE PAS melanger les deux dans la meme experience. "
+            + "Cela rend le CV naturel et professionnel. ";
 
     private static final String QUANTIFICATION_RULE =
             "REGLE CHIFFRES: CONSERVE tous les chiffres que le candidat a fournis. "

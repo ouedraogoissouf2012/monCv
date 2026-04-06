@@ -24,7 +24,9 @@ public class CvQualityService {
     private static final Set<String> CLICHES = Set.of(
             "motivé", "motive", "dynamique", "passionné", "passionne",
             "rigoureux", "autonome", "polyvalent", "force de proposition",
-            "esprit d'équipe", "esprit d'equipe", "proactif", "réactif", "reactif"
+            "esprit d'équipe", "esprit d'equipe", "proactif", "réactif", "reactif",
+            "approche orientée résultats", "expérience avérée", "cycles optimisés",
+            "forte capacité", "sens du détail", "grande aisance"
     );
 
     // Participes qui doivent etre au singulier
@@ -162,6 +164,27 @@ public class CvQualityService {
     }
 
     // ── Nettoyage ────────────────────────────────────────────────
+
+    /**
+     * Supprime la premiere ligne de la description si elle repete le poste/entreprise.
+     * Ex: "Développeur Full Stack - DIGIT AFRICAN\n- Conçu..." → "- Conçu..."
+     */
+    public String removeRepeatedTitle(String description, String poste, String entreprise) {
+        if (description == null || description.isBlank()) return description;
+        String[] lines = description.split("\n", 2);
+        if (lines.length < 2) return description;
+
+        String firstLine = lines[0].trim().toLowerCase();
+        boolean repeats = false;
+        if (poste != null && firstLine.contains(poste.toLowerCase())) repeats = true;
+        if (entreprise != null && firstLine.contains(entreprise.toLowerCase())) repeats = true;
+        // Detecter aussi les patterns "Titre | Entreprise" ou "Titre - Entreprise"
+        if (firstLine.contains("|") || (firstLine.contains("-") && !firstLine.startsWith("-"))) {
+            if (!firstLine.startsWith("-")) repeats = true;
+        }
+
+        return repeats ? lines[1].trim() : description;
+    }
 
     String cleanMarkdown(String text) {
         String result = MARKDOWN_BOLD.matcher(text).replaceAll("$1");
