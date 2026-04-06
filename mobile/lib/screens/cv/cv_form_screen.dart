@@ -133,11 +133,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
   void _goToStep(int step) {
     if (step > _currentStep && !_validateCurrentStep()) return;
     setState(() => _currentStep = step);
-    _pageController.animateToPage(
-      step,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    // PageController n'est attache qu'en mode mobile (PageView)
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        step,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   void _next() {
