@@ -32,10 +32,12 @@ public class AiService {
 
     private final RestTemplate restTemplate;
     private final CvRepository cvRepository;
+    private final CvQualityService qualityService;
 
-    public AiService(RestTemplateBuilder builder, CvRepository cvRepository) {
+    public AiService(RestTemplateBuilder builder, CvRepository cvRepository, CvQualityService qualityService) {
         this.restTemplate = builder.build();
         this.cvRepository = cvRepository;
+        this.qualityService = qualityService;
     }
 
     // ── Generation de resume professionnel ─────────────────────────────────
@@ -338,12 +340,18 @@ public class AiService {
                     .build());
         }
 
+        // Etape 4+5 : Nettoyage qualite (grammaire, markdown, accents)
+        String cleanedTitre = qualityService.clean(titrePoste);
+        String cleanedResume = qualityService.clean(resume);
+        expEnhancements.forEach(e -> e.setDescription(qualityService.clean(e.getDescription())));
+        eduEnhancements.forEach(e -> e.setDescription(qualityService.clean(e.getDescription())));
+
         return EnhanceCvResponse.builder()
-                .titrePoste(titrePoste)
-                .resumeProfessionnel(resume)
+                .titrePoste(cleanedTitre)
+                .resumeProfessionnel(cleanedResume)
                 .experiences(expEnhancements)
                 .educations(eduEnhancements)
-                .skills(skillEnhancements)
+                .skills(skillEnhancements.stream().limit(10).collect(Collectors.toList()))
                 .projects(projEnhancements)
                 .aiGenerated(true)
                 .level(level)
@@ -371,43 +379,66 @@ public class AiService {
     }
 
     // Mots cliches a remplacer par des formulations concretes
+    // ── Regles injectees dans les prompts IA ──────────────────────
+
+    private static final String GRAMMAR_RULE =
+            "REGLE GRAMMAIRE CRITIQUE: "
+            + "Les participes passés doivent TOUJOURS être au SINGULIER MASCULIN. "
+            + "CORRECT: Développé, Conçu, Optimisé, Réduit, Déployé, Livré, Implémenté. "
+            + "INCORRECT: Développés, Conçus, Optimisés, Résolus, Déployés, Livrés. "
+            + "Le sujet implicite est 'je' (singulier). "
+            + "Ne JAMAIS utiliser de markdown (pas de ** ni de * ni de #). Texte brut uniquement. ";
+
     private static final String ANTI_CLICHES_RULE =
-            "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots : motive, determine, dynamique, passionne, "
-            + "polyvalent, rigoureux, autonome, force de proposition, esprit d'equipe. "
-            + "Remplace-les par des RESULTATS CONCRETS et des VERBES D'ACTION au passe compose: "
-            + "Concu, Developpe, Optimise, Reduit, Augmente, Deploye, Automatise, Implemente, Dirige, Livre. ";
+            "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots : motivé, déterminé, dynamique, passionné, "
+            + "polyvalent, rigoureux, autonome, force de proposition, esprit d'équipe, proactif. "
+            + "Remplace-les par des RESULTATS CONCRETS. ";
+
+    private static final String STYLE_RULE =
+            "REGLE DE STYLE NATUREL: "
+            + "VARIE les structures de phrases. Ne PAS toujours commencer par un verbe d'action. "
+            + "Alterne entre : "
+            + "- Forme nominale : 'Conception et développement de 5 applications web' "
+            + "- Forme active : 'Développé 5 applications web en Java/Angular' "
+            + "- Contexte + résultat : 'Au sein d'une équipe Agile de 4 personnes, livré 100% des sprints dans les délais' "
+            + "Cela rend le CV naturel et pas détectable comme généré par IA. ";
 
     private static final String QUANTIFICATION_RULE =
-            "REGLE CHIFFRES: Chaque bullet point DOIT contenir au moins UN chiffre mesurable. "
-            + "Exemples: 'Reduit le temps de chargement de 40%', 'Gere une equipe de 5 personnes', "
-            + "'Livre 12 fonctionnalites en 3 sprints', 'Augmente la couverture de tests de 20% a 85%'. "
-            + "Si le candidat n'a pas fourni de chiffres, invente des chiffres REALISTES et CREDIBLES "
-            + "bases sur le contexte du poste. ";
+            "REGLE CHIFFRES: Utilise les chiffres que le candidat a fournis. "
+            + "Si le candidat n'a PAS fourni de chiffre, utilise un PLACEHOLDER comme [X%] ou [X projets] "
+            + "que l'utilisateur remplacera. NE JAMAIS INVENTER de chiffres. "
+            + "Exemples corrects: 'Réduit le temps de réponse de 30%', 'Gestion d'une équipe de [X] personnes'. ";
 
     private String buildEnhancePrompt(Cv cv, String level) {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en redaction de CV professionnels, specialise en optimisation ATS ");
         sb.append("(Applicant Tracking System). Tu connais les attentes des recruteurs en 2026. ");
 
+        // Regles communes a tous les niveaux
+        sb.append(GRAMMAR_RULE);
+
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
-                    "Corrige uniquement l'orthographe et la grammaire. "
-                    + "Garde exactement le meme sens et les memes mots. "
-                    + "Ne reformule PAS, ne change PAS la structure. ");
+                    "Corrige uniquement l'orthographe, la grammaire et les accents. "
+                    + "Garde exactement le même sens et les mêmes mots. "
+                    + "Ne reformule PAS, ne change PAS la structure. "
+                    + "Ajoute les accents manquants (Developpeur → Développeur). ");
             case "MEDIUM" -> {
                 sb.append(
-                    "Corrige l'orthographe, reformule pour plus d'impact professionnel. "
-                    + "Ameliore la structure des phrases. Utilise des verbes d'action. ");
+                    "Corrige l'orthographe et les accents. "
+                    + "Reformule pour plus d'impact professionnel. ");
                 sb.append(ANTI_CLICHES_RULE);
+                sb.append(STYLE_RULE);
             }
             default -> { // MAX
                 sb.append(
-                    "Optimise completement ce CV pour un maximum d'impact ATS et recruteur. ");
+                    "Optimise complètement ce CV pour un maximum d'impact ATS et recruteur. ");
                 sb.append(ANTI_CLICHES_RULE);
+                sb.append(STYLE_RULE);
                 sb.append(QUANTIFICATION_RULE);
-                sb.append("Pour les competences, separe-les individuellement si elles sont en bloc ");
-                sb.append("et ajoute des competences pertinentes liees au poste. ");
-                sb.append("Pour le resume, ecris 3-4 phrases percutantes avec des chiffres cles. ");
+                sb.append("Pour les compétences, sépare-les individuellement si elles sont en bloc. ");
+                sb.append("LIMITE les compétences à 10 maximum (les plus pertinentes). ");
+                sb.append("Pour le résumé, écris 3-4 phrases percutantes. ");
             }
         }
 

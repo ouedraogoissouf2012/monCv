@@ -86,20 +86,15 @@ List<_SkillData> _splitSkillsWithLevel(List<Skill> skills) {
 List<String> _splitSkills(List<Skill> skills) =>
     _splitSkillsWithLevel(skills).map((s) => s.name).toList();
 
-String _skillLevelLabel(int niveau) {
-  switch (niveau.clamp(1, 5)) {
-    case 1: return 'Debutant';
-    case 2: return 'Base';
-    case 3: return 'Bon';
-    case 4: return 'Avance';
-    case 5: return 'Expert';
-    default: return 'Bon';
-  }
-}
 
-// Remplace les caractères Unicode non supportés par la police PDF par défaut
+// Nettoie le texte : Unicode, markdown, accents courants
 String _sanitize(String text) {
   return text
+      // Markdown
+      .replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1')  // **gras** → gras
+      .replaceAll(RegExp(r'\*([^*]+)\*'), r'$1')       // *italique* → italique
+      .replaceAll(RegExp(r'^#{1,3}\s+', multiLine: true), '')  // # titre → titre
+      // Unicode
       .replaceAll('\u2022', '-')   // • → -
       .replaceAll('\u00B7', '-')   // · → -
       .replaceAll('\u2013', '-')   // – → -
@@ -144,7 +139,7 @@ pw.Widget _sectionHeader(String title, PdfColor accent) => pw.Padding(
               fontSize: 8.5,
               fontWeight: pw.FontWeight.bold,
               color: accent,
-              letterSpacing: 1.5,
+              letterSpacing: 0.8,
             ),
           ),
           pw.SizedBox(width: 10),
@@ -329,12 +324,7 @@ pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
             ),
           ),
         ),
-        pw.SizedBox(width: 6),
-        pw.SizedBox(
-          width: 45,
-          child: pw.Text(_skillLevelLabel(s.niveau), textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(fontSize: 7, color: accent, fontWeight: pw.FontWeight.bold)),
-        ),
+        // Pas de label texte — la barre suffit
       ]),
     )).toList(),
   );
