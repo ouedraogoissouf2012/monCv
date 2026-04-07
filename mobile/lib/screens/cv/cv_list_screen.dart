@@ -82,7 +82,7 @@ class _CvCard extends StatelessWidget {
                         if (cv.personalInfo?.titrePoste != null)
                           Text(
                             cv.personalInfo!.titrePoste!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: AppColors.textSecondary,
                             ),
@@ -159,7 +159,7 @@ class _CvCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Modifie le ${dateFormat.format(cv.updatedAt!)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -180,7 +180,7 @@ class _CvCard extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),

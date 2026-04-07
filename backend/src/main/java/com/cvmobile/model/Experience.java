@@ -31,7 +31,7 @@ public class Experience {
 
     private LocalDate dateFin;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Builder.Default

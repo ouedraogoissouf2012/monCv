@@ -1,3 +1,5 @@
+import 'cv_style.dart';
+
 class Cv {
   final int? id;
   final String titre;
@@ -6,8 +8,12 @@ class Cv {
   final List<Experience> experiences;
   final List<Skill> skills;
   final List<Language> languages;
+  final List<Certification> certifications;
+  final List<Project> projects;
+  final String? shareToken;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final CvStyle style;
 
   Cv({
     this.id,
@@ -17,8 +23,12 @@ class Cv {
     this.experiences = const [],
     this.skills = const [],
     this.languages = const [],
+    this.certifications = const [],
+    this.projects = const [],
+    this.shareToken,
     this.createdAt,
     this.updatedAt,
+    this.style = CvStyle.defaultStyle,
   });
 
   factory Cv.fromJson(Map<String, dynamic> json) {
@@ -44,10 +54,22 @@ class Cv {
               ?.map((e) => Language.fromJson(e))
               .toList() ??
           [],
+      certifications: (json['certifications'] as List<dynamic>?)
+              ?.map((e) => Certification.fromJson(e))
+              .toList() ??
+          [],
+      projects: (json['projects'] as List<dynamic>?)
+              ?.map((e) => Project.fromJson(e))
+              .toList() ??
+          [],
+      shareToken: json['publicToken'],
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt:
           json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      style: json['style'] != null
+          ? CvStyle.fromJson(json['style'] as Map<String, dynamic>)
+          : CvStyle.defaultStyle,
     );
   }
 
@@ -60,7 +82,67 @@ class Cv {
       'experiences': experiences.map((e) => e.toJson()).toList(),
       'skills': skills.map((e) => e.toJson()).toList(),
       'languages': languages.map((e) => e.toJson()).toList(),
+      'certifications': certifications.map((e) => e.toJson()).toList(),
+      'projects': projects.map((e) => e.toJson()).toList(),
     };
+  }
+
+  /// Score de complétion de 0 à 100
+  int get completionScore {
+    int score = 0;
+    // Titre (toujours présent car requis) — 10 pts
+    if (titre.trim().isNotEmpty) score += 10;
+    // Identité — 10 pts
+    if (personalInfo?.prenom?.isNotEmpty == true &&
+        personalInfo?.nom?.isNotEmpty == true) {
+      score += 10;
+    }
+    // Email — 10 pts
+    if (personalInfo?.email?.isNotEmpty == true) {
+      score += 10;
+    }
+    // Téléphone — 5 pts
+    if (personalInfo?.telephone?.isNotEmpty == true) {
+      score += 5;
+    }
+    // Titre du poste — 5 pts
+    if (personalInfo?.titrePoste?.isNotEmpty == true) {
+      score += 5;
+    }
+    // Adresse / ville — 5 pts
+    if (personalInfo?.adresse?.isNotEmpty == true ||
+        personalInfo?.ville?.isNotEmpty == true) {
+      score += 5;
+    }
+    // Résumé professionnel — 10 pts
+    if (personalInfo?.resumeProfessionnel?.isNotEmpty == true) {
+      score += 10;
+    }
+    // Expériences — 15 pts
+    if (experiences.isNotEmpty) {
+      score += 15;
+    }
+    // Formations — 10 pts
+    if (educations.isNotEmpty) {
+      score += 10;
+    }
+    // Compétences — 5 pts
+    if (skills.isNotEmpty) {
+      score += 5;
+    }
+    // Langues — 5 pts
+    if (languages.isNotEmpty) {
+      score += 5;
+    }
+    // Certifications — 5 pts
+    if (certifications.isNotEmpty) {
+      score += 5;
+    }
+    // Projets — 5 pts
+    if (projects.isNotEmpty) {
+      score += 5;
+    }
+    return score; // max = 100
   }
 
   Cv copyWith({
@@ -71,6 +153,10 @@ class Cv {
     List<Experience>? experiences,
     List<Skill>? skills,
     List<Language>? languages,
+    List<Certification>? certifications,
+    List<Project>? projects,
+    String? shareToken,
+    CvStyle? style,
   }) {
     return Cv(
       id: id ?? this.id,
@@ -80,8 +166,12 @@ class Cv {
       experiences: experiences ?? this.experiences,
       skills: skills ?? this.skills,
       languages: languages ?? this.languages,
+      certifications: certifications ?? this.certifications,
+      projects: projects ?? this.projects,
+      shareToken: shareToken ?? this.shareToken,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      style: style ?? this.style,
     );
   }
 }
@@ -313,6 +403,96 @@ class Language {
       if (id != null) 'id': id,
       'langue': langue,
       'niveau': niveau,
+    };
+  }
+}
+
+class Certification {
+  final int? id;
+  final String? nom;
+  final String? organisme;
+  final DateTime? dateObtention;
+  final DateTime? dateExpiration;
+  final String? credentialUrl;
+
+  Certification({
+    this.id,
+    this.nom,
+    this.organisme,
+    this.dateObtention,
+    this.dateExpiration,
+    this.credentialUrl,
+  });
+
+  factory Certification.fromJson(Map<String, dynamic> json) {
+    return Certification(
+      id: json['id'],
+      nom: json['nom'],
+      organisme: json['organisme'],
+      dateObtention: json['dateObtention'] != null
+          ? DateTime.parse(json['dateObtention'])
+          : null,
+      dateExpiration: json['dateExpiration'] != null
+          ? DateTime.parse(json['dateExpiration'])
+          : null,
+      credentialUrl: json['credentialUrl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      'nom': nom,
+      'organisme': organisme,
+      'dateObtention': dateObtention?.toIso8601String().split('T')[0],
+      'dateExpiration': dateExpiration?.toIso8601String().split('T')[0],
+      'credentialUrl': credentialUrl,
+    };
+  }
+}
+
+class Project {
+  final int? id;
+  final String? nom;
+  final String? description;
+  final String? technologies;
+  final String? lien;
+  final DateTime? dateDebut;
+  final DateTime? dateFin;
+
+  Project({
+    this.id,
+    this.nom,
+    this.description,
+    this.technologies,
+    this.lien,
+    this.dateDebut,
+    this.dateFin,
+  });
+
+  factory Project.fromJson(Map<String, dynamic> json) {
+    return Project(
+      id: json['id'],
+      nom: json['nom'],
+      description: json['description'],
+      technologies: json['technologies'],
+      lien: json['lien'],
+      dateDebut:
+          json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
+      dateFin:
+          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      'nom': nom,
+      'description': description,
+      'technologies': technologies,
+      'lien': lien,
+      'dateDebut': dateDebut?.toIso8601String().split('T')[0],
+      'dateFin': dateFin?.toIso8601String().split('T')[0],
     };
   }
 }

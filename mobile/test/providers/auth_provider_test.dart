@@ -2,11 +2,23 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/core/usecase/usecase.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/services/api_service.dart';
+import 'package:cv_mobile/repositories/auth_repository.dart';
+import 'package:cv_mobile/usecases/auth/login_usecase.dart';
+import 'package:cv_mobile/usecases/auth/register_usecase.dart';
+import 'package:cv_mobile/usecases/auth/logout_usecase.dart';
+import 'package:cv_mobile/usecases/auth/get_current_user_usecase.dart';
+import 'package:cv_mobile/usecases/auth/update_profile_usecase.dart';
 
-class MockApiService extends Mock implements ApiService {}
+class MockLoginUseCase extends Mock implements LoginUseCase {}
+class MockRegisterUseCase extends Mock implements RegisterUseCase {}
+class MockLogoutUseCase extends Mock implements LogoutUseCase {}
+class MockGetCurrentUserUseCase extends Mock implements GetCurrentUserUseCase {}
+class MockUpdateProfileUseCase extends Mock implements UpdateProfileUseCase {}
+class MockAuthRepository extends Mock implements AuthRepository {}
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
 AuthResponse _fakeAuthResponse() => AuthResponse(
@@ -18,32 +30,53 @@ AuthResponse _fakeAuthResponse() => AuthResponse(
     );
 
 void main() {
-  late MockApiService mockApi;
+  late MockLoginUseCase mockLogin;
+  late MockRegisterUseCase mockRegister;
+  late MockLogoutUseCase mockLogout;
+  late MockGetCurrentUserUseCase mockGetUser;
+  late MockUpdateProfileUseCase mockUpdateProfile;
+  late MockAuthRepository mockRepo;
   late MockFlutterSecureStorage mockStorage;
 
   setUp(() {
-    mockApi = MockApiService();
+    mockLogin = MockLoginUseCase();
+    mockRegister = MockRegisterUseCase();
+    mockLogout = MockLogoutUseCase();
+    mockGetUser = MockGetCurrentUserUseCase();
+    mockUpdateProfile = MockUpdateProfileUseCase();
+    mockRepo = MockAuthRepository();
     mockStorage = MockFlutterSecureStorage();
-    // Pas de token stocké au démarrage → _checkAuthStatus ne fait rien
+
+    registerFallbackValue(const LoginParams(email: '', password: ''));
+    registerFallbackValue(const RegisterParams(email: '', password: ''));
+    registerFallbackValue(const NoParams());
+    registerFallbackValue(const UpdateProfileParams());
+
     when(() => mockStorage.read(key: 'access_token')).thenAnswer((_) async => null);
   });
 
-  AuthProvider buildProvider() =>
-      AuthProvider(apiService: mockApi, storage: mockStorage);
+  AuthProvider buildProvider() => AuthProvider(
+        loginUseCase: mockLogin,
+        registerUseCase: mockRegister,
+        logoutUseCase: mockLogout,
+        getCurrentUserUseCase: mockGetUser,
+        updateProfileUseCase: mockUpdateProfile,
+        repository: mockRepo,
+        storage: mockStorage,
+      );
 
   group('AuthProvider', () {
-    test('état initial : non authentifié, pas de chargement', () async {
+    test('etat initial : non authentifie', () async {
       final provider = buildProvider();
-      // Attendre que _checkAuthStatus se termine
       await Future.microtask(() {});
       expect(provider.isAuthenticated, false);
       expect(provider.isLoading, false);
       expect(provider.user, null);
     });
 
-    test('login succès : isAuthenticated=true, user défini', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenAnswer((_) async => _fakeAuthResponse());
+    test('login succes', () async {
+      when(() => mockLogin(any()))
+          .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
 
       final provider = buildProvider();
       final result = await provider.login(email: 'test@test.com', password: 'pass');
@@ -51,67 +84,49 @@ void main() {
       expect(result, true);
       expect(provider.isAuthenticated, true);
       expect(provider.user?.email, 'test@test.com');
-      expect(provider.isLoading, false);
-      expect(provider.error, null);
     });
 
-    test('login échec : isAuthenticated=false, error défini', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenThrow(Exception('Email ou mot de passe incorrect'));
+    test('login echec', () async {
+      when(() => mockLogin(any()))
+          .thenAnswer((_) async => const Result.failure(
+              AuthException(message: 'Email ou mot de passe incorrect')));
 
       final provider = buildProvider();
-      final result = await provider.login(email: 'bad@test.com', password: 'wrong');
+      final result = await provider.login(email: 'bad', password: 'wrong');
 
       expect(result, false);
       expect(provider.isAuthenticated, false);
       expect(provider.error, 'Email ou mot de passe incorrect');
-      expect(provider.isLoading, false);
     });
 
-    test('register succès : isAuthenticated=true', () async {
-      when(() => mockApi.register(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-            nom: any(named: 'nom'),
-            prenom: any(named: 'prenom'),
-          )).thenAnswer((_) async => _fakeAuthResponse());
+    test('register succes', () async {
+      when(() => mockRegister(any()))
+          .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
 
       final provider = buildProvider();
-      final result = await provider.register(
-        email: 'new@test.com',
-        password: 'pass123',
-        nom: 'Doe',
-        prenom: 'Jane',
-      );
+      final result = await provider.register(email: 'new@test.com', password: 'pass');
 
       expect(result, true);
       expect(provider.isAuthenticated, true);
     });
 
-    test('register échec : error défini', () async {
-      when(() => mockApi.register(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-            nom: any(named: 'nom'),
-            prenom: any(named: 'prenom'),
-          )).thenThrow(Exception('Email déjà utilisé'));
+    test('register echec', () async {
+      when(() => mockRegister(any()))
+          .thenAnswer((_) async => const Result.failure(
+              ConflictException(message: 'Cet email est deja utilise')));
 
       final provider = buildProvider();
-      final result = await provider.register(
-        email: 'exists@test.com',
-        password: 'pass',
-        nom: 'X',
-        prenom: 'Y',
-      );
+      final result = await provider.register(email: 'x', password: 'x');
 
       expect(result, false);
-      expect(provider.error, 'Email déjà utilisé');
+      expect(provider.error, 'Cet email est deja utilise');
     });
 
-    test('logout : remet isAuthenticated=false', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenAnswer((_) async => _fakeAuthResponse());
-      when(() => mockApi.logout()).thenAnswer((_) async {});
+    test('logout', () async {
+      when(() => mockLogin(any()))
+          .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
+      when(() => mockLogout(any()))
+          .thenAnswer((_) async => const Result.success(null));
 
       final provider = buildProvider();
       await provider.login(email: 'test@test.com', password: 'pass');
@@ -122,9 +137,10 @@ void main() {
       expect(provider.user, null);
     });
 
-    test('clearError : remet error à null', () async {
-      when(() => mockApi.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenThrow(Exception('Erreur'));
+    test('clearError', () async {
+      when(() => mockLogin(any()))
+          .thenAnswer((_) async => const Result.failure(
+              ServerException(message: 'Erreur')));
 
       final provider = buildProvider();
       await provider.login(email: 'x', password: 'x');

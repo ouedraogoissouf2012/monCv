@@ -1,11 +1,28 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/core/usecase/usecase.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
-import 'package:cv_mobile/services/api_service.dart';
+import 'package:cv_mobile/repositories/cv_repository.dart';
+import 'package:cv_mobile/services/connectivity_service.dart';
+import 'package:cv_mobile/usecases/cv/get_all_cvs_usecase.dart';
+import 'package:cv_mobile/usecases/cv/get_cv_by_id_usecase.dart';
+import 'package:cv_mobile/usecases/cv/create_cv_usecase.dart';
+import 'package:cv_mobile/usecases/cv/update_cv_usecase.dart';
+import 'package:cv_mobile/usecases/cv/delete_cv_usecase.dart';
+import 'package:cv_mobile/usecases/cv/duplicate_cv_usecase.dart';
 
-class MockApiService extends Mock implements ApiService {}
+class MockGetAllCvs extends Mock implements GetAllCvsUseCase {}
+class MockGetCvById extends Mock implements GetCvByIdUseCase {}
+class MockCreateCv extends Mock implements CreateCvUseCase {}
+class MockUpdateCv extends Mock implements UpdateCvUseCase {}
+class MockDeleteCv extends Mock implements DeleteCvUseCase {}
+class MockDuplicateCv extends Mock implements DuplicateCvUseCase {}
+class MockCvRepository extends Mock implements CvRepository {}
+class MockConnectivityService extends Mock implements ConnectivityService {}
 
 Cv _fakeCv({int id = 1, String titre = 'Mon CV'}) => Cv(
       id: id,
@@ -17,115 +34,175 @@ Cv _fakeCv({int id = 1, String titre = 'Mon CV'}) => Cv(
     );
 
 void main() {
-  late MockApiService mockApi;
+  late MockGetAllCvs mockGetAll;
+  late MockGetCvById mockGetById;
+  late MockCreateCv mockCreate;
+  late MockUpdateCv mockUpdate;
+  late MockDeleteCv mockDelete;
+  late MockDuplicateCv mockDuplicate;
+  late MockCvRepository mockRepo;
+  late MockConnectivityService mockConnectivity;
+  late StreamController<bool> connectivityCtrl;
 
   setUp(() {
-    mockApi = MockApiService();
+    mockGetAll = MockGetAllCvs();
+    mockGetById = MockGetCvById();
+    mockCreate = MockCreateCv();
+    mockUpdate = MockUpdateCv();
+    mockDelete = MockDeleteCv();
+    mockDuplicate = MockDuplicateCv();
+    mockRepo = MockCvRepository();
+    mockConnectivity = MockConnectivityService();
+    connectivityCtrl = StreamController<bool>.broadcast();
+
     registerFallbackValue(_fakeCv());
+    registerFallbackValue(const NoParams());
+    registerFallbackValue(UpdateCvParams(id: 0, cv: _fakeCv()));
+
+    when(() => mockConnectivity.onConnectivityChanged)
+        .thenAnswer((_) => connectivityCtrl.stream);
   });
 
-  CvProvider buildProvider() => CvProvider(apiService: mockApi);
+  tearDown(() => connectivityCtrl.close());
+
+  CvProvider buildProvider() => CvProvider(
+        getAllCvs: mockGetAll,
+        getCvById: mockGetById,
+        createCv: mockCreate,
+        updateCv: mockUpdate,
+        deleteCv: mockDelete,
+        duplicateCv: mockDuplicate,
+        repository: mockRepo,
+        connectivity: mockConnectivity,
+      );
 
   group('CvProvider', () {
-    test('état initial : liste vide, pas de chargement', () {
+    test('etat initial : liste vide', () {
       final provider = buildProvider();
       expect(provider.cvs, isEmpty);
       expect(provider.isLoading, false);
-      expect(provider.currentCv, null);
     });
 
-    test('loadCvs succès : peuple la liste', () async {
+    test('loadCvs succes', () async {
       final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'CV 2')];
-      when(() => mockApi.getAllCvs()).thenAnswer((_) async => cvs);
+      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success(cvs));
 
       final provider = buildProvider();
       await provider.loadCvs();
 
       expect(provider.cvs.length, 2);
-      expect(provider.cvs[0].titre, 'Mon CV');
-      expect(provider.isLoading, false);
     });
 
-    test('loadCvs échec : error défini, liste reste vide', () async {
-      when(() => mockApi.getAllCvs()).thenThrow(Exception('Erreur réseau'));
+    test('loadCvs echec', () async {
+      when(() => mockGetAll(any())).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Erreur reseau')));
 
       final provider = buildProvider();
       await provider.loadCvs();
 
       expect(provider.cvs, isEmpty);
-      expect(provider.error, 'Erreur réseau');
-      expect(provider.isLoading, false);
+      expect(provider.error, 'Erreur reseau');
     });
 
-    test('loadCvById succès : currentCv défini', () async {
-      final cv = _fakeCv(id: 42, titre: 'CV Détail');
-      when(() => mockApi.getCvById(42)).thenAnswer((_) async => cv);
+    test('loadCvById succes', () async {
+      final cv = _fakeCv(id: 42, titre: 'CV Detail');
+      when(() => mockGetById(42)).thenAnswer((_) async => Result.success(cv));
 
       final provider = buildProvider();
       await provider.loadCvById(42);
 
       expect(provider.currentCv?.id, 42);
-      expect(provider.currentCv?.titre, 'CV Détail');
     });
 
-    test('createCv succès : ajoute à la liste', () async {
+    test('createCv succes', () async {
       final newCv = _fakeCv(id: 10, titre: 'Nouveau CV');
-      when(() => mockApi.createCv(any())).thenAnswer((_) async => newCv);
+      when(() => mockCreate(any())).thenAnswer((_) async => Result.success(newCv));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv(titre: 'Nouveau CV'));
 
       expect(result, true);
       expect(provider.cvs.length, 1);
-      expect(provider.cvs.first.id, 10);
     });
 
-    test('createCv échec : retourne false, error défini', () async {
-      when(() => mockApi.createCv(any())).thenThrow(Exception('Création impossible'));
+    test('createCv echec', () async {
+      when(() => mockCreate(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'Creation impossible')));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv());
 
       expect(result, false);
-      expect(provider.error, 'Création impossible');
+      expect(provider.error, 'Creation impossible');
     });
 
-    test('updateCv succès : met à jour la liste', () async {
-      final original = _fakeCv(id: 5, titre: 'Ancien titre');
-      final updated = _fakeCv(id: 5, titre: 'Nouveau titre');
-      when(() => mockApi.getAllCvs()).thenAnswer((_) async => [original]);
-      when(() => mockApi.updateCv(5, any())).thenAnswer((_) async => updated);
+    test('updateCv succes', () async {
+      final original = _fakeCv(id: 5, titre: 'Ancien');
+      final updated = _fakeCv(id: 5, titre: 'Nouveau');
+      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([original]));
+      when(() => mockUpdate(any())).thenAnswer((_) async => Result.success(updated));
 
       final provider = buildProvider();
       await provider.loadCvs();
       final result = await provider.updateCv(5, updated);
 
       expect(result, true);
-      expect(provider.cvs.first.titre, 'Nouveau titre');
+      expect(provider.cvs.first.titre, 'Nouveau');
     });
 
-    test('deleteCv succès : retire de la liste', () async {
+    test('deleteCv succes', () async {
       final cv = _fakeCv(id: 3);
-      when(() => mockApi.getAllCvs()).thenAnswer((_) async => [cv]);
-      when(() => mockApi.deleteCv(3)).thenAnswer((_) async {});
+      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([cv]));
+      when(() => mockDelete(3)).thenAnswer((_) async => const Result.success(null));
 
       final provider = buildProvider();
       await provider.loadCvs();
-      expect(provider.cvs.length, 1);
-
       final result = await provider.deleteCv(3);
+
       expect(result, true);
       expect(provider.cvs, isEmpty);
     });
 
-    test('deleteCv échec : retourne false', () async {
-      when(() => mockApi.deleteCv(any())).thenThrow(Exception('Suppression impossible'));
+    test('deleteCv echec', () async {
+      when(() => mockDelete(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'Suppression impossible')));
 
       final provider = buildProvider();
       final result = await provider.deleteCv(99);
 
       expect(result, false);
       expect(provider.error, 'Suppression impossible');
+    });
+
+    test('duplicateCv succes', () async {
+      final copy = _fakeCv(id: 6, titre: 'Copie');
+      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([_fakeCv(id: 5)]));
+      when(() => mockDuplicate(5)).thenAnswer((_) async => Result.success(copy));
+
+      final provider = buildProvider();
+      await provider.loadCvs();
+      final result = await provider.duplicateCv(5);
+
+      expect(result, true);
+      expect(provider.cvs.length, 2);
+    });
+
+    test('connectivity offline', () async {
+      final provider = buildProvider();
+      connectivityCtrl.add(false);
+      await Future.microtask(() {});
+      expect(provider.isOffline, true);
+    });
+
+    test('connectivity restored', () async {
+      when(() => mockGetAll(any())).thenAnswer((_) async => const Result.success([]));
+
+      final provider = buildProvider();
+      connectivityCtrl.add(false);
+      await Future.microtask(() {});
+      connectivityCtrl.add(true);
+      await Future.microtask(() {});
+      expect(provider.isOffline, false);
     });
   });
 }

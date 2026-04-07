@@ -1,0 +1,125 @@
+<h2>Design des cartes CV</h2>
+<p class="subtitle">Comment chaque CV s'affiche dans la liste principale</p>
+
+<div class="cards">
+
+  <!-- Option A: Card horizontale avec preview -->
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8faff; padding:16px;">
+      <!-- Card CV style horizontal -->
+      <div style="background:white; border-radius:12px; padding:14px; box-shadow:0 2px 12px rgba(0,0,0,0.08); display:flex; gap:12px; align-items:center; margin-bottom:10px;">
+        <div style="width:44px; height:52px; background:linear-gradient(135deg,#1976D2,#42a5f5); border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+          <div style="color:white; font-size:18px;">📄</div>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:#1a1a2e; margin-bottom:2px;">CV Développeur Senior</div>
+          <div style="font-size:11px; color:#888; margin-bottom:6px;">Modifié il y a 2 jours</div>
+          <div style="display:flex; gap:4px;">
+            <span style="background:#e3f2fd; color:#1976D2; font-size:9px; padding:2px 6px; border-radius:10px;">Tech</span>
+            <span style="background:#f3e5f5; color:#7b1fa2; font-size:9px; padding:2px 6px; border-radius:10px;">3 exp.</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="background:#1976D2; color:white; font-size:9px; padding:4px 8px; border-radius:6px; text-align:center;">Voir</div>
+          <div style="background:#f5f5f5; color:#666; font-size:9px; padding:4px 8px; border-radius:6px; text-align:center;">PDF</div>
+        </div>
+      </div>
+      <div style="background:white; border-radius:12px; padding:14px; box-shadow:0 2px 12px rgba(0,0,0,0.08); display:flex; gap:12px; align-items:center;">
+        <div style="width:44px; height:52px; background:linear-gradient(135deg,#7b1fa2,#ab47bc); border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+          <div style="color:white; font-size:18px;">📄</div>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:#1a1a2e; margin-bottom:2px;">CV Commercial</div>
+          <div style="font-size:11px; color:#888; margin-bottom:6px;">Modifié il y a 1 semaine</div>
+          <div style="display:flex; gap:4px;">
+            <span style="background:#fce4ec; color:#c62828; font-size:9px; padding:2px 6px; border-radius:10px;">Vente</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="background:#1976D2; color:white; font-size:9px; padding:4px 8px; border-radius:6px; text-align:center;">Voir</div>
+          <div style="background:#f5f5f5; color:#666; font-size:9px; padding:4px 8px; border-radius:6px; text-align:center;">PDF</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Liste horizontale</h3>
+      <p>Cartes compactes avec icône colorée, titre, date et actions rapides (Voir + PDF). Dense, efficace, idéal mobile.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Grid de cartes avec mini-preview -->
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f4ff; padding:16px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+          <div style="background:linear-gradient(135deg,#1976D2,#42a5f5); height:60px; display:flex; align-items:center; justify-content:center;">
+            <div style="color:white; font-size:10px; font-weight:bold; text-align:center; padding:4px;">CV<br/>Développeur</div>
+          </div>
+          <div style="padding:8px;">
+            <div style="height:6px; width:80%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+            <div style="height:5px; width:55%; background:#eee; border-radius:3px; margin-bottom:6px;"></div>
+            <div style="background:#1976D2; color:white; font-size:8px; padding:3px 6px; border-radius:5px; display:inline-block;">Voir →</div>
+          </div>
+        </div>
+        <div style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+          <div style="background:linear-gradient(135deg,#388e3c,#66bb6a); height:60px; display:flex; align-items:center; justify-content:center;">
+            <div style="color:white; font-size:10px; font-weight:bold; text-align:center; padding:4px;">CV<br/>Commercial</div>
+          </div>
+          <div style="padding:8px;">
+            <div style="height:6px; width:70%; background:#eee; border-radius:3px; margin-bottom:4px;"></div>
+            <div style="height:5px; width:50%; background:#eee; border-radius:3px; margin-bottom:6px;"></div>
+            <div style="background:#388e3c; color:white; font-size:8px; padding:3px 6px; border-radius:5px; display:inline-block;">Voir →</div>
+          </div>
+        </div>
+        <div style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.08); grid-column:span 2; display:flex; align-items:center; justify-content:center; height:40px; border:2px dashed #ddd;">
+          <span style="font-size:11px; color:#aaa;">+ Nouveau CV</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Grille 2 colonnes</h3>
+      <p>Chaque CV est une carte avec header coloré unique. Visuel et moderne. Mieux sur web et tablette.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Card riche avec stats -->
+  <div class="card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff8f0; padding:16px;">
+      <div style="background:white; border-radius:14px; padding:16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); margin-bottom:10px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:#1a1a2e; margin-bottom:3px;">CV Développeur Senior</div>
+            <div style="font-size:11px; color:#999;">Mis à jour le 22 mars 2026</div>
+          </div>
+          <div style="background:#e8f5e9; color:#2e7d32; font-size:10px; padding:3px 8px; border-radius:20px; font-weight:600;">Complet</div>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <div style="text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#1976D2;">3</div>
+            <div style="font-size:9px; color:#999;">Expériences</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#7b1fa2;">5</div>
+            <div style="font-size:9px; color:#999;">Compétences</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#388e3c;">2</div>
+            <div style="font-size:9px; color:#999;">Formations</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <div style="flex:1; background:#1976D2; color:white; font-size:9px; padding:5px; border-radius:7px; text-align:center; font-weight:600;">📄 Voir le CV</div>
+          <div style="flex:1; background:#f5f5f5; color:#555; font-size:9px; padding:5px; border-radius:7px; text-align:center;">⬇ PDF</div>
+          <div style="background:#f5f5f5; color:#555; font-size:9px; padding:5px 8px; border-radius:7px;">✏️</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Card riche avec stats</h3>
+      <p>Affiche le nombre d'expériences, compétences, formations. Statut "Complet/Incomplet". Actions directes. Plus informatif.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Clique ou dis-moi dans le terminal. Tu peux aussi combiner (ex: C sur web, A sur mobile).</p>
