@@ -1,6 +1,7 @@
 package com.cvmobile.service;
 
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.exception.PdfGenerationException;
 import com.cvmobile.model.PdfTemplate;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -91,7 +92,7 @@ public class PdfGenerationService {
                 doc.close();
                 return out.toByteArray();
             } catch (Exception e) {
-                throw new RuntimeException("Erreur PDF MODERNE", e);
+                throw new PdfGenerationException("Erreur PDF MODERNE", e);
             }
         }
 
@@ -290,7 +291,7 @@ public class PdfGenerationService {
                 doc.close();
                 return out.toByteArray();
             } catch (Exception e) {
-                throw new RuntimeException("Erreur PDF CLASSIQUE", e);
+                throw new PdfGenerationException("Erreur PDF CLASSIQUE", e);
             }
         }
 
@@ -536,7 +537,7 @@ public class PdfGenerationService {
                 doc.close();
                 return out.toByteArray();
             } catch (Exception e) {
-                throw new RuntimeException("Erreur PDF MINIMALISTE", e);
+                throw new PdfGenerationException("Erreur PDF MINIMALISTE", e);
             }
         }
 

@@ -3,6 +3,8 @@ package com.cvmobile.service;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.exception.DuplicateEmailException;
+import com.cvmobile.exception.InvalidTokenException;
 import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
@@ -87,7 +89,7 @@ class AuthServiceTest {
         when(userService.existsByEmail("existant@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(DuplicateEmailException.class)
                 .hasMessageContaining("deja utilise");
 
         verify(userService, never()).save(any());
@@ -123,7 +125,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.validateToken("bad-token")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken("bad-token"))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(InvalidTokenException.class)
                 .hasMessageContaining("invalide");
     }
 }

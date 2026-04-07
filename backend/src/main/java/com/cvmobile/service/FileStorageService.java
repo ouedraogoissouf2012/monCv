@@ -1,5 +1,6 @@
 package com.cvmobile.service;
 
+import com.cvmobile.exception.FileStorageException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,7 +22,7 @@ public class FileStorageService implements com.cvmobile.service.file.IFileStorag
         try {
             Files.createDirectories(this.uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("Impossible de créer le répertoire d'upload : " + uploadDirStr, e);
+            throw new FileStorageException("Impossible de creer le repertoire d'upload : " + uploadDirStr, e);
         }
     }
 
@@ -41,7 +42,7 @@ public class FileStorageService implements com.cvmobile.service.file.IFileStorag
             Path target = uploadDir.resolve(filename);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lors de la sauvegarde du fichier", e);
+            throw new FileStorageException("Erreur lors de la sauvegarde du fichier", e);
         }
 
         return "/api/uploads/photos/" + filename;

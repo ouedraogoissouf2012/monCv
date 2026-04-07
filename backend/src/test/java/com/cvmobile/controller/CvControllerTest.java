@@ -2,6 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.User;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.PdfGenerationService;
@@ -90,10 +91,10 @@ class CvControllerTest {
     @Test
     void getCvById_quandCvInexistant_devraitPropagerException() {
         User user = buildUser();
-        when(cvService.getCvById(99L, 1L)).thenThrow(new RuntimeException("CV non trouve"));
+        when(cvService.getCvById(99L, 1L)).thenThrow(new ResourceNotFoundException("CV", "id", 99L));
 
         assertThatThrownBy(() -> cvController.getCvById(99L, user))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("non trouve");
     }
 }
