@@ -188,8 +188,8 @@ class _LoginScreenState extends State<LoginScreen>
               _buildLoginButton(),
               const SizedBox(height: 24),
               // Signup link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
                 children: [
                   const Text(
                     'Pas encore de compte ? ',
@@ -356,13 +356,13 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: _kBorder, width: 0.5)),
       ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: const Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 20,
+        runSpacing: 8,
         children: [
           _FeatureChip('Suggestions IA'),
-          SizedBox(width: 20),
           _FeatureChip('Export PDF'),
-          SizedBox(width: 20),
           _FeatureChip('Partage public'),
         ],
       ),
