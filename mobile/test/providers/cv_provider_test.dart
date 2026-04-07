@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
@@ -41,7 +42,7 @@ void main() {
       CvProvider(repository: mockRepo, connectivity: mockConnectivity);
 
   group('CvProvider', () {
-    test('état initial : liste vide, pas de chargement', () {
+    test('etat initial : liste vide, pas de chargement', () {
       final provider = buildProvider();
       expect(provider.cvs, isEmpty);
       expect(provider.isLoading, false);
@@ -49,9 +50,9 @@ void main() {
       expect(provider.isOffline, false);
     });
 
-    test('loadCvs succès : peuple la liste', () async {
+    test('loadCvs succes : peuple la liste', () async {
       final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'CV 2')];
-      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => cvs);
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => Result.success(cvs));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -61,31 +62,32 @@ void main() {
       expect(provider.isLoading, false);
     });
 
-    test('loadCvs échec : error défini, liste reste vide', () async {
-      when(() => mockRepo.getAllCvs()).thenThrow(Exception('Erreur réseau'));
+    test('loadCvs echec : error defini, liste reste vide', () async {
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Erreur reseau')));
 
       final provider = buildProvider();
       await provider.loadCvs();
 
       expect(provider.cvs, isEmpty);
-      expect(provider.error, 'Erreur réseau');
+      expect(provider.error, 'Erreur reseau');
       expect(provider.isLoading, false);
     });
 
-    test('loadCvById succès : currentCv défini', () async {
-      final cv = _fakeCv(id: 42, titre: 'CV Détail');
-      when(() => mockRepo.getCvById(42)).thenAnswer((_) async => cv);
+    test('loadCvById succes : currentCv defini', () async {
+      final cv = _fakeCv(id: 42, titre: 'CV Detail');
+      when(() => mockRepo.getCvById(42)).thenAnswer((_) async => Result.success(cv));
 
       final provider = buildProvider();
       await provider.loadCvById(42);
 
       expect(provider.currentCv?.id, 42);
-      expect(provider.currentCv?.titre, 'CV Détail');
+      expect(provider.currentCv?.titre, 'CV Detail');
     });
 
-    test('createCv succès : ajoute à la liste', () async {
+    test('createCv succes : ajoute a la liste', () async {
       final newCv = _fakeCv(id: 10, titre: 'Nouveau CV');
-      when(() => mockRepo.createCv(any())).thenAnswer((_) async => newCv);
+      when(() => mockRepo.createCv(any())).thenAnswer((_) async => Result.success(newCv));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv(titre: 'Nouveau CV'));
@@ -95,21 +97,22 @@ void main() {
       expect(provider.cvs.first.id, 10);
     });
 
-    test('createCv échec : retourne false, error défini', () async {
-      when(() => mockRepo.createCv(any())).thenThrow(Exception('Création impossible'));
+    test('createCv echec : retourne false, error defini', () async {
+      when(() => mockRepo.createCv(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'Creation impossible')));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv());
 
       expect(result, false);
-      expect(provider.error, 'Création impossible');
+      expect(provider.error, 'Creation impossible');
     });
 
-    test('updateCv succès : met à jour la liste', () async {
+    test('updateCv succes : met a jour la liste', () async {
       final original = _fakeCv(id: 5, titre: 'Ancien titre');
       final updated = _fakeCv(id: 5, titre: 'Nouveau titre');
-      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => [original]);
-      when(() => mockRepo.updateCv(5, any())).thenAnswer((_) async => updated);
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => Result.success([original]));
+      when(() => mockRepo.updateCv(5, any())).thenAnswer((_) async => Result.success(updated));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -119,10 +122,10 @@ void main() {
       expect(provider.cvs.first.titre, 'Nouveau titre');
     });
 
-    test('deleteCv succès : retire de la liste', () async {
+    test('deleteCv succes : retire de la liste', () async {
       final cv = _fakeCv(id: 3);
-      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => [cv]);
-      when(() => mockRepo.deleteCv(3)).thenAnswer((_) async {});
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => Result.success([cv]));
+      when(() => mockRepo.deleteCv(3)).thenAnswer((_) async => const Result.success(null));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -133,8 +136,9 @@ void main() {
       expect(provider.cvs, isEmpty);
     });
 
-    test('deleteCv échec : retourne false', () async {
-      when(() => mockRepo.deleteCv(any())).thenThrow(Exception('Suppression impossible'));
+    test('deleteCv echec : retourne false', () async {
+      when(() => mockRepo.deleteCv(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'Suppression impossible')));
 
       final provider = buildProvider();
       final result = await provider.deleteCv(99);
@@ -143,11 +147,11 @@ void main() {
       expect(provider.error, 'Suppression impossible');
     });
 
-    test('duplicateCv succès : ajoute la copie à la liste', () async {
+    test('duplicateCv succes : ajoute la copie a la liste', () async {
       final original = _fakeCv(id: 5, titre: 'Mon CV');
       final copy = _fakeCv(id: 6, titre: 'Copie de Mon CV');
-      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => [original]);
-      when(() => mockRepo.duplicateCv(5)).thenAnswer((_) async => copy);
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => Result.success([original]));
+      when(() => mockRepo.duplicateCv(5)).thenAnswer((_) async => Result.success(copy));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -158,9 +162,9 @@ void main() {
       expect(provider.cvs.last.titre, 'Copie de Mon CV');
     });
 
-    test('duplicateCv échec : retourne false', () async {
-      when(() => mockRepo.duplicateCv(any()))
-          .thenThrow(Exception('Duplication impossible'));
+    test('duplicateCv echec : retourne false', () async {
+      when(() => mockRepo.duplicateCv(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'Duplication impossible')));
 
       final provider = buildProvider();
       final result = await provider.duplicateCv(99);
@@ -169,7 +173,7 @@ void main() {
       expect(provider.error, 'Duplication impossible');
     });
 
-    test('isOffline passe à true quand connectivité perdue', () async {
+    test('isOffline passe a true quand connectivite perdue', () async {
       final provider = buildProvider();
       expect(provider.isOffline, false);
 
@@ -179,8 +183,8 @@ void main() {
       expect(provider.isOffline, true);
     });
 
-    test('isOffline repasse à false quand connectivité retrouvée', () async {
-      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => []);
+    test('isOffline repasse a false quand connectivite retrouvee', () async {
+      when(() => mockRepo.getAllCvs()).thenAnswer((_) async => const Result.success([]));
 
       final provider = buildProvider();
       connectivityCtrl.add(false);

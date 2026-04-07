@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../core/error/result.dart';
 import '../models/cv.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
@@ -40,15 +41,16 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      _cvs = await _repository.getAllCvs();
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    final result = await _repository.getAllCvs();
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _cvs = data;
+      case Failure(:final exception):
+        _error = exception.message;
     }
+    notifyListeners();
   }
 
   Future<void> loadCvById(int id) async {
@@ -56,15 +58,16 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      _currentCv = await _repository.getCvById(id);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    final result = await _repository.getCvById(id);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _currentCv = data;
+      case Failure(:final exception):
+        _error = exception.message;
     }
+    notifyListeners();
   }
 
   Future<bool> createCv(Cv cv) async {
@@ -72,18 +75,19 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final newCv = await _repository.createCv(cv);
-      _cvs.add(newCv);
-      _currentCv = newCv;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.createCv(cv);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _cvs.add(data);
+        _currentCv = data;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -92,21 +96,20 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final updatedCv = await _repository.updateCv(id, cv);
-      final index = _cvs.indexWhere((c) => c.id == id);
-      if (index != -1) {
-        _cvs[index] = updatedCv;
-      }
-      _currentCv = updatedCv;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.updateCv(id, cv);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        final index = _cvs.indexWhere((c) => c.id == id);
+        if (index != -1) _cvs[index] = data;
+        _currentCv = data;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -115,20 +118,19 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      await _repository.deleteCv(id);
-      _cvs.removeWhere((cv) => cv.id == id);
-      if (_currentCv?.id == id) {
-        _currentCv = null;
-      }
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.deleteCv(id);
+    _isLoading = false;
+
+    switch (result) {
+      case Success():
+        _cvs.removeWhere((cv) => cv.id == id);
+        if (_currentCv?.id == id) _currentCv = null;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -137,23 +139,21 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final copy = await _repository.duplicateCv(id);
-      _cvs.add(copy);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.duplicateCv(id);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _cvs.add(data);
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
-  /// Met à jour le style du CV localement (sans appel réseau — persisté côté client).
-  /// Applique les suggestions IA directement sur le CV en memoire,
-  /// puis tente de sauvegarder au backend.
   Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) async {
     final cv = _currentCv;
     if (cv == null || cv.id != cvId) return false;
@@ -228,7 +228,7 @@ class CvProvider with ChangeNotifier {
       }
     }
 
-    // 4. Competences (l'IA peut separer les competences en bloc)
+    // 4. Competences
     List<Skill> updatedSkills = List<Skill>.from(cv.skills);
     if (result['skills'] != null) {
       final aiSkills = result['skills'] as List<dynamic>;
@@ -276,10 +276,8 @@ class CvProvider with ChangeNotifier {
     if (index != -1) _cvs[index] = updatedCv;
     notifyListeners();
 
-    // Sauvegarder au backend
-    try {
-      await _repository.updateCv(cvId, updatedCv);
-    } catch (_) {}
+    // Sauvegarder au backend (best-effort)
+    await _repository.updateCv(cvId, updatedCv);
 
     return true;
   }

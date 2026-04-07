@@ -1,18 +1,20 @@
+import '../core/error/result.dart';
+import '../core/error/safe_call.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 
 abstract class AuthRepository {
-  Future<AuthResponse> login({required String email, required String password});
-  Future<AuthResponse> register({
+  Future<Result<AuthResponse>> login({required String email, required String password});
+  Future<Result<AuthResponse>> register({
     required String email,
     required String password,
     String? nom,
     String? prenom,
   });
-  Future<void> logout();
-  Future<User> getCurrentUser();
-  Future<void> clearTokens();
-  Future<User> updateProfile({String? nom, String? prenom});
+  Future<Result<void>> logout();
+  Future<Result<User>> getCurrentUser();
+  Future<Result<void>> clearTokens();
+  Future<Result<User>> updateProfile({String? nom, String? prenom});
 }
 
 class HttpAuthRepository implements AuthRepository {
@@ -21,28 +23,28 @@ class HttpAuthRepository implements AuthRepository {
   HttpAuthRepository({ApiService? api}) : _api = api ?? ApiService();
 
   @override
-  Future<AuthResponse> login({required String email, required String password}) =>
-      _api.login(email: email, password: password);
+  Future<Result<AuthResponse>> login({required String email, required String password}) =>
+      safeCall(() => _api.login(email: email, password: password));
 
   @override
-  Future<AuthResponse> register({
+  Future<Result<AuthResponse>> register({
     required String email,
     required String password,
     String? nom,
     String? prenom,
   }) =>
-      _api.register(email: email, password: password, nom: nom, prenom: prenom);
+      safeCall(() => _api.register(email: email, password: password, nom: nom, prenom: prenom));
 
   @override
-  Future<void> logout() => _api.logout();
+  Future<Result<void>> logout() => safeCall(() => _api.logout());
 
   @override
-  Future<User> getCurrentUser() => _api.getCurrentUser();
+  Future<Result<User>> getCurrentUser() => safeCall(() => _api.getCurrentUser());
 
   @override
-  Future<void> clearTokens() => _api.clearTokens();
+  Future<Result<void>> clearTokens() => safeCall(() => _api.clearTokens());
 
   @override
-  Future<User> updateProfile({String? nom, String? prenom}) =>
-      _api.updateProfile(nom: nom, prenom: prenom);
+  Future<Result<User>> updateProfile({String? nom, String? prenom}) =>
+      safeCall(() => _api.updateProfile(nom: nom, prenom: prenom));
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../core/error/result.dart';
 import '../models/user.dart';
 import '../repositories/auth_repository.dart';
 
@@ -26,12 +27,14 @@ class AuthProvider with ChangeNotifier {
   Future<void> _checkAuthStatus() async {
     final token = await _storage.read(key: 'access_token');
     if (token != null) {
-      try {
-        _user = await _repository.getCurrentUser();
-        _isAuthenticated = true;
-      } catch (e) {
-        await _repository.clearTokens();
-        _isAuthenticated = false;
+      final result = await _repository.getCurrentUser();
+      switch (result) {
+        case Success(:final data):
+          _user = data;
+          _isAuthenticated = true;
+        case Failure():
+          await _repository.clearTokens();
+          _isAuthenticated = false;
       }
       notifyListeners();
     }
@@ -42,18 +45,19 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final authResponse = await _repository.login(email: email, password: password);
-      _user = authResponse.user;
-      _isAuthenticated = true;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.login(email: email, password: password);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data.user;
+        _isAuthenticated = true;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -67,23 +71,24 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final authResponse = await _repository.register(
-        email: email,
-        password: password,
-        nom: nom,
-        prenom: prenom,
-      );
-      _user = authResponse.user;
-      _isAuthenticated = true;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _repository.register(
+      email: email,
+      password: password,
+      nom: nom,
+      prenom: prenom,
+    );
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data.user;
+        _isAuthenticated = true;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -98,15 +103,16 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    try {
-      _user = await _repository.updateProfile(nom: nom, prenom: prenom);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    final result = await _repository.updateProfile(nom: nom, prenom: prenom);
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data;
+      case Failure(:final exception):
+        _error = exception.message;
     }
+    notifyListeners();
   }
 
   void clearError() {

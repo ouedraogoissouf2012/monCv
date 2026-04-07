@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/repositories/auth_repository.dart';
@@ -31,7 +32,7 @@ void main() {
       AuthProvider(repository: mockRepo, storage: mockStorage);
 
   group('AuthProvider', () {
-    test('état initial : non authentifié, pas de chargement', () async {
+    test('etat initial : non authentifie, pas de chargement', () async {
       final provider = buildProvider();
       await Future.microtask(() {});
       expect(provider.isAuthenticated, false);
@@ -39,9 +40,9 @@ void main() {
       expect(provider.user, null);
     });
 
-    test('login succès : isAuthenticated=true, user défini', () async {
+    test('login succes : isAuthenticated=true, user defini', () async {
       when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenAnswer((_) async => _fakeAuthResponse());
+          .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
 
       final provider = buildProvider();
       final result = await provider.login(email: 'test@test.com', password: 'pass');
@@ -53,9 +54,10 @@ void main() {
       expect(provider.error, null);
     });
 
-    test('login échec : isAuthenticated=false, error défini', () async {
+    test('login echec : isAuthenticated=false, error defini', () async {
       when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenThrow(Exception('Email ou mot de passe incorrect'));
+          .thenAnswer((_) async => const Result.failure(
+              AuthException(message: 'Email ou mot de passe incorrect')));
 
       final provider = buildProvider();
       final result = await provider.login(email: 'bad@test.com', password: 'wrong');
@@ -66,13 +68,13 @@ void main() {
       expect(provider.isLoading, false);
     });
 
-    test('register succès : isAuthenticated=true', () async {
+    test('register succes : isAuthenticated=true', () async {
       when(() => mockRepo.register(
             email: any(named: 'email'),
             password: any(named: 'password'),
             nom: any(named: 'nom'),
             prenom: any(named: 'prenom'),
-          )).thenAnswer((_) async => _fakeAuthResponse());
+          )).thenAnswer((_) async => Result.success(_fakeAuthResponse()));
 
       final provider = buildProvider();
       final result = await provider.register(
@@ -86,13 +88,14 @@ void main() {
       expect(provider.isAuthenticated, true);
     });
 
-    test('register échec : error défini', () async {
+    test('register echec : error defini', () async {
       when(() => mockRepo.register(
             email: any(named: 'email'),
             password: any(named: 'password'),
             nom: any(named: 'nom'),
             prenom: any(named: 'prenom'),
-          )).thenThrow(Exception('Email déjà utilisé'));
+          )).thenAnswer((_) async => const Result.failure(
+              ConflictException(message: 'Cet email est deja utilise')));
 
       final provider = buildProvider();
       final result = await provider.register(
@@ -103,13 +106,13 @@ void main() {
       );
 
       expect(result, false);
-      expect(provider.error, 'Email déjà utilisé');
+      expect(provider.error, 'Cet email est deja utilise');
     });
 
     test('logout : remet isAuthenticated=false', () async {
       when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenAnswer((_) async => _fakeAuthResponse());
-      when(() => mockRepo.logout()).thenAnswer((_) async {});
+          .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
+      when(() => mockRepo.logout()).thenAnswer((_) async => const Result.success(null));
 
       final provider = buildProvider();
       await provider.login(email: 'test@test.com', password: 'pass');
@@ -120,9 +123,10 @@ void main() {
       expect(provider.user, null);
     });
 
-    test('clearError : remet error à null', () async {
+    test('clearError : remet error a null', () async {
       when(() => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')))
-          .thenThrow(Exception('Erreur'));
+          .thenAnswer((_) async => const Result.failure(
+              ServerException(message: 'Erreur')));
 
       final provider = buildProvider();
       await provider.login(email: 'x', password: 'x');
