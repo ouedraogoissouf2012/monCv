@@ -525,6 +525,8 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
     if (info?.telephone?.isNotEmpty == true) info!.telephone!,
     if (info?.ville?.isNotEmpty == true)
       '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
+    if (info?.linkedIn?.isNotEmpty == true) _sanitize(info!.linkedIn!),
+    if (info?.portfolio?.isNotEmpty == true) _sanitize(info!.portfolio!),
   ];
 
   doc.addPage(pw.MultiPage(
@@ -709,6 +711,8 @@ Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo
                 if (info?.email?.isNotEmpty == true) info!.email!,
                 if (info?.telephone?.isNotEmpty == true) info!.telephone!,
                 if (info?.ville?.isNotEmpty == true) info!.ville!,
+                if (info?.linkedIn?.isNotEmpty == true) info!.linkedIn!,
+                if (info?.portfolio?.isNotEmpty == true) info!.portfolio!,
               ].join('   |   '),
               style: _bodyStyle(size: 8.5, color: PdfColors.grey700),
             ),
@@ -1141,6 +1145,8 @@ Future<Uint8List> _buildAts(Cv cv, PdfColor accent) async {
           if (info?.telephone?.isNotEmpty == true) _sanitize(info!.telephone!),
           if (info?.ville?.isNotEmpty == true)
             _sanitize('${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}'),
+          if (info?.linkedIn?.isNotEmpty == true) _sanitize(info!.linkedIn!),
+          if (info?.portfolio?.isNotEmpty == true) _sanitize(info!.portfolio!),
         ].join('  |  '),
         style: pw.TextStyle(fontSize: 9, color: grey),
       ),

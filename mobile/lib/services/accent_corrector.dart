@@ -79,6 +79,15 @@ class AccentCorrector {
     'etudes': 'études', 'Etudes': 'Études',
     'annee': 'année', 'Annee': 'Année',
     'annees': 'années', 'Annees': 'Années',
+    // Participes courants (non dupliques)
+    'Utilise': 'Utilisé', 'utilise': 'utilisé',
+    'Utilisee': 'Utilisée', 'utilisee': 'utilisée',
+    'Geree': 'Gérée', 'geree': 'gérée',
+    'Gere': 'Géré', 'gere': 'géré',
+    'Livree': 'Livrée', 'livree': 'livrée',
+    'Realisee': 'Réalisée', 'realisee': 'réalisée',
+    'Optimise': 'Optimisé', 'optimise': 'optimisé',
+    'Supervise': 'Supervisé', 'supervise': 'supervisé',
   };
 
   /// Corrige les accents manquants dans un texte.

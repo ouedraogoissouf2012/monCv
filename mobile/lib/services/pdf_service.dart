@@ -81,6 +81,11 @@ class PdfService {
         technologies: p.technologies,
         lien: p.lien, dateDebut: p.dateDebut, dateFin: p.dateFin,
       )).toList(),
+      languages: cv.languages.map((l) => Language(
+        id: l.id,
+        langue: _corrector.correctNullable(l.langue),
+        niveau: l.niveau,
+      )).toList(),
     );
   }
 }
