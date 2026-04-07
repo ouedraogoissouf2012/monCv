@@ -29,7 +29,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class CvController {
 
-    private final CvService cvService;
+    private final com.cvmobile.service.cv.ICvService cvService;
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;
     private final CvRepository cvRepository;

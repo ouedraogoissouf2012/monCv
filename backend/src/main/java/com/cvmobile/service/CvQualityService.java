@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
-public class CvQualityService {
+public class CvQualityService implements com.cvmobile.service.quality.ICvQualityService {
 
     // Mots cliches a detecter
     private static final Set<String> CLICHES = Set.of(

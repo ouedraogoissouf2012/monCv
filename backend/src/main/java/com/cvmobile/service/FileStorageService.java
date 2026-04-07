@@ -12,7 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
-public class FileStorageService {
+public class FileStorageService implements com.cvmobile.service.file.IFileStorageService {
 
     private final Path uploadDir;
 

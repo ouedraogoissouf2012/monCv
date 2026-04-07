@@ -3,7 +3,7 @@ package com.cvmobile.controller;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
-import com.cvmobile.service.AuthService;
+import com.cvmobile.service.auth.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Tag(name = "Authentification", description = "Endpoints pour l'authentification")
 public class AuthController {
 
-    private final AuthService authService;
+    private final IAuthService authService;
 
     @PostMapping("/register")
     @Operation(summary = "Inscription d'un nouvel utilisateur")
