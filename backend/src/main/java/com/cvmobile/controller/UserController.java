@@ -2,7 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.model.User;
-import com.cvmobile.service.UserService;
+import com.cvmobile.service.user.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +20,7 @@ import java.util.Map;
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
-    private final UserService userService;
+    private final IUserService userService;
 
     @GetMapping("/me")
     @Operation(summary = "Obtenir le profil de l'utilisateur connecte")

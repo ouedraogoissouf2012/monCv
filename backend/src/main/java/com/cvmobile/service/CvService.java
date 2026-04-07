@@ -5,6 +5,8 @@ import com.cvmobile.dto.CvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.cv.ICvService;
+import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CvService {
+public class CvService implements ICvService {
 
     private final CvRepository cvRepository;
-    private final UserService userService;
+    private final IUserService userService;
 
     // ── Lecture ───────────────────────────────────────────────────
 

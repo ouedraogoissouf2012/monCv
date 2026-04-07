@@ -5,6 +5,8 @@ import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
+import com.cvmobile.service.auth.IAuthService;
+import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,9 +17,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService implements IAuthService {
 
-    private final UserService userService;
+    private final IUserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
