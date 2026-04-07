@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/repositories/cached_cv_repository.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
@@ -33,49 +34,56 @@ void main() {
       CachedCvRepository(remote: mockRemote, prefs: prefs);
 
   group('CachedCvRepository.getAllCvs', () {
-    test('retourne les CVs du réseau et les met en cache', () async {
+    test('retourne les CVs du reseau et les met en cache', () async {
       final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'CV 2')];
-      when(() => mockRemote.getAllCvs()).thenAnswer((_) async => cvs);
+      when(() => mockRemote.getAllCvs()).thenAnswer((_) async => Result.success(cvs));
 
       final repo = buildRepo();
       final result = await repo.getAllCvs();
 
-      expect(result.length, 2);
+      expect(result.isSuccess, true);
+      expect((result as Success<List<Cv>>).data.length, 2);
       expect(prefs.getString('cached_cvs'), isNotNull);
     });
 
-    test('retourne le cache si le réseau échoue', () async {
+    test('retourne le cache si le reseau echoue', () async {
       final cached = [_fakeCv(id: 99, titre: 'CV Cached')];
       await prefs.setString(
         'cached_cvs',
         jsonEncode(cached.map((c) => c.toJson()).toList()),
       );
-      when(() => mockRemote.getAllCvs()).thenThrow(Exception('Offline'));
+      when(() => mockRemote.getAllCvs()).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Offline')));
 
       final repo = buildRepo();
       final result = await repo.getAllCvs();
 
-      expect(result.length, 1);
-      expect(result.first.titre, 'CV Cached');
+      expect(result.isSuccess, true);
+      final data = (result as Success<List<Cv>>).data;
+      expect(data.length, 1);
+      expect(data.first.titre, 'CV Cached');
     });
 
-    test('propage l\'erreur si réseau échoue et cache vide', () async {
-      when(() => mockRemote.getAllCvs()).thenThrow(Exception('Offline'));
+    test('propage l\'erreur si reseau echoue et cache vide', () async {
+      when(() => mockRemote.getAllCvs()).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Offline')));
 
       final repo = buildRepo();
-      expect(() => repo.getAllCvs(), throwsException);
+      final result = await repo.getAllCvs();
+
+      expect(result.isFailure, true);
     });
   });
 
   group('CachedCvRepository.createCv', () {
-    test('ajoute le nouveau CV au cache après création', () async {
+    test('ajoute le nouveau CV au cache apres creation', () async {
       final existing = [_fakeCv(id: 1)];
       await prefs.setString(
         'cached_cvs',
         jsonEncode(existing.map((c) => c.toJson()).toList()),
       );
       final newCv = _fakeCv(id: 2, titre: 'Nouveau');
-      when(() => mockRemote.createCv(any())).thenAnswer((_) async => newCv);
+      when(() => mockRemote.createCv(any())).thenAnswer((_) async => Result.success(newCv));
 
       final repo = buildRepo();
       await repo.createCv(_fakeCv(titre: 'Nouveau'));
@@ -88,13 +96,13 @@ void main() {
   });
 
   group('CachedCvRepository.deleteCv', () {
-    test('retire le CV du cache après suppression', () async {
-      final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'À supprimer')];
+    test('retire le CV du cache apres suppression', () async {
+      final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'A supprimer')];
       await prefs.setString(
         'cached_cvs',
         jsonEncode(cvs.map((c) => c.toJson()).toList()),
       );
-      when(() => mockRemote.deleteCv(2)).thenAnswer((_) async {});
+      when(() => mockRemote.deleteCv(2)).thenAnswer((_) async => const Result.success(null));
 
       final repo = buildRepo();
       await repo.deleteCv(2);
@@ -107,14 +115,14 @@ void main() {
   });
 
   group('CachedCvRepository.updateCv', () {
-    test('met à jour le CV dans le cache', () async {
+    test('met a jour le CV dans le cache', () async {
       final cvs = [_fakeCv(id: 5, titre: 'Ancien')];
       await prefs.setString(
         'cached_cvs',
         jsonEncode(cvs.map((c) => c.toJson()).toList()),
       );
       final updated = _fakeCv(id: 5, titre: 'Nouveau');
-      when(() => mockRemote.updateCv(5, any())).thenAnswer((_) async => updated);
+      when(() => mockRemote.updateCv(5, any())).thenAnswer((_) async => Result.success(updated));
 
       final repo = buildRepo();
       await repo.updateCv(5, updated);

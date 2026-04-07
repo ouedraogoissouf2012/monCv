@@ -1,13 +1,15 @@
+import '../core/error/result.dart';
+import '../core/error/safe_call.dart';
 import '../models/cv.dart';
 import '../services/api_service.dart';
 
 abstract class CvRepository {
-  Future<List<Cv>> getAllCvs();
-  Future<Cv> getCvById(int id);
-  Future<Cv> createCv(Cv cv);
-  Future<Cv> updateCv(int id, Cv cv);
-  Future<void> deleteCv(int id);
-  Future<Cv> duplicateCv(int id);
+  Future<Result<List<Cv>>> getAllCvs();
+  Future<Result<Cv>> getCvById(int id);
+  Future<Result<Cv>> createCv(Cv cv);
+  Future<Result<Cv>> updateCv(int id, Cv cv);
+  Future<Result<void>> deleteCv(int id);
+  Future<Result<Cv>> duplicateCv(int id);
 }
 
 class HttpCvRepository implements CvRepository {
@@ -16,20 +18,20 @@ class HttpCvRepository implements CvRepository {
   HttpCvRepository({ApiService? api}) : _api = api ?? ApiService();
 
   @override
-  Future<List<Cv>> getAllCvs() => _api.getAllCvs();
+  Future<Result<List<Cv>>> getAllCvs() => safeCall(() => _api.getAllCvs());
 
   @override
-  Future<Cv> getCvById(int id) => _api.getCvById(id);
+  Future<Result<Cv>> getCvById(int id) => safeCall(() => _api.getCvById(id));
 
   @override
-  Future<Cv> createCv(Cv cv) => _api.createCv(cv);
+  Future<Result<Cv>> createCv(Cv cv) => safeCall(() => _api.createCv(cv));
 
   @override
-  Future<Cv> updateCv(int id, Cv cv) => _api.updateCv(id, cv);
+  Future<Result<Cv>> updateCv(int id, Cv cv) => safeCall(() => _api.updateCv(id, cv));
 
   @override
-  Future<void> deleteCv(int id) => _api.deleteCv(id);
+  Future<Result<void>> deleteCv(int id) => safeCall(() => _api.deleteCv(id));
 
   @override
-  Future<Cv> duplicateCv(int id) => _api.duplicateCv(id);
+  Future<Result<Cv>> duplicateCv(int id) => safeCall(() => _api.duplicateCv(id));
 }
