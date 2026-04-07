@@ -1,9 +1,12 @@
 package com.cvmobile.service;
 
+import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
+import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,13 +27,21 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock private UserService userService;
+    @Mock private IUserService userService;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtTokenProvider jwtTokenProvider;
     @Mock private AuthenticationManager authenticationManager;
+    @Mock private UserMapper userMapper;
 
     @InjectMocks
     private AuthService authService;
+
+    private AuthResponse.UserDto buildUserDto() {
+        return AuthResponse.UserDto.builder()
+                .id(1L).email("nouveau@example.com")
+                .nom("Ouedraogo").prenom("Issouf").role("USER")
+                .build();
+    }
 
     @Test
     void register_avecNouvelEmail_devraitCreerLUtilisateur() {
@@ -42,16 +53,23 @@ class AuthServiceTest {
         request.setNom("Ouedraogo");
         request.setPrenom("Issouf");
 
+        User mappedUser = User.builder()
+                .email(request.getEmail())
+                .nom(request.getNom()).prenom(request.getPrenom())
+                .role(User.Role.USER).build();
+
         User savedUser = User.builder()
                 .id(1L).email(request.getEmail())
                 .nom(request.getNom()).prenom(request.getPrenom())
                 .role(User.Role.USER).build();
 
         when(userService.existsByEmail(anyString())).thenReturn(false);
+        when(userMapper.toUser(request)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
         when(userService.save(any(User.class))).thenReturn(savedUser);
         when(jwtTokenProvider.generateToken(anyString())).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(userMapper.toUserDto(savedUser)).thenReturn(buildUserDto());
 
         var response = authService.register(request);
 
@@ -92,6 +110,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(auth);
         when(jwtTokenProvider.generateToken(any(Authentication.class))).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(userMapper.toUserDto(user)).thenReturn(buildUserDto());
 
         var response = authService.login(request);
 

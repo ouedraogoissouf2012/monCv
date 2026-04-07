@@ -2,9 +2,11 @@ package com.cvmobile.service;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +25,8 @@ import static org.mockito.Mockito.*;
 class CvServiceTest {
 
     @Mock private CvRepository cvRepository;
-    @Mock private UserService userService;
+    @Mock private IUserService userService;
+    @Mock private CvMapper cvMapper;
 
     @InjectMocks
     private CvService cvService;
@@ -36,10 +39,18 @@ class CvServiceTest {
         return Cv.builder().id(10L).titre("Mon CV").user(user).build();
     }
 
+    private CvResponse buildCvResponse() {
+        return CvResponse.builder().id(10L).titre("Mon CV").build();
+    }
+
     @Test
     void getAllCvsByUserId_devraitRetournerLaListeDesCvs() {
         User user = buildUser();
-        when(cvRepository.findByUserId(1L)).thenReturn(List.of(buildCv(user)));
+        Cv cv = buildCv(user);
+        CvResponse response = buildCvResponse();
+
+        when(cvRepository.findByUserIdWithDetails(1L)).thenReturn(List.of(cv));
+        when(cvMapper.toResponse(cv)).thenReturn(response);
 
         List<CvResponse> result = cvService.getAllCvsByUserId(1L);
 
@@ -50,7 +61,11 @@ class CvServiceTest {
     @Test
     void getCvById_avecIdValide_devraitRetournerLeCv() {
         User user = buildUser();
-        when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(buildCv(user)));
+        Cv cv = buildCv(user);
+        CvResponse response = buildCvResponse();
+
+        when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(cv));
+        when(cvMapper.toResponse(cv)).thenReturn(response);
 
         CvResponse result = cvService.getCvById(10L, 1L);
 
@@ -75,9 +90,11 @@ class CvServiceTest {
 
         Cv saved = buildCv(user);
         saved.setTitre("Nouveau CV");
+        CvResponse response = CvResponse.builder().id(10L).titre("Nouveau CV").build();
 
         when(userService.findById(1L)).thenReturn(user);
         when(cvRepository.save(any(Cv.class))).thenReturn(saved);
+        when(cvMapper.toResponse(any(Cv.class))).thenReturn(response);
 
         CvResponse result = cvService.createCv(request, 1L);
 

@@ -3,6 +3,7 @@ package com.cvmobile.service;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
 import com.cvmobile.service.auth.IAuthService;
@@ -23,6 +24,7 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final UserMapper userMapper;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
@@ -32,13 +34,8 @@ public class AuthService implements IAuthService {
             throw new RuntimeException("Cet email est deja utilise");
         }
 
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .nom(request.getNom())
-                .prenom(request.getPrenom())
-                .role(User.Role.USER)
-                .build();
+        User user = userMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         user = userService.save(user);
 
@@ -84,13 +81,7 @@ public class AuthService implements IAuthService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtExpiration / 1000)
-                .user(AuthResponse.UserDto.builder()
-                        .id(user.getId())
-                        .email(user.getEmail())
-                        .nom(user.getNom())
-                        .prenom(user.getPrenom())
-                        .role(user.getRole().name())
-                        .build())
+                .user(userMapper.toUserDto(user))
                 .build();
     }
 }
