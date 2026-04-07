@@ -22,18 +22,51 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 server:
   port: ${SERVER_PORT:8082}
 
+# Upload
+upload:
+  dir: ${UPLOAD_DIR:${user.home}/cv-uploads/photos}
+
 # CORS
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://10.0.2.2:8082}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost:8082,http://10.0.2.2:8082}
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:cvMobileDevSecretKey2024AtLeast32CharsLong!}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# AI Configuration (DeepSeek — compatible OpenAI)
+ai:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY:}
+    model: ${AI_MODEL:deepseek-chat}
+    base-url: https://api.deepseek.com/v1
+
+# Actuator / Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+info:
+  app:
+    name: MonCV Backend
+    version: 1.0.0
+    description: API de creation de CV professionnels
 
 # Swagger Configuration
 springdoc:

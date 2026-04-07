@@ -1,20 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ApiConstants {
   // Valeur injectée au moment du build via --dart-define=API_BASE_URL=...
-  // Défaut : émulateur Android. Changer selon l'environnement :
+  // Défaut : localhost pour web, 10.0.2.2 pour émulateur Android.
   //   Émulateur Android  → http://10.0.2.2:8082/api
   //   Simulateur iOS     → http://localhost:8082/api
   //   Appareil physique  → http://<IP_LAN>:8082/api
   //   Production         → https://api.moncv.com/api
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8082/api',
-  );
+  static const String _envUrl = String.fromEnvironment('API_BASE_URL');
+
+  static String get baseUrl {
+    if (_envUrl.isNotEmpty) return _envUrl;
+    return kIsWeb ? 'http://localhost:8082/api' : 'http://10.0.2.2:8082/api';
+  }
 
   static const String authEndpoint = '/auth';
   static const String usersEndpoint = '/users';
   static const String cvsEndpoint = '/cvs';
+  static const String aiEndpoint = '/ai';
 }
 
 class AppColors {

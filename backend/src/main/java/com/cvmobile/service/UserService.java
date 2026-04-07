@@ -2,15 +2,15 @@ package com.cvmobile.service;
 
 import com.cvmobile.model.User;
 import com.cvmobile.repository.UserRepository;
+import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService implements IUserService {
 
     private final UserRepository userRepository;
 

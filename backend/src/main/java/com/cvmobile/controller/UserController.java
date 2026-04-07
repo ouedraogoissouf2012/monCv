@@ -1,8 +1,9 @@
 package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
+import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
-import com.cvmobile.service.UserService;
+import com.cvmobile.service.user.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,19 +21,13 @@ import java.util.Map;
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
-    private final UserService userService;
+    private final IUserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping("/me")
     @Operation(summary = "Obtenir le profil de l'utilisateur connecte")
     public ResponseEntity<AuthResponse.UserDto> getCurrentUser(@AuthenticationPrincipal User user) {
-        AuthResponse.UserDto userDto = AuthResponse.UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .nom(user.getNom())
-                .prenom(user.getPrenom())
-                .role(user.getRole().name())
-                .build();
-        return ResponseEntity.ok(userDto);
+        return ResponseEntity.ok(userMapper.toUserDto(user));
     }
 
     @PutMapping("/me")
@@ -49,16 +44,7 @@ public class UserController {
         }
 
         User updatedUser = userService.save(user);
-
-        AuthResponse.UserDto userDto = AuthResponse.UserDto.builder()
-                .id(updatedUser.getId())
-                .email(updatedUser.getEmail())
-                .nom(updatedUser.getNom())
-                .prenom(updatedUser.getPrenom())
-                .role(updatedUser.getRole().name())
-                .build();
-
-        return ResponseEntity.ok(userDto);
+        return ResponseEntity.ok(userMapper.toUserDto(updatedUser));
     }
 
     @DeleteMapping("/me")

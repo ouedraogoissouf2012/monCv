@@ -10,6 +10,7 @@ import 'screens/cv/cv_detail_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
+import 'screens/profile/profile_screen.dart';
 
 class AppRouter {
   static GoRouter create(AuthProvider authProvider) {
@@ -64,6 +65,7 @@ class AppRouter {
             return CvFormScreen(cv: cv);
           },
         ),
+        GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
       ],
       errorBuilder: (context, state) => Scaffold(
         appBar: AppBar(title: const Text('Page introuvable')),

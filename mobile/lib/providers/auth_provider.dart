@@ -1,14 +1,38 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../core/error/result.dart';
+import '../core/usecase/usecase.dart';
 import '../models/user.dart';
-import '../services/api_service.dart';
+import '../repositories/auth_repository.dart';
+import '../usecases/auth/login_usecase.dart';
+import '../usecases/auth/register_usecase.dart';
+import '../usecases/auth/logout_usecase.dart';
+import '../usecases/auth/get_current_user_usecase.dart';
+import '../usecases/auth/update_profile_usecase.dart';
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService;
+  final LoginUseCase _loginUseCase;
+  final RegisterUseCase _registerUseCase;
+  final LogoutUseCase _logoutUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final UpdateProfileUseCase _updateProfileUseCase;
+  final AuthRepository _repository;
   final FlutterSecureStorage _storage;
 
-  AuthProvider({ApiService? apiService, FlutterSecureStorage? storage})
-      : _apiService = apiService ?? ApiService(),
+  AuthProvider({
+    required LoginUseCase loginUseCase,
+    required RegisterUseCase registerUseCase,
+    required LogoutUseCase logoutUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+    required UpdateProfileUseCase updateProfileUseCase,
+    required AuthRepository repository,
+    FlutterSecureStorage? storage,
+  })  : _loginUseCase = loginUseCase,
+        _registerUseCase = registerUseCase,
+        _logoutUseCase = logoutUseCase,
+        _getCurrentUserUseCase = getCurrentUserUseCase,
+        _updateProfileUseCase = updateProfileUseCase,
+        _repository = repository,
         _storage = storage ?? const FlutterSecureStorage() {
     _checkAuthStatus();
   }
@@ -26,40 +50,37 @@ class AuthProvider with ChangeNotifier {
   Future<void> _checkAuthStatus() async {
     final token = await _storage.read(key: 'access_token');
     if (token != null) {
-      try {
-        _user = await _apiService.getCurrentUser();
-        _isAuthenticated = true;
-      } catch (e) {
-        await _apiService.clearTokens();
-        _isAuthenticated = false;
+      final result = await _getCurrentUserUseCase(const NoParams());
+      switch (result) {
+        case Success(:final data):
+          _user = data;
+          _isAuthenticated = true;
+        case Failure():
+          await _repository.clearTokens();
+          _isAuthenticated = false;
       }
       notifyListeners();
     }
   }
 
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    try {
-      final authResponse = await _apiService.login(
-        email: email,
-        password: password,
-      );
-      _user = authResponse.user;
-      _isAuthenticated = true;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _loginUseCase(LoginParams(email: email, password: password));
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data.user;
+        _isAuthenticated = true;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
@@ -73,28 +94,29 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final authResponse = await _apiService.register(
-        email: email,
-        password: password,
-        nom: nom,
-        prenom: prenom,
-      );
-      _user = authResponse.user;
-      _isAuthenticated = true;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    final result = await _registerUseCase(RegisterParams(
+      email: email,
+      password: password,
+      nom: nom,
+      prenom: prenom,
+    ));
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data.user;
+        _isAuthenticated = true;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
     }
   }
 
   Future<void> logout() async {
-    await _apiService.logout();
+    await _logoutUseCase(const NoParams());
     _user = null;
     _isAuthenticated = false;
     notifyListeners();
@@ -104,15 +126,16 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    try {
-      _user = await _apiService.updateProfile(nom: nom, prenom: prenom);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
-      notifyListeners();
+    final result = await _updateProfileUseCase(UpdateProfileParams(nom: nom, prenom: prenom));
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _user = data;
+      case Failure(:final exception):
+        _error = exception.message;
     }
+    notifyListeners();
   }
 
   void clearError() {

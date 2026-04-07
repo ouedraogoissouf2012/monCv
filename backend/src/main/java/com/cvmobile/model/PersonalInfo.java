@@ -35,7 +35,9 @@ public class PersonalInfo {
 
     private String portfolio;
 
+    @jakarta.persistence.Column(length = 500)
     private String titrePoste;
 
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String resumeProfessionnel;
 }

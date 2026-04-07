@@ -1,14 +1,13 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
 import '../../models/cv.dart';
+import '../../models/cv_style.dart';
 import '../../providers/cv_provider.dart';
-import '../../services/api_service.dart';
-import '../../utils/constants.dart';
+import '../../services/pdf_service.dart';
+import '../../widgets/cv_preview.dart';
+import '../../widgets/ai_enhance_sheet.dart';
+import '../../widgets/job_match_sheet.dart';
 
 class CvDetailScreen extends StatefulWidget {
   final int cvId;
@@ -30,23 +29,45 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     });
   }
 
-  Future<void> _downloadPdf() async {
+  Future<void> _downloadPdf(Cv cv) async {
+    if (_isDownloadingPdf) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     setState(() => _isDownloadingPdf = true);
     try {
-      final bytes = await ApiService().downloadCvPdf(widget.cvId);
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/cv-${widget.cvId}.pdf');
-      await file.writeAsBytes(bytes);
-      await OpenFile.open(file.path);
+      await PdfService().downloadPdf(cv);
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text('PDF telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ));
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur PDF : $e'), backgroundColor: AppColors.error),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text('Erreur PDF : $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: colorScheme.error,
+        ));
       }
     } finally {
       if (mounted) setState(() => _isDownloadingPdf = false);
     }
+  }
+
+  void _openCustomizePanel(BuildContext context, Cv cv) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _CvStylePage(
+          cv: cv,
+          onStyleChanged: (newStyle) {
+            context.read<CvProvider>().updateCvStyle(cv.id!, newStyle);
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -64,59 +85,276 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(cv.titre),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              cv.titre,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             actions: [
-              _isDownloadingPdf
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      ),
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.picture_as_pdf),
-                      tooltip: 'Télécharger PDF',
-                      onPressed: _downloadPdf,
-                    ),
               IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+                icon: const Icon(Icons.auto_awesome_rounded),
+                tooltip: 'Ameliorer avec l\'IA',
+                onPressed: () async {
+                  final result = await showModalBottomSheet<Map<String, dynamic>>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => AiEnhanceSheet(cv: cv),
+                  );
+                  // print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
+                  if (result != null && mounted) {
+                    // print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
+                    final ok = await context.read<CvProvider>().applyAiEnhancements(cv.id!, result);
+                    // print('[AI-DETAIL] applyAiEnhancements returned: $ok');
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+                    ));
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.work_outline_rounded),
+                tooltip: 'Adapter a une offre',
+                onPressed: () async {
+                  final adapted = await showModalBottomSheet<Map<String, dynamic>>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => DraggableScrollableSheet(
+                      initialChildSize: 0.85,
+                      minChildSize: 0.5,
+                      maxChildSize: 0.95,
+                      builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
+                    ),
+                  );
+                  // Si l'utilisateur a clique "Creer une variante", dupliquer le CV avec les modifs IA
+                  if (adapted != null && mounted) {
+                    final cvProvider = context.read<CvProvider>();
+                    // Dupliquer d'abord
+                    final duplicated = await cvProvider.duplicateCv(cv.id!);
+                    if (duplicated && mounted) {
+                      // Appliquer les modifications IA sur la copie
+                      final newCv = cvProvider.cvs.firstWhere(
+                        (c) => c.titre.startsWith('Copie de'),
+                        orElse: () => cv,
+                      );
+                      if (newCv.id != null) {
+                        await cvProvider.applyAiEnhancements(newCv.id!, adapted);
+                      }
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Variante adaptee creee'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Color(0xFF10B981),
+                        ));
+                      }
+                    }
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.palette_outlined),
+                tooltip: 'Personnaliser',
+                onPressed: () => _openCustomizePanel(context, cv),
+              ),
+              if (_isDownloadingPdf)
+                const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  tooltip: 'Telecharger PDF',
+                  onPressed: () => _downloadPdf(cv),
+                ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Modifier',
+                onPressed: () =>
+                    context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (cv.personalInfo != null) _buildPersonalInfoSection(cv.personalInfo!),
-                if (cv.experiences.isNotEmpty) _buildExperiencesSection(cv.experiences),
-                if (cv.educations.isNotEmpty) _buildEducationsSection(cv.educations),
-                if (cv.skills.isNotEmpty) _buildSkillsSection(cv.skills),
-                if (cv.languages.isNotEmpty) _buildLanguagesSection(cv.languages),
-              ],
-            ),
-          ),
+          body: CvPreviewWidget(cv: cv),
         );
       },
     );
   }
+}
 
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 24),
-      child: Row(
+// ── Page plein ecran de personnalisation ─────────────────────────────────────
+
+class _CvStylePage extends StatefulWidget {
+  final Cv cv;
+  final ValueChanged<CvStyle> onStyleChanged;
+
+  const _CvStylePage({required this.cv, required this.onStyleChanged});
+
+  @override
+  State<_CvStylePage> createState() => _CvStylePageState();
+}
+
+class _CvStylePageState extends State<_CvStylePage> {
+  late CvStyle _style;
+  bool _showPreview = false;
+  bool _downloading = false;
+  double _optionsWidth = 300;
+
+  @override
+  void initState() {
+    super.initState();
+    _style = widget.cv.style;
+  }
+
+  void _apply(CvStyle newStyle) {
+    setState(() => _style = newStyle);
+    widget.onStyleChanged(newStyle);
+  }
+
+  Cv get _styledCv => widget.cv.copyWith(style: _style);
+
+  Future<void> _download() async {
+    setState(() => _downloading = true);
+    try {
+      await PdfService().downloadPdf(_styledCv);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('PDF telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Erreur : $e'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= 900;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Personnaliser le CV',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        actions: [
+          if (!isWide)
+            TextButton.icon(
+              onPressed: () => setState(() => _showPreview = !_showPreview),
+              icon: Icon(
+                _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
+                size: 18,
+              ),
+              label: Text(_showPreview ? 'Options' : 'Apercu'),
+            ),
+        ],
+      ),
+      body: Column(
         children: [
-          Icon(icon, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+          Expanded(
+            child: isWide
+                ? Row(
+                    children: [
+                      SizedBox(
+                        width: _optionsWidth,
+                        child: _buildOptionsPane(colorScheme),
+                      ),
+                      GestureDetector(
+                        onHorizontalDragUpdate: (details) {
+                          setState(() {
+                            _optionsWidth = (_optionsWidth + details.delta.dx)
+                                .clamp(200.0, screenWidth * 0.5);
+                          });
+                        },
+                        child: const _DraggableDivider(),
+                      ),
+                      Expanded(child: _buildPreviewPane()),
+                    ],
+                  )
+                : _showPreview
+                    ? _buildPreviewPane()
+                    : _buildOptionsPane(colorScheme),
+          ),
+          // Barre du bas
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              border: Border(
+                top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (!isWide) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => setState(() => _showPreview = !_showPreview),
+                      icon: Icon(
+                        _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
+                        size: 18,
+                      ),
+                      label: Text(_showPreview ? 'Options' : 'Apercu'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: _style.primaryColor),
+                        foregroundColor: _style.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  flex: 2,
+                  child: FilledButton.icon(
+                    onPressed: _downloading ? null : _download,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _style.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: _downloading
+                        ? const SizedBox(
+                            width: 18, height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.download_rounded, size: 20),
+                    label: const Text('Telecharger PDF'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -124,212 +362,243 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     );
   }
 
-  Widget _buildPersonalInfoSection(PersonalInfo info) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildPreviewPane() {
+    return Container(
+      color: const Color(0xFFF5F5F5),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _style.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _style.primaryColor.withValues(alpha: 0.3)),
+                  ),
                   child: Text(
-                    info.fullName.isNotEmpty ? info.fullName[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
+                    '${CvStyle.templates.firstWhere((t) => t.id == _style.templateId).label} / ${_style.fontFamily}',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _style.primaryColor),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.fullName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (info.titrePoste != null)
-                        Text(
-                          info.titrePoste!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                const Spacer(),
+                Text('Apercu en direct',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
               ],
             ),
-            const Divider(height: 32),
-            if (info.email != null) _buildInfoRow(Icons.email, info.email!),
-            if (info.telephone != null) _buildInfoRow(Icons.phone, info.telephone!),
-            if (info.adresse != null || info.ville != null)
-              _buildInfoRow(
-                Icons.location_on,
-                [info.adresse, info.ville, info.pays].where((e) => e != null).join(', '),
-              ),
-            if (info.linkedIn != null) _buildInfoRow(Icons.link, info.linkedIn!),
-            if (info.resumeProfessionnel != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                'A propos',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
+                clipBehavior: Clip.antiAlias,
+                child: CvPreviewWidget(cv: _styledCv),
               ),
-              const SizedBox(height: 8),
-              Text(info.resumeProfessionnel!),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.textSecondary),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text)),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildExperiencesSection(List<Experience> experiences) {
-    final dateFormat = DateFormat('MMM yyyy', 'fr_FR');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildOptionsPane(ColorScheme colorScheme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
       children: [
-        _buildSectionTitle('Experiences', Icons.work),
-        ...experiences.map((exp) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        // Templates en grille 2 colonnes
+        _optionLabel('Template', colorScheme),
+        const SizedBox(height: 8),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 2.2,
+          children: CvStyle.templates.map((t) {
+            final selected = _style.templateId == t.id;
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(templateId: t.id)),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: selected
+                        ? _style.primaryColor
+                        : colorScheme.outline.withValues(alpha: 0.3),
+                    width: selected ? 2 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  color: selected
+                      ? _style.primaryColor.withValues(alpha: 0.06)
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      exp.poste ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      exp.entreprise ?? '',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${exp.dateDebut != null ? dateFormat.format(exp.dateDebut!) : ''} - ${exp.actuel ? 'Present' : (exp.dateFin != null ? dateFormat.format(exp.dateFin!) : '')}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    if (exp.description != null) ...[
-                      const SizedBox(height: 8),
-                      Text(exp.description!),
-                    ],
+                    Icon(Icons.description_outlined,
+                        color: t.previewColor, size: 16),
+                    const SizedBox(width: 6),
+                    Text(t.label,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.normal)),
                   ],
                 ),
               ),
-            )),
-      ],
-    );
-  }
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
 
-  Widget _buildEducationsSection(List<Education> educations) {
-    final dateFormat = DateFormat('yyyy');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Formations', Icons.school),
-        ...educations.map((edu) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      edu.diplome ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      edu.etablissement ?? '',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    if (edu.domaine != null)
-                      Text(
-                        edu.domaine!,
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${edu.dateDebut != null ? dateFormat.format(edu.dateDebut!) : ''} - ${edu.dateFin != null ? dateFormat.format(edu.dateFin!) : ''}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildSkillsSection(List<Skill> skills) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Competences', Icons.star),
+        // Couleurs
+        _optionLabel('Couleur', colorScheme),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: skills.map((skill) => Chip(
-                label: Text(skill.nom ?? ''),
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-              )).toList(),
+          children: CvStyle.paletteColors.map((c) {
+            final selected = _style.primaryColor.toARGB32() == c.toARGB32();
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(primaryColor: c)),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: c,
+                  shape: BoxShape.circle,
+                  border: selected
+                      ? Border.all(color: colorScheme.onSurface, width: 2.5)
+                      : null,
+                ),
+                child: selected
+                    ? const Icon(Icons.check, color: Colors.white, size: 16)
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+
+        // Police
+        _optionLabel('Police', colorScheme),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: CvStyle.fontFamilies.map((f) {
+            final selected = _style.fontFamily == f;
+            return GestureDetector(
+              onTap: () => _apply(_style.copyWith(fontFamily: f)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: selected
+                        ? _style.primaryColor
+                        : colorScheme.outline.withValues(alpha: 0.3),
+                    width: selected ? 2 : 1,
+                  ),
+                  color: selected
+                      ? _style.primaryColor.withValues(alpha: 0.1)
+                      : null,
+                ),
+                child: Text(f,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: selected ? _style.primaryColor : null,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildLanguagesSection(List<Language> languages) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Langues', Icons.language),
-        ...languages.map((lang) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(lang.langue ?? ''),
-              trailing: Chip(
-                label: Text(lang.niveau ?? ''),
-                backgroundColor: AppColors.accent.withOpacity(0.2),
+  Widget _optionLabel(String text, ColorScheme colorScheme) {
+    return Text(text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
+          letterSpacing: 0.5,
+        ));
+  }
+}
+
+// ── Separateur draggable ────────────────────────────────────────
+
+class _DraggableDivider extends StatefulWidget {
+  const _DraggableDivider();
+
+  @override
+  State<_DraggableDivider> createState() => _DraggableDividerState();
+}
+
+class _DraggableDividerState extends State<_DraggableDivider> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.outline;
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeColumn,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 16,
+        color: _hovering
+            ? color.withValues(alpha: 0.15)
+            : color.withValues(alpha: 0.05),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 4, height: 4,
+                margin: const EdgeInsets.only(bottom: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            )),
-      ],
+              Container(
+                width: 4, height: 4,
+                margin: const EdgeInsets.only(bottom: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Container(
+                width: 4, height: 4,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

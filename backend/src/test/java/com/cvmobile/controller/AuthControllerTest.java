@@ -3,6 +3,7 @@ package com.cvmobile.controller;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.exception.DuplicateEmailException;
 import com.cvmobile.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,10 +74,10 @@ class AuthControllerTest {
         request.setEmail("existant@example.com");
         request.setPassword("password123");
 
-        when(authService.register(any())).thenThrow(new RuntimeException("Email deja utilise"));
+        when(authService.register(any())).thenThrow(new DuplicateEmailException("existant@example.com"));
 
         assertThatThrownBy(() -> authController.register(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(DuplicateEmailException.class)
                 .hasMessageContaining("deja utilise");
     }
 }
