@@ -3,6 +3,8 @@ package com.cvmobile.service;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.exception.DuplicateEmailException;
+import com.cvmobile.exception.InvalidTokenException;
 import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
@@ -31,7 +33,7 @@ public class AuthService implements IAuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userService.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Cet email est deja utilise");
+            throw new DuplicateEmailException(request.getEmail());
         }
 
         User user = userMapper.toUser(request);
@@ -63,7 +65,7 @@ public class AuthService implements IAuthService {
 
     public AuthResponse refreshToken(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new RuntimeException("Token de rafraichissement invalide");
+            throw new InvalidTokenException("Token de rafraichissement invalide");
         }
 
         String email = jwtTokenProvider.getEmailFromToken(refreshToken);

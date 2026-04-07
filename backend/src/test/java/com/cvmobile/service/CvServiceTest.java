@@ -2,6 +2,7 @@ package com.cvmobile.service;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.User;
@@ -78,7 +79,7 @@ class CvServiceTest {
         when(cvRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> cvService.getCvById(99L, 1L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("non trouve");
     }
 
@@ -116,7 +117,7 @@ class CvServiceTest {
         when(cvRepository.existsByIdAndUserId(99L, 1L)).thenReturn(false);
 
         assertThatThrownBy(() -> cvService.deleteCv(99L, 1L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("non trouve");
 
         verify(cvRepository, never()).deleteById(any());

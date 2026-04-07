@@ -68,6 +68,32 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), null);
     }
 
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateEmail(DuplicateEmailException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "DUPLICATE_EMAIL",
+                ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidTokenException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN",
+                ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<Map<String, Object>> handleFileStorage(FileStorageException ex) {
+        log.error("Erreur stockage fichier: {}", ex.getMessage(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_STORAGE_ERROR",
+                "Erreur lors du traitement du fichier", null);
+    }
+
+    @ExceptionHandler(PdfGenerationException.class)
+    public ResponseEntity<Map<String, Object>> handlePdfGeneration(PdfGenerationException ex) {
+        log.error("Erreur generation PDF: {}", ex.getMessage(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "PDF_GENERATION_ERROR",
+                "Erreur lors de la generation du document", null);
+    }
+
     @ExceptionHandler(RateLimitException.class)
     public ResponseEntity<Map<String, Object>> handleRateLimit(RateLimitException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
