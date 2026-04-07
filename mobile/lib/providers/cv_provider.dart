@@ -1,22 +1,47 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
+import '../core/usecase/usecase.dart';
 import '../models/cv.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
 import '../services/connectivity_service.dart';
+import '../usecases/cv/get_all_cvs_usecase.dart';
+import '../usecases/cv/get_cv_by_id_usecase.dart';
+import '../usecases/cv/create_cv_usecase.dart';
+import '../usecases/cv/update_cv_usecase.dart';
+import '../usecases/cv/delete_cv_usecase.dart';
+import '../usecases/cv/duplicate_cv_usecase.dart';
 
 class CvProvider with ChangeNotifier {
+  final GetAllCvsUseCase _getAllCvs;
+  final GetCvByIdUseCase _getCvById;
+  final CreateCvUseCase _createCv;
+  final UpdateCvUseCase _updateCv;
+  final DeleteCvUseCase _deleteCv;
+  final DuplicateCvUseCase _duplicateCv;
   final CvRepository _repository;
   final ConnectivityService _connectivity;
 
   late final StreamSubscription<bool> _connectivitySub;
 
   CvProvider({
-    CvRepository? repository,
-    ConnectivityService? connectivity,
-  })  : _repository = repository ?? HttpCvRepository(),
-        _connectivity = connectivity ?? ConnectivityService() {
+    required GetAllCvsUseCase getAllCvs,
+    required GetCvByIdUseCase getCvById,
+    required CreateCvUseCase createCv,
+    required UpdateCvUseCase updateCv,
+    required DeleteCvUseCase deleteCv,
+    required DuplicateCvUseCase duplicateCv,
+    required CvRepository repository,
+    required ConnectivityService connectivity,
+  })  : _getAllCvs = getAllCvs,
+        _getCvById = getCvById,
+        _createCv = createCv,
+        _updateCv = updateCv,
+        _deleteCv = deleteCv,
+        _duplicateCv = duplicateCv,
+        _repository = repository,
+        _connectivity = connectivity {
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
       _isOffline = !online;
       notifyListeners();
@@ -41,7 +66,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.getAllCvs();
+    final result = await _getAllCvs(const NoParams());
     _isLoading = false;
 
     switch (result) {
@@ -58,7 +83,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.getCvById(id);
+    final result = await _getCvById(id);
     _isLoading = false;
 
     switch (result) {
@@ -75,7 +100,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.createCv(cv);
+    final result = await _createCv(cv);
     _isLoading = false;
 
     switch (result) {
@@ -96,7 +121,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.updateCv(id, cv);
+    final result = await _updateCv(UpdateCvParams(id: id, cv: cv));
     _isLoading = false;
 
     switch (result) {
@@ -118,7 +143,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.deleteCv(id);
+    final result = await _deleteCv(id);
     _isLoading = false;
 
     switch (result) {
@@ -139,7 +164,7 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _repository.duplicateCv(id);
+    final result = await _duplicateCv(id);
     _isLoading = false;
 
     switch (result) {
@@ -158,7 +183,6 @@ class CvProvider with ChangeNotifier {
     final cv = _currentCv;
     if (cv == null || cv.id != cvId) return false;
 
-    // 1. Titre du poste + Resume professionnel
     PersonalInfo? updatedInfo = cv.personalInfo;
     if (updatedInfo != null) {
       final newTitre = result['titrePoste'] as String?;
@@ -183,52 +207,38 @@ class CvProvider with ChangeNotifier {
       }
     }
 
-    // 2. Experiences
     List<Experience> updatedExperiences = List<Experience>.from(cv.experiences);
     if (result['experiences'] != null) {
       final aiExps = result['experiences'] as List<dynamic>;
       for (int i = 0; i < aiExps.length && i < updatedExperiences.length; i++) {
-        final aiExp = aiExps[i];
-        final newDesc = aiExp['description'] as String?;
+        final newDesc = aiExps[i]['description'] as String?;
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedExperiences[i];
           updatedExperiences[i] = Experience(
-            id: old.id,
-            poste: old.poste,
-            entreprise: old.entreprise,
-            lieu: old.lieu,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
-            actuel: old.actuel,
-            description: newDesc,
+            id: old.id, poste: old.poste, entreprise: old.entreprise,
+            lieu: old.lieu, dateDebut: old.dateDebut, dateFin: old.dateFin,
+            actuel: old.actuel, description: newDesc,
           );
         }
       }
     }
 
-    // 3. Educations
     List<Education> updatedEducations = List<Education>.from(cv.educations);
     if (result['educations'] != null) {
       final aiEdus = result['educations'] as List<dynamic>;
       for (int i = 0; i < aiEdus.length && i < updatedEducations.length; i++) {
-        final aiEdu = aiEdus[i];
-        final newDesc = aiEdu['description'] as String?;
+        final newDesc = aiEdus[i]['description'] as String?;
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedEducations[i];
           updatedEducations[i] = Education(
-            id: old.id,
-            etablissement: old.etablissement,
-            diplome: old.diplome,
-            domaine: old.domaine,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
+            id: old.id, etablissement: old.etablissement, diplome: old.diplome,
+            domaine: old.domaine, dateDebut: old.dateDebut, dateFin: old.dateFin,
             description: newDesc,
           );
         }
       }
     }
 
-    // 4. Competences
     List<Skill> updatedSkills = List<Skill>.from(cv.skills);
     if (result['skills'] != null) {
       final aiSkills = result['skills'] as List<dynamic>;
@@ -240,23 +250,17 @@ class CvProvider with ChangeNotifier {
       }
     }
 
-    // 5. Projets
     List<Project> updatedProjects = List<Project>.from(cv.projects);
     if (result['projects'] != null) {
       final aiProjs = result['projects'] as List<dynamic>;
       for (int i = 0; i < aiProjs.length && i < updatedProjects.length; i++) {
-        final aiProj = aiProjs[i];
-        final newDesc = aiProj['description'] as String?;
+        final newDesc = aiProjs[i]['description'] as String?;
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedProjects[i];
           updatedProjects[i] = Project(
-            id: old.id,
-            nom: old.nom,
-            description: newDesc,
-            technologies: old.technologies,
-            lien: old.lien,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
+            id: old.id, nom: old.nom, description: newDesc,
+            technologies: old.technologies, lien: old.lien,
+            dateDebut: old.dateDebut, dateFin: old.dateFin,
           );
         }
       }
@@ -270,13 +274,12 @@ class CvProvider with ChangeNotifier {
       projects: updatedProjects,
     );
 
-    // Appliquer immediatement en local
     _currentCv = updatedCv;
     final index = _cvs.indexWhere((c) => c.id == cvId);
     if (index != -1) _cvs[index] = updatedCv;
     notifyListeners();
 
-    // Sauvegarder au backend (best-effort)
+    // Best-effort save
     await _repository.updateCv(cvId, updatedCv);
 
     return true;
