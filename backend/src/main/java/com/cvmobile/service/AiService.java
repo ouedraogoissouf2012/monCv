@@ -398,6 +398,13 @@ public class AiService {
             + "Le sujet implicite est 'je' (singulier). "
             + "Ne JAMAIS utiliser de markdown (pas de ** ni de * ni de #). Texte brut uniquement. ";
 
+    private static final String TITLE_RULE =
+            "REGLE TITRE: Le titre du poste doit être COURT et STANDARD. "
+            + "Exemples corrects: 'Développeur Full Stack Senior', 'Ingénieur Backend Java', "
+            + "'Lead Developer Angular', 'Architecte Logiciel'. "
+            + "INCORRECT: 'Ingénieur Développement Full Stack' (mot 'Développement' redondant). "
+            + "Maximum 5 mots. Pas de phrase, juste un titre de poste. ";
+
     private static final String ANTI_CLICHES_RULE =
             "REGLE ANTI-CLICHES: Ne JAMAIS utiliser ces mots ou expressions : "
             + "motivé, déterminé, dynamique, passionné, polyvalent, rigoureux, autonome, "
@@ -440,6 +447,7 @@ public class AiService {
 
         // Regles communes a tous les niveaux
         sb.append(GRAMMAR_RULE);
+        sb.append(TITLE_RULE);
 
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
