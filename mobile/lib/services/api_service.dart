@@ -375,4 +375,26 @@ class ApiService {
       throw Exception('Erreur lors du téléchargement du PDF');
     }
   }
+
+  Future<Cv> importCv(String filePath, String filename) async {
+    final token = await accessToken;
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/import'),
+    );
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(await http.MultipartFile.fromPath('file', filePath, filename: filename));
+
+    final streamed = await request.send();
+    final body = await streamed.stream.bytesToString();
+
+    if (streamed.statusCode == 201) {
+      return Cv.fromJson(jsonDecode(body));
+    } else {
+      final error = jsonDecode(body);
+      throw Exception(error['message'] ?? 'Erreur lors de l\'import du CV');
+    }
+  }
 }
