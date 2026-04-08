@@ -8,6 +8,7 @@ import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.PdfGenerationService;
+import com.cvmobile.service.import_.ICvImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class CvController {
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;
     private final CvRepository cvRepository;
+    private final ICvImportService cvImportService;
 
     @GetMapping
     @Operation(summary = "Obtenir tous les CV de l'utilisateur connecte")
@@ -148,5 +151,15 @@ public class CvController {
     public ResponseEntity<CvResponse> getPublicCv(@PathVariable String token) {
         CvResponse cv = cvService.getCvByPublicToken(token);
         return ResponseEntity.ok(cv);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Importer un CV depuis un fichier PDF ou DOCX")
+    public ResponseEntity<CvResponse> importCv(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal User user) {
+        CvRequest parsed = cvImportService.importCv(file);
+        CvResponse created = cvService.createCv(parsed, user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }
