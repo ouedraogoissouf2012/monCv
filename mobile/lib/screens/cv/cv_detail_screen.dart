@@ -20,6 +20,7 @@ class CvDetailScreen extends StatefulWidget {
 
 class _CvDetailScreenState extends State<CvDetailScreen> {
   bool _isDownloadingPdf = false;
+  bool _isDownloadingDocx = false;
 
   @override
   void initState() {
@@ -53,6 +54,33 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
       }
     } finally {
       if (mounted) setState(() => _isDownloadingPdf = false);
+    }
+  }
+
+  Future<void> _downloadDocx(Cv cv) async {
+    if (_isDownloadingDocx) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    setState(() => _isDownloadingDocx = true);
+    try {
+      await PdfService().downloadDocx(cv.id!);
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(
+          content: Text('DOCX telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(
+          content: Text('Erreur DOCX : $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: colorScheme.error,
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloadingDocx = false);
     }
   }
 
@@ -179,6 +207,21 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                   icon: const Icon(Icons.picture_as_pdf_outlined),
                   tooltip: 'Telecharger PDF',
                   onPressed: () => _downloadPdf(cv),
+                ),
+              if (_isDownloadingDocx)
+                const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.description_outlined),
+                  tooltip: 'Telecharger DOCX',
+                  onPressed: () => _downloadDocx(cv),
                 ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined),

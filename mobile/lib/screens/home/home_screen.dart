@@ -80,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () => context.push('/cvs/${cv.id}'),
                 onEdit: () => context.push('/cvs/${cv.id}/edit', extra: cv),
                 onDownloadPdf: () => _downloadPdf(context, cv),
+                onDownloadDocx: () => _downloadDocx(context, cv.id!),
                 onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
                 onDuplicate: () => _duplicateCv(context, cv.id!),
                 onShare: () => _shareLink(context, cv.id!),
@@ -237,6 +238,34 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text('Erreur PDF: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadDocx(BuildContext context, int cvId) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Telechargement DOCX en cours...'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    try {
+      await PdfService().downloadDocx(cvId);
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('DOCX telecharge'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Color(0xFF10B981),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erreur DOCX: $e'),
           behavior: SnackBarBehavior.floating,
         ),
       );

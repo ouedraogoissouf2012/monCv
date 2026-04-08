@@ -7,6 +7,7 @@ class CvCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDownloadPdf;
+  final VoidCallback onDownloadDocx;
   final VoidCallback onDelete;
   final VoidCallback onDuplicate;
   final VoidCallback onShare;
@@ -17,6 +18,7 @@ class CvCard extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDownloadPdf,
+    required this.onDownloadDocx,
     required this.onDelete,
     required this.onDuplicate,
     required this.onShare,
@@ -235,6 +237,15 @@ class CvCard extends StatelessWidget {
                           vertical: 8, horizontal: 12),
                     ),
                     child: const Text('PDF'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: onDownloadDocx,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 12),
+                    ),
+                    child: const Text('DOCX'),
                   ),
                 ],
               ),
