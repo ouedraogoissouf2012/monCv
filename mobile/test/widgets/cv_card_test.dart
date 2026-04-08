@@ -41,6 +41,7 @@ Widget _buildCard(
         onTap: onTap ?? () {},
         onEdit: () {},
         onDownloadPdf: () {},
+        onDownloadDocx: () {},
         onDelete: onDelete ?? () {},
         onDuplicate: onDuplicate ?? () {},
         onShare: onShare ?? () {},
