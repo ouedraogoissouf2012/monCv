@@ -1,7 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cv_provider.dart';
+import '../../services/api_service.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
@@ -31,8 +33,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return AppScaffold(
       currentIndex: 0,
       title: 'Mes CVs',
-      actions: isDesktop
-          ? [
+      actions: [
+            IconButton(
+              icon: const Icon(Icons.upload_file),
+              tooltip: 'Importer un CV (PDF/DOCX)',
+              onPressed: () => _importCv(context),
+            ),
+            if (isDesktop)
               Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: FilledButton.icon(
@@ -41,8 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: const Text('Nouveau CV'),
                 ),
               ),
-            ]
-          : null,
+          ],
       floatingActionButton: isDesktop
           ? null
           : FloatingActionButton.extended(
@@ -238,6 +244,49 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text('Erreur PDF: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _importCv(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final cvProvider = context.read<CvProvider>();
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'docx'],
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    if (file.path == null) return;
+
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Import du CV en cours...'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 10),
+      ),
+    );
+
+    try {
+      final cv = await ApiService().importCv(file.path!, file.name);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('CV "${cv.titre}" importe avec succes'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+      await cvProvider.loadCvs();
+    } catch (e) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erreur import: ${e.toString().replaceAll('Exception: ', '')}'),
           behavior: SnackBarBehavior.floating,
         ),
       );
