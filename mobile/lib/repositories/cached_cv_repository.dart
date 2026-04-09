@@ -93,4 +93,14 @@ class CachedCvRepository implements CvRepository {
     }
     return result;
   }
+
+  @override
+  Future<Result<Cv>> createVariant(int cvId, String jobDescription, {String? label}) async {
+    final result = await _remote.createVariant(cvId, jobDescription, label: label);
+    if (result case Success(:final data)) {
+      final cached = _readCache();
+      if (cached != null) await _writeCache([...cached, data]);
+    }
+    return result;
+  }
 }
