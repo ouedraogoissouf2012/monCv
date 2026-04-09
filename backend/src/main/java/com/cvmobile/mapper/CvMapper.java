@@ -23,6 +23,8 @@ public interface CvMapper {
 
     // ── Entity -> Response DTO ───────────────────────────────────
 
+    @Mapping(target = "parentCvId", source = "parent.id")
+    @Mapping(target = "variantCount", ignore = true)
     CvResponse toResponse(Cv cv);
 
     CvResponse.PersonalInfoDto toPersonalInfoDto(PersonalInfo info);

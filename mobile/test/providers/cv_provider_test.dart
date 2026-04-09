@@ -14,6 +14,7 @@ import 'package:cv_mobile/usecases/cv/create_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/update_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/delete_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/duplicate_cv_usecase.dart';
+import 'package:cv_mobile/usecases/cv/create_variant_usecase.dart';
 
 class MockGetAllCvs extends Mock implements GetAllCvsUseCase {}
 class MockGetCvById extends Mock implements GetCvByIdUseCase {}
@@ -21,6 +22,7 @@ class MockCreateCv extends Mock implements CreateCvUseCase {}
 class MockUpdateCv extends Mock implements UpdateCvUseCase {}
 class MockDeleteCv extends Mock implements DeleteCvUseCase {}
 class MockDuplicateCv extends Mock implements DuplicateCvUseCase {}
+class MockCreateVariant extends Mock implements CreateVariantUseCase {}
 class MockCvRepository extends Mock implements CvRepository {}
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
@@ -40,6 +42,7 @@ void main() {
   late MockUpdateCv mockUpdate;
   late MockDeleteCv mockDelete;
   late MockDuplicateCv mockDuplicate;
+  late MockCreateVariant mockCreateVariant;
   late MockCvRepository mockRepo;
   late MockConnectivityService mockConnectivity;
   late StreamController<bool> connectivityCtrl;
@@ -51,6 +54,7 @@ void main() {
     mockUpdate = MockUpdateCv();
     mockDelete = MockDeleteCv();
     mockDuplicate = MockDuplicateCv();
+    mockCreateVariant = MockCreateVariant();
     mockRepo = MockCvRepository();
     mockConnectivity = MockConnectivityService();
     connectivityCtrl = StreamController<bool>.broadcast();
@@ -58,6 +62,7 @@ void main() {
     registerFallbackValue(_fakeCv());
     registerFallbackValue(const NoParams());
     registerFallbackValue(UpdateCvParams(id: 0, cv: _fakeCv()));
+    registerFallbackValue(const CreateVariantParams(cvId: 0, jobDescription: ''));
 
     when(() => mockConnectivity.onConnectivityChanged)
         .thenAnswer((_) => connectivityCtrl.stream);
@@ -72,6 +77,7 @@ void main() {
         updateCv: mockUpdate,
         deleteCv: mockDelete,
         duplicateCv: mockDuplicate,
+        createVariantUseCase: mockCreateVariant,
         repository: mockRepo,
         connectivity: mockConnectivity,
       );
@@ -203,6 +209,44 @@ void main() {
       connectivityCtrl.add(true);
       await Future.microtask(() {});
       expect(provider.isOffline, false);
+    });
+
+    // ── Tests variantes ───────────────────────────────────────
+
+    test('createVariant succes : ajoute la variante a la liste', () async {
+      final variant = _fakeCv(id: 20, titre: 'Mon CV — Dev Backend');
+      when(() => mockCreateVariant(any()))
+          .thenAnswer((_) async => Result.success(variant));
+
+      final provider = buildProvider();
+      final result = await provider.createVariant(10, 'Offre dev backend');
+
+      expect(result, isNotNull);
+      expect(result!.id, 20);
+      expect(provider.cvs.length, 1);
+      expect(provider.cvs.first.titre, 'Mon CV — Dev Backend');
+    });
+
+    test('createVariant echec : retourne null, error defini', () async {
+      when(() => mockCreateVariant(any())).thenAnswer((_) async =>
+          const Result.failure(ServerException(message: 'IA indisponible')));
+
+      final provider = buildProvider();
+      final result = await provider.createVariant(10, 'Offre');
+
+      expect(result, isNull);
+      expect(provider.error, 'IA indisponible');
+    });
+
+    test('Cv.isVariante retourne true quand varianteLabel defini', () {
+      final variant = Cv(
+        id: 20, titre: 'Variante',
+        varianteLabel: 'Dev Backend', parentCvId: 10,
+      );
+      final original = _fakeCv(id: 10);
+
+      expect(variant.isVariante, true);
+      expect(original.isVariante, false);
     });
   });
 }

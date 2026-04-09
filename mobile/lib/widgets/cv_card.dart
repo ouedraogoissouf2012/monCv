@@ -61,6 +61,33 @@ class CvCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge variante
+              if (cv.isVariante) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.25)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.tune_rounded, size: 12, color: Color(0xFF2563EB)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Variante — ${cv.varianteLabel}',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
               // Header : titre + menu actions
               Row(
                 children: [
@@ -157,11 +184,25 @@ class CvCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               // Date
-              Text(
-                _formatDate(cv.updatedAt ?? cv.createdAt),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+              Row(
+                children: [
+                  Text(
+                    _formatDate(cv.updatedAt ?? cv.createdAt),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                  ),
+                  if ((cv.variantCount ?? 0) > 0) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      '${cv.variantCount} variante${cv.variantCount! > 1 ? 's' : ''}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF2563EB),
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
+                  ],
+                ],
               ),
               const SizedBox(height: 10),
               // Barre de progression

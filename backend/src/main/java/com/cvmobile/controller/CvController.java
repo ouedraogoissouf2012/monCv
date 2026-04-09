@@ -1,5 +1,6 @@
 package com.cvmobile.controller;
 
+import com.cvmobile.dto.CreateVariantRequest;
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.model.PdfTemplate;
@@ -152,6 +153,30 @@ public class CvController {
         CvResponse cv = cvService.getCvByPublicToken(token);
         return ResponseEntity.ok(cv);
     }
+
+    // ── Variantes ────────────────────────────────────────────────
+
+    @PostMapping("/{id}/variant")
+    @Operation(summary = "Creer une variante du CV adaptee a une offre d'emploi")
+    public ResponseEntity<CvResponse> createVariant(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateVariantRequest request,
+            @AuthenticationPrincipal User user) {
+        CvResponse variant = cvService.createVariant(
+                id, request.getJobDescription(), request.getLabel(), user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(variant);
+    }
+
+    @GetMapping("/{id}/variants")
+    @Operation(summary = "Lister les variantes d'un CV")
+    public ResponseEntity<List<CvResponse>> getVariants(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        List<CvResponse> variants = cvService.getVariantsByParentId(id, user.getId());
+        return ResponseEntity.ok(variants);
+    }
+
+    // ── Import ──────────────────────────────────────────────────
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Importer un CV depuis un fichier PDF ou DOCX")

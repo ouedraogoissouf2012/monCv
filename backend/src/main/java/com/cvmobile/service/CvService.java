@@ -2,10 +2,12 @@ package com.cvmobile.service;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.cv.ICvService;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,14 +28,36 @@ public class CvService implements ICvService {
     private final CvRepository cvRepository;
     private final IUserService userService;
     private final CvMapper cvMapper;
+    private final IEnhancementService enhancementService;
 
     // ── Lecture ───────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<CvResponse> getAllCvsByUserId(Long userId) {
-        return cvRepository.findByUserIdWithDetails(userId).stream()
+        List<Cv> cvs = cvRepository.findByUserIdWithDetails(userId);
+        List<CvResponse> responses = cvs.stream()
                 .map(cvMapper::toResponse)
                 .collect(Collectors.toList());
+
+        // Enrichir avec le compteur de variantes pour chaque CV parent
+        List<Long> parentIds = cvs.stream()
+                .filter(cv -> !cv.isVariante())
+                .map(Cv::getId)
+                .collect(Collectors.toList());
+
+        if (!parentIds.isEmpty()) {
+            Map<Long, Long> countMap = cvRepository.countVariantsByParentIds(parentIds).stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],
+                            row -> (Long) row[1]
+                    ));
+            responses.forEach(r -> {
+                Long count = countMap.get(r.getId());
+                if (count != null) r.setVariantCount(count.intValue());
+            });
+        }
+
+        return responses;
     }
 
     @Transactional(readOnly = true)
@@ -125,6 +150,132 @@ public class CvService implements ICvService {
         Cv saved = cvRepository.save(savedCopy);
         log.info("CV duplique: original={}, copie={}, userId={}", cvId, saved.getId(), userId);
         return cvMapper.toResponse(saved);
+    }
+
+    // ── Variantes ────────────────────────────────────────────────
+
+    @Transactional
+    public CvResponse createVariant(Long parentCvId, String jobDescription, String label, Long userId) {
+        Cv original = findCvOrThrow(parentCvId, userId);
+        User user = userService.findById(userId);
+
+        // 1. L'IA adapte le contenu du CV a l'offre
+        EnhanceCvResponse adapted = enhancementService.adaptCvToJob(parentCvId, jobDescription);
+
+        // 2. Determiner le label de la variante
+        String resolvedLabel = resolveVariantLabel(label, adapted, jobDescription);
+
+        // 3. Creer la copie avec lien parent
+        Cv variant = Cv.builder()
+                .titre(original.getTitre() + " — " + resolvedLabel)
+                .user(user)
+                .parent(original)
+                .varianteLabel(resolvedLabel)
+                .build();
+
+        // 4. Copier le personalInfo avec les adaptations IA
+        if (original.getPersonalInfo() != null) {
+            PersonalInfo info = cvMapper.clonePersonalInfo(original.getPersonalInfo());
+            if (adapted.getTitrePoste() != null && !adapted.getTitrePoste().isBlank()) {
+                info.setTitrePoste(adapted.getTitrePoste());
+            }
+            if (adapted.getResumeProfessionnel() != null && !adapted.getResumeProfessionnel().isBlank()) {
+                info.setResumeProfessionnel(adapted.getResumeProfessionnel());
+            }
+            variant.setPersonalInfo(info);
+        }
+
+        Cv savedVariant = cvRepository.save(variant);
+
+        // 5. Copier les experiences avec descriptions adaptees
+        applyAdaptedExperiences(original, adapted, savedVariant);
+
+        // 6. Copier les educations avec descriptions adaptees
+        applyAdaptedEducations(original, adapted, savedVariant);
+
+        // 7. Competences : remplacer si l'IA en propose, sinon copier
+        if (adapted.getSkills() != null && !adapted.getSkills().isEmpty()) {
+            adapted.getSkills().stream().limit(10).forEach(s ->
+                savedVariant.addSkill(Skill.builder()
+                        .nom(s.getNom())
+                        .niveau(s.getNiveau() != null ? s.getNiveau() : 3)
+                        .build()));
+        } else {
+            original.getSkills().forEach(s -> savedVariant.addSkill(cvMapper.cloneSkill(s)));
+        }
+
+        // 8. Copier langues et certifications telles quelles
+        original.getLanguages().forEach(l -> savedVariant.addLanguage(cvMapper.cloneLanguage(l)));
+        original.getCertifications().forEach(c -> savedVariant.addCertification(cvMapper.cloneCertification(c)));
+
+        // 9. Copier les projets avec descriptions adaptees
+        applyAdaptedProjects(original, adapted, savedVariant);
+
+        Cv saved = cvRepository.save(savedVariant);
+        log.info("Variante CV creee: parent={}, variante={}, label='{}', userId={}",
+                parentCvId, saved.getId(), resolvedLabel, userId);
+        return cvMapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CvResponse> getVariantsByParentId(Long parentCvId, Long userId) {
+        return cvRepository.findByParentIdAndUserId(parentCvId, userId).stream()
+                .map(cvMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    private String resolveVariantLabel(String userLabel, EnhanceCvResponse adapted, String jobDescription) {
+        // Priorite : label fourni par l'utilisateur > titre extrait par l'IA > premiere ligne de l'offre
+        if (userLabel != null && !userLabel.isBlank()) {
+            return userLabel.length() > 200 ? userLabel.substring(0, 200) : userLabel;
+        }
+        if (adapted.getTitreOffre() != null && !adapted.getTitreOffre().isBlank()) {
+            String t = adapted.getTitreOffre();
+            return t.length() > 200 ? t.substring(0, 200) : t;
+        }
+        // Fallback : premiere ligne non vide de l'offre
+        String firstLine = jobDescription.lines()
+                .map(String::strip)
+                .filter(l -> !l.isBlank())
+                .findFirst()
+                .orElse("Variante");
+        return firstLine.length() > 60 ? firstLine.substring(0, 60) + "..." : firstLine;
+    }
+
+    private void applyAdaptedExperiences(Cv original, EnhanceCvResponse adapted, Cv variant) {
+        var adaptedExps = adapted.getExperiences() != null ? adapted.getExperiences() : List.<EnhanceCvResponse.ExperienceEnhancement>of();
+        for (int i = 0; i < original.getExperiences().size(); i++) {
+            Experience clone = cvMapper.cloneExperience(original.getExperiences().get(i));
+            if (i < adaptedExps.size()) {
+                String desc = adaptedExps.get(i).getDescription();
+                if (desc != null && !desc.isBlank()) clone.setDescription(desc);
+            }
+            variant.addExperience(clone);
+        }
+    }
+
+    private void applyAdaptedEducations(Cv original, EnhanceCvResponse adapted, Cv variant) {
+        var adaptedEdus = adapted.getEducations() != null ? adapted.getEducations() : List.<EnhanceCvResponse.EducationEnhancement>of();
+        for (int i = 0; i < original.getEducations().size(); i++) {
+            Education clone = cvMapper.cloneEducation(original.getEducations().get(i));
+            if (i < adaptedEdus.size()) {
+                String desc = adaptedEdus.get(i).getDescription();
+                if (desc != null && !desc.isBlank()) clone.setDescription(desc);
+            }
+            variant.addEducation(clone);
+        }
+    }
+
+    private void applyAdaptedProjects(Cv original, EnhanceCvResponse adapted, Cv variant) {
+        var adaptedProjs = adapted.getProjects() != null ? adapted.getProjects() : List.<EnhanceCvResponse.ProjectEnhancement>of();
+        for (int i = 0; i < original.getProjects().size(); i++) {
+            Project clone = cvMapper.cloneProject(original.getProjects().get(i));
+            if (i < adaptedProjs.size()) {
+                String desc = adaptedProjs.get(i).getDescription();
+                if (desc != null && !desc.isBlank()) clone.setDescription(desc);
+            }
+            variant.addProject(clone);
+        }
     }
 
     // ── Partage ──────────────────────────────────────────────────

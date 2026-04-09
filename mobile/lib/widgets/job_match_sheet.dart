@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/cv_provider.dart';
 import '../services/api_service.dart';
 
 /// Bottom sheet pour analyser la correspondance CV / offre d'emploi.
+/// Permet aussi de creer une variante du CV adaptee a l'offre.
 class JobMatchSheet extends StatefulWidget {
   final int cvId;
   const JobMatchSheet({super.key, required this.cvId});
@@ -13,8 +16,41 @@ class JobMatchSheet extends StatefulWidget {
 class _JobMatchSheetState extends State<JobMatchSheet> {
   final _controller = TextEditingController();
   bool _loading = false;
+  bool _creatingVariant = false;
   Map<String, dynamic>? _result;
   String? _error;
+
+  Future<void> _createVariant() async {
+    setState(() => _creatingVariant = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      final variant = await context.read<CvProvider>().createVariant(
+          widget.cvId, _controller.text.trim());
+      if (!mounted) return;
+      if (variant != null) {
+        navigator.pop();
+        messenger.showSnackBar(SnackBar(
+          content: Text('Variante "${variant.varianteLabel}" creee'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF10B981),
+        ));
+      } else {
+        setState(() => _creatingVariant = false);
+        messenger.showSnackBar(const SnackBar(
+          content: Text('Erreur lors de la creation de la variante'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _creatingVariant = false);
+      messenger.showSnackBar(SnackBar(
+        content: Text('Erreur: ${e.toString().replaceAll('Exception: ', '')}'),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
 
   Future<void> _analyze() async {
     if (_controller.text.trim().length < 20) {
@@ -148,6 +184,19 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 )),
                 const SizedBox(height: 12),
               ],
+
+              // Bouton creer variante
+              SizedBox(width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _creatingVariant ? null : _createVariant,
+                  icon: _creatingVariant
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.auto_fix_high_rounded),
+                  label: Text(_creatingVariant ? 'Creation en cours...' : 'Creer une variante adaptee'),
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2563EB)),
+                )),
+              const SizedBox(height: 8),
 
               // Bouton re-analyser
               SizedBox(width: double.infinity,
