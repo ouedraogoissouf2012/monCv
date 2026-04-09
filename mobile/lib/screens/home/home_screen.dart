@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/responsive.dart';
@@ -30,13 +31,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
 
+    final l = AppLocalizations.of(context)!;
+
     return AppScaffold(
       currentIndex: 0,
-      title: 'Mes CVs',
+      title: l.myCvs,
       actions: [
             IconButton(
               icon: const Icon(Icons.upload_file),
-              tooltip: 'Importer un CV (PDF/DOCX)',
+              tooltip: l.importCv,
               onPressed: () => _importCv(context),
             ),
             if (isDesktop)
@@ -45,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: FilledButton.icon(
                   onPressed: () => context.push('/cvs/create'),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Nouveau CV'),
+                  label: Text(l.newCv),
                 ),
               ),
           ],
@@ -54,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : FloatingActionButton.extended(
               onPressed: () => context.push('/cvs/create'),
               icon: const Icon(Icons.add),
-              label: const Text('Nouveau CV'),
+              label: Text(l.newCv),
             ),
       body: Consumer<CvProvider>(
         builder: (context, cvProvider, _) {
@@ -102,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _confirmDelete(
       BuildContext context, int cvId, String titre) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
     final cvProvider = context.read<CvProvider>();
@@ -109,17 +113,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer le CV'),
-        content: Text('Voulez-vous vraiment supprimer "$titre" ?'),
+        title: Text(l.deleteCvTitle),
+        content: Text(l.deleteCvConfirm(titre)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(l.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: errorColor),
-            child: const Text('Supprimer'),
+            child: Text(l.delete),
           ),
         ],
       ),
@@ -129,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final success = await cvProvider.deleteCv(cvId);
     messenger.showSnackBar(
       SnackBar(
-        content: Text(success ? 'CV supprimé' : cvProvider.error ?? 'Erreur'),
+        content: Text(success ? l.cvDeleted : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
         backgroundColor:
             success ? const Color(0xFF10B981) : errorColor,
@@ -138,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _duplicateCv(BuildContext context, int cvId) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
     final cvProvider = context.read<CvProvider>();
@@ -146,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
     messenger.showSnackBar(
       SnackBar(
         content:
-            Text(success ? 'CV dupliqué ✓' : cvProvider.error ?? 'Erreur'),
+            Text(success ? l.cvDuplicated : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
         backgroundColor:
             success ? const Color(0xFF10B981) : errorColor,
@@ -155,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _shareLink(BuildContext context, int cvId) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -164,15 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Lien de partage'),
+          title: Text(l.shareLinkTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Partagez ce lien pour que n\'importe qui puisse voir votre CV :',
-                style: TextStyle(fontSize: 13),
-              ),
+              Text(l.shareLinkDescription, style: const TextStyle(fontSize: 13)),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -180,77 +183,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: SelectableText(
-                  url,
-                  style: const TextStyle(
-                      fontSize: 12, fontFamily: 'monospace'),
-                ),
+                child: SelectableText(url,
+                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Fermer'),
+              child: Text(l.close),
             ),
             FilledButton.icon(
               onPressed: () {
                 ShareService().copyToClipboard(url);
                 Navigator.pop(ctx);
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Lien copié dans le presse-papier ✓'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Color(0xFF10B981),
-                  ),
-                );
+                messenger.showSnackBar(SnackBar(
+                  content: Text(l.linkCopied),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: const Color(0xFF10B981),
+                ));
               },
               icon: const Icon(Icons.copy_rounded, size: 16),
-              label: const Text('Copier'),
+              label: Text(l.copy),
             ),
           ],
         ),
       );
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur : $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text('${l.errorGeneric}: $e'),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _downloadPdf(BuildContext context, cv) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Génération du PDF en cours…'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.pdfDownloading),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+    ));
     try {
       await PdfService().downloadPdf(cv);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('PDF téléchargé ✓'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.pdfDownloaded),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur PDF: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.pdfError(e.toString())),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _importCv(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final cvProvider = context.read<CvProvider>();
 
@@ -263,61 +255,50 @@ class _HomeScreenState extends State<HomeScreen> {
     final file = result.files.first;
     if (file.path == null) return;
 
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Import du CV en cours...'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 10),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.importInProgress),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 10),
+    ));
 
     try {
       final cv = await ApiService().importCv(file.path!, file.name);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('CV "${cv.titre}" importe avec succes'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.importSuccess(cv.titre)),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
       await cvProvider.loadCvs();
     } catch (e) {
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur import: ${e.toString().replaceAll('Exception: ', '')}'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.importError(e.toString().replaceAll('Exception: ', ''))),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _downloadDocx(BuildContext context, int cvId) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Telechargement DOCX en cours...'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.docxDownloading),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+    ));
     try {
       await PdfService().downloadDocx(cvId);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('DOCX telecharge'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.docxDownloaded),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur DOCX: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.docxError(e.toString())),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 }
@@ -331,14 +312,14 @@ class _OfflineBanner extends StatelessWidget {
       width: double.infinity,
       color: const Color(0xFFF59E0B),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
-          SizedBox(width: 8),
+          const Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Mode hors ligne — données en cache',
-              style: TextStyle(
+              AppLocalizations.of(context)!.offlineBanner,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -375,7 +356,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Aucun CV pour l\'instant',
+              AppLocalizations.of(context)!.noCvYet,
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -383,7 +364,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Créez votre premier CV professionnel',
+              AppLocalizations.of(context)!.createFirstCv,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -393,7 +374,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => context.push('/cvs/create'),
               icon: const Icon(Icons.add),
-              label: const Text('Créer mon premier CV'),
+              label: Text(AppLocalizations.of(context)!.createMyFirstCv),
             ),
           ],
         ),
