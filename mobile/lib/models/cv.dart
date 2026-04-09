@@ -10,6 +10,7 @@ class Cv {
   final List<Language> languages;
   final List<Certification> certifications;
   final List<Project> projects;
+  final int viewCount;
   final String? shareToken;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -25,6 +26,7 @@ class Cv {
     this.languages = const [],
     this.certifications = const [],
     this.projects = const [],
+    this.viewCount = 0,
     this.shareToken,
     this.createdAt,
     this.updatedAt,
@@ -62,6 +64,7 @@ class Cv {
               ?.map((e) => Project.fromJson(e))
               .toList() ??
           [],
+      viewCount: json['viewCount'] as int? ?? 0,
       shareToken: json['publicToken'],
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
@@ -155,6 +158,7 @@ class Cv {
     List<Language>? languages,
     List<Certification>? certifications,
     List<Project>? projects,
+    int? viewCount,
     String? shareToken,
     CvStyle? style,
   }) {
@@ -168,6 +172,7 @@ class Cv {
       languages: languages ?? this.languages,
       certifications: certifications ?? this.certifications,
       projects: projects ?? this.projects,
+      viewCount: viewCount ?? this.viewCount,
       shareToken: shareToken ?? this.shareToken,
       createdAt: createdAt,
       updatedAt: updatedAt,
