@@ -7,6 +7,7 @@ import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 class CvServiceTest {
 
     @Mock private CvRepository cvRepository;
+    @Mock private CvViewRepository cvViewRepository;
     @Mock private IUserService userService;
     @Mock private CvMapper cvMapper;
 
@@ -121,5 +123,43 @@ class CvServiceTest {
                 .hasMessageContaining("non trouve");
 
         verify(cvRepository, never()).deleteById(any());
+    }
+
+    // ── Tests analytics ─────────────────────────────────────────
+
+    @Test
+    void trackView_devraitIncrementerLeCompteur() {
+        User user = buildUser();
+        Cv cv = buildCv(user);
+        cv.setPublicToken("abc123");
+        cv.setViewCount(5);
+
+        when(cvRepository.findByPublicToken("abc123")).thenReturn(java.util.Optional.of(cv));
+        when(cvViewRepository.existsByCvIdAndIpHashAndViewedAtAfter(
+                any(), any(), any())).thenReturn(false);
+
+        cvService.trackView("abc123", "192.168.1.1");
+
+        verify(cvViewRepository).save(any(com.cvmobile.model.CvView.class));
+        verify(cvRepository).save(cv);
+        assertThat(cv.getViewCount()).isEqualTo(6);
+    }
+
+    @Test
+    void trackView_devraitIgnorerVueRecenteDuMemeVisiteur() {
+        User user = buildUser();
+        Cv cv = buildCv(user);
+        cv.setPublicToken("abc123");
+        cv.setViewCount(5);
+
+        when(cvRepository.findByPublicToken("abc123")).thenReturn(java.util.Optional.of(cv));
+        when(cvViewRepository.existsByCvIdAndIpHashAndViewedAtAfter(
+                any(), any(), any())).thenReturn(true);
+
+        cvService.trackView("abc123", "192.168.1.1");
+
+        verify(cvViewRepository, never()).save(any());
+        verify(cvRepository, never()).save(any());
+        assertThat(cv.getViewCount()).isEqualTo(5);
     }
 }

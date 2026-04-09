@@ -6,6 +6,7 @@ import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.cv.ICvService;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 public class CvService implements ICvService {
 
     private final CvRepository cvRepository;
+    private final CvViewRepository cvViewRepository;
     private final IUserService userService;
     private final CvMapper cvMapper;
 
@@ -138,6 +143,48 @@ public class CvService implements ICvService {
             log.info("Token de partage genere pour CV id={}", cvId);
         }
         return cvMapper.toResponse(cv);
+    }
+
+    // ── Analytics ────────────────────────────────────────────────
+
+    /**
+     * Enregistre une vue sur un CV public si le visiteur n'a pas ete vu recemment.
+     * Hash l'IP pour le RGPD (pas de stockage en clair).
+     * Delai anti-doublon : 5 minutes.
+     */
+    @Transactional
+    public void trackView(String publicToken, String ipAddress) {
+        Cv cv = cvRepository.findByPublicToken(publicToken)
+                .orElseThrow(() -> new ResourceNotFoundException("Lien de partage invalide ou expire"));
+
+        String ipHash = hashIp(ipAddress);
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+
+        boolean recentView = cvViewRepository.existsByCvIdAndIpHashAndViewedAtAfter(
+                cv.getId(), ipHash, fiveMinutesAgo);
+
+        if (!recentView) {
+            cvViewRepository.save(CvView.builder()
+                    .cvId(cv.getId())
+                    .ipHash(ipHash)
+                    .viewedAt(LocalDateTime.now())
+                    .build());
+            cv.setViewCount(cv.getViewCount() + 1);
+            cvRepository.save(cv);
+            log.debug("Vue enregistree: cv={}, ipHash={}", cv.getId(), ipHash);
+        }
+    }
+
+    static String hashIp(String ip) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest((ip != null ? ip : "unknown").getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < 8; i++) hex.append(String.format("%02x", hash[i]));
+            return hex.toString();
+        } catch (Exception e) {
+            return "0000000000000000";
+        }
     }
 
     // ── Suppression ──────────────────────────────────────────────
