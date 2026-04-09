@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cv_mobile/l10n/app_localizations.dart';
+
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
@@ -61,6 +63,9 @@ Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
 
   return MaterialApp.router(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     routerConfig: router,
   );
 }
@@ -102,7 +107,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Aucun CV pour l\'instant'), findsOneWidget);
-      expect(find.text('Créez votre premier CV professionnel'), findsOneWidget);
+      expect(find.text('Creez votre premier CV professionnel'), findsOneWidget);
     });
 
     testWidgets('affiche la liste des CVs quand il y en a', (tester) async {

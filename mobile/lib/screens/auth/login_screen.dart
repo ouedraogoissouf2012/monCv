@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/error_helper.dart';
 
@@ -53,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen>
     final ok = await auth.login(
         email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!ok && mounted) {
-      ErrorHelper.showError(context, auth.error ?? 'Erreur de connexion',
+      ErrorHelper.showError(context, auth.error ?? AppLocalizations.of(context)!.loginError,
           onRetry: _login);
     }
   }
@@ -138,74 +139,71 @@ class _LoginScreenState extends State<LoginScreen>
               _buildHeadline(),
               const SizedBox(height: 28),
               // Fields
-              _buildField(
-                label: 'Adresse email',
-                icon: Icons.email_outlined,
-                controller: _emailCtrl,
-                hint: 'vous@exemple.com',
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Champ requis';
-                  if (!v.contains('@')) return 'Email invalide';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              _buildField(
-                label: 'Mot de passe',
-                icon: Icons.lock_outline,
-                controller: _passwordCtrl,
-                hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
-                obscure: _obscure,
-                suffixIcon: GestureDetector(
-                  onTap: () => setState(() => _obscure = !_obscure),
-                  child: Icon(
-                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    size: 18, color: _kMuted,
-                  ),
-                ),
-                validator: (v) => (v == null || v.isEmpty) ? 'Champ requis' : null,
-              ),
-              const SizedBox(height: 8),
-              // Mot de passe oublié
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Mot de passe oublié ?',
-                    style: TextStyle(fontSize: 12, color: _kMuted),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Bouton Se connecter
-              _buildLoginButton(),
-              const SizedBox(height: 24),
-              // Signup link
-              Wrap(
-                alignment: WrapAlignment.center,
-                children: [
-                  const Text(
-                    'Pas encore de compte ? ',
-                    style: TextStyle(fontSize: 13, color: _kMuted),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.go('/register'),
-                    child: const Text(
-                      'Créer un compte',
-                      style: TextStyle(
-                        fontSize: 13, color: _kBlue, fontWeight: FontWeight.w600,
+              Builder(builder: (context) {
+                final l = AppLocalizations.of(context)!;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildField(
+                      label: l.email,
+                      icon: Icons.email_outlined,
+                      controller: _emailCtrl,
+                      hint: l.emailHint,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return l.fieldRequired;
+                        if (!v.contains('@')) return l.invalidEmail;
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    _buildField(
+                      label: l.password,
+                      icon: Icons.lock_outline,
+                      controller: _passwordCtrl,
+                      hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                      obscure: _obscure,
+                      suffixIcon: GestureDetector(
+                        onTap: () => setState(() => _obscure = !_obscure),
+                        child: Icon(
+                          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 18, color: _kMuted,
+                        ),
+                      ),
+                      validator: (v) => (v == null || v.isEmpty) ? l.fieldRequired : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(l.forgotPassword,
+                          style: const TextStyle(fontSize: 12, color: _kMuted)),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 20),
+                    _buildLoginButton(),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      children: [
+                        Text('${l.noAccount} ',
+                          style: const TextStyle(fontSize: 13, color: _kMuted)),
+                        GestureDetector(
+                          onTap: () => context.go('/register'),
+                          child: Text(l.register,
+                            style: const TextStyle(fontSize: 13, color: _kBlue, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }),
               const SizedBox(height: 20),
               // Features strip
               _buildFeatures(),
@@ -239,21 +237,20 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildHeadline() {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Bon retour\nparmi nous.',
+          l.welcomeBack,
           style: GoogleFonts.playfairDisplay(
             fontSize: 32, fontWeight: FontWeight.w400,
             color: _kText, height: 1.2, letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Connectez-vous pour continuer sur MonCV',
-          style: TextStyle(fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300),
-        ),
+        Text(l.welcomeSubtitle,
+          style: const TextStyle(fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300)),
       ],
     );
   }
@@ -341,9 +338,9 @@ class _LoginScreenState extends State<LoginScreen>
                     valueColor: AlwaysStoppedAnimation(_kWhite),
                   ),
                 )
-              : const Text(
-                  'Se connecter',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3),
+              : Text(
+                  AppLocalizations.of(context)!.login,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3),
                 ),
         ),
       ),
@@ -356,16 +353,19 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: _kBorder, width: 0.5)),
       ),
-      child: const Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 20,
-        runSpacing: 8,
-        children: [
-          _FeatureChip('Suggestions IA'),
-          _FeatureChip('Export PDF'),
-          _FeatureChip('Partage public'),
-        ],
-      ),
+      child: Builder(builder: (context) {
+        final l = AppLocalizations.of(context)!;
+        return Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 20,
+          runSpacing: 8,
+          children: [
+            _FeatureChip(l.featureAi),
+            _FeatureChip(l.featurePdf),
+            _FeatureChip(l.featureShare),
+          ],
+        );
+      }),
     );
   }
 }

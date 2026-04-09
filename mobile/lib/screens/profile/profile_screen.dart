@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../widgets/app_scaffold.dart';
@@ -10,6 +11,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final user = context.watch<AuthProvider>().user;
     final cvProvider = context.watch<CvProvider>();
     final colorScheme = Theme.of(context).colorScheme;
@@ -23,7 +25,6 @@ class ProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            // Avatar + nom
             Center(
               child: Column(
                 children: [
@@ -49,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    user?.fullName ?? 'Utilisateur',
+                    user?.fullName ?? l.user,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -66,33 +67,32 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Statistiques
             Row(
               children: [
                 Expanded(
                   child: _StatCard(
                     icon: Icons.description_outlined,
-                    label: 'CVs créés',
+                    label: l.cvsCreated,
                     value: '$cvCount',
                     color: colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: _StatCard(
                     icon: Icons.download_outlined,
-                    label: 'Téléchargements',
+                    label: l.downloads,
                     value: '—',
-                    color: Color(0xFF10B981),
+                    color: const Color(0xFF10B981),
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: _StatCard(
                     icon: Icons.share_outlined,
-                    label: 'Partages',
+                    label: l.shares,
                     value: '—',
-                    color: Color(0xFF6366F1),
+                    color: const Color(0xFF6366F1),
                   ),
                 ),
               ],
@@ -100,40 +100,36 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 28),
 
-            // Informations
-            const _SectionTitle('Informations'),
+            _SectionTitle(l.information),
             const SizedBox(height: 12),
             _InfoCard(children: [
               _InfoRow(
                 icon: Icons.person_outline,
-                label: 'Nom complet',
+                label: l.fullName,
                 value: user?.fullName ?? '—',
               ),
               const Divider(height: 1),
               _InfoRow(
                 icon: Icons.email_outlined,
-                label: 'Email',
+                label: l.email,
                 value: user?.email ?? '—',
               ),
             ]),
 
             const SizedBox(height: 28),
 
-            // Apparence
-            const _SectionTitle('Apparence'),
+            _SectionTitle(l.appearance),
             const SizedBox(height: 12),
             const ThemeSelector(),
 
             const SizedBox(height: 32),
 
-            // Déconnexion
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => _showLogoutDialog(context),
                 icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text('Se déconnecter',
-                    style: TextStyle(color: Colors.red)),
+                label: Text(l.logout, style: const TextStyle(color: Colors.red)),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.red),
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -159,15 +155,16 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Déconnexion'),
-        content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+        title: Text(l.logoutTitle),
+        content: Text(l.logoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(l.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -175,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
               Navigator.pop(ctx);
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Déconnecter'),
+            child: Text(l.disconnect),
           ),
         ],
       ),

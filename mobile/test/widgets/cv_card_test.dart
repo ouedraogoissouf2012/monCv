@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/widgets/cv_card.dart';
 
@@ -35,6 +36,9 @@ Widget _buildCard(
 }) {
   return MaterialApp(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     home: Scaffold(
       body: CvCard(
         cv: cv,
