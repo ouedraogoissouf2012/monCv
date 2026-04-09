@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/core/usecase/usecase.dart';
@@ -8,6 +9,7 @@ import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/services/connectivity_service.dart';
+import 'package:cv_mobile/services/sync_queue.dart';
 import 'package:cv_mobile/usecases/cv/get_all_cvs_usecase.dart';
 import 'package:cv_mobile/usecases/cv/get_cv_by_id_usecase.dart';
 import 'package:cv_mobile/usecases/cv/create_cv_usecase.dart';
@@ -203,6 +205,57 @@ void main() {
       connectivityCtrl.add(true);
       await Future.microtask(() {});
       expect(provider.isOffline, false);
+    });
+  });
+
+  group('CvProvider offline', () {
+    late SyncQueue syncQueue;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      syncQueue = SyncQueue(prefs);
+    });
+
+    CvProvider buildOfflineProvider() {
+      final provider = CvProvider(
+        getAllCvs: mockGetAll,
+        getCvById: mockGetById,
+        createCv: mockCreate,
+        updateCv: mockUpdate,
+        deleteCv: mockDelete,
+        duplicateCv: mockDuplicate,
+        repository: mockRepo,
+        connectivity: mockConnectivity,
+        syncQueue: syncQueue,
+      );
+      // Simuler offline
+      connectivityCtrl.add(false);
+      return provider;
+    }
+
+    test('createCv offline : sauvegarde localement avec ID temp negatif', () async {
+      final provider = buildOfflineProvider();
+      await Future.microtask(() {}); // Laisser le stream emettre
+
+      final result = await provider.createCv(_fakeCv(titre: 'CV Offline'));
+
+      expect(result, true);
+      expect(provider.cvs.length, 1);
+      expect(provider.cvs.first.id, lessThan(0)); // ID temporaire negatif
+      expect(syncQueue.hasPending, true);
+      expect(syncQueue.pendingCount, 1);
+      expect(syncQueue.getAll().first.type, 'create');
+    });
+
+    test('isPendingSync retourne true pour CV avec ID negatif', () async {
+      final provider = buildOfflineProvider();
+      await Future.microtask(() {});
+
+      await provider.createCv(_fakeCv(titre: 'CV Offline'));
+
+      expect(provider.isPendingSync(provider.cvs.first), true);
+      expect(provider.isPendingSync(_fakeCv(id: 10)), false);
     });
   });
 }
