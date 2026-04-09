@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/cv.dart';
 import 'stats_badge.dart';
 
@@ -24,13 +25,13 @@ class CvCard extends StatelessWidget {
     required this.onShare,
   });
 
-  String _formatDate(DateTime? date) {
+  String _formatDate(DateTime? date, AppLocalizations l) {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inDays == 0) return 'Aujourd\'hui';
-    if (diff.inDays == 1) return 'Hier';
-    if (diff.inDays < 7) return 'Il y a ${diff.inDays} jours';
+    if (diff.inDays == 0) return l.today;
+    if (diff.inDays == 1) return l.yesterday;
+    if (diff.inDays < 7) return l.daysAgo(diff.inDays);
     return '${date.day}/${date.month}/${date.year}';
   }
 
@@ -40,14 +41,15 @@ class CvCard extends StatelessWidget {
     return const Color(0xFFEF4444);
   }
 
-  String _scoreLabel(int score) {
-    if (score >= 80) return 'Complet';
-    if (score >= 50) return 'En cours';
-    return 'Incomplet';
+  String _scoreLabel(int score, AppLocalizations l) {
+    if (score >= 80) return l.complete;
+    if (score >= 50) return l.inProgress;
+    return l.incomplete;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final score = cv.completionScore;
     final scoreColor = _scoreColor(score);
@@ -110,29 +112,29 @@ class CvCard extends StatelessWidget {
                       }
                     },
                     itemBuilder: (_) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: _CvCardAction.edit,
                         child: ListTile(
-                          leading: Icon(Icons.edit_outlined),
-                          title: Text('Modifier'),
+                          leading: const Icon(Icons.edit_outlined),
+                          title: Text(l.edit),
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: _CvCardAction.duplicate,
                         child: ListTile(
-                          leading: Icon(Icons.copy_outlined),
-                          title: Text('Dupliquer'),
+                          leading: const Icon(Icons.copy_outlined),
+                          title: Text(l.duplicate),
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: _CvCardAction.share,
                         child: ListTile(
-                          leading: Icon(Icons.share_outlined),
-                          title: Text('Partager'),
+                          leading: const Icon(Icons.share_outlined),
+                          title: Text(l.share),
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
@@ -143,7 +145,7 @@ class CvCard extends StatelessWidget {
                         child: ListTile(
                           leading: Icon(Icons.delete_outline,
                               color: Theme.of(context).colorScheme.error),
-                          title: Text('Supprimer',
+                          title: Text(l.delete,
                               style: TextStyle(
                                   color:
                                       Theme.of(context).colorScheme.error)),
@@ -158,7 +160,7 @@ class CvCard extends StatelessWidget {
               const SizedBox(height: 4),
               // Date
               Text(
-                _formatDate(cv.updatedAt ?? cv.createdAt),
+                _formatDate(cv.updatedAt ?? cv.createdAt, l),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
@@ -181,7 +183,7 @@ class CvCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _scoreLabel(score),
+                    _scoreLabel(score, l),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -197,17 +199,17 @@ class CvCard extends StatelessWidget {
                 children: [
                   StatsBadge(
                     count: cv.experiences.length,
-                    label: 'Exp.',
+                    label: l.experiences,
                     color: colorScheme.primary,
                   ),
                   StatsBadge(
                     count: cv.skills.length,
-                    label: 'Compét.',
+                    label: l.skills,
                     color: colorScheme.secondary,
                   ),
                   StatsBadge(
                     count: cv.educations.length,
-                    label: 'Formations',
+                    label: l.education,
                     color: const Color(0xFF10B981),
                   ),
                 ],
@@ -226,7 +228,7 @@ class CvCard extends StatelessWidget {
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      child: const Text('Voir'),
+                      child: Text(l.view),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -236,7 +238,7 @@ class CvCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 12),
                     ),
-                    child: const Text('PDF'),
+                    child: Text(l.pdf),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton(
@@ -245,7 +247,7 @@ class CvCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 12),
                     ),
-                    child: const Text('DOCX'),
+                    child: Text(l.docx),
                   ),
                 ],
               ),
