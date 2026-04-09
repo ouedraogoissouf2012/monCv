@@ -12,6 +12,7 @@ import '../usecases/cv/create_cv_usecase.dart';
 import '../usecases/cv/update_cv_usecase.dart';
 import '../usecases/cv/delete_cv_usecase.dart';
 import '../usecases/cv/duplicate_cv_usecase.dart';
+import '../usecases/cv/create_variant_usecase.dart';
 
 class CvProvider with ChangeNotifier {
   final GetAllCvsUseCase _getAllCvs;
@@ -20,6 +21,7 @@ class CvProvider with ChangeNotifier {
   final UpdateCvUseCase _updateCv;
   final DeleteCvUseCase _deleteCv;
   final DuplicateCvUseCase _duplicateCv;
+  final CreateVariantUseCase _createVariant;
   final CvRepository _repository;
   final ConnectivityService _connectivity;
 
@@ -32,6 +34,7 @@ class CvProvider with ChangeNotifier {
     required UpdateCvUseCase updateCv,
     required DeleteCvUseCase deleteCv,
     required DuplicateCvUseCase duplicateCv,
+    required CreateVariantUseCase createVariantUseCase,
     required CvRepository repository,
     required ConnectivityService connectivity,
   })  : _getAllCvs = getAllCvs,
@@ -40,6 +43,7 @@ class CvProvider with ChangeNotifier {
         _updateCv = updateCv,
         _deleteCv = deleteCv,
         _duplicateCv = duplicateCv,
+        _createVariant = createVariantUseCase,
         _repository = repository,
         _connectivity = connectivity {
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
@@ -176,6 +180,27 @@ class CvProvider with ChangeNotifier {
         _error = exception.message;
         notifyListeners();
         return false;
+    }
+  }
+
+  Future<Cv?> createVariant(int cvId, String jobDescription, {String? label}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    final result = await _createVariant(CreateVariantParams(
+      cvId: cvId, jobDescription: jobDescription, label: label));
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _cvs.add(data);
+        notifyListeners();
+        return data;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return null;
     }
   }
 

@@ -27,4 +27,10 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     boolean existsByIdAndUserId(Long id, Long userId);
 
     Optional<Cv> findByPublicToken(String publicToken);
+
+    // ── Variantes ───────────────────────────────────────────────
+    List<Cv> findByParentIdAndUserId(Long parentId, Long userId);
+
+    @Query("SELECT c.parent.id, COUNT(c) FROM Cv c WHERE c.parent.id IN :parentIds GROUP BY c.parent.id")
+    List<Object[]> countVariantsByParentIds(@Param("parentIds") List<Long> parentIds);
 }

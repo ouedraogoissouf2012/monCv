@@ -274,6 +274,24 @@ class ApiService {
     }
   }
 
+  Future<Cv> createVariant(int cvId, String jobDescription, {String? label}) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'jobDescription': jobDescription,
+        if (label != null && label.isNotEmpty) 'label': label,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return Cv.fromJson(jsonDecode(response.body));
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Erreur lors de la creation de la variante');
+    }
+  }
+
   Future<List<String>> getAiSuggestions({
     required String poste,
     String? entreprise,
