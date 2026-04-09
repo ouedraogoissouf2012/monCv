@@ -148,7 +148,10 @@ public class CvController {
 
     @GetMapping("/public/{token}")
     @Operation(summary = "Accéder à un CV partagé publiquement")
-    public ResponseEntity<CvResponse> getPublicCv(@PathVariable String token) {
+    public ResponseEntity<CvResponse> getPublicCv(
+            @PathVariable String token,
+            jakarta.servlet.http.HttpServletRequest request) {
+        cvService.trackView(token, request.getRemoteAddr());
         CvResponse cv = cvService.getCvByPublicToken(token);
         return ResponseEntity.ok(cv);
     }

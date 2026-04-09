@@ -82,5 +82,6 @@
   "fullName": "Full name",
   "cvsCreated": "CVs created",
   "downloads": "Downloads",
-  "shares": "Shares"
+  "shares": "Shares",
+  "views": "Views"
 }

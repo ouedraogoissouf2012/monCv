@@ -184,5 +184,28 @@ void main() {
       );
       expect(cv.completionScore, 100);
     });
+
+    testWidgets('affiche le badge Vues quand le CV est partage', (tester) async {
+      final sharedCv = Cv(
+        id: 1,
+        titre: 'CV Partage',
+        shareToken: 'abc123',
+        viewCount: 42,
+        personalInfo: PersonalInfo(nom: 'Doe', prenom: 'John', email: 'j@e.com'),
+        experiences: [Experience(entreprise: 'Acme', poste: 'Dev')],
+      );
+      await tester.pumpWidget(_buildCard(sharedCv));
+      await tester.pump();
+
+      expect(find.text('42'), findsOneWidget);
+      expect(find.text('Vues'), findsOneWidget);
+    });
+
+    testWidgets('n\'affiche PAS le badge Vues quand le CV n\'est pas partage', (tester) async {
+      await tester.pumpWidget(_buildCard(_fakeCvComplete()));
+      await tester.pump();
+
+      expect(find.text('Vues'), findsNothing);
+    });
   });
 }

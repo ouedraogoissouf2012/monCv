@@ -82,5 +82,6 @@
   "fullName": "Nom complet",
   "cvsCreated": "CVs crees",
   "downloads": "Telechargements",
-  "shares": "Partages"
+  "shares": "Partages",
+  "views": "Vues"
 }

@@ -25,6 +25,7 @@ public class CvResponse {
     private List<LanguageDto> languages;
     private List<CertificationDto> certifications;
     private List<ProjectDto> projects;
+    private int viewCount;
     private String publicToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

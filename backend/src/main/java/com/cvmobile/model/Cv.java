@@ -65,6 +65,10 @@ public class Cv {
     @org.hibernate.annotations.BatchSize(size = 20)
     private List<Project> projects = new ArrayList<>();
 
+    @Column(name = "view_count", nullable = false)
+    @Builder.Default
+    private int viewCount = 0;
+
     @Column(name = "public_token", unique = true)
     private String publicToken;
 
