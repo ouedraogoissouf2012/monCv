@@ -1,0 +1,54 @@
+# Profil prod — strict, aucun default sur les secrets
+# AppStartupValidator fail-fast si un secret critique manque
+
+spring:
+  # Secrets obligatoires : DB_PASSWORD, JWT_SECRET (deja references sans default dans application.yml)
+
+  jpa:
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+# CORS — AUCUN default, doit venir de l'orchestrateur
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+# JWT — AUCUN default, doit venir de l'orchestrateur
+jwt:
+  secret: ${JWT_SECRET}
+
+# AI — DeepSeek OBLIGATOIRE en prod
+ai:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY}
+
+# Reverse proxy (X-Forwarded-For, X-Forwarded-Proto)
+server:
+  forward-headers-strategy: framework
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-exception: false
+
+# Actuator — verrouille en prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    com.cvmobile: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

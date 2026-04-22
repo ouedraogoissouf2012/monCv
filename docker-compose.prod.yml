@@ -1,0 +1,24 @@
+# Override prod : utilise avec docker-compose.yml
+# Usage : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Les secrets sont injectes par l'orchestrateur (pas de .env file en prod).
+# Ports postgres non exposes (DB interne uniquement).
+
+services:
+  postgres:
+    # Pas de ports exposes en prod (DB interne)
+    ports: []
+
+  backend:
+    # Utilise l'image GHCR au lieu de builder localement
+    build: !reset null
+    image: ghcr.io/ouedraogoissouf2012/cv-mobile-backend:${TAG:-latest}
+
+    # Pas de env_file — secrets injectes par l'orchestrateur
+    env_file: !reset []
+
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/cvmobile
+      # Les autres vars (DB_PASSWORD, JWT_SECRET, DEEPSEEK_API_KEY, ALLOWED_ORIGINS)
+      # DOIVENT etre exportees dans l'environnement avant `docker compose up`

@@ -1,0 +1,12 @@
+target/
+.mvn/
+*.log
+hs_err_pid*.log
+replay_pid*.log
+uploads/
+.env
+.env.local
+.env.*.local
+.idea/
+.vscode/
+*.iml
