@@ -1,0 +1,41 @@
+# Profil dev — tolerant pour le developpement local
+# Defaults permissifs, mode degrade autorise pour DeepSeek
+
+spring:
+  datasource:
+    password: ${DB_PASSWORD:seven}
+
+  jpa:
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+
+# CORS — ouvre tous les ports localhost classiques
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost:8082,http://10.0.2.2:8082}
+
+# JWT — default dev (OK pour local uniquement)
+jwt:
+  secret: ${JWT_SECRET:cvMobileDevSecretKey2024AtLeast32CharsLong!}
+
+# AI — DeepSeek optionnel en dev (mode degrade accepte)
+ai:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY:}
+
+# Actuator — details complets en dev pour le debug
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.cvmobile: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
