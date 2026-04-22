@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/cv.dart';
+import 'package:provider/provider.dart';
+import '../core/error/result.dart';
+import '../providers/ai_status_provider.dart';
 import '../services/api_service.dart';
 
 /// Bottom sheet d'amelioration IA — 3 niveaux : Lite / Medium / Max
@@ -57,10 +60,20 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
         _result = result;
         _loading = false;
       });
+    } on AiException catch (e) {
+      // Erreur IA typee : message precis au lieu de "mode hors ligne"
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
+      // Rafraichir le status IA pour mettre a jour l'UI globale
+      if (!mounted) return;
+      context.read<AiStatusProvider>().refresh();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _error = e is AppException ? e.message : e.toString().replaceAll('Exception: ', '');
         _loading = false;
       });
     }
@@ -318,13 +331,13 @@ class _ResultSection extends StatelessWidget {
             Text(
               aiGenerated
                   ? 'Amelioration generee'
-                  : 'Mode hors ligne - cle DeepSeek manquante',
+                  : 'Resultat degrade (fournisseur de secours utilise)',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: aiGenerated
                     ? const Color(0xFF10B981)
-                    : colorScheme.error,
+                    : const Color(0xFFF59E0B), // Orange — pas rouge (c'est pas une erreur, c'est dégradé)
               ),
             ),
           ],

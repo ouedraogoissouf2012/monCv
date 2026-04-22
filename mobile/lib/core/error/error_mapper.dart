@@ -34,6 +34,10 @@ class ErrorMapper {
         code: 'RATE_LIMIT',
         statusCode: 429,
       ),
+      // Erreurs IA (codes AI_*) renvoyees par le backend avec 502/503/504
+      502 when _isAiErrorCode(code) => _mapAiError(body, code!),
+      503 when _isAiErrorCode(code) => _mapAiError(body, code!),
+      504 when _isAiErrorCode(code) => _mapAiError(body, code!),
       >= 500 => ServerException(
         message: message ?? 'Erreur serveur, veuillez reessayer',
         statusCode: statusCode,
@@ -42,6 +46,48 @@ class ErrorMapper {
         message: message ?? 'Erreur inattendue (code $statusCode)',
         statusCode: statusCode,
       ),
+    };
+  }
+
+  static bool _isAiErrorCode(String? code) {
+    return code != null && code.startsWith('AI_');
+  }
+
+  /// Traduit les codes backend AI_* en messages user-friendly.
+  /// Remplace l'ancien "Mode hors ligne - cle DeepSeek manquante" trompeur.
+  static AiException _mapAiError(Map<String, dynamic>? body, String code) {
+    final details = body?['details'] as Map<String, dynamic>?;
+    final provider = details?['provider'] as String?;
+    final retryAfter = details?['retryAfter'] as int?;
+
+    return switch (code) {
+      'AI_KEY_INVALID' => AiException(
+          code: 'AI_KEY_INVALID',
+          provider: provider,
+          message: "Le service IA est mal configure. Contactez l'administrateur."),
+      'AI_QUOTA_EXCEEDED' => AiException(
+          code: 'AI_QUOTA_EXCEEDED',
+          provider: provider,
+          retryAfterSeconds: retryAfter,
+          message: retryAfter != null
+              ? "Limite d'usage IA atteinte. Reessayez dans ${(retryAfter / 60).ceil()} min."
+              : "Limite d'usage IA atteinte. Reessayez plus tard."),
+      'AI_TIMEOUT' => AiException(
+          code: 'AI_TIMEOUT',
+          provider: provider,
+          message: 'Le service IA met trop de temps a repondre. Reessayez.'),
+      'AI_PROVIDER_DOWN' => AiException(
+          code: 'AI_PROVIDER_DOWN',
+          provider: provider,
+          message: 'Le service IA est temporairement indisponible.'),
+      'AI_PARSE_ERROR' => AiException(
+          code: 'AI_PARSE_ERROR',
+          provider: provider,
+          message: 'Reponse IA invalide. Reessayez.'),
+      _ => AiException(
+          code: code,
+          provider: provider,
+          message: "Erreur du service IA"),
     };
   }
 

@@ -255,11 +255,14 @@ class CvFlowIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    // ── 13. IA GENERATE RESUME ──────────────────────────────────
+    // ── 13. IA GENERATE RESUME (sans cle DeepSeek en test) ──────
+    // En profil test la cle DEEPSEEK_API_KEY est vide. La nouvelle architecture
+    // propage AiKeyInvalidException -> HTTP 503 + code AI_KEY_INVALID
+    // (plus de mode degrade silencieux qui masquait les problemes config).
 
     @Test
     @Order(13)
-    void generateResume_devraitRetournerUnTexte() throws Exception {
+    void generateResume_sansCleDeepSeek_devraitRetourner503() throws Exception {
         mvc.perform(post("/api/ai/generate-resume")
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -268,8 +271,8 @@ class CvFlowIntegrationTest {
                         "competences", "Java, Spring Boot",
                         "experience", "2 ans"
                 ))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resume").isNotEmpty());
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("AI_KEY_INVALID"));
     }
 
     // ── 14. HEALTH CHECK ────────────────────────────────────────

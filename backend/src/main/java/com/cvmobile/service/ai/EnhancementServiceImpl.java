@@ -34,37 +34,19 @@ public class EnhancementServiceImpl implements IEnhancementService {
     public EnhanceCvResponse enhanceCv(Long cvId, String level) {
         Cv cv = cvRepository.findById(cvId)
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
-
-        if (!aiClient.isAvailable()) {
-            return buildFallbackEnhancement(cv, level);
-        }
-
-        try {
-            return callAiEnhance(cv, level);
-        } catch (Exception e) {
-            log.warn("AI enhance failed: {}", e.getMessage());
-            return buildFallbackEnhancement(cv, level);
-        }
+        // Les exceptions AiServiceException propagent jusqu'au GlobalExceptionHandler
+        // (plus de catch silencieux qui masque les erreurs config/quota/timeout).
+        return callAiEnhance(cv, level);
     }
 
     @Override
     public EnhanceCvResponse adaptCvToJob(Long cvId, String jobDescription) {
         Cv cv = cvRepository.findById(cvId)
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
-
-        if (!aiClient.isAvailable()) {
-            return buildFallbackEnhancement(cv, "MAX");
-        }
-
-        try {
-            String prompt = buildAdaptPrompt(cv, jobDescription);
-            String rawContent = aiClient.complete(prompt, 3000);
-            log.info("AI adapt response:\n{}", rawContent);
-            return parseEnhanceResponse(rawContent, cv, "MAX");
-        } catch (Exception e) {
-            log.warn("AI adapt failed: {}", e.getMessage());
-            return buildFallbackEnhancement(cv, "MAX");
-        }
+        String prompt = buildAdaptPrompt(cv, jobDescription);
+        String rawContent = aiClient.complete(prompt, 3000);
+        log.info("AI adapt response:\n{}", rawContent);
+        return parseEnhanceResponse(rawContent, cv, "MAX");
     }
 
     // ── Appel IA et parsing ─────────────────────────────────────────

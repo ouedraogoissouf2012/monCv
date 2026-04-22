@@ -1,6 +1,7 @@
 package com.cvmobile.controller;
 
 import com.cvmobile.dto.*;
+import com.cvmobile.service.ai.AiStatusService;
 import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.ai.IJobMatchService;
 import com.cvmobile.service.ai.IResumeGeneratorService;
@@ -24,6 +25,13 @@ public class AiController {
     private final IResumeGeneratorService resumeGeneratorService;
     private final IEnhancementService enhancementService;
     private final IJobMatchService jobMatchService;
+    private final AiStatusService aiStatusService;
+
+    @GetMapping("/status")
+    @Operation(summary = "Etat du sous-systeme IA (providers disponibles, circuit breaker, etc.)")
+    public ResponseEntity<AiStatusResponse> status() {
+        return ResponseEntity.ok(aiStatusService.currentStatus());
+    }
 
     @PostMapping("/suggest")
     @Operation(summary = "Générer des suggestions de bullet points pour une expérience")
