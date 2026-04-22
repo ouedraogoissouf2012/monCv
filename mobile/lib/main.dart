@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'core/di/injection_container.dart';
+import 'providers/ai_status_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cv_provider.dart';
 import 'providers/theme_provider.dart';
@@ -42,6 +43,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => sl<CvProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ThemeProvider>()),
+        ChangeNotifierProvider(create: (_) => AiStatusProvider()..refresh()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

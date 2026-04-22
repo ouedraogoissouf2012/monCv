@@ -21,22 +21,13 @@ public class SuggestionServiceImpl implements ISuggestionService {
 
     @Override
     public SuggestResponse generateSuggestions(String poste, String entreprise) {
-        if (aiClient.isAvailable()) {
-            try {
-                String prompt = buildSuggestPrompt(poste, entreprise);
-                String rawContent = aiClient.complete(prompt, 600);
-                List<String> suggestions = AiResponseParser.parseSuggestions(rawContent);
-                return SuggestResponse.builder()
-                        .suggestions(suggestions)
-                        .aiGenerated(true)
-                        .build();
-            } catch (Exception e) {
-                log.warn("Suggestion generation failed, falling back to mock: {}", e.getMessage());
-            }
-        }
+        // Exceptions IA propagees au GlobalExceptionHandler
+        String prompt = buildSuggestPrompt(poste, entreprise);
+        String rawContent = aiClient.complete(prompt, 600);
+        List<String> suggestions = AiResponseParser.parseSuggestions(rawContent);
         return SuggestResponse.builder()
-                .suggestions(generateMockSuggestions(poste))
-                .aiGenerated(false)
+                .suggestions(suggestions)
+                .aiGenerated(true)
                 .build();
     }
 
