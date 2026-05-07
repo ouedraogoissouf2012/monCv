@@ -376,7 +376,7 @@ class ApiService {
     }
   }
 
-  Future<Cv> importCv(String filePath, String filename) async {
+  Future<Cv> importCv(Uint8List bytes, String filename) async {
     final token = await accessToken;
     final request = http.MultipartRequest(
       'POST',
@@ -385,7 +385,16 @@ class ApiService {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    request.files.add(await http.MultipartFile.fromPath('file', filePath, filename: filename));
+    final lower = filename.toLowerCase();
+    final contentType = lower.endsWith('.pdf')
+        ? MediaType('application', 'pdf')
+        : MediaType('application', 'vnd.openxmlformats-officedocument.wordprocessingml.document');
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      bytes,
+      filename: filename,
+      contentType: contentType,
+    ));
 
     final streamed = await request.send();
     final body = await streamed.stream.bytesToString();
