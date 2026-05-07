@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question
+    url: https://github.com/ouedraogoissouf2012/monCv/discussions
+    about: Question générale, idée ouverte — utiliser Discussions
+  - name: 🔒 Vulnérabilité de sécurité
+    url: https://github.com/ouedraogoissouf2012/monCv/security/advisories/new
+    about: Pour les vulnérabilités, ne PAS ouvrir d'issue publique — utiliser Security Advisories

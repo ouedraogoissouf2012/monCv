@@ -1,0 +1,39 @@
+name: ✨ Feature request
+description: Proposer une nouvelle fonctionnalité
+title: "[FEAT] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Pourquoi cette feature ? Quel problème elle résout ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition
+      description: Comment ça marche ? UX/UI/API attendue ?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères d'acceptation
+      description: Liste de cases à cocher pour valider la complétude
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      options:
+        - "P1 — sprint courant"
+        - "P2 — à planifier"
+        - "P3 — long terme"
+    validations:
+      required: true
