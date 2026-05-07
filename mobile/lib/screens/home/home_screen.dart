@@ -257,11 +257,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'docx'],
+      withData: true,
     );
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
-    if (file.path == null) return;
+    if (file.bytes == null) return;
 
     messenger.showSnackBar(
       const SnackBar(
@@ -272,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     try {
-      final cv = await ApiService().importCv(file.path!, file.name);
+      final cv = await ApiService().importCv(file.bytes!, file.name);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
         SnackBar(
