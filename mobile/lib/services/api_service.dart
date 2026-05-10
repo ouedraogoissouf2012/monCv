@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import '../core/error/error_mapper.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/cv.dart';
@@ -15,6 +16,18 @@ class ApiService {
 
   final TokenStorage _storage = TokenStorage();
   String? _accessToken;
+
+  /// Extrait l'erreur typee du body de la reponse HTTP et la lance.
+  /// Utilise par tous les appels IA pour propager les codes AI_* au ErrorMapper.
+  Never _throwTypedError(http.Response response, String fallbackMessage) {
+    Map<String, dynamic>? body;
+    try {
+      body = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      // Body non-JSON : on passe null au mapper
+    }
+    throw ErrorMapper.fromHttpResponse(response.statusCode, body);
+  }
 
   Future<String?> get accessToken async {
     _accessToken ??= await _storage.read('access_token');
@@ -291,9 +304,8 @@ class ApiService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final suggestions = data['suggestions'] as List<dynamic>;
       return suggestions.cast<String>();
-    } else {
-      throw Exception('Erreur lors de la génération des suggestions');
     }
+    _throwTypedError(response, 'Erreur lors de la generation des suggestions');
   }
 
   Future<Cv> generateShareLink(int id) async {
@@ -317,9 +329,8 @@ class ApiService {
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
-      throw Exception('Erreur lors de l\'amélioration IA');
     }
+    _throwTypedError(response, 'Erreur lors de l\'amelioration IA');
   }
 
   Future<List<int>> downloadCvDocx(int id) async {
@@ -345,9 +356,8 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return data['resume'] as String? ?? '';
-    } else {
-      throw Exception('Erreur lors de la generation');
     }
+    _throwTypedError(response, 'Erreur lors de la generation');
   }
 
   Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
@@ -358,9 +368,21 @@ class ApiService {
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
-      throw Exception('Erreur lors de l\'analyse');
     }
+    _throwTypedError(response, 'Erreur lors de l\'analyse IA');
+  }
+
+  /// GET /api/ai/status - etat du sous-systeme IA.
+  /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
+  Future<Map<String, dynamic>> getAiStatus() async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/status'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    _throwTypedError(response, 'Erreur lors de la recuperation du status IA');
   }
 
   Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'}) async {

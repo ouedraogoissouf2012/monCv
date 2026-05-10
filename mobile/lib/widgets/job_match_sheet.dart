@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/error/result.dart';
+import '../providers/ai_status_provider.dart';
 import '../services/api_service.dart';
 
 /// Bottom sheet pour analyser la correspondance CV / offre d'emploi.
@@ -26,10 +29,16 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       final result = await ApiService().matchJob(widget.cvId, _controller.text.trim());
       if (!mounted) return;
       setState(() { _result = result; _loading = false; });
+    } on AiException catch (e) {
+      // Erreur IA typee : message precis au lieu de "mode hors ligne"
+      if (!mounted) return;
+      setState(() { _error = e.message; _loading = false; });
+      if (!mounted) return;
+      context.read<AiStatusProvider>().refresh();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _error = e is AppException ? e.message : e.toString().replaceAll('Exception: ', '');
         _loading = false;
       });
     }

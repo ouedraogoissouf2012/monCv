@@ -31,16 +31,8 @@ public class JobMatchServiceImpl implements IJobMatchService {
         Cv cv = cvRepository.findById(cvId)
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouve"));
 
-        if (!aiClient.isAvailable()) {
-            return buildFallbackMatch(cv, jobDescription);
-        }
-
-        try {
-            return callAiMatch(cv, jobDescription);
-        } catch (Exception e) {
-            log.warn("AI match failed: {}", e.getMessage());
-            return buildFallbackMatch(cv, jobDescription);
-        }
+        // Exceptions IA propagees au GlobalExceptionHandler
+        return callAiMatch(cv, jobDescription);
     }
 
     private JobMatchResponse callAiMatch(Cv cv, String jobDescription) {
