@@ -1,0 +1,46 @@
+name: ♻️ Refactor / dette technique
+description: Refactor sans changement de comportement, dette technique
+title: "[REFACTOR] "
+labels: ["refactor", "tech-debt"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexte
+      description: Quel code est concerné ? Quelle est la dette ?
+      placeholder: "Cite fichier:ligne. Ex: backend/src/main/java/.../FooService.java:42"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème
+      description: Pourquoi c'est problématique ? (ex: god class, DRY, SOLID violation)
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Refactor proposé
+      description: Architecture cible, étapes, alternatives écartées
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères d'acceptation
+      placeholder: |
+        - [ ] Aucun fichier > 300 lignes
+        - [ ] Tests verts
+        - [ ] Pas de régression de performance
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      options:
+        - "P2 — à planifier"
+        - "P3 — long terme"
+    validations:
+      required: true
