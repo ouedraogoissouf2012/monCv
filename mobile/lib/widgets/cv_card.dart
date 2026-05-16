@@ -61,6 +61,29 @@ class CvCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge non synchronise (CV cree offline)
+              if (cv.id != null && cv.id! < 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cloud_off_rounded, size: 12, color: Color(0xFFF59E0B)),
+                        SizedBox(width: 4),
+                        Text('En attente de sync',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
+                              color: Color(0xFFF59E0B))),
+                      ],
+                    ),
+                  ),
+                ),
               // Header : titre + menu actions
               Row(
                 children: [
