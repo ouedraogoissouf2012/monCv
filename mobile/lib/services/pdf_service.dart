@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/cv.dart';
 import '../utils/cv_pdf_generator.dart';
@@ -55,37 +54,54 @@ class PdfService {
         linkedIn: info.linkedIn,
         portfolio: info.portfolio,
         photoUrl: info.photoUrl,
-        resumeProfessionnel: _corrector.correctNullable(info.resumeProfessionnel),
+        resumeProfessionnel:
+            _corrector.correctNullable(info.resumeProfessionnel),
       );
     }
 
     return cv.copyWith(
       personalInfo: correctedInfo,
-      experiences: cv.experiences.map((e) => Experience(
-        id: e.id, poste: _corrector.correctNullable(e.poste),
-        entreprise: _corrector.correctNullable(e.entreprise),
-        lieu: _corrector.correctNullable(e.lieu),
-        dateDebut: e.dateDebut, dateFin: e.dateFin, actuel: e.actuel,
-        description: _corrector.correctNullable(e.description),
-      )).toList(),
-      educations: cv.educations.map((e) => Education(
-        id: e.id, diplome: _corrector.correctNullable(e.diplome),
-        etablissement: _corrector.correctNullable(e.etablissement),
-        domaine: _corrector.correctNullable(e.domaine),
-        dateDebut: e.dateDebut, dateFin: e.dateFin,
-        description: _corrector.correctNullable(e.description),
-      )).toList(),
-      projects: cv.projects.map((p) => Project(
-        id: p.id, nom: _corrector.correctNullable(p.nom),
-        description: _corrector.correctNullable(p.description),
-        technologies: p.technologies,
-        lien: p.lien, dateDebut: p.dateDebut, dateFin: p.dateFin,
-      )).toList(),
-      languages: cv.languages.map((l) => Language(
-        id: l.id,
-        langue: _corrector.correctNullable(l.langue),
-        niveau: l.niveau,
-      )).toList(),
+      experiences: cv.experiences
+          .map((e) => Experience(
+                id: e.id,
+                poste: _corrector.correctNullable(e.poste),
+                entreprise: _corrector.correctNullable(e.entreprise),
+                lieu: _corrector.correctNullable(e.lieu),
+                dateDebut: e.dateDebut,
+                dateFin: e.dateFin,
+                actuel: e.actuel,
+                description: _corrector.correctNullable(e.description),
+              ))
+          .toList(),
+      educations: cv.educations
+          .map((e) => Education(
+                id: e.id,
+                diplome: _corrector.correctNullable(e.diplome),
+                etablissement: _corrector.correctNullable(e.etablissement),
+                domaine: _corrector.correctNullable(e.domaine),
+                dateDebut: e.dateDebut,
+                dateFin: e.dateFin,
+                description: _corrector.correctNullable(e.description),
+              ))
+          .toList(),
+      projects: cv.projects
+          .map((p) => Project(
+                id: p.id,
+                nom: _corrector.correctNullable(p.nom),
+                description: _corrector.correctNullable(p.description),
+                technologies: p.technologies,
+                lien: p.lien,
+                dateDebut: p.dateDebut,
+                dateFin: p.dateFin,
+              ))
+          .toList(),
+      languages: cv.languages
+          .map((l) => Language(
+                id: l.id,
+                langue: _corrector.correctNullable(l.langue),
+                niveau: l.niveau,
+              ))
+          .toList(),
     );
   }
 }

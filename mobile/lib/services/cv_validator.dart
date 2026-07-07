@@ -22,7 +22,7 @@ class CvValidator {
     _validateOverall(cv, warnings);
 
     // Calcul du score
-    final maxScore = 100;
+    const maxScore = 100;
     final deductions = errors.length * 15 + warnings.length * 5;
     final score = (maxScore - deductions).clamp(0, 100);
 
@@ -33,48 +33,58 @@ class CvValidator {
     );
   }
 
-  void _validatePersonalInfo(PersonalInfo? info, List<ValidationIssue> w, List<ValidationIssue> e) {
+  void _validatePersonalInfo(
+      PersonalInfo? info, List<ValidationIssue> w, List<ValidationIssue> e) {
     if (info == null) {
-      e.add(ValidationIssue('identite', 'Informations personnelles manquantes'));
+      e.add(const ValidationIssue(
+          'identite', 'Informations personnelles manquantes'));
       return;
     }
 
     if (info.prenom == null || info.prenom!.isEmpty) {
-      e.add(ValidationIssue('identite', 'Prénom manquant'));
+      e.add(const ValidationIssue('identite', 'Prénom manquant'));
     }
     if (info.nom == null || info.nom!.isEmpty) {
-      e.add(ValidationIssue('identite', 'Nom manquant'));
+      e.add(const ValidationIssue('identite', 'Nom manquant'));
     }
     if (info.email == null || info.email!.isEmpty) {
-      e.add(ValidationIssue('identite', 'Email manquant'));
+      e.add(const ValidationIssue('identite', 'Email manquant'));
     }
     if (info.titrePoste == null || info.titrePoste!.isEmpty) {
-      w.add(ValidationIssue('identite', 'Titre du poste manquant — important pour les recruteurs'));
+      w.add(const ValidationIssue('identite',
+          'Titre du poste manquant — important pour les recruteurs'));
     }
 
     // Resume
     final resume = info.resumeProfessionnel ?? '';
     if (resume.isEmpty) {
-      w.add(ValidationIssue('profil', 'Résumé professionnel vide — utilisez l\'IA pour le générer'));
+      w.add(const ValidationIssue('profil',
+          'Résumé professionnel vide — utilisez l\'IA pour le générer'));
     } else if (resume.length < 100) {
-      w.add(ValidationIssue('profil', 'Résumé trop court (${resume.length} car.) — min 100 recommandé'));
+      w.add(ValidationIssue('profil',
+          'Résumé trop court (${resume.length} car.) — min 100 recommandé'));
     }
 
     // LinkedIn/GitHub pour les devs
     if (info.titrePoste != null) {
       final titre = info.titrePoste!.toLowerCase();
-      if (titre.contains('dev') || titre.contains('ingenieur') || titre.contains('ingénieur')) {
+      if (titre.contains('dev') ||
+          titre.contains('ingenieur') ||
+          titre.contains('ingénieur')) {
         if ((info.linkedIn == null || info.linkedIn!.isEmpty) &&
             (info.portfolio == null || info.portfolio!.isEmpty)) {
-          w.add(ValidationIssue('identite', 'LinkedIn ou GitHub manquant — très attendu pour un profil tech'));
+          w.add(const ValidationIssue('identite',
+              'LinkedIn ou GitHub manquant — très attendu pour un profil tech'));
         }
       }
     }
   }
 
-  void _validateExperiences(List<Experience> exps, List<ValidationIssue> w, List<ValidationIssue> e) {
+  void _validateExperiences(
+      List<Experience> exps, List<ValidationIssue> w, List<ValidationIssue> e) {
     if (exps.isEmpty) {
-      w.add(ValidationIssue('experiences', 'Aucune expérience renseignée'));
+      w.add(
+          const ValidationIssue('experiences', 'Aucune expérience renseignée'));
       return;
     }
 
@@ -89,50 +99,58 @@ class CvValidator {
       } else {
         // Pas de chiffre dans la description
         if (!RegExp(r'\d').hasMatch(exp.description!)) {
-          w.add(ValidationIssue('experiences', '$label: aucun chiffre/métrique — ajoutez des résultats mesurables'));
+          w.add(ValidationIssue('experiences',
+              '$label: aucun chiffre/métrique — ajoutez des résultats mesurables'));
         }
       }
 
       // Dates
       if (exp.dateDebut != null && exp.dateFin != null) {
         if (exp.dateFin!.isBefore(exp.dateDebut!)) {
-          e.add(ValidationIssue('experiences', '$label: date de fin avant date de début'));
+          e.add(ValidationIssue(
+              'experiences', '$label: date de fin avant date de début'));
         }
       }
-      if (exp.dateFin != null && exp.dateFin!.isAfter(now.add(const Duration(days: 30)))) {
-        w.add(ValidationIssue('experiences', '$label: date de fin dans le futur'));
+      if (exp.dateFin != null &&
+          exp.dateFin!.isAfter(now.add(const Duration(days: 30)))) {
+        w.add(ValidationIssue(
+            'experiences', '$label: date de fin dans le futur'));
       }
     }
   }
 
   void _validateEducations(List<Education> edus, List<ValidationIssue> w) {
     if (edus.isEmpty) {
-      w.add(ValidationIssue('formations', 'Aucune formation renseignée'));
+      w.add(const ValidationIssue('formations', 'Aucune formation renseignée'));
     }
   }
 
   void _validateSkills(List<Skill> skills, List<ValidationIssue> w) {
     if (skills.isEmpty) {
-      w.add(ValidationIssue('competences', 'Aucune compétence renseignée'));
+      w.add(
+          const ValidationIssue('competences', 'Aucune compétence renseignée'));
     } else if (skills.length < 5) {
-      w.add(ValidationIssue('competences', 'Seulement ${skills.length} compétences — 8 à 12 recommandé'));
+      w.add(ValidationIssue('competences',
+          'Seulement ${skills.length} compétences — 8 à 12 recommandé'));
     }
 
     // Detecter les competences en bloc
     for (final s in skills) {
       if (s.nom != null && s.nom!.contains(',')) {
-        w.add(ValidationIssue('competences', '"${s.nom}" semble contenir plusieurs compétences — séparez-les'));
+        w.add(ValidationIssue('competences',
+            '"${s.nom}" semble contenir plusieurs compétences — séparez-les'));
       }
     }
   }
 
   void _validateLanguages(List<Language> langs, List<ValidationIssue> w) {
     if (langs.isEmpty) {
-      w.add(ValidationIssue('langues', 'Aucune langue renseignée'));
+      w.add(const ValidationIssue('langues', 'Aucune langue renseignée'));
     }
   }
 
-  void _validateCertifications(List<Certification> certs, List<ValidationIssue> w) {
+  void _validateCertifications(
+      List<Certification> certs, List<ValidationIssue> w) {
     final now = DateTime.now();
     for (final cert in certs) {
       if (cert.dateObtention != null && cert.dateObtention!.isAfter(now)) {
@@ -145,17 +163,22 @@ class CvValidator {
   void _validateProjects(List<Project> projects, List<ValidationIssue> w) {
     for (final p in projects) {
       if (p.description == null || p.description!.length < 30) {
-        w.add(ValidationIssue('projets', '"${p.nom}" : description trop courte — développez'));
+        w.add(ValidationIssue(
+            'projets', '"${p.nom}" : description trop courte — développez'));
       }
     }
   }
 
   void _validateOverall(Cv cv, List<ValidationIssue> w) {
     // Trop de contenu pour 1 page
-    final totalItems = cv.experiences.length + cv.educations.length +
-        cv.skills.length + cv.certifications.length + cv.projects.length;
+    final totalItems = cv.experiences.length +
+        cv.educations.length +
+        cv.skills.length +
+        cv.certifications.length +
+        cv.projects.length;
     if (totalItems > 25) {
-      w.add(ValidationIssue('general', 'Beaucoup de contenu ($totalItems éléments) — risque de dépasser 1 page'));
+      w.add(ValidationIssue('general',
+          'Beaucoup de contenu ($totalItems éléments) — risque de dépasser 1 page'));
     }
   }
 }

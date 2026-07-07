@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +28,7 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     boolean existsByIdAndUserId(Long id, Long userId);
 
     Optional<Cv> findByPublicToken(String publicToken);
+
+    @Query("SELECT c FROM Cv c LEFT JOIN FETCH c.user WHERE c.updatedAt < :threshold")
+    List<Cv> findStaleCvs(@Param("threshold") LocalDateTime threshold);
 }

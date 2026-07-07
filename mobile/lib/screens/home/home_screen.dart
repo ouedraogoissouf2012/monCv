@@ -34,21 +34,21 @@ class _HomeScreenState extends State<HomeScreen> {
       currentIndex: 0,
       title: 'Mes CVs',
       actions: [
-            IconButton(
-              icon: const Icon(Icons.upload_file),
-              tooltip: 'Importer un CV (PDF/DOCX)',
-              onPressed: () => _importCv(context),
+        IconButton(
+          icon: const Icon(Icons.upload_file),
+          tooltip: 'Importer un CV (PDF/DOCX)',
+          onPressed: () => _importCv(context),
+        ),
+        if (isDesktop)
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: FilledButton.icon(
+              onPressed: () => context.push('/cvs/create'),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Nouveau CV'),
             ),
-            if (isDesktop)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: FilledButton.icon(
-                  onPressed: () => context.push('/cvs/create'),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Nouveau CV'),
-                ),
-              ),
-          ],
+          ),
+      ],
       floatingActionButton: isDesktop
           ? null
           : FloatingActionButton.extended(
@@ -70,29 +70,30 @@ class _HomeScreenState extends State<HomeScreen> {
           return Column(
             children: [
               if (cvProvider.isOffline) const _OfflineBanner(),
-              Expanded(child: GridView.builder(
-            padding: EdgeInsets.all(isDesktop ? 24 : 16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: crossAxisCount == 1 ? 2.2 : 1.4,
-            ),
-            itemCount: cvProvider.cvs.length,
-            itemBuilder: (context, index) {
-              final cv = cvProvider.cvs[index];
-              return CvCard(
-                cv: cv,
-                onTap: () => context.push('/cvs/${cv.id}'),
-                onEdit: () => context.push('/cvs/${cv.id}/edit', extra: cv),
-                onDownloadPdf: () => _downloadPdf(context, cv),
-                onDownloadDocx: () => _downloadDocx(context, cv.id!),
-                onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
-                onDuplicate: () => _duplicateCv(context, cv.id!),
-                onShare: () => _shareLink(context, cv.id!),
-              );
-            },
-          )),
+              Expanded(
+                  child: GridView.builder(
+                padding: EdgeInsets.all(isDesktop ? 24 : 16),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: crossAxisCount == 1 ? 2.2 : 1.4,
+                ),
+                itemCount: cvProvider.cvs.length,
+                itemBuilder: (context, index) {
+                  final cv = cvProvider.cvs[index];
+                  return CvCard(
+                    cv: cv,
+                    onTap: () => context.push('/cvs/${cv.id}'),
+                    onEdit: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+                    onDownloadPdf: () => _downloadPdf(context, cv),
+                    onDownloadDocx: () => _downloadDocx(context, cv.id!),
+                    onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
+                    onDuplicate: () => _duplicateCv(context, cv.id!),
+                    onShare: () => _shareLink(context, cv.id!),
+                  );
+                },
+              )),
             ],
           );
         },
@@ -131,8 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Text(success ? 'CV supprimé' : cvProvider.error ?? 'Erreur'),
         behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
       ),
     );
   }
@@ -145,11 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final success = await cvProvider.duplicateCv(cvId);
     messenger.showSnackBar(
       SnackBar(
-        content:
-            Text(success ? 'CV dupliqué ✓' : cvProvider.error ?? 'Erreur'),
+        content: Text(success ? 'CV dupliqué ✓' : cvProvider.error ?? 'Erreur'),
         behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
       ),
     );
   }
@@ -159,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final url = await ShareService().generateShareLink(cvId);
-      if (!mounted || url == null) return;
+      if (!context.mounted || url == null) return;
 
       await showDialog(
         context: context,
@@ -182,8 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: SelectableText(
                   url,
-                  style: const TextStyle(
-                      fontSize: 12, fontFamily: 'monospace'),
+                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
                 ),
               ),
             ],
@@ -286,7 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Erreur import: ${e.toString().replaceAll('Exception: ', '')}'),
+          content: Text(
+              'Erreur import: ${e.toString().replaceAll('Exception: ', '')}'),
           behavior: SnackBarBehavior.floating,
         ),
       );

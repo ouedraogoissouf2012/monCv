@@ -10,7 +10,9 @@ class ErrorHelper {
     final lower = raw.toLowerCase();
 
     // Auth
-    if (lower.contains('identifiants') || lower.contains('incorrect') || lower.contains('credentials')) {
+    if (lower.contains('identifiants') ||
+        lower.contains('incorrect') ||
+        lower.contains('credentials')) {
       return 'Identifiants incorrects. Vérifiez votre email et mot de passe.';
     }
     if (lower.contains('email') && lower.contains('existe')) {
@@ -18,7 +20,9 @@ class ErrorHelper {
     }
 
     // Reseau
-    if (lower.contains('connection refused') || lower.contains('failed to fetch') || lower.contains('socketexception')) {
+    if (lower.contains('connection refused') ||
+        lower.contains('failed to fetch') ||
+        lower.contains('socketexception')) {
       return 'Impossible de joindre le serveur. Vérifiez votre connexion internet.';
     }
     if (lower.contains('timeout') || lower.contains('timed out')) {
@@ -29,10 +33,14 @@ class ErrorHelper {
     if (lower.contains('500') || lower.contains('internal')) {
       return 'Une erreur serveur est survenue. Réessayez dans quelques instants.';
     }
-    if (lower.contains('403') || lower.contains('forbidden') || lower.contains('non autorise')) {
+    if (lower.contains('403') ||
+        lower.contains('forbidden') ||
+        lower.contains('non autorise')) {
       return 'Accès refusé. Reconnectez-vous et réessayez.';
     }
-    if (lower.contains('429') || lower.contains('rate limit') || lower.contains('trop de tentatives')) {
+    if (lower.contains('429') ||
+        lower.contains('rate limit') ||
+        lower.contains('trop de tentatives')) {
       return 'Trop de tentatives. Patientez une minute avant de réessayer.';
     }
 
@@ -47,7 +55,9 @@ class ErrorHelper {
     }
 
     // IA
-    if (lower.contains('deepseek') || lower.contains('ia') || lower.contains('enhance')) {
+    if (lower.contains('deepseek') ||
+        lower.contains('ia') ||
+        lower.contains('enhance')) {
       return 'Le service IA est temporairement indisponible. Réessayez plus tard.';
     }
 
@@ -57,7 +67,8 @@ class ErrorHelper {
     }
 
     // Defaut : nettoyer le message technique
-    String cleaned = raw.replaceAll('Exception: ', '').replaceAll('Exception:', '').trim();
+    String cleaned =
+        raw.replaceAll('Exception: ', '').replaceAll('Exception:', '').trim();
     if (cleaned.length > 100) cleaned = '${cleaned.substring(0, 100)}...';
     return cleaned;
   }
@@ -65,14 +76,28 @@ class ErrorHelper {
   /// Determine le type d'erreur pour adapter le style.
   static ErrorType errorType(String raw) {
     final lower = raw.toLowerCase();
-    if (lower.contains('identifiants') || lower.contains('credentials') || lower.contains('incorrect')) return ErrorType.auth;
-    if (lower.contains('connection') || lower.contains('socket') || lower.contains('timeout') || lower.contains('fetch')) return ErrorType.network;
-    if (lower.contains('requis') || lower.contains('invalide') || lower.contains('validation')) return ErrorType.validation;
+    if (lower.contains('identifiants') ||
+        lower.contains('credentials') ||
+        lower.contains('incorrect')) {
+      return ErrorType.auth;
+    }
+    if (lower.contains('connection') ||
+        lower.contains('socket') ||
+        lower.contains('timeout') ||
+        lower.contains('fetch')) {
+      return ErrorType.network;
+    }
+    if (lower.contains('requis') ||
+        lower.contains('invalide') ||
+        lower.contains('validation')) {
+      return ErrorType.validation;
+    }
     return ErrorType.server;
   }
 
   /// Affiche un SnackBar d'erreur bienveillant.
-  static void showError(BuildContext context, String rawError, {VoidCallback? onRetry}) {
+  static void showError(BuildContext context, String rawError,
+      {VoidCallback? onRetry}) {
     final message = friendlyMessage(rawError);
     final type = errorType(rawError);
     _showSnackBar(context, message, type, onRetry: onRetry);
@@ -88,7 +113,9 @@ class ErrorHelper {
     _showSnackBar(context, message, ErrorType.info);
   }
 
-  static void _showSnackBar(BuildContext context, String message, ErrorType type, {VoidCallback? onRetry}) {
+  static void _showSnackBar(
+      BuildContext context, String message, ErrorType type,
+      {VoidCallback? onRetry}) {
     final config = _configForType(type);
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -105,14 +132,23 @@ class ErrorHelper {
         children: [
           Icon(config.icon, size: 20, color: config.fg),
           const SizedBox(width: 12),
-          Expanded(child: Text(message, style: TextStyle(color: config.fg, fontSize: 13, fontWeight: FontWeight.w500))),
+          Expanded(
+              child: Text(message,
+                  style: TextStyle(
+                      color: config.fg,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500))),
           if (onRetry != null)
             TextButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 onRetry();
               },
-              child: Text('Réessayer', style: TextStyle(color: config.fg, fontWeight: FontWeight.w700, fontSize: 12)),
+              child: Text('Réessayer',
+                  style: TextStyle(
+                      color: config.fg,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12)),
             ),
         ],
       ),
@@ -121,24 +157,36 @@ class ErrorHelper {
 
   static _SnackConfig _configForType(ErrorType type) {
     return switch (type) {
-      ErrorType.auth => _SnackConfig(
-        bg: const Color(0xFFFEF2F2), fg: const Color(0xFFDC2626),
-        border: const Color(0xFFFECACA), icon: Icons.lock_outline_rounded),
-      ErrorType.network => _SnackConfig(
-        bg: const Color(0xFFFFF7ED), fg: const Color(0xFFEA580C),
-        border: const Color(0xFFFED7AA), icon: Icons.wifi_off_rounded),
-      ErrorType.validation => _SnackConfig(
-        bg: const Color(0xFFFEFCE8), fg: const Color(0xFFCA8A04),
-        border: const Color(0xFFFEF08A), icon: Icons.info_outline_rounded),
-      ErrorType.server => _SnackConfig(
-        bg: const Color(0xFFFEF2F2), fg: const Color(0xFFDC2626),
-        border: const Color(0xFFFECACA), icon: Icons.error_outline_rounded),
-      ErrorType.success => _SnackConfig(
-        bg: const Color(0xFFF0FDF4), fg: const Color(0xFF16A34A),
-        border: const Color(0xFFBBF7D0), icon: Icons.check_circle_outline_rounded),
-      ErrorType.info => _SnackConfig(
-        bg: const Color(0xFFEFF6FF), fg: const Color(0xFF2563EB),
-        border: const Color(0xFFBFDBFE), icon: Icons.info_outline_rounded),
+      ErrorType.auth => const _SnackConfig(
+          bg: Color(0xFFFEF2F2),
+          fg: Color(0xFFDC2626),
+          border: Color(0xFFFECACA),
+          icon: Icons.lock_outline_rounded),
+      ErrorType.network => const _SnackConfig(
+          bg: Color(0xFFFFF7ED),
+          fg: Color(0xFFEA580C),
+          border: Color(0xFFFED7AA),
+          icon: Icons.wifi_off_rounded),
+      ErrorType.validation => const _SnackConfig(
+          bg: Color(0xFFFEFCE8),
+          fg: Color(0xFFCA8A04),
+          border: Color(0xFFFEF08A),
+          icon: Icons.info_outline_rounded),
+      ErrorType.server => const _SnackConfig(
+          bg: Color(0xFFFEF2F2),
+          fg: Color(0xFFDC2626),
+          border: Color(0xFFFECACA),
+          icon: Icons.error_outline_rounded),
+      ErrorType.success => const _SnackConfig(
+          bg: Color(0xFFF0FDF4),
+          fg: Color(0xFF16A34A),
+          border: Color(0xFFBBF7D0),
+          icon: Icons.check_circle_outline_rounded),
+      ErrorType.info => const _SnackConfig(
+          bg: Color(0xFFEFF6FF),
+          fg: Color(0xFF2563EB),
+          border: Color(0xFFBFDBFE),
+          icon: Icons.info_outline_rounded),
     };
   }
 }
@@ -146,5 +194,9 @@ class ErrorHelper {
 class _SnackConfig {
   final Color bg, fg, border;
   final IconData icon;
-  const _SnackConfig({required this.bg, required this.fg, required this.border, required this.icon});
+  const _SnackConfig(
+      {required this.bg,
+      required this.fg,
+      required this.border,
+      required this.icon});
 }

@@ -58,7 +58,7 @@ class _CvCard extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -114,7 +114,8 @@ class _CvCard extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: AppColors.error),
+                            Icon(Icons.delete,
+                                size: 20, color: AppColors.error),
                             SizedBox(width: 8),
                             Text('Supprimer',
                                 style: TextStyle(color: AppColors.error)),

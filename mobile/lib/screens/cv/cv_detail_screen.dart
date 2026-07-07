@@ -128,7 +128,10 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                 icon: const Icon(Icons.auto_awesome_rounded),
                 tooltip: 'Ameliorer avec l\'IA',
                 onPressed: () async {
-                  final result = await showModalBottomSheet<Map<String, dynamic>>(
+                  final cvProvider = context.read<CvProvider>();
+                  final messenger = ScaffoldMessenger.of(context);
+                  final result =
+                      await showModalBottomSheet<Map<String, dynamic>>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -137,13 +140,18 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                   // print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
                   if (result != null && mounted) {
                     // print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
-                    final ok = await context.read<CvProvider>().applyAiEnhancements(cv.id!, result);
+                    final ok = await cvProvider.applyAiEnhancements(
+                      cv.id!,
+                      result,
+                    );
                     // print('[AI-DETAIL] applyAiEnhancements returned: $ok');
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
+                    messenger.showSnackBar(SnackBar(
+                      content:
+                          Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
                       behavior: SnackBarBehavior.floating,
-                      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+                      backgroundColor:
+                          ok ? const Color(0xFF10B981) : Colors.red,
                     ));
                   }
                 },
@@ -152,7 +160,10 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                 icon: const Icon(Icons.work_outline_rounded),
                 tooltip: 'Adapter a une offre',
                 onPressed: () async {
-                  final adapted = await showModalBottomSheet<Map<String, dynamic>>(
+                  final cvProvider = context.read<CvProvider>();
+                  final messenger = ScaffoldMessenger.of(context);
+                  final adapted =
+                      await showModalBottomSheet<Map<String, dynamic>>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -165,7 +176,6 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                   );
                   // Si l'utilisateur a clique "Creer une variante", dupliquer le CV avec les modifs IA
                   if (adapted != null && mounted) {
-                    final cvProvider = context.read<CvProvider>();
                     // Dupliquer d'abord
                     final duplicated = await cvProvider.duplicateCv(cv.id!);
                     if (duplicated && mounted) {
@@ -175,10 +185,11 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                         orElse: () => cv,
                       );
                       if (newCv.id != null) {
-                        await cvProvider.applyAiEnhancements(newCv.id!, adapted);
+                        await cvProvider.applyAiEnhancements(
+                            newCv.id!, adapted);
                       }
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        messenger.showSnackBar(const SnackBar(
                           content: Text('Variante adaptee creee'),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: Color(0xFF10B981),
@@ -226,8 +237,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: 'Modifier',
-                onPressed: () =>
-                    context.push('/cvs/${cv.id}/edit', extra: cv),
+                onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
           ),
@@ -350,7 +360,8 @@ class _CvStylePageState extends State<_CvStylePage> {
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               border: Border(
-                top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
+                top: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.1)),
               ),
             ),
             child: Row(
@@ -358,9 +369,12 @@ class _CvStylePageState extends State<_CvStylePage> {
                 if (!isWide) ...[
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => setState(() => _showPreview = !_showPreview),
+                      onPressed: () =>
+                          setState(() => _showPreview = !_showPreview),
                       icon: Icon(
-                        _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
+                        _showPreview
+                            ? Icons.tune_rounded
+                            : Icons.visibility_rounded,
                         size: 18,
                       ),
                       label: Text(_showPreview ? 'Options' : 'Apercu'),
@@ -389,9 +403,10 @@ class _CvStylePageState extends State<_CvStylePage> {
                     ),
                     icon: _downloading
                         ? const SizedBox(
-                            width: 18, height: 18,
+                            width: 18,
+                            height: 18,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.download_rounded, size: 20),
                     label: const Text('Telecharger PDF'),
@@ -415,15 +430,20 @@ class _CvStylePageState extends State<_CvStylePage> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _style.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _style.primaryColor.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: _style.primaryColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     '${CvStyle.templates.firstWhere((t) => t.id == _style.templateId).label} / ${_style.fontFamily}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _style.primaryColor),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _style.primaryColor),
                   ),
                 ),
                 const Spacer(),
@@ -521,7 +541,8 @@ class _CvStylePageState extends State<_CvStylePage> {
               onTap: () => _apply(_style.copyWith(primaryColor: c)),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: c,
                   shape: BoxShape.circle,
@@ -549,7 +570,8 @@ class _CvStylePageState extends State<_CvStylePage> {
             return GestureDetector(
               onTap: () => _apply(_style.copyWith(fontFamily: f)),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
@@ -566,7 +588,8 @@ class _CvStylePageState extends State<_CvStylePage> {
                     style: TextStyle(
                         fontSize: 11,
                         color: selected ? _style.primaryColor : null,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.normal)),
               ),
             );
           }).toList(),
@@ -616,7 +639,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 3),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
@@ -624,7 +648,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
                 ),
               ),
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 3),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
@@ -632,7 +657,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
                 ),
               ),
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
                   borderRadius: BorderRadius.circular(2),
