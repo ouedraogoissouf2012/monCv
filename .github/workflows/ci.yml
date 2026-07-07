@@ -2,7 +2,7 @@ name: CI — Build & Test
 
 on:
   push:
-    branches: [main, develop, 'feature/**']
+    branches: [main, develop, 'feature/**', 'issue-*']
   pull_request:
     branches: [main, develop]
 
@@ -158,6 +158,14 @@ jobs:
           path: |
             backend-smoke.log
             web-smoke-test-results.json
+
+      - name: Build PWA web bundle
+        working-directory: mobile
+        run: >
+          flutter build web --release --no-pub --pwa-strategy=offline-first
+          --dart-define=APP_ENV=production
+          --dart-define=API_BASE_URL=https://api.moncv.example/api
+          -o build/web-pwa
 
   # ── Build APK (sur tags release) ───────────────────────────
   build-apk:
