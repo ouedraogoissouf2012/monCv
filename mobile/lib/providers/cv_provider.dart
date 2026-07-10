@@ -179,7 +179,8 @@ class CvProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) async {
+  Future<bool> applyAiEnhancements(
+      int cvId, Map<String, dynamic> result) async {
     final cv = _currentCv;
     if (cv == null || cv.id != cvId) return false;
 
@@ -198,11 +199,15 @@ class CvProvider with ChangeNotifier {
           ville: updatedInfo.ville,
           codePostal: updatedInfo.codePostal,
           pays: updatedInfo.pays,
-          titrePoste: (newTitre != null && newTitre.isNotEmpty) ? newTitre : updatedInfo.titrePoste,
+          titrePoste: (newTitre != null && newTitre.isNotEmpty)
+              ? newTitre
+              : updatedInfo.titrePoste,
           linkedIn: updatedInfo.linkedIn,
           portfolio: updatedInfo.portfolio,
           photoUrl: updatedInfo.photoUrl,
-          resumeProfessionnel: (newResume != null && newResume.isNotEmpty) ? newResume : updatedInfo.resumeProfessionnel,
+          resumeProfessionnel: (newResume != null && newResume.isNotEmpty)
+              ? newResume
+              : updatedInfo.resumeProfessionnel,
         );
       }
     }
@@ -215,9 +220,14 @@ class CvProvider with ChangeNotifier {
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedExperiences[i];
           updatedExperiences[i] = Experience(
-            id: old.id, poste: old.poste, entreprise: old.entreprise,
-            lieu: old.lieu, dateDebut: old.dateDebut, dateFin: old.dateFin,
-            actuel: old.actuel, description: newDesc,
+            id: old.id,
+            poste: old.poste,
+            entreprise: old.entreprise,
+            lieu: old.lieu,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
+            actuel: old.actuel,
+            description: newDesc,
           );
         }
       }
@@ -231,8 +241,12 @@ class CvProvider with ChangeNotifier {
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedEducations[i];
           updatedEducations[i] = Education(
-            id: old.id, etablissement: old.etablissement, diplome: old.diplome,
-            domaine: old.domaine, dateDebut: old.dateDebut, dateFin: old.dateFin,
+            id: old.id,
+            etablissement: old.etablissement,
+            diplome: old.diplome,
+            domaine: old.domaine,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
             description: newDesc,
           );
         }
@@ -243,10 +257,12 @@ class CvProvider with ChangeNotifier {
     if (result['skills'] != null) {
       final aiSkills = result['skills'] as List<dynamic>;
       if (aiSkills.isNotEmpty) {
-        updatedSkills = aiSkills.map((s) => Skill(
-          nom: s['nom'] as String? ?? '',
-          niveau: s['niveau'] as int? ?? 3,
-        )).toList();
+        updatedSkills = aiSkills
+            .map((s) => Skill(
+                  nom: s['nom'] as String? ?? '',
+                  niveau: s['niveau'] as int? ?? 3,
+                ))
+            .toList();
       }
     }
 
@@ -258,9 +274,13 @@ class CvProvider with ChangeNotifier {
         if (newDesc != null && newDesc.isNotEmpty) {
           final old = updatedProjects[i];
           updatedProjects[i] = Project(
-            id: old.id, nom: old.nom, description: newDesc,
-            technologies: old.technologies, lien: old.lien,
-            dateDebut: old.dateDebut, dateFin: old.dateFin,
+            id: old.id,
+            nom: old.nom,
+            description: newDesc,
+            technologies: old.technologies,
+            lien: old.lien,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
           );
         }
       }
@@ -285,15 +305,49 @@ class CvProvider with ChangeNotifier {
     return true;
   }
 
-  void updateCvStyle(int cvId, CvStyle style) {
+  Future<bool> updateCvStyle(int cvId, CvStyle style) async {
+    final currentIndex = _cvs.indexWhere((c) => c.id == cvId);
+    final cv = _currentCv?.id == cvId
+        ? _currentCv
+        : currentIndex != -1
+            ? _cvs[currentIndex]
+            : null;
+
+    if (cv == null) {
+      _error = 'CV introuvable';
+      notifyListeners();
+      return false;
+    }
+
+    final updatedCv = cv.copyWith(style: style);
+    _error = null;
+
     if (_currentCv?.id == cvId) {
-      _currentCv = _currentCv!.copyWith(style: style);
+      _currentCv = updatedCv;
     }
     final index = _cvs.indexWhere((c) => c.id == cvId);
     if (index != -1) {
-      _cvs[index] = _cvs[index].copyWith(style: style);
+      _cvs[index] = updatedCv;
     }
     notifyListeners();
+
+    final result = await _repository.updateCv(cvId, updatedCv);
+    switch (result) {
+      case Success(:final data):
+        if (_currentCv?.id == cvId) {
+          _currentCv = data;
+        }
+        final index = _cvs.indexWhere((c) => c.id == cvId);
+        if (index != -1) {
+          _cvs[index] = data;
+        }
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
+    }
   }
 
   void setCurrentCv(Cv? cv) {

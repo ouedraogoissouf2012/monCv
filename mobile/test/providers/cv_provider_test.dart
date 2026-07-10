@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/core/usecase/usecase.dart';
 import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/models/cv_style.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/services/connectivity_service.dart';
@@ -16,21 +18,34 @@ import 'package:cv_mobile/usecases/cv/delete_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/duplicate_cv_usecase.dart';
 
 class MockGetAllCvs extends Mock implements GetAllCvsUseCase {}
+
 class MockGetCvById extends Mock implements GetCvByIdUseCase {}
+
 class MockCreateCv extends Mock implements CreateCvUseCase {}
+
 class MockUpdateCv extends Mock implements UpdateCvUseCase {}
+
 class MockDeleteCv extends Mock implements DeleteCvUseCase {}
+
 class MockDuplicateCv extends Mock implements DuplicateCvUseCase {}
+
 class MockCvRepository extends Mock implements CvRepository {}
+
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
-Cv _fakeCv({int id = 1, String titre = 'Mon CV'}) => Cv(
+Cv _fakeCv({
+  int id = 1,
+  String titre = 'Mon CV',
+  CvStyle style = CvStyle.defaultStyle,
+}) =>
+    Cv(
       id: id,
       titre: titre,
       educations: const [],
       experiences: const [],
       skills: const [],
       languages: const [],
+      style: style,
     );
 
 void main() {
@@ -85,7 +100,8 @@ void main() {
 
     test('loadCvs succes', () async {
       final cvs = [_fakeCv(id: 1), _fakeCv(id: 2, titre: 'CV 2')];
-      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success(cvs));
+      when(() => mockGetAll(any()))
+          .thenAnswer((_) async => Result.success(cvs));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -116,7 +132,8 @@ void main() {
 
     test('createCv succes', () async {
       final newCv = _fakeCv(id: 10, titre: 'Nouveau CV');
-      when(() => mockCreate(any())).thenAnswer((_) async => Result.success(newCv));
+      when(() => mockCreate(any()))
+          .thenAnswer((_) async => Result.success(newCv));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv(titre: 'Nouveau CV'));
@@ -127,7 +144,8 @@ void main() {
 
     test('createCv echec', () async {
       when(() => mockCreate(any())).thenAnswer((_) async =>
-          const Result.failure(ServerException(message: 'Creation impossible')));
+          const Result.failure(
+              ServerException(message: 'Creation impossible')));
 
       final provider = buildProvider();
       final result = await provider.createCv(_fakeCv());
@@ -139,8 +157,10 @@ void main() {
     test('updateCv succes', () async {
       final original = _fakeCv(id: 5, titre: 'Ancien');
       final updated = _fakeCv(id: 5, titre: 'Nouveau');
-      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([original]));
-      when(() => mockUpdate(any())).thenAnswer((_) async => Result.success(updated));
+      when(() => mockGetAll(any()))
+          .thenAnswer((_) async => Result.success([original]));
+      when(() => mockUpdate(any()))
+          .thenAnswer((_) async => Result.success(updated));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -152,8 +172,10 @@ void main() {
 
     test('deleteCv succes', () async {
       final cv = _fakeCv(id: 3);
-      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([cv]));
-      when(() => mockDelete(3)).thenAnswer((_) async => const Result.success(null));
+      when(() => mockGetAll(any()))
+          .thenAnswer((_) async => Result.success([cv]));
+      when(() => mockDelete(3))
+          .thenAnswer((_) async => const Result.success(null));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -165,7 +187,8 @@ void main() {
 
     test('deleteCv echec', () async {
       when(() => mockDelete(any())).thenAnswer((_) async =>
-          const Result.failure(ServerException(message: 'Suppression impossible')));
+          const Result.failure(
+              ServerException(message: 'Suppression impossible')));
 
       final provider = buildProvider();
       final result = await provider.deleteCv(99);
@@ -176,8 +199,10 @@ void main() {
 
     test('duplicateCv succes', () async {
       final copy = _fakeCv(id: 6, titre: 'Copie');
-      when(() => mockGetAll(any())).thenAnswer((_) async => Result.success([_fakeCv(id: 5)]));
-      when(() => mockDuplicate(5)).thenAnswer((_) async => Result.success(copy));
+      when(() => mockGetAll(any()))
+          .thenAnswer((_) async => Result.success([_fakeCv(id: 5)]));
+      when(() => mockDuplicate(5))
+          .thenAnswer((_) async => Result.success(copy));
 
       final provider = buildProvider();
       await provider.loadCvs();
@@ -185,6 +210,29 @@ void main() {
 
       expect(result, true);
       expect(provider.cvs.length, 2);
+    });
+
+    test('updateCvStyle sauvegarde le style via le repository', () async {
+      const style = CvStyle(
+        templateId: 'classique',
+        primaryColor: Color(0xFF10B981),
+        fontFamily: 'Lato',
+      );
+      final cv = _fakeCv(id: 7);
+      when(() => mockRepo.updateCv(7, any())).thenAnswer((invocation) async {
+        return Result.success(invocation.positionalArguments[1] as Cv);
+      });
+
+      final provider = buildProvider();
+      provider.setCurrentCv(cv);
+
+      final result = await provider.updateCvStyle(7, style);
+
+      expect(result, true);
+      expect(provider.currentCv?.style.templateId, 'classique');
+      expect(provider.currentCv?.style.primaryColor.toARGB32(), 0xFF10B981);
+      expect(provider.currentCv?.style.fontFamily, 'Lato');
+      verify(() => mockRepo.updateCv(7, any())).called(1);
     });
 
     test('connectivity offline', () async {
@@ -195,7 +243,8 @@ void main() {
     });
 
     test('connectivity restored', () async {
-      when(() => mockGetAll(any())).thenAnswer((_) async => const Result.success([]));
+      when(() => mockGetAll(any()))
+          .thenAnswer((_) async => const Result.success([]));
 
       final provider = buildProvider();
       connectivityCtrl.add(false);
