@@ -90,9 +90,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
         fullscreenDialog: true,
         builder: (_) => _CvStylePage(
           cv: cv,
-          onStyleChanged: (newStyle) {
-            context.read<CvProvider>().updateCvStyle(cv.id!, newStyle);
-          },
+          onStyleChanged: (newStyle) =>
+              context.read<CvProvider>().updateCvStyle(cv.id!, newStyle),
         ),
       ),
     );
@@ -128,7 +127,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                 icon: const Icon(Icons.auto_awesome_rounded),
                 tooltip: 'Ameliorer avec l\'IA',
                 onPressed: () async {
-                  final result = await showModalBottomSheet<Map<String, dynamic>>(
+                  final result =
+                      await showModalBottomSheet<Map<String, dynamic>>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -137,13 +137,17 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                   // print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
                   if (result != null && mounted) {
                     // print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
-                    final ok = await context.read<CvProvider>().applyAiEnhancements(cv.id!, result);
+                    final ok = await context
+                        .read<CvProvider>()
+                        .applyAiEnhancements(cv.id!, result);
                     // print('[AI-DETAIL] applyAiEnhancements returned: $ok');
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
+                      content:
+                          Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
                       behavior: SnackBarBehavior.floating,
-                      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+                      backgroundColor:
+                          ok ? const Color(0xFF10B981) : Colors.red,
                     ));
                   }
                 },
@@ -152,7 +156,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                 icon: const Icon(Icons.work_outline_rounded),
                 tooltip: 'Adapter a une offre',
                 onPressed: () async {
-                  final adapted = await showModalBottomSheet<Map<String, dynamic>>(
+                  final adapted =
+                      await showModalBottomSheet<Map<String, dynamic>>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
@@ -175,10 +180,12 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                         orElse: () => cv,
                       );
                       if (newCv.id != null) {
-                        await cvProvider.applyAiEnhancements(newCv.id!, adapted);
+                        await cvProvider.applyAiEnhancements(
+                            newCv.id!, adapted);
                       }
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
                           content: Text('Variante adaptee creee'),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: Color(0xFF10B981),
@@ -226,8 +233,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: 'Modifier',
-                onPressed: () =>
-                    context.push('/cvs/${cv.id}/edit', extra: cv),
+                onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
           ),
@@ -242,7 +248,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
 
 class _CvStylePage extends StatefulWidget {
   final Cv cv;
-  final ValueChanged<CvStyle> onStyleChanged;
+  final Future<bool> Function(CvStyle style) onStyleChanged;
 
   const _CvStylePage({required this.cv, required this.onStyleChanged});
 
@@ -254,6 +260,9 @@ class _CvStylePageState extends State<_CvStylePage> {
   late CvStyle _style;
   bool _showPreview = false;
   bool _downloading = false;
+  bool _savingStyle = false;
+  String? _styleError;
+  int _saveGeneration = 0;
   double _optionsWidth = 300;
 
   @override
@@ -262,9 +271,23 @@ class _CvStylePageState extends State<_CvStylePage> {
     _style = widget.cv.style;
   }
 
-  void _apply(CvStyle newStyle) {
-    setState(() => _style = newStyle);
-    widget.onStyleChanged(newStyle);
+  Future<void> _apply(CvStyle newStyle) async {
+    final generation = ++_saveGeneration;
+    setState(() {
+      _style = newStyle;
+      _savingStyle = true;
+      _styleError = null;
+    });
+
+    final saved = await widget.onStyleChanged(newStyle);
+    if (!mounted || generation != _saveGeneration) {
+      return;
+    }
+
+    setState(() {
+      _savingStyle = false;
+      _styleError = saved ? null : 'Style non sauvegarde';
+    });
   }
 
   Cv get _styledCv => widget.cv.copyWith(style: _style);
@@ -350,52 +373,94 @@ class _CvStylePageState extends State<_CvStylePage> {
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               border: Border(
-                top: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
+                top: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.1)),
               ),
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (!isWide) ...[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => setState(() => _showPreview = !_showPreview),
-                      icon: Icon(
-                        _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
-                        size: 18,
-                      ),
-                      label: Text(_showPreview ? 'Options' : 'Apercu'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: _style.primaryColor),
-                        foregroundColor: _style.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                if (_savingStyle || _styleError != null) ...[
+                  Row(
+                    children: [
+                      if (_savingStyle)
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _style.primaryColor,
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.error_outline,
+                          size: 16,
+                          color: colorScheme.error,
+                        ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _savingStyle ? 'Sauvegarde...' : _styleError!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _savingStyle
+                              ? colorScheme.onSurface.withValues(alpha: 0.65)
+                              : colorScheme.error,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 10),
                 ],
-                Expanded(
-                  flex: 2,
-                  child: FilledButton.icon(
-                    onPressed: _downloading ? null : _download,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _style.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                Row(
+                  children: [
+                    if (!isWide) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              setState(() => _showPreview = !_showPreview),
+                          icon: Icon(
+                            _showPreview
+                                ? Icons.tune_rounded
+                                : Icons.visibility_rounded,
+                            size: 18,
+                          ),
+                          label: Text(_showPreview ? 'Options' : 'Apercu'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(color: _style.primaryColor),
+                            foregroundColor: _style.primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: _downloading ? null : _download,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _style.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: _downloading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.download_rounded, size: 20),
+                        label: const Text('Telecharger PDF'),
                       ),
                     ),
-                    icon: _downloading
-                        ? const SizedBox(
-                            width: 18, height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.download_rounded, size: 20),
-                    label: const Text('Telecharger PDF'),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -415,15 +480,20 @@ class _CvStylePageState extends State<_CvStylePage> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _style.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _style.primaryColor.withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: _style.primaryColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     '${CvStyle.templates.firstWhere((t) => t.id == _style.templateId).label} / ${_style.fontFamily}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _style.primaryColor),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _style.primaryColor),
                   ),
                 ),
                 const Spacer(),
@@ -521,7 +591,8 @@ class _CvStylePageState extends State<_CvStylePage> {
               onTap: () => _apply(_style.copyWith(primaryColor: c)),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 32, height: 32,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: c,
                   shape: BoxShape.circle,
@@ -549,7 +620,8 @@ class _CvStylePageState extends State<_CvStylePage> {
             return GestureDetector(
               onTap: () => _apply(_style.copyWith(fontFamily: f)),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
@@ -566,7 +638,8 @@ class _CvStylePageState extends State<_CvStylePage> {
                     style: TextStyle(
                         fontSize: 11,
                         color: selected ? _style.primaryColor : null,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.normal)),
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.normal)),
               ),
             );
           }).toList(),
@@ -616,7 +689,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 3),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
@@ -624,7 +698,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
                 ),
               ),
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 3),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
@@ -632,7 +707,8 @@ class _DraggableDividerState extends State<_DraggableDivider> {
                 ),
               ),
               Container(
-                width: 4, height: 4,
+                width: 4,
+                height: 4,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: _hovering ? 0.6 : 0.3),
                   borderRadius: BorderRadius.circular(2),

@@ -127,6 +127,11 @@ class CvFlowIntegrationTest {
                 "languages", java.util.List.of(
                         Map.of("nom", "Francais", "langue", "Francais", "niveau", "C2"),
                         Map.of("nom", "Anglais", "langue", "Anglais", "niveau", "B1")
+                ),
+                "style", Map.of(
+                        "templateId", "moderne",
+                        "primaryColor", 0xFF2563EBL,
+                        "fontFamily", "Roboto"
                 )
         ));
 
@@ -141,6 +146,9 @@ class CvFlowIntegrationTest {
                 .andExpect(jsonPath("$.experiences", hasSize(1)))
                 .andExpect(jsonPath("$.skills", hasSize(3)))
                 .andExpect(jsonPath("$.languages", hasSize(2)))
+                .andExpect(jsonPath("$.style.templateId").value("moderne"))
+                .andExpect(jsonPath("$.style.primaryColor").value(0xFF2563EBL))
+                .andExpect(jsonPath("$.style.fontFamily").value("Roboto"))
                 .andReturn();
 
         Map<String, Object> body = mapper.readValue(
@@ -157,7 +165,10 @@ class CvFlowIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(cvId))
-                .andExpect(jsonPath("$.personalInfo.titrePoste").value("Developpeur Full Stack Java"));
+                .andExpect(jsonPath("$.personalInfo.titrePoste").value("Developpeur Full Stack Java"))
+                .andExpect(jsonPath("$.style.templateId").value("moderne"))
+                .andExpect(jsonPath("$.style.primaryColor").value(0xFF2563EBL))
+                .andExpect(jsonPath("$.style.fontFamily").value("Roboto"));
     }
 
     // ── 6. LISTE DES CVS ────────────────────────────────────────
@@ -187,7 +198,12 @@ class CvFlowIntegrationTest {
                 "experiences", java.util.List.of(),
                 "educations", java.util.List.of(),
                 "skills", java.util.List.of(),
-                "languages", java.util.List.of()
+                "languages", java.util.List.of(),
+                "style", Map.of(
+                        "templateId", "classique",
+                        "primaryColor", 0xFF10B981L,
+                        "fontFamily", "Lato"
+                )
         ));
 
         mvc.perform(put("/api/cvs/" + cvId)
@@ -195,7 +211,10 @@ class CvFlowIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titre").value("Senior Developpeur Full Stack"));
+                .andExpect(jsonPath("$.titre").value("Senior Developpeur Full Stack"))
+                .andExpect(jsonPath("$.style.templateId").value("classique"))
+                .andExpect(jsonPath("$.style.primaryColor").value(0xFF10B981L))
+                .andExpect(jsonPath("$.style.fontFamily").value("Lato"));
     }
 
     // ── 8. DUPLICATION CV ───────────────────────────────────────
@@ -207,7 +226,10 @@ class CvFlowIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.titre").value("Copie de Senior Developpeur Full Stack"))
-                .andExpect(jsonPath("$.id").value(not(cvId)));
+                .andExpect(jsonPath("$.id").value(not(cvId)))
+                .andExpect(jsonPath("$.style.templateId").value("classique"))
+                .andExpect(jsonPath("$.style.primaryColor").value(0xFF10B981L))
+                .andExpect(jsonPath("$.style.fontFamily").value("Lato"));
     }
 
     // ── 9. PARTAGE PUBLIC ───────────────────────────────────────
