@@ -24,11 +24,14 @@ class _StepInfo {
 
 const _kSteps = [
   _StepInfo(Icons.person_outline_rounded, 'Identite', 'Coordonnees & profil'),
-  _StepInfo(Icons.work_outline_rounded, 'Experiences', 'Parcours professionnel'),
+  _StepInfo(
+      Icons.work_outline_rounded, 'Experiences', 'Parcours professionnel'),
   _StepInfo(Icons.school_outlined, 'Formations', 'Diplomes & etudes'),
   _StepInfo(Icons.psychology_outlined, 'Competences', 'Skills & langues'),
   _StepInfo(Icons.verified_outlined, 'Extras', 'Certifications & projets'),
 ];
+
+final _kStepCount = _kSteps.length;
 
 // ── Écran principal ────────────────────────────────────────────
 
@@ -117,10 +120,10 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   int get _completionPercent {
     int done = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < _kStepCount; i++) {
       if (_stepComplete(i)) done++;
     }
-    return ((done / 5) * 100).round();
+    return ((done / _kStepCount) * 100).round();
   }
 
   bool _validateCurrentStep() {
@@ -131,6 +134,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   void _goToStep(int step) {
+    if (step < 0 || step >= _kStepCount) return;
     if (step > _currentStep && !_validateCurrentStep()) return;
     setState(() => _currentStep = step);
     // PageController n'est attache qu'en mode mobile (PageView)
@@ -145,7 +149,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   void _next() {
     if (!_validateCurrentStep()) return;
-    if (_currentStep < 4) _goToStep(_currentStep + 1);
+    if (_currentStep < _kStepCount - 1) _goToStep(_currentStep + 1);
   }
 
   void _previous() {
@@ -210,7 +214,8 @@ class _CvFormScreenState extends State<CvFormScreen> {
                   children: [
                     Expanded(
                       child: Text('Aperçu — ${_currentCv.titre}',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 15),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -258,7 +263,8 @@ class _CvFormScreenState extends State<CvFormScreen> {
         _ExtrasStep(
           certifications: _certifications,
           projects: _projects,
-          onCertificationsChanged: (list) => setState(() => _certifications = list),
+          onCertificationsChanged: (list) =>
+              setState(() => _certifications = list),
           onProjectsChanged: (list) => setState(() => _projects = list),
         ),
       ];
@@ -293,12 +299,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.check_rounded, size: 18),
                 label: Text(isEditing ? 'Mettre à jour' : 'Enregistrer'),
                 style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ),
@@ -361,7 +369,7 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLastStep = currentStep == 4;
+    final isLastStep = currentStep == _kStepCount - 1;
 
     return Column(
       children: [
@@ -380,7 +388,7 @@ class _MobileLayout extends StatelessWidget {
           child: PageView.builder(
             controller: pageController,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 5,
+            itemCount: _kStepCount,
             itemBuilder: (_, i) => SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
               child: stepContents[i],
@@ -469,7 +477,7 @@ class _MobileLayout extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                '${currentStep + 1}/6',
+                                '${currentStep + 1}/$_kStepCount',
                                 style: const TextStyle(
                                     fontSize: 11, fontWeight: FontWeight.w600),
                               ),
@@ -516,7 +524,7 @@ class _StepperHeader extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: List.generate(6, (i) {
+          children: List.generate(_kStepCount, (i) {
             final isActive = i == currentStep;
             final isDone = stepComplete(i) && i < currentStep;
             final isPast = i < currentStep;
@@ -551,13 +559,16 @@ class _StepperHeader extends StatelessWidget {
                               ? null
                               : Border.all(
                                   color: isPast
-                                      ? colorScheme.primary.withValues(alpha: 0.4)
-                                      : colorScheme.outline.withValues(alpha: 0.25),
+                                      ? colorScheme.primary
+                                          .withValues(alpha: 0.4)
+                                      : colorScheme.outline
+                                          .withValues(alpha: 0.25),
                                 ),
                           boxShadow: isActive
                               ? [
                                   BoxShadow(
-                                    color: colorScheme.primary.withValues(alpha: 0.3),
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   )
@@ -735,7 +746,8 @@ class _DesktopLayout extends StatelessWidget {
                                   : 'Excellent !',
                           style: TextStyle(
                             fontSize: 12,
-                            color: colorScheme.onSurface.withValues(alpha: 0.55),
+                            color:
+                                colorScheme.onSurface.withValues(alpha: 0.55),
                           ),
                         ),
                       ],
@@ -751,7 +763,7 @@ class _DesktopLayout extends StatelessWidget {
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: 5,
+                  itemCount: _kStepCount,
                   itemBuilder: (_, i) {
                     final isActive = i == currentStep;
                     final isDone = stepComplete(i);
@@ -857,7 +869,8 @@ class _DesktopLayout extends StatelessWidget {
                             padding: const EdgeInsets.all(40),
                             child: Center(
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 700),
+                                constraints:
+                                    const BoxConstraints(maxWidth: 700),
                                 child: content,
                               ),
                             ),
@@ -901,8 +914,8 @@ class _StepWrapper extends StatelessWidget {
               color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(11),
             ),
-            child:
-                Icon(_kSteps[stepIndex].icon, color: colorScheme.primary, size: 20),
+            child: Icon(_kSteps[stepIndex].icon,
+                color: colorScheme.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -991,8 +1004,7 @@ class _ExtrasStep extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         CertificationsSection(
-            certifications: certifications,
-            onChanged: onCertificationsChanged),
+            certifications: certifications, onChanged: onCertificationsChanged),
         const SizedBox(height: 28),
         _SubSectionTitle(
           icon: Icons.rocket_launch_outlined,
@@ -1045,8 +1057,7 @@ class _SubSectionTitle extends StatelessWidget {
         if (count > 0) ...[
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -1080,7 +1091,7 @@ class _DesktopNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isLast = currentStep == 4;
+    final isLast = currentStep == _kStepCount - 1;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
@@ -1110,7 +1121,7 @@ class _DesktopNavBar extends StatelessWidget {
               const Spacer(),
               // Indicateur d'étape
               Text(
-                '${currentStep + 1} / 6',
+                '${currentStep + 1} / $_kStepCount',
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.45),
                   fontSize: 13,
