@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -48,13 +49,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String label;
     Color color;
     if (strength < 0.3) {
-      label = 'Faible'; color = Colors.red;
+      label = 'Faible';
+      color = Colors.red;
     } else if (strength < 0.6) {
-      label = 'Moyen'; color = Colors.orange;
+      label = 'Moyen';
+      color = Colors.orange;
     } else if (strength < 0.8) {
-      label = 'Bon'; color = const Color(0xFF2563EB);
+      label = 'Bon';
+      color = const Color(0xFF2563EB);
     } else {
-      label = 'Fort'; color = const Color(0xFF10B981);
+      label = 'Fort';
+      color = const Color(0xFF10B981);
     }
 
     setState(() {
@@ -90,22 +95,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return Scaffold(
       backgroundColor: _kBg,
       body: Stack(
         children: [
           const _GridBackground(),
           const _FloatingOrb(
-            size: 500, color: _kBlue, opacity: 0.10,
-            top: -100, right: -100, delay: 0,
+            size: 500,
+            color: _kBlue,
+            opacity: 0.10,
+            top: -100,
+            right: -100,
+            delay: 0,
           ),
           const _FloatingOrb(
-            size: 400, color: _kBlue, opacity: 0.06,
-            bottom: -80, left: -80, delay: 3,
+            size: 400,
+            color: _kBlue,
+            opacity: 0.06,
+            bottom: -80,
+            left: -80,
+            delay: 3,
           ),
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: isNarrow ? 16 : 24,
+                vertical: 24,
+              ),
               child: _buildCard(),
             ),
           ),
@@ -115,6 +133,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildCard() {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 700),
@@ -129,10 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 460),
-        padding: const EdgeInsets.fromLTRB(36, 40, 36, 32),
+        padding:
+            EdgeInsets.fromLTRB(isNarrow ? 20 : 36, 36, isNarrow ? 20 : 36, 28),
         decoration: BoxDecoration(
           color: _kWhite,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(isNarrow ? 24 : 28),
           border: Border.all(color: _kBorder, width: 0.5),
           boxShadow: const [
             BoxShadow(
@@ -158,18 +179,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 children: [
                   Container(
-                    width: 38, height: 38,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: _kBlue,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.description_outlined, size: 20, color: _kWhite),
+                    child: const Icon(Icons.description_outlined,
+                        size: 20, color: _kWhite),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     'MonCV',
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 20, fontWeight: FontWeight.w500, color: _kText,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      color: _kText,
                     ),
                   ),
                 ],
@@ -179,46 +204,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 'Créez votre\ncompte.',
                 style: GoogleFonts.playfairDisplay(
-                  fontSize: 32, fontWeight: FontWeight.w400,
-                  color: _kText, height: 1.2, letterSpacing: -0.5,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w400,
+                  color: _kText,
+                  height: 1.2,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 6),
               const Text(
                 'Rejoignez MonCV gratuitement',
-                style: TextStyle(fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300),
+                style: TextStyle(
+                    fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300),
               ),
               const SizedBox(height: 28),
               // Prénom + Nom
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildField(
-                      label: 'Prénom',
-                      icon: Icons.person_outline,
-                      controller: _prenomCtrl,
-                      hint: 'Issouf',
-                      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildField(
-                      label: 'Nom',
-                      icon: Icons.person_outline,
-                      controller: _nomCtrl,
-                      hint: 'Ouedraogo',
-                      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
-                    ),
-                  ),
-                ],
-              ),
+              _buildNameFields(isNarrow),
               const SizedBox(height: 14),
               _buildField(
                 label: 'Adresse email',
                 icon: Icons.email_outlined,
                 controller: _emailCtrl,
                 hint: 'vous@exemple.com',
+                compact: isNarrow,
                 keyboardType: TextInputType.emailAddress,
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Champ requis';
@@ -234,12 +242,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordCtrl,
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                 obscure: _obscure,
+                compact: isNarrow,
                 onChanged: _checkPasswordStrength,
                 suffixIcon: GestureDetector(
                   onTap: () => setState(() => _obscure = !_obscure),
                   child: Icon(
-                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    size: 18, color: _kMuted,
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 18,
+                    color: _kMuted,
                   ),
                 ),
                 validator: (v) {
@@ -264,8 +276,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(_passwordLabel, style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600, color: _passwordColor)),
+                  Text(_passwordLabel,
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _passwordColor)),
                 ]),
               ],
               const SizedBox(height: 14),
@@ -276,16 +291,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _confirmCtrl,
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                 obscure: _obscureConfirm,
+                compact: isNarrow,
                 suffixIcon: GestureDetector(
-                  onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  onTap: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
                   child: Icon(
-                    _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    size: 18, color: _kMuted,
+                    _obscureConfirm
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 18,
+                    color: _kMuted,
                   ),
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Requis';
-                  if (v != _passwordCtrl.text) return 'Les mots de passe ne correspondent pas';
+                  if (v != _passwordCtrl.text) {
+                    return 'Les mots de passe ne correspondent pas';
+                  }
                   return null;
                 },
               ),
@@ -307,7 +329,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     child: auth.isLoading
                         ? const SizedBox(
-                            width: 20, height: 20,
+                            width: 20,
+                            height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation(_kWhite),
@@ -315,15 +338,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           )
                         : const Text(
                             'Créer mon compte',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500),
                           ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               // Login link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     'Déjà un compte ? ',
@@ -334,7 +359,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: const Text(
                       'Se connecter',
                       style: TextStyle(
-                        fontSize: 13, color: _kBlue, fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: _kBlue,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -347,13 +374,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const BoxDecoration(
                   border: Border(top: BorderSide(color: _kBorder, width: 0.5)),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: const Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 20,
+                  runSpacing: 8,
                   children: [
                     _FeatureChip('Suggestions IA'),
-                    SizedBox(width: 20),
                     _FeatureChip('Export PDF'),
-                    SizedBox(width: 20),
                     _FeatureChip('Partage public'),
                   ],
                 ),
@@ -362,6 +389,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNameFields(bool isNarrow) {
+    final prenom = _buildField(
+      label: 'Prénom',
+      icon: Icons.person_outline,
+      controller: _prenomCtrl,
+      hint: 'Issouf',
+      compact: isNarrow,
+      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+    );
+    final nom = _buildField(
+      label: 'Nom',
+      icon: Icons.person_outline,
+      controller: _nomCtrl,
+      hint: 'Ouedraogo',
+      compact: isNarrow,
+      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+    );
+
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          prenom,
+          const SizedBox(height: 14),
+          nom,
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: prenom),
+        const SizedBox(width: 12),
+        Expanded(child: nom),
+      ],
     );
   }
 
@@ -375,6 +440,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Widget? suffixIcon,
     String? Function(String?)? validator,
     ValueChanged<String>? onChanged,
+    bool compact = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +448,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w500,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
             color: _kMuted,
           ),
         ),
@@ -393,6 +460,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           obscureText: obscure,
           validator: validator,
           onChanged: onChanged,
+          maxLines: 1,
           textCapitalization: keyboardType == TextInputType.text
               ? TextCapitalization.words
               : TextCapitalization.none,
@@ -401,13 +469,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             hintText: hint,
             hintStyle: const TextStyle(color: Color(0xFFBBB9B2)),
             prefixIcon: Icon(icon, size: 18, color: _kMuted),
+            prefixIconConstraints: BoxConstraints(
+              minWidth: compact ? 38 : 46,
+              minHeight: compact ? 42 : 48,
+            ),
             suffixIcon: suffixIcon != null
-                ? Padding(padding: const EdgeInsets.only(right: 8), child: suffixIcon)
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8), child: suffixIcon)
                 : null,
-            suffixIconConstraints: const BoxConstraints(maxHeight: 24),
+            suffixIconConstraints: BoxConstraints(
+              minWidth: compact ? 34 : 40,
+              minHeight: compact ? 42 : 48,
+            ),
             filled: true,
             fillColor: _kFieldBg,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: compact ? 10 : 14,
+              vertical: compact ? 12 : 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: _kBorder, width: 0.5),
@@ -443,7 +522,8 @@ class _FeatureChip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 5, height: 5,
+          width: 5,
+          height: 5,
           decoration: BoxDecoration(
             color: _kBlue.withValues(alpha: 0.5),
             shape: BoxShape.circle,
@@ -500,7 +580,10 @@ class _FloatingOrb extends StatefulWidget {
     required this.size,
     required this.color,
     required this.opacity,
-    this.top, this.right, this.bottom, this.left,
+    this.top,
+    this.right,
+    this.bottom,
+    this.left,
     required this.delay,
   });
 
@@ -511,6 +594,7 @@ class _FloatingOrb extends StatefulWidget {
 class _FloatingOrbState extends State<_FloatingOrb>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
+  Timer? _delayTimer;
 
   @override
   void initState() {
@@ -519,13 +603,18 @@ class _FloatingOrbState extends State<_FloatingOrb>
       vsync: this,
       duration: const Duration(seconds: 12),
     );
-    Future.delayed(Duration(seconds: widget.delay), () {
-      if (mounted) _ctrl.repeat(reverse: true);
-    });
+    if (widget.delay == 0) {
+      _ctrl.repeat(reverse: true);
+    } else {
+      _delayTimer = Timer(Duration(seconds: widget.delay), () {
+        if (mounted) _ctrl.repeat(reverse: true);
+      });
+    }
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
@@ -537,10 +626,14 @@ class _FloatingOrbState extends State<_FloatingOrb>
       builder: (_, child) {
         final t = _ctrl.value;
         return Positioned(
-          top: widget.top != null ? widget.top! + 20 * math.sin(t * math.pi) : null,
+          top: widget.top != null
+              ? widget.top! + 20 * math.sin(t * math.pi)
+              : null,
           right: widget.right,
           bottom: widget.bottom,
-          left: widget.left != null ? widget.left! + 15 * math.cos(t * math.pi) : null,
+          left: widget.left != null
+              ? widget.left! + 15 * math.cos(t * math.pi)
+              : null,
           child: child!,
         );
       },
