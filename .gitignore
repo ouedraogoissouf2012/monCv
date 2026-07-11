@@ -10,6 +10,7 @@
 # ========================
 backend/target/
 backend/.mvn/
+backend/.metadata/
 *.class
 *.jar
 *.war
@@ -19,6 +20,7 @@ backend/.mvn/
 # ========================
 mobile/.dart_tool/
 mobile/build/
+mobile/android/build/
 mobile/.flutter-plugins
 mobile/.flutter-plugins-dependencies
 mobile/.packages
