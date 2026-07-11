@@ -173,8 +173,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de la creation du CV');
+      _throwApiError(response, 'Erreur lors de la creation du CV');
     }
   }
 
@@ -188,9 +187,25 @@ class ApiService {
     if (response.statusCode == 200) {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de la mise a jour du CV');
+      _throwApiError(response, 'Erreur lors de la mise a jour du CV');
     }
+  }
+
+  Never _throwApiError(http.Response response, String fallbackMessage) {
+    Map<String, dynamic>? body;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        body = Map<String, dynamic>.from(decoded);
+        body['status'] ??= response.statusCode;
+        body['message'] ??= fallbackMessage;
+      }
+    } catch (_) {
+      // Retombe sur un message simple si le corps n'est pas du JSON valide.
+    }
+
+    if (body != null) throw Exception(jsonEncode(body));
+    throw Exception(fallbackMessage);
   }
 
   Future<void> deleteCv(int id) async {

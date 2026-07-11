@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
+import '../../services/cv_validator.dart';
 import '../../utils/constants.dart';
 import '../../widgets/cv_preview.dart';
 import 'sections/personal_info_section.dart';
@@ -174,6 +175,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
       _goToStep(0);
       return;
     }
+
+    final saveIssue = CvValidator().validateForSave(_currentCv);
+    if (saveIssue != null) {
+      _goToStep(_stepIndexForSaveIssue(saveIssue.category));
+      _showSaveValidationError(saveIssue.message);
+      return;
+    }
+
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -203,6 +212,36 @@ class _CvFormScreenState extends State<CvFormScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ));
     }
+  }
+
+  int _stepIndexForSaveIssue(String category) {
+    switch (category) {
+      case 'experiences':
+        return 1;
+      case 'formations':
+        return 2;
+      case 'competences':
+      case 'langues':
+        return 3;
+      case 'certifications':
+      case 'projets':
+        return 4;
+      case 'identite':
+      default:
+        return 0;
+    }
+  }
+
+  void _showSaveValidationError(String message) {
+    final colorScheme = Theme.of(context).colorScheme;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _showPreview() {
@@ -254,14 +293,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
           formKey: _personalInfoFormKey,
         ),
         _StepWrapper(
-          stepIndex: 2,
+          stepIndex: 1,
           child: ExperienceSection(
             experiences: _experiences,
             onChanged: (list) => setState(() => _experiences = list),
           ),
         ),
         _StepWrapper(
-          stepIndex: 3,
+          stepIndex: 2,
           child: EducationSection(
             educations: _educations,
             onChanged: (list) => setState(() => _educations = list),

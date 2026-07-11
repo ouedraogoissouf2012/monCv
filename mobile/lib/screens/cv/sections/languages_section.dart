@@ -125,7 +125,7 @@ class LanguagesSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'NIVEAU',
+            'NIVEAU *',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
