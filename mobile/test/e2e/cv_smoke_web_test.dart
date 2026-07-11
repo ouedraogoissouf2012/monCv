@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cv_mobile/main.dart' as app;
 import 'package:cv_mobile/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +25,7 @@ void main() {
     addTearDown(() => FlutterError.onError = previousOnError);
 
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
 
     String? accessToken;
     int? cvId;
