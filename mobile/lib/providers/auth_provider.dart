@@ -4,6 +4,7 @@ import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
 import '../models/user.dart';
 import '../repositories/auth_repository.dart';
+import '../services/token_storage.dart';
 import '../usecases/auth/login_usecase.dart';
 import '../usecases/auth/register_usecase.dart';
 import '../usecases/auth/logout_usecase.dart';
@@ -17,7 +18,8 @@ class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final UpdateProfileUseCase _updateProfileUseCase;
   final AuthRepository _repository;
-  final FlutterSecureStorage _storage;
+  final FlutterSecureStorage? _storage;
+  final TokenStorage _tokenStorage;
 
   AuthProvider({
     required LoginUseCase loginUseCase,
@@ -27,13 +29,15 @@ class AuthProvider with ChangeNotifier {
     required UpdateProfileUseCase updateProfileUseCase,
     required AuthRepository repository,
     FlutterSecureStorage? storage,
+    TokenStorage? tokenStorage,
   })  : _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _logoutUseCase = logoutUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _updateProfileUseCase = updateProfileUseCase,
         _repository = repository,
-        _storage = storage ?? const FlutterSecureStorage() {
+        _storage = storage,
+        _tokenStorage = tokenStorage ?? TokenStorage() {
     _checkAuthStatus();
   }
 
@@ -49,9 +53,17 @@ class AuthProvider with ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _isAuthenticated;
 
+  Future<String?> _readStoredAccessToken() {
+    final storage = _storage;
+    if (storage != null) {
+      return storage.read(key: 'access_token');
+    }
+    return _tokenStorage.read('access_token');
+  }
+
   Future<void> _checkAuthStatus() async {
     try {
-      final token = await _storage.read(key: 'access_token');
+      final token = await _readStoredAccessToken();
       if (token != null) {
         final result = await _getCurrentUserUseCase(const NoParams());
         switch (result) {
