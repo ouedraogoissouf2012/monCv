@@ -113,7 +113,7 @@ void main() {
     cvId = (created['id'] as num).toInt();
     _log('CV retrouve via API id=$cvId');
 
-    await _tapText(tester, 'Voir');
+    await _tapButtonText(tester, 'Voir');
     await _waitFor(tester, find.byTooltip('Personnaliser'));
     _log('detail CV ouvert');
 
