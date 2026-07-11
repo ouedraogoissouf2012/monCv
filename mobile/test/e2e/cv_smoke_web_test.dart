@@ -133,8 +133,10 @@ void main() {
       reason:
           'Aucune erreur Flutter bloquante ne doit apparaître pendant le smoke.',
     );
-  });
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
+
+const _waitStep = Duration(milliseconds: 100);
 
 Future<void> _enterField(WidgetTester tester, int index, String value) async {
   final field = find.byType(TextFormField).at(index);
@@ -161,11 +163,10 @@ Future<void> _waitFor(
   Finder finder, {
   Duration timeout = const Duration(seconds: 10),
 }) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump();
+  final attempts = (timeout.inMilliseconds / _waitStep.inMilliseconds).ceil();
+  for (var i = 0; i <= attempts; i++) {
     if (finder.evaluate().isNotEmpty) return;
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await tester.pump(_waitStep);
   }
   throw TestFailure('Element introuvable apres $timeout: $finder');
 }
@@ -175,19 +176,17 @@ Future<void> _waitForGone(
   Finder finder, {
   Duration timeout = const Duration(seconds: 10),
 }) async {
-  final deadline = DateTime.now().add(timeout);
-  while (DateTime.now().isBefore(deadline)) {
-    await tester.pump();
+  final attempts = (timeout.inMilliseconds / _waitStep.inMilliseconds).ceil();
+  for (var i = 0; i <= attempts; i++) {
     if (finder.evaluate().isEmpty) return;
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await tester.pump(_waitStep);
   }
   throw TestFailure('Element toujours visible apres $timeout: $finder');
 }
 
 Future<void> _shortPump(WidgetTester tester) async {
   await tester.pump();
-  await Future<void>.delayed(const Duration(milliseconds: 250));
-  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 250));
 }
 
 Future<List<dynamic>> _apiList(String path, String token) async {
