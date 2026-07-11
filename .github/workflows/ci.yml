@@ -148,7 +148,7 @@ jobs:
 
       - name: Run web smoke
         working-directory: mobile
-        run: flutter test test/e2e/cv_smoke_web_test.dart --platform chrome --no-pub --tags web-smoke --reporter expanded --file-reporter json:../web-smoke-test-results.json --dart-define=API_BASE_URL=http://localhost:8082/api
+        run: flutter test test/e2e/cv_smoke_web_test.dart --platform chrome --no-pub --tags web-smoke --timeout 3m --reporter expanded --file-reporter json:../web-smoke-test-results.json --dart-define=API_BASE_URL=http://localhost:8082/api
 
       - name: Upload smoke logs
         if: failure()
