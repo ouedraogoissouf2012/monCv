@@ -128,9 +128,22 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   bool _validateCurrentStep() {
     if (_currentStep == 0) {
-      return _personalInfoFormKey.currentState?.validate() ?? false;
+      return _validatePersonalInfo();
     }
     return true;
+  }
+
+  bool _validatePersonalInfo() {
+    final formState = _personalInfoFormKey.currentState;
+    if (formState != null) return formState.validate();
+
+    final info = _personalInfo;
+    final email = info?.email?.trim();
+    return info != null &&
+        (info.prenom?.trim().isNotEmpty ?? false) &&
+        (info.nom?.trim().isNotEmpty ?? false) &&
+        email != null &&
+        RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$').hasMatch(email);
   }
 
   void _goToStep(int step) {
@@ -157,7 +170,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   Future<void> _save() async {
-    if (!(_personalInfoFormKey.currentState?.validate() ?? false)) {
+    if (!_validatePersonalInfo()) {
       _goToStep(0);
       return;
     }
