@@ -63,7 +63,7 @@ void main() {
     await _enterField(tester, 2, email);
     await _enterField(tester, 3, password);
     await _enterField(tester, 4, password);
-    await _tapText(tester, 'Créer mon compte');
+    await _tapButtonText(tester, 'Créer mon compte');
 
     await _waitFor(tester, find.text('Mes CVs'),
         timeout: const Duration(seconds: 20));
@@ -160,6 +160,26 @@ Future<void> _tapText(
   return _tapFinder(tester, find.text(text), timeout: timeout);
 }
 
+Future<void> _tapButtonText(WidgetTester tester, String text) async {
+  final buttonFinders = [
+    find.widgetWithText(ElevatedButton, text),
+    find.widgetWithText(FilledButton, text),
+    find.widgetWithText(TextButton, text),
+    find.widgetWithText(OutlinedButton, text),
+  ];
+
+  for (final finder in buttonFinders) {
+    if (finder.evaluate().isNotEmpty) {
+      await _tapFinder(tester, finder);
+      return;
+    }
+  }
+
+  throw TestFailure(
+    'Bouton introuvable: $text. Textes visibles: ${_visibleTextSummary()}',
+  );
+}
+
 Future<void> _tapFinder(
   WidgetTester tester,
   Finder finder, {
@@ -182,7 +202,10 @@ Future<void> _waitFor(
     if (finder.evaluate().isNotEmpty) return;
     await _pumpAndYield(tester, _waitStep);
   }
-  throw TestFailure('Element introuvable apres $timeout: $finder');
+  throw TestFailure(
+    'Element introuvable apres $timeout: $finder. '
+    'Textes visibles: ${_visibleTextSummary()}',
+  );
 }
 
 Future<void> _waitForGone(
@@ -195,7 +218,10 @@ Future<void> _waitForGone(
     if (finder.evaluate().isEmpty) return;
     await _pumpAndYield(tester, _waitStep);
   }
-  throw TestFailure('Element toujours visible apres $timeout: $finder');
+  throw TestFailure(
+    'Element toujours visible apres $timeout: $finder. '
+    'Textes visibles: ${_visibleTextSummary()}',
+  );
 }
 
 Future<void> _shortPump(WidgetTester tester) async {
@@ -254,3 +280,16 @@ Map<String, String> _headers(String token) => {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
     };
+
+String _visibleTextSummary() {
+  return find
+      .byType(Text)
+      .evaluate()
+      .map((element) {
+        final widget = element.widget as Text;
+        return widget.data ?? widget.textSpan?.toPlainText() ?? '';
+      })
+      .where((text) => text.trim().isNotEmpty)
+      .take(30)
+      .join(' | ');
+}
