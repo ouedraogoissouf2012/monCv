@@ -36,11 +36,11 @@ void main() {
       if (token == null) return;
       final copyId = duplicateId;
       if (copyId != null) {
-        await _deleteCv(token, copyId);
+        await _deleteCv(tester, token, copyId);
       }
       final createdId = cvId;
       if (createdId != null) {
-        await _deleteCv(token, createdId);
+        await _deleteCv(tester, token, createdId);
       }
     });
 
@@ -106,7 +106,7 @@ void main() {
     await _waitFor(tester, find.text('55%'));
     _log('CV cree et visible dans la liste');
 
-    final cvs = await _apiList('/cvs', token);
+    final cvs = await _apiList(tester, '/cvs', token);
     final created = cvs
         .cast<Map<String, dynamic>>()
         .firstWhere((cv) => cv['titre'] == cvTitle);
@@ -117,22 +117,26 @@ void main() {
     await _waitFor(tester, find.byTooltip('Personnaliser'));
     _log('detail CV ouvert');
 
-    await _assertBinaryEndpoint('/cvs/$cvId/pdf', token, minBytes: 1000);
+    await _assertBinaryEndpoint(tester, '/cvs/$cvId/pdf', token,
+        minBytes: 1000);
     _log('export PDF verifie');
-    await _assertBinaryEndpoint('/cvs/$cvId/docx', token, minBytes: 1000);
+    await _assertBinaryEndpoint(tester, '/cvs/$cvId/docx', token,
+        minBytes: 1000);
     _log('export DOCX verifie');
 
-    final shared = await _apiJson('POST', '/cvs/$cvId/share', token);
+    final shared = await _apiJson(tester, 'POST', '/cvs/$cvId/share', token);
     final publicToken =
         shared['publicToken'] as String? ?? fail('Token public absent');
-    final publicCv = await _apiJson('GET', '/cvs/public/$publicToken', null);
+    final publicCv =
+        await _apiJson(tester, 'GET', '/cvs/public/$publicToken', null);
     expect(publicCv['titre'], cvTitle);
     _log('partage public verifie');
 
-    final duplicated = await _apiJson('POST', '/cvs/$cvId/duplicate', token);
+    final duplicated =
+        await _apiJson(tester, 'POST', '/cvs/$cvId/duplicate', token);
     duplicateId = (duplicated['id'] as num).toInt();
     expect(duplicated['titre'], startsWith('Copie de'));
-    final duplicateDelete = await _deleteCv(token, duplicateId);
+    final duplicateDelete = await _deleteCv(tester, token, duplicateId);
     expect(duplicateDelete, 204);
     duplicateId = null;
     _log('duplication et suppression verifiees');
@@ -143,7 +147,7 @@ void main() {
     await _tapText(tester, 'Lato');
     await _waitForGone(tester, find.text('Sauvegarde...'));
 
-    final styledCv = await _apiJson('GET', '/cvs/$cvId', token);
+    final styledCv = await _apiJson(tester, 'GET', '/cvs/$cvId', token);
     expect(styledCv['style']['templateId'], 'classique');
     expect(styledCv['style']['fontFamily'], 'Lato');
     _log('personnalisation verifiee');
@@ -270,9 +274,14 @@ Future<void> _pumpAndYield(WidgetTester tester, Duration duration) async {
   });
 }
 
-Future<List<dynamic>> _apiList(String path, String token) async {
-  final response = await _withApiTimeout(
-    http.get(_apiUri(path), headers: _headers(token)),
+Future<List<dynamic>> _apiList(
+  WidgetTester tester,
+  String path,
+  String token,
+) async {
+  final response = await _apiRequest(
+    tester,
+    () => http.get(_apiUri(path), headers: _headers(token)),
     'GET $path',
   );
   expect(response.statusCode, 200, reason: response.body);
@@ -280,6 +289,7 @@ Future<List<dynamic>> _apiList(String path, String token) async {
 }
 
 Future<Map<String, dynamic>> _apiJson(
+  WidgetTester tester,
   String method,
   String path,
   String? token,
@@ -287,12 +297,14 @@ Future<Map<String, dynamic>> _apiJson(
   final headers =
       token == null ? {'Accept': 'application/json'} : _headers(token);
   final response = switch (method) {
-    'GET' => await _withApiTimeout(
-        http.get(_apiUri(path), headers: headers),
+    'GET' => await _apiRequest(
+        tester,
+        () => http.get(_apiUri(path), headers: headers),
         'GET $path',
       ),
-    'POST' => await _withApiTimeout(
-        http.post(_apiUri(path), headers: headers),
+    'POST' => await _apiRequest(
+        tester,
+        () => http.post(_apiUri(path), headers: headers),
         'POST $path',
       ),
     _ => throw ArgumentError('Methode HTTP non supportee: $method'),
@@ -302,37 +314,44 @@ Future<Map<String, dynamic>> _apiJson(
 }
 
 Future<void> _assertBinaryEndpoint(
+  WidgetTester tester,
   String path,
   String token, {
   required int minBytes,
 }) async {
-  final response = await _withApiTimeout(
-    http.get(_apiUri(path), headers: _headers(token)),
+  final response = await _apiRequest(
+    tester,
+    () => http.get(_apiUri(path), headers: _headers(token)),
     'GET $path',
   );
   expect(response.statusCode, 200, reason: response.body);
   expect(response.bodyBytes.length, greaterThan(minBytes));
 }
 
-Future<int> _deleteCv(String token, int id) async {
-  final response = await _withApiTimeout(
-    http.delete(_apiUri('/cvs/$id'), headers: _headers(token)),
+Future<int> _deleteCv(WidgetTester tester, String token, int id) async {
+  final response = await _apiRequest(
+    tester,
+    () => http.delete(_apiUri('/cvs/$id'), headers: _headers(token)),
     'DELETE /cvs/$id',
   );
   return response.statusCode;
 }
 
-Future<http.Response> _withApiTimeout(
-  Future<http.Response> request,
+Future<http.Response> _apiRequest(
+  WidgetTester tester,
+  Future<http.Response> Function() request,
   String label,
-) {
-  return request.timeout(
-    _apiTimeout,
-    onTimeout: () => throw TimeoutException(
-      'Timeout API smoke: $label',
+) async {
+  final response = await tester.runAsync(
+    () => request().timeout(
       _apiTimeout,
+      onTimeout: () => throw TimeoutException(
+        'Timeout API smoke: $label',
+        _apiTimeout,
+      ),
     ),
   );
+  return response ?? fail('Reponse API smoke absente: $label');
 }
 
 Uri _apiUri(String path) => Uri.parse('${ApiConstants.baseUrl}$path');
