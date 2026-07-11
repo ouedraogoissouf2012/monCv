@@ -76,22 +76,24 @@ void main() {
     await _tapText(tester, 'Nouveau CV');
     await _waitFor(tester, find.text('Nouveau CV'));
 
-    await _enterField(tester, 0, 'Smoke');
-    await _enterField(tester, 1, 'Codex');
-    await _enterField(tester, 2, cvTitle);
-    await _enterField(tester, 3, email);
-    await _enterField(tester, 4, '+2250700000000');
-    await _enterField(tester, 6, 'Abidjan');
-    await _enterField(
+    await _enterFieldByLabel(tester, 'Prénom *', 'Smoke');
+    await _enterFieldByLabel(tester, 'Nom *', 'Codex');
+    await _enterFieldByLabel(tester, 'Titre du poste', cvTitle);
+    await _enterFieldByLabel(tester, 'Email *', email);
+    await _enterFieldByLabel(tester, 'Téléphone', '+2250700000000');
+    await _enterFieldByLabel(tester, 'Pays', "Côte d'Ivoire");
+    await _enterFieldByLabel(tester, 'Ville', 'Abidjan');
+    await _enterFieldByLabel(
       tester,
-      11,
+      'Resume professionnel',
       'Profil QA cree par le smoke E2E web pour verifier le parcours complet.',
     );
+    await _waitFor(tester, find.text('Complétion : 20%'));
 
     for (var i = 0; i < 4; i++) {
-      await _tapText(tester, 'Suivant');
+      await _tapButtonText(tester, 'Suivant');
     }
-    await _tapText(tester, 'Enregistrer le CV');
+    await _tapButtonText(tester, 'Enregistrer le CV');
 
     await _waitFor(tester, find.text(cvTitle),
         timeout: const Duration(seconds: 20));
@@ -149,6 +151,21 @@ Future<void> _enterField(WidgetTester tester, int index, String value) async {
   await _waitFor(tester, field);
   await tester.ensureVisible(field);
   await tester.enterText(field, value);
+  await _shortPump(tester);
+}
+
+Future<void> _enterFieldByLabel(
+  WidgetTester tester,
+  String label,
+  String value,
+) async {
+  final field = find.widgetWithText(TextFormField, label);
+  await _waitFor(tester, field);
+  final target = field.first;
+  await tester.ensureVisible(target);
+  await _shortPump(tester);
+  await tester.tap(target, warnIfMissed: false);
+  await tester.enterText(target, value);
   await _shortPump(tester);
 }
 
