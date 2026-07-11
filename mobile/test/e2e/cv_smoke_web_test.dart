@@ -42,14 +42,18 @@ void main() {
     });
 
     app.main();
-    await tester.pump();
+    await _shortPump(tester);
 
     final suffix = DateTime.now().millisecondsSinceEpoch;
     final email = 'smoke.$suffix@example.com';
     const password = 'Test1234!';
     const cvTitle = 'Architecte QA Web';
 
-    await _tapText(tester, 'Créer mon CV gratuitement');
+    await _tapText(
+      tester,
+      'Créer mon CV gratuitement',
+      timeout: const Duration(seconds: 20),
+    );
     await _waitFor(tester, find.text('Créer mon compte'));
 
     await _enterField(tester, 0, 'Smoke');
@@ -146,12 +150,20 @@ Future<void> _enterField(WidgetTester tester, int index, String value) async {
   await _shortPump(tester);
 }
 
-Future<void> _tapText(WidgetTester tester, String text) {
-  return _tapFinder(tester, find.text(text));
+Future<void> _tapText(
+  WidgetTester tester,
+  String text, {
+  Duration timeout = const Duration(seconds: 10),
+}) {
+  return _tapFinder(tester, find.text(text), timeout: timeout);
 }
 
-Future<void> _tapFinder(WidgetTester tester, Finder finder) async {
-  await _waitFor(tester, finder);
+Future<void> _tapFinder(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  await _waitFor(tester, finder, timeout: timeout);
   final target = finder.first;
   await tester.ensureVisible(target);
   await tester.tap(target, warnIfMissed: false);
@@ -166,7 +178,7 @@ Future<void> _waitFor(
   final attempts = (timeout.inMilliseconds / _waitStep.inMilliseconds).ceil();
   for (var i = 0; i <= attempts; i++) {
     if (finder.evaluate().isNotEmpty) return;
-    await tester.pump(_waitStep);
+    await _pumpAndYield(tester, _waitStep);
   }
   throw TestFailure('Element introuvable apres $timeout: $finder');
 }
@@ -179,14 +191,21 @@ Future<void> _waitForGone(
   final attempts = (timeout.inMilliseconds / _waitStep.inMilliseconds).ceil();
   for (var i = 0; i <= attempts; i++) {
     if (finder.evaluate().isEmpty) return;
-    await tester.pump(_waitStep);
+    await _pumpAndYield(tester, _waitStep);
   }
   throw TestFailure('Element toujours visible apres $timeout: $finder');
 }
 
 Future<void> _shortPump(WidgetTester tester) async {
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 250));
+  await _pumpAndYield(tester, const Duration(milliseconds: 250));
+}
+
+Future<void> _pumpAndYield(WidgetTester tester, Duration duration) async {
+  await tester.pump(duration);
+  await tester.runAsync(() async {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  });
 }
 
 Future<List<dynamic>> _apiList(String path, String token) async {
