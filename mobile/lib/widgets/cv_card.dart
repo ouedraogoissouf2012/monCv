@@ -63,6 +63,73 @@ class CvCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge variante
+              if (cv.isVariante) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.tune_rounded,
+                          size: 12, color: Color(0xFF2563EB)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Variante — ${cv.varianteLabel}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+              ],
+              // Badge non synchronise (CV cree offline)
+              if (cv.id != null && cv.id! < 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cloud_off_rounded,
+                            size: 12, color: Color(0xFFF59E0B)),
+                        SizedBox(width: 4),
+                        Text(
+                          'En attente de sync',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               // Header : titre + menu actions
               Row(
                 children: [
@@ -147,8 +214,7 @@ class CvCard extends StatelessWidget {
                               color: Theme.of(context).colorScheme.error),
                           title: Text(l.delete,
                               style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.error)),
+                                  color: Theme.of(context).colorScheme.error)),
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                         ),
@@ -159,11 +225,25 @@ class CvCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               // Date
-              Text(
-                _formatDate(cv.updatedAt ?? cv.createdAt, l),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+              Row(
+                children: [
+                  Text(
+                    _formatDate(cv.updatedAt ?? cv.createdAt, l),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                  ),
+                  if ((cv.variantCount ?? 0) > 0) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      '${cv.variantCount} variante${cv.variantCount! > 1 ? 's' : ''}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF2563EB),
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
+                  ],
+                ],
               ),
               const SizedBox(height: 10),
               // Barre de progression
@@ -197,20 +277,26 @@ class CvCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  StatsBadge(
-                    count: cv.experiences.length,
-                    label: l.experiences,
-                    color: colorScheme.primary,
+                  Expanded(
+                    child: StatsBadge(
+                      count: cv.experiences.length,
+                      label: l.experiences,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                  StatsBadge(
-                    count: cv.skills.length,
-                    label: l.skills,
-                    color: colorScheme.secondary,
+                  Expanded(
+                    child: StatsBadge(
+                      count: cv.skills.length,
+                      label: l.skills,
+                      color: colorScheme.secondary,
+                    ),
                   ),
-                  StatsBadge(
-                    count: cv.educations.length,
-                    label: l.education,
-                    color: const Color(0xFF10B981),
+                  Expanded(
+                    child: StatsBadge(
+                      count: cv.educations.length,
+                      label: l.education,
+                      color: const Color(0xFF10B981),
+                    ),
                   ),
                 ],
               ),

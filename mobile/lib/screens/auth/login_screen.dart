@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -454,6 +455,7 @@ class _FloatingOrb extends StatefulWidget {
 class _FloatingOrbState extends State<_FloatingOrb>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
+  Timer? _delayTimer;
 
   @override
   void initState() {
@@ -462,13 +464,18 @@ class _FloatingOrbState extends State<_FloatingOrb>
       vsync: this,
       duration: const Duration(seconds: 12),
     );
-    Future.delayed(Duration(seconds: widget.delay), () {
-      if (mounted) _ctrl.repeat(reverse: true);
-    });
+    if (widget.delay == 0) {
+      _ctrl.repeat(reverse: true);
+    } else {
+      _delayTimer = Timer(Duration(seconds: widget.delay), () {
+        if (mounted) _ctrl.repeat(reverse: true);
+      });
+    }
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _ctrl.dispose();
     super.dispose();
   }

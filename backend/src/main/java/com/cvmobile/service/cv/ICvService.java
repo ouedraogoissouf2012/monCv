@@ -28,4 +28,8 @@ public interface ICvService {
     CvResponse generateShareToken(Long cvId, Long userId);
 
     void deleteCv(Long cvId, Long userId);
+
+    CvResponse createVariant(Long parentCvId, String jobDescription, String label, Long userId);
+
+    List<CvResponse> getVariantsByParentId(Long parentCvId, Long userId);
 }

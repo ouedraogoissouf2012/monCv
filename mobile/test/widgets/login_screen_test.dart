@@ -71,7 +71,8 @@ void main() {
       expect(find.text('Se connecter'), findsOneWidget);
     });
 
-    testWidgets('affiche erreurs de validation si champs vides', (tester) async {
+    testWidgets('affiche erreurs de validation si champs vides',
+        (tester) async {
       _setScreenSize(tester);
       addTearDown(tester.view.resetPhysicalSize);
 
@@ -119,7 +120,8 @@ void main() {
         'user@test.com',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.widgetWithText(
+            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
         'password123',
       );
 

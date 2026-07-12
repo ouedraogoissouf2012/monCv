@@ -65,8 +65,37 @@ public class Cv {
     @org.hibernate.annotations.BatchSize(size = 20)
     private List<Project> projects = new ArrayList<>();
 
+    /**
+     * Lien vers le CV parent dont cette variante est issue.
+     * Null si c'est un CV original (pas une variante).
+     * ON DELETE SET NULL en base : si le parent est supprime, la variante devient standalone.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_cv_id")
+    private Cv parent;
+
+    /**
+     * Label court decrivant l'offre pour laquelle cette variante a ete creee.
+     * Ex: "Developpeur Backend Java — Sopra Steria"
+     * Null si c'est un CV original.
+     */
+    @Column(name = "variante_label", length = 200)
+    private String varianteLabel;
+
     @Column(name = "public_token", unique = true)
     private String publicToken;
+
+    @Builder.Default
+    @Column(name = "style_template_id", nullable = false, length = 50)
+    private String styleTemplateId = "moderne";
+
+    @Builder.Default
+    @Column(name = "style_primary_color", nullable = false)
+    private Long stylePrimaryColor = 4280648683L;
+
+    @Builder.Default
+    @Column(name = "style_font_family", nullable = false, length = 100)
+    private String styleFontFamily = "Roboto";
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -83,6 +112,10 @@ public class Cv {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isVariante() {
+        return varianteLabel != null;
     }
 
     public void addEducation(Education education) {

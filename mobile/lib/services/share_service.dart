@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import '../utils/constants.dart';
 
@@ -24,5 +25,23 @@ class ShareService {
   /// Copie un texte dans le presse-papier.
   Future<void> copyToClipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
+  }
+
+  String buildRecruiterMessage(String url, {String? title}) {
+    final cvTitle = title == null || title.trim().isEmpty
+        ? 'mon CV professionnel'
+        : 'mon CV "$title"';
+    return 'Bonjour, je vous partage $cvTitle créé avec MonCV. Vous pouvez le consulter ici : $url';
+  }
+
+  Uri buildWhatsAppUri(String message) {
+    return Uri.https('wa.me', '/', {'text': message});
+  }
+
+  Future<bool> shareToWhatsApp(String url, {String? title}) async {
+    final message = buildRecruiterMessage(url, title: title);
+    final uri = buildWhatsAppUri(message);
+    if (!await canLaunchUrl(uri)) return false;
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
