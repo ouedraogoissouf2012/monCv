@@ -126,6 +126,7 @@ jobs:
           DEEPSEEK_API_KEY: ""
           SERVER_PORT: 8082
           ALLOWED_ORIGINS: "http://localhost:*,http://127.0.0.1:*"
+          MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: "readinessState,db"
         run: |
           nohup mvn spring-boot:run -q > ../backend-smoke.log 2>&1 &
           echo $! > ../backend-smoke.pid
@@ -133,7 +134,7 @@ jobs:
       - name: Wait for backend
         run: |
           for i in {1..90}; do
-            if curl -fsS http://localhost:8082/actuator/health; then
+            if curl -fsS http://localhost:8082/actuator/health/readiness; then
               exit 0
             fi
             sleep 2
