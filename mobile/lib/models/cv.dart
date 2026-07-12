@@ -10,10 +10,16 @@ class Cv {
   final List<Language> languages;
   final List<Certification> certifications;
   final List<Project> projects;
+  final int? parentCvId;
+  final String? varianteLabel;
+  final int? variantCount;
   final String? shareToken;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final CvStyle style;
+
+  /// True si ce CV est une variante adaptee a une offre.
+  bool get isVariante => varianteLabel != null;
 
   Cv({
     this.id,
@@ -25,6 +31,9 @@ class Cv {
     this.languages = const [],
     this.certifications = const [],
     this.projects = const [],
+    this.parentCvId,
+    this.varianteLabel,
+    this.variantCount,
     this.shareToken,
     this.createdAt,
     this.updatedAt,
@@ -62,6 +71,9 @@ class Cv {
               ?.map((e) => Project.fromJson(e))
               .toList() ??
           [],
+      parentCvId: json['parentCvId'],
+      varianteLabel: json['varianteLabel'],
+      variantCount: json['variantCount'],
       shareToken: json['publicToken'],
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
@@ -84,6 +96,7 @@ class Cv {
       'languages': languages.map((e) => e.toJson()).toList(),
       'certifications': certifications.map((e) => e.toJson()).toList(),
       'projects': projects.map((e) => e.toJson()).toList(),
+      'style': style.toJson(),
     };
   }
 
@@ -155,6 +168,9 @@ class Cv {
     List<Language>? languages,
     List<Certification>? certifications,
     List<Project>? projects,
+    int? parentCvId,
+    String? varianteLabel,
+    int? variantCount,
     String? shareToken,
     CvStyle? style,
   }) {
@@ -168,6 +184,9 @@ class Cv {
       languages: languages ?? this.languages,
       certifications: certifications ?? this.certifications,
       projects: projects ?? this.projects,
+      parentCvId: parentCvId ?? this.parentCvId,
+      varianteLabel: varianteLabel ?? this.varianteLabel,
+      variantCount: variantCount ?? this.variantCount,
       shareToken: shareToken ?? this.shareToken,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -278,8 +297,7 @@ class Education {
       domaine: json['domaine'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
       description: json['description'],
     );
   }
@@ -326,8 +344,7 @@ class Experience {
       lieu: json['lieu'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
       description: json['description'],
       actuel: json['actuel'] ?? false,
     );
@@ -479,8 +496,7 @@ class Project {
       lien: json['lien'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
 import 'core/di/injection_container.dart';
+import 'l10n/app_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cv_provider.dart';
 import 'providers/theme_provider.dart';
@@ -50,6 +51,9 @@ class _MyAppState extends State<MyApp> {
             debugShowCheckedModeBanner: false,
             routerConfig: _router,
             theme: AppThemes.get(themeProvider.mode),
+            locale: const Locale('fr'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           );
         },
       ),

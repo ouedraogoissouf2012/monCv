@@ -33,8 +33,7 @@ class EducationSection extends StatelessWidget {
     Education? edu,
     Function(Education) onSave,
   ) {
-    final etablissementCtrl =
-        TextEditingController(text: edu?.etablissement);
+    final etablissementCtrl = TextEditingController(text: edu?.etablissement);
     final diplomeCtrl = TextEditingController(text: edu?.diplome);
     final domaineCtrl = TextEditingController(text: edu?.domaine);
     final descCtrl = TextEditingController(text: edu?.description);
@@ -61,7 +60,7 @@ class EducationSection extends StatelessWidget {
           TextFormField(
             controller: diplomeCtrl,
             decoration: const InputDecoration(
-              labelText: 'Diplôme / Titre',
+              labelText: 'Diplôme / Titre *',
               prefixIcon: Icon(Icons.workspace_premium_outlined, size: 20),
             ),
           ),
@@ -78,7 +77,7 @@ class EducationSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Début',
+                  label: 'Début *',
                   date: debut,
                   onTap: () async {
                     final d = await showDatePicker(
