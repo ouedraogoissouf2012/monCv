@@ -66,6 +66,8 @@ public class CvService implements ICvService {
                 .user(user)
                 .build();
 
+        applyStyle(cv, request.getStyle());
+
         if (request.getPersonalInfo() != null) {
             cv.setPersonalInfo(cvMapper.toPersonalInfo(request.getPersonalInfo()));
         }
@@ -85,6 +87,7 @@ public class CvService implements ICvService {
         Cv cv = findCvOrThrow(cvId, userId);
 
         cv.setTitre(request.getTitre());
+        applyStyle(cv, request.getStyle());
 
         if (request.getPersonalInfo() != null) {
             cv.setPersonalInfo(cvMapper.toPersonalInfo(request.getPersonalInfo()));
@@ -107,6 +110,9 @@ public class CvService implements ICvService {
         Cv copy = Cv.builder()
                 .titre("Copie de " + original.getTitre())
                 .user(user)
+                .styleTemplateId(original.getStyleTemplateId())
+                .stylePrimaryColor(original.getStylePrimaryColor())
+                .styleFontFamily(original.getStyleFontFamily())
                 .build();
 
         if (original.getPersonalInfo() != null) {
@@ -171,6 +177,21 @@ public class CvService implements ICvService {
             request.getCertifications().forEach(d -> cv.addCertification(cvMapper.toCertification(d)));
         if (request.getProjects() != null)
             request.getProjects().forEach(d -> cv.addProject(cvMapper.toProject(d)));
+    }
+
+    private void applyStyle(Cv cv, CvRequest.StyleDto style) {
+        if (style == null) {
+            return;
+        }
+        if (style.getTemplateId() != null) {
+            cv.setStyleTemplateId(style.getTemplateId());
+        }
+        if (style.getPrimaryColor() != null) {
+            cv.setStylePrimaryColor(style.getPrimaryColor());
+        }
+        if (style.getFontFamily() != null) {
+            cv.setStyleFontFamily(style.getFontFamily());
+        }
     }
 
     /**

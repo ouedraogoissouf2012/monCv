@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
+import '../../../data/city_suggestions.dart';
 import '../../../models/cv.dart';
 import '../../../services/api_service.dart';
 import '../../../services/ai_service.dart';
@@ -43,47 +44,141 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
   // Indicatifs téléphoniques par pays
   static const _countryDialCodes = <String, String>{
-    'Afghanistan': '+93', 'Afrique du Sud': '+27', 'Albanie': '+355',
-    'Algérie': '+213', 'Allemagne': '+49', 'Angola': '+244',
-    'Arabie Saoudite': '+966', 'Argentine': '+54', 'Arménie': '+374',
-    'Australie': '+61', 'Autriche': '+43', 'Azerbaïdjan': '+994',
-    'Bahreïn': '+973', 'Bangladesh': '+880', 'Belgique': '+32',
-    'Bénin': '+229', 'Biélorussie': '+375', 'Bolivie': '+591',
-    'Bosnie-Herzégovine': '+387', 'Brésil': '+55', 'Bulgarie': '+359',
-    'Burkina Faso': '+226', 'Burundi': '+257', 'Cambodge': '+855',
-    'Cameroun': '+237', 'Canada': '+1', 'Chili': '+56', 'Chine': '+86',
-    'Chypre': '+357', 'Colombie': '+57', 'Congo': '+242',
-    'Corée du Sud': '+82', 'Costa Rica': '+506', "Côte d'Ivoire": '+225',
-    'Croatie': '+385', 'Cuba': '+53', 'Danemark': '+45', 'Djibouti': '+253',
-    'Égypte': '+20', 'Émirats arabes unis': '+971', 'Équateur': '+593',
-    'Espagne': '+34', 'Estonie': '+372', 'Éthiopie': '+251',
-    'Finlande': '+358', 'France': '+33', 'Gabon': '+241', 'Géorgie': '+995',
-    'Ghana': '+233', 'Grèce': '+30', 'Guatemala': '+502', 'Guinée': '+224',
-    'Haïti': '+509', 'Hongrie': '+36', 'Inde': '+91', 'Indonésie': '+62',
-    'Irak': '+964', 'Iran': '+98', 'Irlande': '+353', 'Islande': '+354',
-    'Israël': '+972', 'Italie': '+39', 'Japon': '+81', 'Jordanie': '+962',
-    'Kazakhstan': '+7', 'Kenya': '+254', 'Kosovo': '+383', 'Koweït': '+965',
-    'Laos': '+856', 'Lettonie': '+371', 'Liban': '+961', 'Libye': '+218',
-    'Lituanie': '+370', 'Luxembourg': '+352', 'Madagascar': '+261',
-    'Malaisie': '+60', 'Mali': '+223', 'Maroc': '+212', 'Maurice': '+230',
-    'Mauritanie': '+222', 'Mexique': '+52', 'Moldova': '+373',
-    'Mongolie': '+976', 'Monténégro': '+382', 'Mozambique': '+258',
-    'Myanmar': '+95', 'Namibie': '+264', 'Népal': '+977',
-    'Nicaragua': '+505', 'Niger': '+227', 'Nigéria': '+234',
-    'Norvège': '+47', 'Nouvelle-Zélande': '+64', 'Oman': '+968',
-    'Ouganda': '+256', 'Ouzbékistan': '+998', 'Pakistan': '+92',
-    'Panama': '+507', 'Paraguay': '+595', 'Pays-Bas': '+31', 'Pérou': '+51',
-    'Philippines': '+63', 'Pologne': '+48', 'Portugal': '+351',
-    'Qatar': '+974', 'République tchèque': '+420', 'Roumanie': '+40',
-    'Royaume-Uni': '+44', 'Russie': '+7', 'Rwanda': '+250',
-    'Sénégal': '+221', 'Serbie': '+381', 'Sierra Leone': '+232',
-    'Singapour': '+65', 'Slovaquie': '+421', 'Slovénie': '+386',
-    'Somalie': '+252', 'Soudan': '+249', 'Sri Lanka': '+94', 'Suède': '+46',
-    'Suisse': '+41', 'Syrie': '+963', 'Taïwan': '+886', 'Tanzanie': '+255',
-    'Thaïlande': '+66', 'Togo': '+228', 'Tunisie': '+216',
-    'Turkménistan': '+993', 'Turquie': '+90', 'Ukraine': '+380',
-    'Uruguay': '+598', 'Venezuela': '+58', 'Vietnam': '+84',
-    'Yémen': '+967', 'Zimbabwe': '+263',
+    'Afghanistan': '+93',
+    'Afrique du Sud': '+27',
+    'Albanie': '+355',
+    'Algérie': '+213',
+    'Allemagne': '+49',
+    'Angola': '+244',
+    'Arabie Saoudite': '+966',
+    'Argentine': '+54',
+    'Arménie': '+374',
+    'Australie': '+61',
+    'Autriche': '+43',
+    'Azerbaïdjan': '+994',
+    'Bahreïn': '+973',
+    'Bangladesh': '+880',
+    'Belgique': '+32',
+    'Bénin': '+229',
+    'Biélorussie': '+375',
+    'Bolivie': '+591',
+    'Bosnie-Herzégovine': '+387',
+    'Brésil': '+55',
+    'Bulgarie': '+359',
+    'Burkina Faso': '+226',
+    'Burundi': '+257',
+    'Cambodge': '+855',
+    'Cameroun': '+237',
+    'Canada': '+1',
+    'Chili': '+56',
+    'Chine': '+86',
+    'Chypre': '+357',
+    'Colombie': '+57',
+    'Congo': '+242',
+    'Corée du Sud': '+82',
+    'Costa Rica': '+506',
+    "Côte d'Ivoire": '+225',
+    'Croatie': '+385',
+    'Cuba': '+53',
+    'Danemark': '+45',
+    'Djibouti': '+253',
+    'Égypte': '+20',
+    'Émirats arabes unis': '+971',
+    'Équateur': '+593',
+    'Espagne': '+34',
+    'Estonie': '+372',
+    'Éthiopie': '+251',
+    'Finlande': '+358',
+    'France': '+33',
+    'Gabon': '+241',
+    'Géorgie': '+995',
+    'Ghana': '+233',
+    'Grèce': '+30',
+    'Guatemala': '+502',
+    'Guinée': '+224',
+    'Haïti': '+509',
+    'Hongrie': '+36',
+    'Inde': '+91',
+    'Indonésie': '+62',
+    'Irak': '+964',
+    'Iran': '+98',
+    'Irlande': '+353',
+    'Islande': '+354',
+    'Israël': '+972',
+    'Italie': '+39',
+    'Japon': '+81',
+    'Jordanie': '+962',
+    'Kazakhstan': '+7',
+    'Kenya': '+254',
+    'Kosovo': '+383',
+    'Koweït': '+965',
+    'Laos': '+856',
+    'Lettonie': '+371',
+    'Liban': '+961',
+    'Libye': '+218',
+    'Lituanie': '+370',
+    'Luxembourg': '+352',
+    'Madagascar': '+261',
+    'Malaisie': '+60',
+    'Mali': '+223',
+    'Maroc': '+212',
+    'Maurice': '+230',
+    'Mauritanie': '+222',
+    'Mexique': '+52',
+    'Moldova': '+373',
+    'Mongolie': '+976',
+    'Monténégro': '+382',
+    'Mozambique': '+258',
+    'Myanmar': '+95',
+    'Namibie': '+264',
+    'Népal': '+977',
+    'Nicaragua': '+505',
+    'Niger': '+227',
+    'Nigéria': '+234',
+    'Norvège': '+47',
+    'Nouvelle-Zélande': '+64',
+    'Oman': '+968',
+    'Ouganda': '+256',
+    'Ouzbékistan': '+998',
+    'Pakistan': '+92',
+    'Panama': '+507',
+    'Paraguay': '+595',
+    'Pays-Bas': '+31',
+    'Pérou': '+51',
+    'Philippines': '+63',
+    'Pologne': '+48',
+    'Portugal': '+351',
+    'Qatar': '+974',
+    'République tchèque': '+420',
+    'Roumanie': '+40',
+    'Royaume-Uni': '+44',
+    'Russie': '+7',
+    'Rwanda': '+250',
+    'Sénégal': '+221',
+    'Serbie': '+381',
+    'Sierra Leone': '+232',
+    'Singapour': '+65',
+    'Slovaquie': '+421',
+    'Slovénie': '+386',
+    'Somalie': '+252',
+    'Soudan': '+249',
+    'Sri Lanka': '+94',
+    'Suède': '+46',
+    'Suisse': '+41',
+    'Syrie': '+963',
+    'Taïwan': '+886',
+    'Tanzanie': '+255',
+    'Thaïlande': '+66',
+    'Togo': '+228',
+    'Tunisie': '+216',
+    'Turkménistan': '+993',
+    'Turquie': '+90',
+    'Ukraine': '+380',
+    'Uruguay': '+598',
+    'Venezuela': '+58',
+    'Vietnam': '+84',
+    'Yémen': '+967',
+    'Zimbabwe': '+263',
   };
 
   @override
@@ -195,8 +290,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                 leading: Icon(Icons.delete_outline,
                     color: Theme.of(ctx).colorScheme.error),
                 title: Text('Supprimer la photo',
-                    style:
-                        TextStyle(color: Theme.of(ctx).colorScheme.error)),
+                    style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
                 onTap: () {
                   Navigator.pop(ctx);
                   setState(() {
@@ -242,13 +336,17 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
       titrePoste: _titrePosteCtrl.text.isNotEmpty ? _titrePosteCtrl.text : null,
       linkedIn: _linkedInCtrl.text.isNotEmpty ? _linkedInCtrl.text : null,
       portfolio: _portfolioCtrl.text.isNotEmpty ? _portfolioCtrl.text : null,
-      resumeProfessionnel: _resumeCtrl.text.isNotEmpty ? _resumeCtrl.text : null,
+      resumeProfessionnel:
+          _resumeCtrl.text.isNotEmpty ? _resumeCtrl.text : null,
       photoUrl: _photoUrl,
     ));
   }
 
   void _onCountryChanged(String country) {
-    _paysCtrl.text = country;
+    if (_paysCtrl.text != country) {
+      _paysCtrl.text = country;
+    }
+    setState(() {});
     _notify();
     // Auto-ajouter l'indicatif au numéro si le champ est vide ou commence par 0
     final code = _countryDialCodes[country];
@@ -288,8 +386,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor:
-                        colorScheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                     backgroundImage: _photoBytes != null
                         ? MemoryImage(_photoBytes!) as ImageProvider
                         : _photoUrl != null
@@ -303,8 +400,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                         : _photoUrl == null && _photoBytes == null
                             ? Icon(Icons.person_outline_rounded,
                                 size: 40,
-                                color: colorScheme.primary
-                                    .withValues(alpha: 0.5))
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.5))
                             : null,
                   ),
                   Container(
@@ -395,7 +492,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             onChanged: (_) => _notify(),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email requis';
-              if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
+              if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$')
+                  .hasMatch(v.trim())) {
                 return 'Email invalide (ex: nom@domaine.com)';
               }
               return null;
@@ -424,13 +522,9 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             onChanged: _onCountryChanged,
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          _VilleAutocomplete(
             controller: _villeCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Ville',
-              helperText: 'Optionnel — la ville où vous résidez',
-              hintText: 'Ex : Abidjan',
-            ),
+            country: _paysCtrl.text,
             onChanged: (_) => _notify(),
           ),
           const SizedBox(height: 12),
@@ -514,7 +608,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             controller: _resumeCtrl,
             decoration: InputDecoration(
               labelText: 'Resume professionnel',
-              hintText: 'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
+              hintText:
+                  'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
               alignLabelWithHint: true,
               helperText: _resumeCtrl.text.isEmpty
                   ? 'Cliquez sur le bouton IA pour generer automatiquement'
@@ -527,8 +622,10 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                     : _resumeCtrl.text.length < 100
                         ? const Color(0xFFEF4444)
                         : const Color(0xFF10B981),
-                fontWeight: _resumeCtrl.text.length < 100 && _resumeCtrl.text.isNotEmpty
-                    ? FontWeight.w600 : null,
+                fontWeight:
+                    _resumeCtrl.text.length < 100 && _resumeCtrl.text.isNotEmpty
+                        ? FontWeight.w600
+                        : null,
               ),
             ),
             maxLines: 4,
@@ -549,7 +646,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEF4444)),
+                  const Icon(Icons.warning_amber_rounded,
+                      size: 16, color: Color(0xFFEF4444)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -610,7 +708,9 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
     return TextButton.icon(
       onPressed: _loading ? null : _generate,
       icon: _loading
-          ? const SizedBox(width: 14, height: 14,
+          ? const SizedBox(
+              width: 14,
+              height: 14,
               child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.auto_awesome_rounded, size: 16),
       label: Text(_loading ? 'Generation...' : 'Generer avec l\'IA',
@@ -625,36 +725,240 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
 
 // ── Widget helper ─────────────────────────────────────────────
 
+class _VilleAutocomplete extends StatelessWidget {
+  final TextEditingController controller;
+  final String country;
+  final ValueChanged<String> onChanged;
+
+  const _VilleAutocomplete({
+    required this.controller,
+    required this.country,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSuggestions = hasCitySuggestionsForCountry(country);
+
+    return Autocomplete<String>(
+      initialValue: TextEditingValue(text: controller.text),
+      optionsBuilder: (textEditingValue) => findCitySuggestions(
+        country: country,
+        query: textEditingValue.text,
+      ),
+      onSelected: (selection) {
+        controller.text = selection;
+        onChanged(selection);
+      },
+      fieldViewBuilder: (context, ctrl, focusNode, onFieldSubmitted) {
+        if (ctrl.text != controller.text) {
+          ctrl.value = TextEditingValue(
+            text: controller.text,
+            selection: TextSelection.collapsed(
+              offset: controller.text.length,
+            ),
+          );
+        }
+        return TextFormField(
+          key: const Key('city-field'),
+          controller: ctrl,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: 'Ville',
+            prefixIcon: const Icon(Icons.location_city_outlined, size: 20),
+            helperText: hasSuggestions
+                ? 'Tapez pour afficher les villes de $country'
+                : country.trim().isEmpty
+                    ? 'Sélectionnez un pays pour obtenir des suggestions'
+                    : 'Saisie libre — ajoutez votre ville',
+            hintText: 'Ex : Abidjan',
+          ),
+          textCapitalization: TextCapitalization.words,
+          onChanged: (value) {
+            controller.text = value;
+            onChanged(value);
+          },
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight: 200,
+                maxWidth: 300,
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final option = options.elementAt(index);
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(
+                      Icons.location_city_outlined,
+                      size: 16,
+                    ),
+                    title: Text(
+                      option,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    onTap: () => onSelected(option),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _PaysAutocomplete extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
 
   static const _countries = [
-    'Afghanistan', 'Afrique du Sud', 'Albanie', 'Algérie', 'Allemagne',
-    'Angola', 'Arabie Saoudite', 'Argentine', 'Arménie', 'Australie',
-    'Autriche', 'Azerbaïdjan', 'Bahreïn', 'Bangladesh', 'Belgique',
-    'Bénin', 'Biélorussie', 'Bolivie', 'Bosnie-Herzégovine', 'Brésil',
-    'Bulgarie', 'Burkina Faso', 'Burundi', 'Cambodge', 'Cameroun',
-    'Canada', 'Chili', 'Chine', 'Chypre', 'Colombie', 'Congo',
-    'Corée du Sud', 'Costa Rica', "Côte d'Ivoire", 'Croatie', 'Cuba',
-    'Danemark', 'Djibouti', 'Égypte', 'Émirats arabes unis', 'Équateur',
-    'Espagne', 'Estonie', 'Éthiopie', 'Finlande', 'France', 'Gabon',
-    'Géorgie', 'Ghana', 'Grèce', 'Guatemala', 'Guinée', 'Haïti',
-    'Hongrie', 'Inde', 'Indonésie', 'Irak', 'Iran', 'Irlande',
-    'Islande', 'Israël', 'Italie', 'Japon', 'Jordanie', 'Kazakhstan',
-    'Kenya', 'Kosovo', 'Koweït', 'Laos', 'Lettonie', 'Liban',
-    'Libye', 'Lituanie', 'Luxembourg', 'Madagascar', 'Malaisie',
-    'Mali', 'Maroc', 'Maurice', 'Mauritanie', 'Mexique', 'Moldova',
-    'Mongolie', 'Monténégro', 'Mozambique', 'Myanmar', 'Namibie',
-    'Népal', 'Nicaragua', 'Niger', 'Nigéria', 'Norvège', 'Nouvelle-Zélande',
-    'Oman', 'Ouganda', 'Ouzbékistan', 'Pakistan', 'Panama', 'Paraguay',
-    'Pays-Bas', 'Pérou', 'Philippines', 'Pologne', 'Portugal', 'Qatar',
-    'République tchèque', 'Roumanie', 'Royaume-Uni', 'Russie', 'Rwanda',
-    'Sénégal', 'Serbie', 'Sierra Leone', 'Singapour', 'Slovaquie',
-    'Slovénie', 'Somalie', 'Soudan', 'Sri Lanka', 'Suède', 'Suisse',
-    'Syrie', 'Taïwan', 'Tanzanie', 'Thaïlande', 'Togo', 'Tunisie',
-    'Turkménistan', 'Turquie', 'Ukraine', 'Uruguay', 'Venezuela',
-    'Vietnam', 'Yémen', 'Zimbabwe',
+    'Afghanistan',
+    'Afrique du Sud',
+    'Albanie',
+    'Algérie',
+    'Allemagne',
+    'Angola',
+    'Arabie Saoudite',
+    'Argentine',
+    'Arménie',
+    'Australie',
+    'Autriche',
+    'Azerbaïdjan',
+    'Bahreïn',
+    'Bangladesh',
+    'Belgique',
+    'Bénin',
+    'Biélorussie',
+    'Bolivie',
+    'Bosnie-Herzégovine',
+    'Brésil',
+    'Bulgarie',
+    'Burkina Faso',
+    'Burundi',
+    'Cambodge',
+    'Cameroun',
+    'Canada',
+    'Chili',
+    'Chine',
+    'Chypre',
+    'Colombie',
+    'Congo',
+    'Corée du Sud',
+    'Costa Rica',
+    "Côte d'Ivoire",
+    'Croatie',
+    'Cuba',
+    'Danemark',
+    'Djibouti',
+    'Égypte',
+    'Émirats arabes unis',
+    'Équateur',
+    'Espagne',
+    'Estonie',
+    'Éthiopie',
+    'Finlande',
+    'France',
+    'Gabon',
+    'Géorgie',
+    'Ghana',
+    'Grèce',
+    'Guatemala',
+    'Guinée',
+    'Haïti',
+    'Hongrie',
+    'Inde',
+    'Indonésie',
+    'Irak',
+    'Iran',
+    'Irlande',
+    'Islande',
+    'Israël',
+    'Italie',
+    'Japon',
+    'Jordanie',
+    'Kazakhstan',
+    'Kenya',
+    'Kosovo',
+    'Koweït',
+    'Laos',
+    'Lettonie',
+    'Liban',
+    'Libye',
+    'Lituanie',
+    'Luxembourg',
+    'Madagascar',
+    'Malaisie',
+    'Mali',
+    'Maroc',
+    'Maurice',
+    'Mauritanie',
+    'Mexique',
+    'Moldova',
+    'Mongolie',
+    'Monténégro',
+    'Mozambique',
+    'Myanmar',
+    'Namibie',
+    'Népal',
+    'Nicaragua',
+    'Niger',
+    'Nigéria',
+    'Norvège',
+    'Nouvelle-Zélande',
+    'Oman',
+    'Ouganda',
+    'Ouzbékistan',
+    'Pakistan',
+    'Panama',
+    'Paraguay',
+    'Pays-Bas',
+    'Pérou',
+    'Philippines',
+    'Pologne',
+    'Portugal',
+    'Qatar',
+    'République tchèque',
+    'Roumanie',
+    'Royaume-Uni',
+    'Russie',
+    'Rwanda',
+    'Sénégal',
+    'Serbie',
+    'Sierra Leone',
+    'Singapour',
+    'Slovaquie',
+    'Slovénie',
+    'Somalie',
+    'Soudan',
+    'Sri Lanka',
+    'Suède',
+    'Suisse',
+    'Syrie',
+    'Taïwan',
+    'Tanzanie',
+    'Thaïlande',
+    'Togo',
+    'Tunisie',
+    'Turkménistan',
+    'Turquie',
+    'Ukraine',
+    'Uruguay',
+    'Venezuela',
+    'Vietnam',
+    'Yémen',
+    'Zimbabwe',
   ];
 
   const _PaysAutocomplete({required this.controller, required this.onChanged});
@@ -665,9 +969,8 @@ class _PaysAutocomplete extends StatelessWidget {
       initialValue: TextEditingValue(text: controller.text),
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) return const [];
-        return _countries.where((c) => c
-            .toLowerCase()
-            .contains(textEditingValue.text.toLowerCase()));
+        return _countries.where((c) =>
+            c.toLowerCase().contains(textEditingValue.text.toLowerCase()));
       },
       onSelected: (String selection) {
         controller.text = selection;
