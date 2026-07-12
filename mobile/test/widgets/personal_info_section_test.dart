@@ -2,8 +2,12 @@ import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/cv/sections/personal_info_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 Widget _wrap(PersonalInfoSection section) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       home: Scaffold(
         body: SingleChildScrollView(child: section),
       ),

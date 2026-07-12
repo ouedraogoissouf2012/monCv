@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               icon: const Icon(Icons.chat_outlined, size: 16),
-              label: const Text('WhatsApp'),
+              label: Text(l.whatsApp),
             ),
             FilledButton.icon(
               onPressed: () {
@@ -276,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(
-        content: Text('${l.errorGeneric}: $e'),
+        content: Text(l.errorWithDetails(e.toString())),
         behavior: SnackBarBehavior.floating,
       ));
     }

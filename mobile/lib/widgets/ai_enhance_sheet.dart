@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/cv.dart';
 import 'package:provider/provider.dart';
 import '../core/error/result.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../services/api_service.dart';
 
@@ -30,29 +31,32 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
   Map<String, dynamic>? _result;
   String? _error;
 
-  static const _levels = [
+  List<_LevelInfo> get _levels {
+    final l = AppLocalizations.of(context)!;
+    return [
     _LevelInfo(
       id: 'LITE',
-      label: 'Lite',
-      description: 'Correction orthographe & grammaire uniquement',
+      label: l.lite,
+      description: l.liteLevelDescription,
       icon: Icons.spellcheck_rounded,
-      color: Color(0xFF10B981),
+      color: const Color(0xFF10B981),
     ),
     _LevelInfo(
       id: 'MEDIUM',
-      label: 'Medium',
-      description: 'Lite + reformulation pour plus d\'impact',
+      label: l.medium,
+      description: l.mediumLevelDescription,
       icon: Icons.auto_fix_normal_rounded,
-      color: Color(0xFF2563EB),
+      color: const Color(0xFF2563EB),
     ),
     _LevelInfo(
       id: 'MAX',
-      label: 'Max',
-      description: 'Restructuration complete, mots-cles ATS, verbes d\'action',
+      label: l.maximum,
+      description: l.maxLevelDescription,
       icon: Icons.rocket_launch_rounded,
-      color: Color(0xFF8B5CF6),
+      color: const Color(0xFF8B5CF6),
     ),
-  ];
+    ];
+  }
 
   @override
   void initState() {
@@ -97,6 +101,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -143,8 +148,8 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                 const SizedBox(width: 10),
                 Text(
                     widget.proofreadOnly
-                        ? 'Correction orthographique'
-                        : 'Améliorer avec l\'IA',
+                    ? l.proofreadingTitle
+                    : l.enhanceWithAi,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -154,8 +159,8 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
             const SizedBox(height: 6),
             Text(
               widget.proofreadOnly
-                  ? 'Relisez tout le CV sans modifier le sens ni inventer de contenu.'
-                  : 'Choisissez le niveau d\'amélioration souhaité',
+                ? l.proofreadingSubtitle
+                : l.enhancementSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
@@ -172,8 +177,8 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                     color: const Color(0xFF10B981).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Orthographe, grammaire, accents et termes professionnels. Les niveaux et les faits restent inchangés.',
+                  child: Text(
+                    l.proofreadingGuarantee,
                     style: TextStyle(fontSize: 12, height: 1.35),
                   ),
                 )
@@ -206,10 +211,10 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                           ? Icons.spellcheck_rounded
                           : Icons.auto_awesome_rounded),
                   label: Text(_loading
-                      ? 'Relecture en cours...'
+                      ? l.proofreadingInProgress
                       : widget.proofreadOnly
-                          ? 'Relire le CV'
-                          : 'Améliorer'),
+                          ? l.proofreadCv
+                          : l.improve),
                   style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF8B5CF6)),
                 ),
@@ -250,7 +255,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => setState(() => _result = null),
-                      child: const Text('Reessayer'),
+                      child: Text(l.retry),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -261,7 +266,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                         Navigator.of(context).pop(_result);
                       },
                       icon: const Icon(Icons.check_rounded),
-                      label: const Text('Appliquer'),
+                      label: Text(l.apply),
                       style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981)),
                     ),
@@ -285,6 +290,7 @@ class _AiConsentNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -299,7 +305,7 @@ class _AiConsentNotice extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'J\'accepte que le contenu de ce CV soit envoyé au service IA pour générer des corrections ou suggestions. Les changements restent à valider avant application.',
+              l.aiConsent,
               style: TextStyle(
                 fontSize: 12,
                 height: 1.35,
@@ -418,6 +424,7 @@ class _ResultSection extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final aiGenerated = result['aiGenerated'] == true;
+    final l = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,8 +441,8 @@ class _ResultSection extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               aiGenerated
-                  ? 'Amelioration generee'
-                  : 'Resultat degrade (fournisseur de secours utilise)',
+                  ? l.enhancementGenerated
+                  : l.fallbackResult,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -451,7 +458,7 @@ class _ResultSection extends StatelessWidget {
         // Titre du poste
         if (result['titrePoste'] != null &&
             (result['titrePoste'] as String).isNotEmpty) ...[
-          _sectionLabel(context, 'Titre du poste'),
+          _sectionLabel(context, l.jobTitle),
           _BeforeAfter(
             before: cv.personalInfo?.titrePoste ?? '',
             after: result['titrePoste'] as String,
@@ -461,7 +468,7 @@ class _ResultSection extends StatelessWidget {
 
         // Resume professionnel
         if (result['resumeProfessionnel'] != null) ...[
-          _sectionLabel(context, 'Resume professionnel'),
+          _sectionLabel(context, l.professionalSummary),
           _BeforeAfter(
             before: cv.personalInfo?.resumeProfessionnel ?? '',
             after: result['resumeProfessionnel'] as String,
@@ -471,7 +478,7 @@ class _ResultSection extends StatelessWidget {
 
         // Experiences
         if (result['experiences'] != null) ...[
-          _sectionLabel(context, 'Experiences'),
+          _sectionLabel(context, l.experiences),
           ...List.generate(
             (result['experiences'] as List<dynamic>).length,
             (i) {
@@ -489,7 +496,7 @@ class _ResultSection extends StatelessWidget {
         // Formations
         if (result['educations'] != null &&
             (result['educations'] as List).isNotEmpty) ...[
-          _sectionLabel(context, 'Formations'),
+          _sectionLabel(context, l.education),
           ...List.generate(
             (result['educations'] as List<dynamic>).length,
             (i) {
@@ -507,7 +514,7 @@ class _ResultSection extends StatelessWidget {
         // Competences
         if (result['skills'] != null &&
             (result['skills'] as List).isNotEmpty) ...[
-          _sectionLabel(context, 'Competences'),
+          _sectionLabel(context, l.skills),
           _BeforeAfter(
             before: cv.skills.map((s) => s.nom ?? '').join(', '),
             after: (result['skills'] as List<dynamic>)
@@ -520,7 +527,7 @@ class _ResultSection extends StatelessWidget {
         // Projets
         if (result['projects'] != null &&
             (result['projects'] as List).isNotEmpty) ...[
-          _sectionLabel(context, 'Projets'),
+          _sectionLabel(context, l.projects),
           ...List.generate(
             (result['projects'] as List<dynamic>).length,
             (i) {
@@ -547,6 +554,7 @@ class _ProofreadingResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final changes = <_ReviewChange>[];
 
     void addChange(String section, String? before, String? after) {
@@ -565,17 +573,17 @@ class _ProofreadingResult extends StatelessWidget {
           .toList();
     }
 
-    addChange('Titre du poste', cv.personalInfo?.titrePoste,
+    addChange(l.jobTitle, cv.personalInfo?.titrePoste,
         result['titrePoste'] as String?);
-    addChange('Résumé professionnel', cv.personalInfo?.resumeProfessionnel,
+    addChange(l.professionalSummary, cv.personalInfo?.resumeProfessionnel,
         result['resumeProfessionnel'] as String?);
 
     final experiences = items('experiences');
     for (int i = 0; i < experiences.length && i < cv.experiences.length; i++) {
-      addChange('Expérience ${i + 1} - intitulé', cv.experiences[i].poste,
+      addChange('${l.experiences} ${i + 1} - ${l.jobTitle}', cv.experiences[i].poste,
           experiences[i]['poste'] as String?);
       addChange(
-          'Expérience ${i + 1} - description',
+          '${l.experiences} ${i + 1} - ${l.description}',
           cv.experiences[i].description,
           experiences[i]['description'] as String?);
     }
@@ -583,15 +591,15 @@ class _ProofreadingResult extends StatelessWidget {
     final educations = items('educations');
     for (int i = 0; i < educations.length && i < cv.educations.length; i++) {
       addChange(
-          'Formation ${i + 1} - établissement',
+          '${l.education} ${i + 1} - ${l.establishment}',
           cv.educations[i].etablissement,
           educations[i]['etablissement'] as String?);
-      addChange('Formation ${i + 1} - diplôme', cv.educations[i].diplome,
+      addChange('${l.education} ${i + 1} - ${l.degree}', cv.educations[i].diplome,
           educations[i]['diplome'] as String?);
-      addChange('Formation ${i + 1} - domaine', cv.educations[i].domaine,
+      addChange('${l.education} ${i + 1} - ${l.fieldOfStudy}', cv.educations[i].domaine,
           educations[i]['domaine'] as String?);
       addChange(
-          'Formation ${i + 1} - description',
+          '${l.education} ${i + 1} - ${l.description}',
           cv.educations[i].description,
           educations[i]['description'] as String?);
     }
@@ -599,12 +607,12 @@ class _ProofreadingResult extends StatelessWidget {
     final skills = items('skills');
     for (int i = 0; i < skills.length && i < cv.skills.length; i++) {
       addChange(
-          'Compétence ${i + 1}', cv.skills[i].nom, skills[i]['nom'] as String?);
+          '${l.skills} ${i + 1}', cv.skills[i].nom, skills[i]['nom'] as String?);
     }
 
     final languages = items('languages');
     for (int i = 0; i < languages.length && i < cv.languages.length; i++) {
-      addChange('Langue ${i + 1}', cv.languages[i].langue,
+      addChange('${l.languages} ${i + 1}', cv.languages[i].langue,
           languages[i]['langue'] as String?);
     }
 
@@ -612,21 +620,21 @@ class _ProofreadingResult extends StatelessWidget {
     for (int i = 0;
         i < certifications.length && i < cv.certifications.length;
         i++) {
-      addChange('Certification ${i + 1}', cv.certifications[i].nom,
+      addChange('${l.certifications} ${i + 1}', cv.certifications[i].nom,
           certifications[i]['nom'] as String?);
       addChange(
-          'Certification ${i + 1} - organisme',
+          '${l.certifications} ${i + 1} - ${l.organization}',
           cv.certifications[i].organisme,
           certifications[i]['organisme'] as String?);
     }
 
     final projects = items('projects');
     for (int i = 0; i < projects.length && i < cv.projects.length; i++) {
-      addChange('Projet ${i + 1} - nom', cv.projects[i].nom,
+      addChange('${l.projects} ${i + 1} - ${l.name}', cv.projects[i].nom,
           projects[i]['nom'] as String?);
-      addChange('Projet ${i + 1} - technologies', cv.projects[i].technologies,
+      addChange('${l.projects} ${i + 1} - ${l.technologies}', cv.projects[i].technologies,
           projects[i]['technologies'] as String?);
-      addChange('Projet ${i + 1} - description', cv.projects[i].description,
+      addChange('${l.projects} ${i + 1} - ${l.description}', cv.projects[i].description,
           projects[i]['description'] as String?);
     }
 
@@ -659,15 +667,15 @@ class _ProofreadingResult extends StatelessWidget {
                   children: [
                     Text(
                       aiGenerated
-                          ? 'Relecture IA terminée'
-                          : 'Relecture locale terminée',
+                          ? l.aiProofreadingComplete
+                          : l.localProofreadingComplete,
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                     Text(
                       correctionCount == 0
-                          ? 'Aucune correction certaine détectée.'
-                          : '$correctionCount champ${correctionCount > 1 ? 's' : ''} corrigé${correctionCount > 1 ? 's' : ''}.',
+                          ? l.noCertainCorrection
+                          : l.correctedFields(correctionCount),
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurface.withValues(alpha: 0.65),
@@ -682,7 +690,7 @@ class _ProofreadingResult extends StatelessWidget {
         const SizedBox(height: 14),
         if (changes.isEmpty)
           Text(
-            'Le texte peut être appliqué sans changement.',
+            l.textCanBeApplied,
             style: TextStyle(
               fontSize: 12,
               color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -696,7 +704,7 @@ class _ProofreadingResult extends StatelessWidget {
               ]),
         if (warnings.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text('Points à préciser',
+          Text(l.pointsToClarify,
               style: Theme.of(context)
                   .textTheme
                   .labelLarge
@@ -764,6 +772,7 @@ class _BeforeAfter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -779,7 +788,7 @@ class _BeforeAfter extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Avant',
+                  Text(l.before,
                       style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -801,8 +810,8 @@ class _BeforeAfter extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Apres',
-                    style: TextStyle(
+                Text(l.after,
+                    style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF10B981))),

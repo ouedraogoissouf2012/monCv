@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:cv_mobile/widgets/app_scaffold.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 GoRouter _buildRouter() {
   return GoRouter(
@@ -49,6 +50,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp.router(
           theme: ThemeData(useMaterial3: true),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: router,
         ),
       );

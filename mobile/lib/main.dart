@@ -8,6 +8,7 @@ import 'l10n/app_localizations.dart';
 import 'providers/ai_status_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cv_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'router.dart';
 import 'utils/app_theme.dart';
@@ -44,16 +45,17 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => sl<CvProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ThemeProvider>()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AiStatusProvider()..refresh()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) {
+      child: Consumer2<ThemeProvider, LocaleProvider>(
+        builder: (context, themeProvider, localeProvider, _) {
           return MaterialApp.router(
             title: 'MonCV',
             debugShowCheckedModeBanner: false,
             routerConfig: _router,
             theme: AppThemes.get(themeProvider.mode),
-            locale: const Locale('fr'),
+            locale: localeProvider.locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           );
