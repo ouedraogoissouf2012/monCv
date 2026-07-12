@@ -26,6 +26,7 @@ void main() {
   late MockUpdateCvUseCase mockUpdateCv;
   late MockDeleteCvUseCase mockDeleteCv;
   late MockDuplicateCvUseCase mockDuplicate;
+  late MockCreateVariantUseCase mockCreateVariant;
   late MockCvRepository mockCvRepo;
   late MockConnectivityService mockConnectivity;
   late StreamController<bool> connectivityCtrl;
@@ -45,6 +46,7 @@ void main() {
     mockUpdateCv = MockUpdateCvUseCase();
     mockDeleteCv = MockDeleteCvUseCase();
     mockDuplicate = MockDuplicateCvUseCase();
+    mockCreateVariant = MockCreateVariantUseCase();
     mockCvRepo = MockCvRepository();
     mockConnectivity = MockConnectivityService();
     connectivityCtrl = StreamController<bool>.broadcast();
@@ -80,12 +82,14 @@ void main() {
         updateCv: mockUpdateCv,
         deleteCv: mockDeleteCv,
         duplicateCv: mockDuplicate,
+        createVariantUseCase: mockCreateVariant,
         repository: mockCvRepo,
         connectivity: mockConnectivity,
       );
 
   group('Offline Flow', () {
-    testWidgets('perte de connexion → banner offline → retour en ligne → banner disparait',
+    testWidgets(
+        'perte de connexion → banner offline → retour en ligne → banner disparait',
         (tester) async {
       setTestScreenSize(tester);
       addTearDown(tester.view.resetPhysicalSize);

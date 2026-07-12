@@ -11,6 +11,7 @@ public class EnhanceCvResponse {
 
     private String titrePoste;
     private String resumeProfessionnel;
+    private String titreOffre;
     private List<ExperienceEnhancement> experiences;
     private List<EducationEnhancement> educations;
     private List<SkillEnhancement> skills;

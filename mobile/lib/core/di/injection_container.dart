@@ -17,6 +17,7 @@ import '../../usecases/cv/create_cv_usecase.dart';
 import '../../usecases/cv/update_cv_usecase.dart';
 import '../../usecases/cv/delete_cv_usecase.dart';
 import '../../usecases/cv/duplicate_cv_usecase.dart';
+import '../../usecases/cv/create_variant_usecase.dart';
 import '../../usecases/ai/enhance_cv_usecase.dart';
 import '../../usecases/ai/match_job_usecase.dart';
 import '../../usecases/ai/generate_resume_usecase.dart';
@@ -64,6 +65,7 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => UpdateCvUseCase(sl<CvRepository>()));
   sl.registerFactory(() => DeleteCvUseCase(sl<CvRepository>()));
   sl.registerFactory(() => DuplicateCvUseCase(sl<CvRepository>()));
+  sl.registerFactory(() => CreateVariantUseCase(sl<CvRepository>()));
 
   // ── Use Cases: AI ─────────────────────────────────────────────
   sl.registerFactory(() => EnhanceCvUseCase(sl<ApiService>()));
@@ -90,6 +92,7 @@ Future<void> initDependencies() async {
       updateCv: sl<UpdateCvUseCase>(),
       deleteCv: sl<DeleteCvUseCase>(),
       duplicateCv: sl<DuplicateCvUseCase>(),
+      createVariantUseCase: sl<CreateVariantUseCase>(),
       repository: sl<CvRepository>(),
       connectivity: sl<ConnectivityService>(),
     ),
