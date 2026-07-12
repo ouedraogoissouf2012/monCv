@@ -84,6 +84,7 @@ class Cv {
       'languages': languages.map((e) => e.toJson()).toList(),
       'certifications': certifications.map((e) => e.toJson()).toList(),
       'projects': projects.map((e) => e.toJson()).toList(),
+      'style': style.toJson(),
     };
   }
 
@@ -278,8 +279,7 @@ class Education {
       domaine: json['domaine'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
       description: json['description'],
     );
   }
@@ -326,8 +326,7 @@ class Experience {
       lieu: json['lieu'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
       description: json['description'],
       actuel: json['actuel'] ?? false,
     );
@@ -479,8 +478,7 @@ class Project {
       lien: json['lien'],
       dateDebut:
           json['dateDebut'] != null ? DateTime.parse(json['dateDebut']) : null,
-      dateFin:
-          json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
+      dateFin: json['dateFin'] != null ? DateTime.parse(json['dateFin']) : null,
     );
   }
 

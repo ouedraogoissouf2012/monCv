@@ -25,9 +25,20 @@ public class CvResponse {
     private List<LanguageDto> languages;
     private List<CertificationDto> certifications;
     private List<ProjectDto> projects;
+    private StyleDto style;
     private String publicToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StyleDto {
+        private String templateId;
+        private Long primaryColor;
+        private String fontFamily;
+    }
 
     @Data
     @Builder

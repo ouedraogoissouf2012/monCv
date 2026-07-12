@@ -1,11 +1,22 @@
 {
     "name": "MonCV - Créateur de CV Professionnel",
     "short_name": "MonCV",
+    "id": "/",
     "start_url": ".",
+    "scope": "/",
     "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
     "background_color": "#FFFFFF",
-    "theme_color": "#1976D2",
+    "theme_color": "#2563EB",
     "description": "Créez et gérez votre CV professionnel en ligne",
+    "lang": "fr",
+    "categories": [
+        "business",
+        "productivity"
+    ],
     "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
