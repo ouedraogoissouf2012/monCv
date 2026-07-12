@@ -65,6 +65,10 @@ public class Cv {
     @org.hibernate.annotations.BatchSize(size = 20)
     private List<Project> projects = new ArrayList<>();
 
+    @Column(name = "view_count", nullable = false)
+    @Builder.Default
+    private int viewCount = 0;
+
     /**
      * Lien vers le CV parent dont cette variante est issue.
      * Null si c'est un CV original (pas une variante).

@@ -298,6 +298,12 @@ class CvCard extends StatelessWidget {
                       color: const Color(0xFF10B981),
                     ),
                   ),
+                  if (cv.shareToken != null)
+                    StatsBadge(
+                      count: cv.viewCount,
+                      label: 'Vues',
+                      color: const Color(0xFF6366F1),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),

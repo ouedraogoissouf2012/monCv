@@ -10,6 +10,7 @@ class Cv {
   final List<Language> languages;
   final List<Certification> certifications;
   final List<Project> projects;
+  final int viewCount;
   final int? parentCvId;
   final String? varianteLabel;
   final int? variantCount;
@@ -31,6 +32,7 @@ class Cv {
     this.languages = const [],
     this.certifications = const [],
     this.projects = const [],
+    this.viewCount = 0,
     this.parentCvId,
     this.varianteLabel,
     this.variantCount,
@@ -71,6 +73,7 @@ class Cv {
               ?.map((e) => Project.fromJson(e))
               .toList() ??
           [],
+      viewCount: json['viewCount'] as int? ?? 0,
       parentCvId: json['parentCvId'],
       varianteLabel: json['varianteLabel'],
       variantCount: json['variantCount'],
@@ -168,6 +171,7 @@ class Cv {
     List<Language>? languages,
     List<Certification>? certifications,
     List<Project>? projects,
+    int? viewCount,
     int? parentCvId,
     String? varianteLabel,
     int? variantCount,
@@ -184,6 +188,7 @@ class Cv {
       languages: languages ?? this.languages,
       certifications: certifications ?? this.certifications,
       projects: projects ?? this.projects,
+      viewCount: viewCount ?? this.viewCount,
       parentCvId: parentCvId ?? this.parentCvId,
       varianteLabel: varianteLabel ?? this.varianteLabel,
       variantCount: variantCount ?? this.variantCount,
