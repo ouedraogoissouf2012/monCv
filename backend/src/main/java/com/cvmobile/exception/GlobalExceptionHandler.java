@@ -1,5 +1,10 @@
 package com.cvmobile.exception;
 
+import com.cvmobile.exception.ai.AiKeyInvalidException;
+import com.cvmobile.exception.ai.AiParseException;
+import com.cvmobile.exception.ai.AiProviderDownException;
+import com.cvmobile.exception.ai.AiQuotaExceededException;
+import com.cvmobile.exception.ai.AiTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,6 +112,50 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleMaxUpload(MaxUploadSizeExceededException ex) {
         return buildResponse(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE",
                 "Le fichier depasse la taille maximale autorisee (5 MB)", null);
+    }
+
+    // ── IA (specifiques, doivent precedder le catch RuntimeException) ─────
+    @ExceptionHandler(AiKeyInvalidException.class)
+    public ResponseEntity<Map<String, Object>> handleAiKeyInvalid(AiKeyInvalidException ex) {
+        log.error("AI key invalid for provider {}: {}", ex.getProviderName(), ex.getMessage());
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
+                "Le service IA est mal configure. Contactez l'administrateur.",
+                Map.of("provider", ex.getProviderName()));
+    }
+
+    @ExceptionHandler(AiQuotaExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleAiQuota(AiQuotaExceededException ex) {
+        int retry = ex.getRetryAfterSeconds() != null ? ex.getRetryAfterSeconds() : 60;
+        log.warn("AI quota exceeded for provider {}: retry in {}s", ex.getProviderName(), retry);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header("Retry-After", String.valueOf(retry))
+                .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
+                        "Limite d'usage IA atteinte. Reessayez plus tard.",
+                        Map.of("provider", ex.getProviderName(), "retryAfter", retry)));
+    }
+
+    @ExceptionHandler(AiTimeoutException.class)
+    public ResponseEntity<Map<String, Object>> handleAiTimeout(AiTimeoutException ex) {
+        log.warn("AI timeout for provider {}", ex.getProviderName());
+        return buildResponse(HttpStatus.GATEWAY_TIMEOUT, ex.getErrorCode(),
+                "Le service IA met trop de temps a repondre. Reessayez.",
+                Map.of("provider", ex.getProviderName()));
+    }
+
+    @ExceptionHandler(AiProviderDownException.class)
+    public ResponseEntity<Map<String, Object>> handleAiDown(AiProviderDownException ex) {
+        log.warn("AI provider {} down: {}", ex.getProviderName(), ex.getMessage());
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
+                "Le service IA est temporairement indisponible. Reessayez.",
+                Map.of("provider", ex.getProviderName()));
+    }
+
+    @ExceptionHandler(AiParseException.class)
+    public ResponseEntity<Map<String, Object>> handleAiParse(AiParseException ex) {
+        log.error("AI parse error for provider {}: {}", ex.getProviderName(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_GATEWAY, ex.getErrorCode(),
+                "Reponse IA invalide. Reessayez.",
+                Map.of("provider", ex.getProviderName()));
     }
 
     // ── Fallback ─────────────────────────────────────────────────

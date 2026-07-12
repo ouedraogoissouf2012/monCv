@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,23 +61,56 @@ class JobMatchServiceImplTest {
     }
 
     @Test
-    void matchJob_sansCleIa_retourneLeFallbackSansException() {
-        when(aiClient.isAvailable()).thenReturn(false);
+    void matchJob_parseLaReponseIaStructuree() {
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        SCORE: 70
+
+                        MOTS_CLES_PRESENTS:
+                        - projet
+                        - budgets
+                        - communication
+
+                        MOTS_CLES_MANQUANTS:
+                        - analyse
+                        - donnees
+
+                        SUGGESTIONS:
+                        - Ajoutez les mots-cles manquants
+                        - Adaptez le resume professionnel
+                        - Mentionnez des resultats chiffres
+
+                        RESUME_OPTIMISE:
+                        Chef de projet digital avec experience en pilotage.
+                        """);
 
         JobMatchResponse response = service.matchJob(
                 22L,
                 "Pilotage de projet digital, gestion des budgets, communication et analyse de donnees");
 
-        assertThat(response.isAiGenerated()).isFalse();
-        assertThat(response.getScore()).isBetween(0, 100);
-        assertThat(response.getMatchedKeywords()).isNotEmpty();
+        assertThat(response.isAiGenerated()).isTrue();
+        assertThat(response.getScore()).isEqualTo(70);
+        assertThat(response.getMatchedKeywords()).contains("projet", "budgets", "communication");
         assertThat(response.getMissingKeywords()).contains("analyse", "donnees");
         assertThat(response.getSuggestions()).hasSize(3);
     }
 
     @Test
     void matchJob_avecSeulementDesStopWords_retourneUnScoreNul() {
-        when(aiClient.isAvailable()).thenReturn(false);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        SCORE: 0
+
+                        MOTS_CLES_PRESENTS:
+
+                        MOTS_CLES_MANQUANTS:
+
+                        SUGGESTIONS:
+
+                        RESUME_OPTIMISE:
+                        """);
 
         JobMatchResponse response = service.matchJob(
                 22L,
@@ -88,23 +122,40 @@ class JobMatchServiceImplTest {
     }
 
     @Test
-    void matchJob_siLeClientIaEchoue_retombeSurLeFallback() {
-        when(aiClient.isAvailable()).thenReturn(true);
+    void matchJob_siLeClientIaEchoue_propageErreur() {
         when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyInt()))
                 .thenThrow(new IllegalStateException("IA indisponible"));
 
-        JobMatchResponse response = service.matchJob(
+        assertThatThrownBy(() -> service.matchJob(
                 22L,
-                "Chef de projet digital avec gestion de budgets et planification");
-
-        assertThat(response.isAiGenerated()).isFalse();
-        assertThat(response.getScore()).isPositive();
+                "Chef de projet digital avec gestion de budgets et planification"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("IA indisponible");
     }
 
     @Test
     void matchJob_fallbackConserveLesMotsAccentesEtAnalyseToutesLesSections() {
-        when(aiClient.isAvailable()).thenReturn(false);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        SCORE: 100
+
+                        MOTS_CLES_PRESENTS:
+                        - équipe
+                        - délais
+                        - stratégie
+                        - scrum
+                        - figma
+                        - français
+
+                        MOTS_CLES_MANQUANTS:
+
+                        SUGGESTIONS:
+
+                        RESUME_OPTIMISE:
+                        Resume adapte.
+                        """);
         cv.getLanguages().add(Language.builder()
                 .langue("Français")
                 .niveau(Language.NiveauLangue.NATIF)

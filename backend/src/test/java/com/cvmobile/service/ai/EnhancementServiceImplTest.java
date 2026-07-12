@@ -76,11 +76,31 @@ class EnhancementServiceImplTest {
                         .build()))
                 .build();
         when(cvRepository.findById(42L)).thenReturn(Optional.of(cv));
-        when(aiClient.isAvailable()).thenReturn(false);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        TITRE_POSTE:
+                        Community manager
+
+                        RESUME:
+                        Développeur de contenus, gestion des réseaux et suivi du PRR
+
+                        EXP_1:
+                        Gère plusieurs projets en parallèle
+
+                        EDU_2:
+                        Étude en communication
+
+                        COMPETENCES:
+                        Word, Community Management
+
+                        PROJ_7:
+                        Projet réalisé en équipe
+                        """);
 
         EnhanceCvResponse response = service.enhanceCv(42L, "LITE");
 
-        assertThat(response.isAiGenerated()).isFalse();
+        assertThat(response.isAiGenerated()).isTrue();
         assertThat(response.getTitrePoste()).isEqualTo("Community manager");
         assertThat(response.getResumeProfessionnel())
                 .contains("Développeur", "réseaux");
