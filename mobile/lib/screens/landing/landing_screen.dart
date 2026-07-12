@@ -37,8 +37,8 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final heroTitle = isWide
-        ? 'Créez votre CV\nprofessionnel en minutes'
-        : 'Créez votre CV\nprofessionnel\nen minutes';
+        ? 'Créez un CV\nqui parle aux recruteurs'
+        : 'Créez un CV\nqui parle aux\nrecruteurs';
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -78,7 +78,7 @@ class _HeroSection extends StatelessWidget {
         ConstrainedBox(
           constraints: BoxConstraints(maxWidth: isWide ? 680 : 300),
           child: Text(
-            'Intelligence artificielle intégrée. 6 templates. Export PDF & DOCX.',
+            'Français professionnel, formats ATS, partage WhatsApp et export PDF/DOCX pour candidatures locales ou internationales.',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: isWide ? 18 : 14,
@@ -157,11 +157,12 @@ class _SocialProof extends StatelessWidget {
         runSpacing: 16,
         children: [
           SizedBox(
-              width: 72, child: _StatChip(value: '500+', label: 'CV créés')),
+              width: 86, child: _StatChip(value: 'FR/EN', label: 'Bilingue')),
           SizedBox(width: 72, child: _StatChip(value: '6', label: 'Templates')),
           SizedBox(
-              width: 72, child: _StatChip(value: '100%', label: 'Gratuit')),
-          SizedBox(width: 72, child: _StatChip(value: 'IA', label: 'Intégrée')),
+              width: 86, child: _StatChip(value: 'ATS', label: 'Compatible')),
+          SizedBox(
+              width: 92, child: _StatChip(value: 'WhatsApp', label: 'Partage')),
         ],
       ),
     );
@@ -200,12 +201,12 @@ class _FeaturesSection extends StatelessWidget {
       (
         Icons.auto_awesome_rounded,
         'Intelligence Artificielle',
-        'Améliorez votre CV avec l\'IA. Résultats chiffrés, verbes d\'action, anti-clichés.'
+        'Un français naturel, précis et sans phrases artificielles.'
       ),
       (
         Icons.picture_as_pdf_outlined,
-        '6 Templates PDF',
-        'Moderne, Classique, Minimaliste, Créatif, Executive, ATS-Safe.'
+        'Templates ciblés',
+        'Corporate, junior, senior, tech et ATS international.'
       ),
       (
         Icons.work_outline_rounded,
@@ -219,13 +220,13 @@ class _FeaturesSection extends StatelessWidget {
       ),
       (
         Icons.palette_outlined,
-        'Personnalisation',
-        'Couleurs, polices Google Fonts, templates personnalisables.'
+        'Mobile-first Afrique',
+        'Pensé pour créer, corriger, exporter et partager depuis téléphone.'
       ),
       (
-        Icons.share_outlined,
-        'Partage public',
-        'Générez un lien public pour partager votre CV.'
+        Icons.chat_outlined,
+        'Partage WhatsApp',
+        'Envoyez un lien propre à un recruteur ou à un contact RH.'
       ),
     ];
 
@@ -318,10 +319,10 @@ class _PreviewSection extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
       color: const Color(0xFFF9FAFB),
       child: Column(children: [
-        const Text('Un CV professionnel en quelques clics',
+        const Text('Un CV clair pour candidater partout',
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
-        const Text('Voici un exemple de CV généré avec MonCV',
+        const Text('Un rendu lisible pour recruteurs, PME, cabinets et ATS',
             style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
         const SizedBox(height: 32),
         // Mockup CV
@@ -464,11 +465,11 @@ class _HowItWorks extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: [
               _step('1', 'Remplissez',
-                  'Saisissez vos informations étape par étape.'),
-              _step('2', 'Améliorez',
-                  'L\'IA corrige et ajoute des résultats chiffrés.'),
-              _step('3', 'Téléchargez',
-                  'Choisissez un template et exportez en PDF ou DOCX.'),
+                  'Des aides courtes guident titre, résumé et expériences.'),
+              _step('2', 'Adaptez',
+                  'Corrigez le français et choisissez un template selon le poste.'),
+              _step('3', 'Partagez',
+                  'Exportez en PDF/DOCX ou envoyez le lien par WhatsApp.'),
             ]),
       ]),
     );
@@ -508,13 +509,13 @@ class _CtaSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
       color: _kBlue,
       child: Column(children: [
-        const Text('Prêt à créer votre CV ?',
+        const Text('Prêt à candidater avec un CV propre ?',
             style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Colors.white)),
         const SizedBox(height: 8),
-        Text('Gratuit. Aucune carte bancaire requise.',
+        Text('Mobile, rapide, lisible et pensé pour le marché francophone.',
             style: TextStyle(
                 fontSize: 14, color: Colors.white.withValues(alpha: 0.8))),
         const SizedBox(height: 24),
@@ -556,7 +557,7 @@ class _Footer extends StatelessWidget {
                   fontWeight: FontWeight.w500)),
         ]),
         const SizedBox(height: 12),
-        Text('© 2026 MonCV. Créateur de CV professionnel avec IA.',
+        Text('© 2026 MonCV. CV francophone, mobile-first et compatible ATS.',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 12, color: Colors.white.withValues(alpha: 0.5))),
