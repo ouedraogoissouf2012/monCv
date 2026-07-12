@@ -2,6 +2,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/responsive.dart';
@@ -30,31 +32,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
 
+    final l = AppLocalizations.of(context)!;
+
     return AppScaffold(
       currentIndex: 0,
-      title: 'Mes CVs',
+      title: l.myCvs,
       actions: [
-            IconButton(
-              icon: const Icon(Icons.upload_file),
-              tooltip: 'Importer un CV (PDF/DOCX)',
-              onPressed: () => _importCv(context),
+        IconButton(
+          icon: const Icon(Icons.upload_file),
+          tooltip: l.importCv,
+          onPressed: () => _importCv(context),
+        ),
+        if (isDesktop)
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: FilledButton.icon(
+              onPressed: () => context.push('/cvs/create'),
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l.newCv),
             ),
-            if (isDesktop)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: FilledButton.icon(
-                  onPressed: () => context.push('/cvs/create'),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Nouveau CV'),
-                ),
-              ),
-          ],
+          ),
+      ],
       floatingActionButton: isDesktop
           ? null
           : FloatingActionButton.extended(
               onPressed: () => context.push('/cvs/create'),
               icon: const Icon(Icons.add),
-              label: const Text('Nouveau CV'),
+              label: Text(l.newCv),
             ),
       body: Consumer<CvProvider>(
         builder: (context, cvProvider, _) {
@@ -64,35 +68,33 @@ class _HomeScreenState extends State<HomeScreen> {
           if (cvProvider.cvs.isEmpty) {
             return const _EmptyState();
           }
-          final crossAxisCount = isDesktop
-              ? (MediaQuery.of(context).size.width >= 1200 ? 3 : 2)
-              : 1;
+          final crossAxisCount =
+              MediaQuery.of(context).size.width >= 1200 ? 3 : 2;
           return Column(
             children: [
               if (cvProvider.isOffline) const _OfflineBanner(),
-              Expanded(child: GridView.builder(
-            padding: EdgeInsets.all(isDesktop ? 24 : 16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: crossAxisCount == 1 ? 2.2 : 1.4,
-            ),
-            itemCount: cvProvider.cvs.length,
-            itemBuilder: (context, index) {
-              final cv = cvProvider.cvs[index];
-              return CvCard(
-                cv: cv,
-                onTap: () => context.push('/cvs/${cv.id}'),
-                onEdit: () => context.push('/cvs/${cv.id}/edit', extra: cv),
-                onDownloadPdf: () => _downloadPdf(context, cv),
-                onDownloadDocx: () => _downloadDocx(context, cv.id!),
-                onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
-                onDuplicate: () => _duplicateCv(context, cv.id!),
-                onShare: () => _shareLink(context, cv.id!),
-              );
-            },
-          )),
+              Expanded(
+                child: isDesktop
+                    ? GridView.builder(
+                        padding: const EdgeInsets.all(24),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 1.4,
+                        ),
+                        itemCount: cvProvider.cvs.length,
+                        itemBuilder: (context, index) =>
+                            _buildCvCard(context, cvProvider.cvs[index]),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: cvProvider.cvs.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) =>
+                            _buildCvCard(context, cvProvider.cvs[index]),
+                      ),
+              ),
             ],
           );
         },
@@ -100,8 +102,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildCvCard(BuildContext context, Cv cv) {
+    return CvCard(
+      cv: cv,
+      onTap: () => context.push('/cvs/${cv.id}'),
+      onEdit: () => context.push('/cvs/${cv.id}/edit', extra: cv),
+      onDownloadPdf: () => _downloadPdf(context, cv),
+      onDownloadDocx: () => _downloadDocx(context, cv.id!),
+      onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
+      onDuplicate: () => _duplicateCv(context, cv.id!),
+      onShare: () => _shareLink(context, cv),
+    );
+  }
+
   Future<void> _confirmDelete(
       BuildContext context, int cvId, String titre) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
     final cvProvider = context.read<CvProvider>();
@@ -109,17 +125,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer le CV'),
-        content: Text('Voulez-vous vraiment supprimer "$titre" ?'),
+        title: Text(l.deleteCvTitle),
+        content: Text(l.deleteCvConfirm(titre)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(l.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: errorColor),
-            child: const Text('Supprimer'),
+            child: Text(l.delete),
           ),
         ],
       ),
@@ -129,15 +145,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final success = await cvProvider.deleteCv(cvId);
     messenger.showSnackBar(
       SnackBar(
-        content: Text(success ? 'CV supprimé' : cvProvider.error ?? 'Erreur'),
+        content:
+            Text(success ? l.cvDeleted : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
       ),
     );
   }
 
   Future<void> _duplicateCv(BuildContext context, int cvId) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
     final cvProvider = context.read<CvProvider>();
@@ -146,32 +163,54 @@ class _HomeScreenState extends State<HomeScreen> {
     messenger.showSnackBar(
       SnackBar(
         content:
-            Text(success ? 'CV dupliqué ✓' : cvProvider.error ?? 'Erreur'),
+            Text(success ? l.cvDuplicated : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
       ),
     );
   }
 
-  Future<void> _shareLink(BuildContext context, int cvId) async {
+  Future<void> _shareLink(BuildContext context, Cv cv) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final url = await ShareService().generateShareLink(cvId);
-      if (!mounted || url == null) return;
+      final url = await ShareService().generateShareLink(cv.id!);
+      if (!context.mounted || url == null) return;
 
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Lien de partage'),
+          title: Text(l.shareLinkTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Partagez ce lien pour que n\'importe qui puisse voir votre CV :',
-                style: TextStyle(fontSize: 13),
+              Text(l.shareLinkDescription,
+                  style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF25D366).withValues(alpha: 0.18),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.chat_outlined,
+                        color: Color(0xFF128C7E), size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'WhatsApp est idéal pour envoyer votre CV à un recruteur, une PME ou un contact RH.',
+                        style: TextStyle(fontSize: 12, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               Container(
@@ -182,8 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: SelectableText(
                   url,
-                  style: const TextStyle(
-                      fontSize: 12, fontFamily: 'monospace'),
+                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
                 ),
               ),
             ],
@@ -191,133 +229,142 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Fermer'),
+              child: Text(l.close),
+            ),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final opened =
+                    await ShareService().shareToWhatsApp(url, title: cv.titre);
+                if (!ctx.mounted) return;
+                if (opened) {
+                  Navigator.pop(ctx);
+                  return;
+                }
+                await ShareService().copyToClipboard(
+                  ShareService().buildRecruiterMessage(url, title: cv.titre),
+                );
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx);
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'WhatsApp indisponible, message copié dans le presse-papier'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Color(0xFFF59E0B),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.chat_outlined, size: 16),
+              label: const Text('WhatsApp'),
             ),
             FilledButton.icon(
               onPressed: () {
                 ShareService().copyToClipboard(url);
                 Navigator.pop(ctx);
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('Lien copié dans le presse-papier ✓'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Color(0xFF10B981),
-                  ),
-                );
+                messenger.showSnackBar(SnackBar(
+                  content: Text(l.linkCopied),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: const Color(0xFF10B981),
+                ));
               },
               icon: const Icon(Icons.copy_rounded, size: 16),
-              label: const Text('Copier'),
+              label: Text(l.copy),
             ),
           ],
         ),
       );
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur : $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text('${l.errorGeneric}: $e'),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _downloadPdf(BuildContext context, cv) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Génération du PDF en cours…'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.pdfDownloading),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+    ));
     try {
       await PdfService().downloadPdf(cv);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('PDF téléchargé ✓'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.pdfDownloaded),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur PDF: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.pdfError(e.toString())),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _importCv(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final cvProvider = context.read<CvProvider>();
 
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'docx'],
+      withData: true,
     );
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
-    if (file.path == null) return;
+    if (file.bytes == null) return;
 
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Import du CV en cours...'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 10),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.importInProgress),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 10),
+    ));
 
     try {
-      final cv = await ApiService().importCv(file.path!, file.name);
+      final cv = await ApiService().importCv(file.bytes!, file.name);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('CV "${cv.titre}" importe avec succes'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.importSuccess(cv.titre)),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
       await cvProvider.loadCvs();
     } catch (e) {
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur import: ${e.toString().replaceAll('Exception: ', '')}'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content:
+            Text(l.importError(e.toString().replaceAll('Exception: ', ''))),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
   Future<void> _downloadDocx(BuildContext context, int cvId) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Telechargement DOCX en cours...'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
+    messenger.showSnackBar(SnackBar(
+      content: Text(l.docxDownloading),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+    ));
     try {
       await PdfService().downloadDocx(cvId);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('DOCX telecharge'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.docxDownloaded),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+      ));
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur DOCX: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.docxError(e.toString())),
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 }
@@ -331,14 +378,14 @@ class _OfflineBanner extends StatelessWidget {
       width: double.infinity,
       color: const Color(0xFFF59E0B),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
-          SizedBox(width: 8),
+          const Icon(Icons.wifi_off_rounded, size: 16, color: Colors.white),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Mode hors ligne — données en cache',
-              style: TextStyle(
+              AppLocalizations.of(context)!.offlineBanner,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -375,7 +422,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Aucun CV pour l\'instant',
+              AppLocalizations.of(context)!.noCvYet,
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -383,7 +430,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Créez votre premier CV professionnel',
+              AppLocalizations.of(context)!.createFirstCv,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -393,7 +440,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => context.push('/cvs/create'),
               icon: const Icon(Icons.add),
-              label: const Text('Créer mon premier CV'),
+              label: Text(AppLocalizations.of(context)!.createMyFirstCv),
             ),
           ],
         ),

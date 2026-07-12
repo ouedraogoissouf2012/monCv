@@ -135,6 +135,33 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> exportUserData() async {
+    final response = await http.get(
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me/export'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Erreur lors de l\'export des donnees');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 204) {
+      await clearTokens();
+      return;
+    }
+    throw Exception('Erreur lors de la suppression du compte');
+  }
+
   // CV endpoints
   Future<List<Cv>> getAllCvs() async {
     final response = await http.get(
@@ -173,8 +200,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de la creation du CV');
+      _throwApiError(response, 'Erreur lors de la creation du CV');
     }
   }
 
@@ -188,9 +214,25 @@ class ApiService {
     if (response.statusCode == 200) {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de la mise a jour du CV');
+      _throwApiError(response, 'Erreur lors de la mise a jour du CV');
     }
+  }
+
+  Never _throwApiError(http.Response response, String fallbackMessage) {
+    Map<String, dynamic>? body;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        body = Map<String, dynamic>.from(decoded);
+        body['status'] ??= response.statusCode;
+        body['message'] ??= fallbackMessage;
+      }
+    } catch (_) {
+      // Retombe sur un message simple si le corps n'est pas du JSON valide.
+    }
+
+    if (body != null) throw Exception(jsonEncode(body));
+    throw Exception(fallbackMessage);
   }
 
   Future<void> deleteCv(int id) async {
@@ -246,8 +288,7 @@ class ApiService {
     }
     request.files.add(
       http.MultipartFile.fromBytes('file', bytes,
-          filename: filename,
-          contentType: MediaType.parse(mimeType)),
+          filename: filename, contentType: MediaType.parse(mimeType)),
     );
 
     final streamed = await request.send();
@@ -263,7 +304,8 @@ class ApiService {
 
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
       headers: await _getHeaders(),
     );
 
@@ -271,6 +313,24 @@ class ApiService {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Erreur lors de la duplication du CV');
+    }
+  }
+
+  Future<Cv> createVariant(int cvId, String jobDescription, {String? label}) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'jobDescription': jobDescription,
+        if (label != null && label.isNotEmpty) 'label': label,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return Cv.fromJson(jsonDecode(response.body));
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Erreur lors de la creation de la variante');
     }
   }
 
@@ -283,7 +343,8 @@ class ApiService {
       headers: await _getHeaders(),
       body: jsonEncode({
         'poste': poste,
-        if (entreprise != null && entreprise.isNotEmpty) 'entreprise': entreprise,
+        if (entreprise != null && entreprise.isNotEmpty)
+          'entreprise': entreprise,
       }),
     );
 
@@ -313,7 +374,11 @@ class ApiService {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/enhance-cv'),
       headers: await _getHeaders(),
-      body: jsonEncode({'cvId': cvId, 'level': level}),
+      body: jsonEncode({
+        'cvId': cvId,
+        'level': level,
+        'aiConsentAccepted': true,
+      }),
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -323,7 +388,8 @@ class ApiService {
   }
 
   Future<List<int>> downloadCvDocx(int id) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
+    final uri = Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
     final response = await http.get(uri, headers: await _getHeaders());
     if (response.statusCode == 200) {
       return response.bodyBytes;
@@ -332,14 +398,17 @@ class ApiService {
     }
   }
 
-  Future<String> generateResume(String? titrePoste, String? competences, String? experience) async {
+  Future<String> generateResume(
+      String? titrePoste, String? competences, String? experience) async {
     final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
       headers: await _getHeaders(),
       body: jsonEncode({
         'titrePoste': titrePoste ?? '',
         'competences': competences ?? '',
         'experience': experience ?? '',
+        'aiConsentAccepted': true,
       }),
     );
     if (response.statusCode == 200) {
@@ -354,12 +423,16 @@ class ApiService {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
       headers: await _getHeaders(),
-      body: jsonEncode({'cvId': cvId, 'jobDescription': jobDescription}),
+      body: jsonEncode({
+        'cvId': cvId,
+        'jobDescription': jobDescription,
+        'aiConsentAccepted': true,
+      }),
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
-      throw Exception('Erreur lors de l\'analyse');
+      _throwApiError(response, 'Erreur lors de l\'analyse de l\'offre');
     }
   }
 
@@ -376,7 +449,7 @@ class ApiService {
     }
   }
 
-  Future<Cv> importCv(String filePath, String filename) async {
+  Future<Cv> importCv(Uint8List bytes, String filename) async {
     final token = await accessToken;
     final request = http.MultipartRequest(
       'POST',
@@ -385,7 +458,17 @@ class ApiService {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    request.files.add(await http.MultipartFile.fromPath('file', filePath, filename: filename));
+    final lower = filename.toLowerCase();
+    final contentType = lower.endsWith('.pdf')
+        ? MediaType('application', 'pdf')
+        : MediaType('application',
+            'vnd.openxmlformats-officedocument.wordprocessingml.document');
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      bytes,
+      filename: filename,
+      contentType: contentType,
+    ));
 
     final streamed = await request.send();
     final body = await streamed.stream.bytesToString();

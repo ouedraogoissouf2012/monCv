@@ -33,6 +33,9 @@ public final class AiPromptRules {
 
     public static final String STYLE_RULE =
             "REGLE DE STYLE NATUREL: "
+            + "Ecris dans un francais professionnel francophone, clair pour les recruteurs d'Afrique francophone "
+            + "et comprehensible dans un contexte international. "
+            + "Evite les tournures trop parisiennes, les anglicismes inutiles et les phrases marketing. "
             + "VARIE les structures de phrases mais garde un style HOMOGENE au sein de chaque experience. "
             + "Choisis UN style par experience et garde-le pour tous les bullets de cette experience. "
             + "Styles possibles: "
@@ -47,6 +50,14 @@ public final class AiPromptRules {
             + "Si une description n'a AUCUN chiffre, ajoute des metriques CREDIBLES basees sur le contexte "
             + "(pas des placeholders, mais des estimations raisonnables). "
             + "Chaque bullet point devrait avoir au moins UN element mesurable. ";
+
+    public static final String FRANCOPHONE_MARKET_RULE =
+            "REGLE MARCHE FRANCOPHONE: "
+            + "Valorise les realisations utiles aux PME, startups, ONG, administrations, banques, telecoms, "
+            + "commerce, education, sante, logistique et services numeriques. "
+            + "Quand le contexte est local, privilegie des resultats concrets: delais reduits, clients servis, "
+            + "processus fiabilises, ventes, adoption utilisateur, qualite de service, couts maitrises. "
+            + "Ne jamais inventer de diplome, certification, entreprise ou pays. ";
 
     public static final String PROJECT_RULE =
             "REGLE PROJETS: Pour les projets personnels, ENRICHIS la description. "

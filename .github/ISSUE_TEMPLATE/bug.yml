@@ -1,0 +1,51 @@
+name: 🐛 Bug report
+description: Reporter un bug
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Que s'est-il passé ? Que devrait-il se passer ?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps précises pour reproduire
+      placeholder: |
+        1. Aller à ...
+        2. Cliquer sur ...
+        3. Voir l'erreur
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Preuves
+      description: Logs, screenshots, lien fichier:ligne
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      options:
+        - "P0 — bloquant prod"
+        - "P1 — sprint courant"
+        - "P2 — à planifier"
+        - "P3 — long terme"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - backend
+        - mobile (app)
+        - mobile (web)
+        - infra/devops
+        - documentation
+    validations:
+      required: true

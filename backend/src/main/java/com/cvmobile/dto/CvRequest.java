@@ -42,6 +42,25 @@ public class CvRequest {
     @Valid
     private List<ProjectDto> projects;
 
+    @Valid
+    private StyleDto style;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StyleDto {
+        @Size(max = 50, message = "Le template ne doit pas depasser 50 caracteres")
+        private String templateId;
+
+        @Min(value = 0, message = "La couleur doit etre un entier ARGB positif")
+        @Max(value = 4294967295L, message = "La couleur doit etre un entier ARGB valide")
+        private Long primaryColor;
+
+        @Size(max = 100, message = "La police ne doit pas depasser 100 caracteres")
+        private String fontFamily;
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
