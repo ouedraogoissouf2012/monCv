@@ -830,6 +830,12 @@ abstract class AppLocalizations {
   /// **'Partages'**
   String get shares;
 
+  /// No description provided for @views.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vues'**
+  String get views;
+
   /// No description provided for @today.
   ///
   /// In fr, this message translates to:

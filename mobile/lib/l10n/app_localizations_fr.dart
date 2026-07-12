@@ -387,6 +387,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shares => 'Partages';
 
   @override
+  String get views => 'Vues';
+
+  @override
   String get today => 'Aujourd\'hui';
 
   @override

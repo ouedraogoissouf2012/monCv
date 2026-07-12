@@ -386,6 +386,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shares => 'Shares';
 
   @override
+  String get views => 'Views';
+
+  @override
   String get today => 'Today';
 
   @override
