@@ -4,6 +4,7 @@ import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
 import '../models/user.dart';
 import '../repositories/auth_repository.dart';
+import '../services/token_storage.dart';
 import '../usecases/auth/login_usecase.dart';
 import '../usecases/auth/register_usecase.dart';
 import '../usecases/auth/logout_usecase.dart';
@@ -17,7 +18,8 @@ class AuthProvider with ChangeNotifier {
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final UpdateProfileUseCase _updateProfileUseCase;
   final AuthRepository _repository;
-  final FlutterSecureStorage _storage;
+  final FlutterSecureStorage? _storage;
+  final TokenStorage _tokenStorage;
 
   AuthProvider({
     required LoginUseCase loginUseCase,
@@ -27,38 +29,54 @@ class AuthProvider with ChangeNotifier {
     required UpdateProfileUseCase updateProfileUseCase,
     required AuthRepository repository,
     FlutterSecureStorage? storage,
+    TokenStorage? tokenStorage,
   })  : _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _logoutUseCase = logoutUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _updateProfileUseCase = updateProfileUseCase,
         _repository = repository,
-        _storage = storage ?? const FlutterSecureStorage() {
+        _storage = storage,
+        _tokenStorage = tokenStorage ?? TokenStorage() {
     _checkAuthStatus();
   }
 
   User? _user;
   bool _isLoading = false;
+  bool _isCheckingAuth = true;
   String? _error;
   bool _isAuthenticated = false;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isCheckingAuth => _isCheckingAuth;
   String? get error => _error;
   bool get isAuthenticated => _isAuthenticated;
 
+  Future<String?> _readStoredAccessToken() {
+    final storage = _storage;
+    if (storage != null) {
+      return storage.read(key: 'access_token');
+    }
+    return _tokenStorage.read('access_token');
+  }
+
   Future<void> _checkAuthStatus() async {
-    final token = await _storage.read(key: 'access_token');
-    if (token != null) {
-      final result = await _getCurrentUserUseCase(const NoParams());
-      switch (result) {
-        case Success(:final data):
-          _user = data;
-          _isAuthenticated = true;
-        case Failure():
-          await _repository.clearTokens();
-          _isAuthenticated = false;
+    try {
+      final token = await _readStoredAccessToken();
+      if (token != null) {
+        final result = await _getCurrentUserUseCase(const NoParams());
+        switch (result) {
+          case Success(:final data):
+            _user = data;
+            _isAuthenticated = true;
+          case Failure():
+            await _repository.clearTokens();
+            _isAuthenticated = false;
+        }
       }
+    } finally {
+      _isCheckingAuth = false;
       notifyListeners();
     }
   }
@@ -68,17 +86,20 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _loginUseCase(LoginParams(email: email, password: password));
+    final result =
+        await _loginUseCase(LoginParams(email: email, password: password));
     _isLoading = false;
 
     switch (result) {
       case Success(:final data):
         _user = data.user;
         _isAuthenticated = true;
+        _isCheckingAuth = false;
         notifyListeners();
         return true;
       case Failure(:final exception):
         _error = exception.message;
+        _isCheckingAuth = false;
         notifyListeners();
         return false;
     }
@@ -106,10 +127,12 @@ class AuthProvider with ChangeNotifier {
       case Success(:final data):
         _user = data.user;
         _isAuthenticated = true;
+        _isCheckingAuth = false;
         notifyListeners();
         return true;
       case Failure(:final exception):
         _error = exception.message;
+        _isCheckingAuth = false;
         notifyListeners();
         return false;
     }
@@ -119,6 +142,7 @@ class AuthProvider with ChangeNotifier {
     await _logoutUseCase(const NoParams());
     _user = null;
     _isAuthenticated = false;
+    _isCheckingAuth = false;
     notifyListeners();
   }
 
@@ -126,7 +150,8 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final result = await _updateProfileUseCase(UpdateProfileParams(nom: nom, prenom: prenom));
+    final result = await _updateProfileUseCase(
+        UpdateProfileParams(nom: nom, prenom: prenom));
     _isLoading = false;
 
     switch (result) {

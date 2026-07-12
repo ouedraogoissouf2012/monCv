@@ -36,9 +36,12 @@ public class SuggestionServiceImpl implements ISuggestionService {
                 ? " chez " + entreprise
                 : "";
         return "Génère exactement 5 bullet points professionnels en français pour un CV. "
+                + AiPromptRules.FRANCOPHONE_MARKET_RULE
+                + AiPromptRules.ANTI_CLICHES_RULE
                 + "Poste : " + poste + context + ". "
                 + "Chaque bullet doit commencer par un verbe d'action au passé composé "
                 + "et inclure un résultat mesurable. "
+                + "Utilise un style naturel, utile pour une candidature en Afrique francophone ou a l'international. "
                 + "Réponds uniquement avec les 5 points, un par ligne, sans numérotation ni tiret.";
     }
 
@@ -64,11 +67,11 @@ public class SuggestionServiceImpl implements ISuggestionService {
             );
         }
         return List.of(
-                "Contribué activement à l'atteinte des objectifs d'équipe en dépassant les KPIs fixés",
-                "Amélioré les processus internes en réduisant les délais de traitement de 20%",
-                "Collaboré avec des parties prenantes internes et externes pour garantir la satisfaction client",
-                "Géré plusieurs projets en parallèle dans le respect des délais et des budgets",
-                "Proposé et implémenté des solutions innovantes ayant réduit les coûts opérationnels"
+                "Traité les demandes clients dans les délais convenus avec un taux de satisfaction de 90%",
+                "Amélioré le suivi des dossiers en réduisant les retards de traitement de 20%",
+                "Coordonné les échanges entre équipes internes et partenaires pour sécuriser les livrables",
+                "Suivi plusieurs activités en parallèle avec reporting hebdomadaire auprès du responsable",
+                "Mis à jour les procédures de travail afin de réduire les erreurs récurrentes"
         );
     }
 

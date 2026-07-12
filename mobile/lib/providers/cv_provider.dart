@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
@@ -6,12 +7,14 @@ import '../models/cv.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
 import '../services/connectivity_service.dart';
+import '../services/sync_queue.dart';
 import '../usecases/cv/get_all_cvs_usecase.dart';
 import '../usecases/cv/get_cv_by_id_usecase.dart';
 import '../usecases/cv/create_cv_usecase.dart';
 import '../usecases/cv/update_cv_usecase.dart';
 import '../usecases/cv/delete_cv_usecase.dart';
 import '../usecases/cv/duplicate_cv_usecase.dart';
+import '../usecases/cv/create_variant_usecase.dart';
 
 class CvProvider with ChangeNotifier {
   final GetAllCvsUseCase _getAllCvs;
@@ -20,10 +23,13 @@ class CvProvider with ChangeNotifier {
   final UpdateCvUseCase _updateCv;
   final DeleteCvUseCase _deleteCv;
   final DuplicateCvUseCase _duplicateCv;
+  final CreateVariantUseCase _createVariant;
   final CvRepository _repository;
   final ConnectivityService _connectivity;
+  final SyncQueue? _syncQueue;
 
   late final StreamSubscription<bool> _connectivitySub;
+  int _tempIdCounter = -1;
 
   CvProvider({
     required GetAllCvsUseCase getAllCvs,
@@ -32,20 +38,27 @@ class CvProvider with ChangeNotifier {
     required UpdateCvUseCase updateCv,
     required DeleteCvUseCase deleteCv,
     required DuplicateCvUseCase duplicateCv,
+    required CreateVariantUseCase createVariantUseCase,
     required CvRepository repository,
     required ConnectivityService connectivity,
+    SyncQueue? syncQueue,
   })  : _getAllCvs = getAllCvs,
         _getCvById = getCvById,
         _createCv = createCv,
         _updateCv = updateCv,
         _deleteCv = deleteCv,
         _duplicateCv = duplicateCv,
+        _createVariant = createVariantUseCase,
         _repository = repository,
-        _connectivity = connectivity {
+        _connectivity = connectivity,
+        _syncQueue = syncQueue {
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
       _isOffline = !online;
       notifyListeners();
-      if (online && _cvs.isEmpty) loadCvs();
+      if (online) {
+        _syncPendingOperations();
+        if (_cvs.isEmpty) loadCvs();
+      }
     });
   }
 
@@ -58,6 +71,8 @@ class CvProvider with ChangeNotifier {
   List<Cv> get cvs => _cvs;
   Cv? get currentCv => _currentCv;
   bool get isLoading => _isLoading;
+  bool get hasPendingSync => _syncQueue?.hasPending ?? false;
+  int get pendingSyncCount => _syncQueue?.pendingCount ?? 0;
   String? get error => _error;
   bool get isOffline => _isOffline;
 
@@ -100,6 +115,24 @@ class CvProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    // Si offline, sauvegarder localement avec un ID temporaire negatif
+    if (_isOffline && _syncQueue != null) {
+      final tempId = _tempIdCounter--;
+      final offlineCv = cv.copyWith(id: tempId);
+      _cvs.add(offlineCv);
+      _currentCv = offlineCv;
+      await _syncQueue!.add(PendingOperation(
+        id: 'create_$tempId',
+        type: 'create',
+        cvJson: jsonEncode(cv.toJson()),
+        cvId: tempId,
+        createdAt: DateTime.now(),
+      ));
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }
+
     final result = await _createCv(cv);
     _isLoading = false;
 
@@ -120,6 +153,23 @@ class CvProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
+
+    // Si offline, sauvegarder localement + queue
+    if (_isOffline && _syncQueue != null) {
+      final index = _cvs.indexWhere((c) => c.id == id);
+      if (index != -1) _cvs[index] = cv;
+      _currentCv = cv;
+      await _syncQueue!.add(PendingOperation(
+        id: 'update_${id}_${DateTime.now().millisecondsSinceEpoch}',
+        type: 'update',
+        cvJson: jsonEncode(cv.toJson()),
+        cvId: id,
+        createdAt: DateTime.now(),
+      ));
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }
 
     final result = await _updateCv(UpdateCvParams(id: id, cv: cv));
     _isLoading = false;
@@ -179,7 +229,35 @@ class CvProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) async {
+  Future<Cv?> createVariant(int cvId, String jobDescription,
+      {String? label}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    final result = await _createVariant(
+      CreateVariantParams(
+        cvId: cvId,
+        jobDescription: jobDescription,
+        label: label,
+      ),
+    );
+    _isLoading = false;
+
+    switch (result) {
+      case Success(:final data):
+        _cvs.add(data);
+        notifyListeners();
+        return data;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return null;
+    }
+  }
+
+  Future<bool> applyAiEnhancements(
+      int cvId, Map<String, dynamic> result) async {
     final cv = _currentCv;
     if (cv == null || cv.id != cvId) return false;
 
@@ -198,11 +276,15 @@ class CvProvider with ChangeNotifier {
           ville: updatedInfo.ville,
           codePostal: updatedInfo.codePostal,
           pays: updatedInfo.pays,
-          titrePoste: (newTitre != null && newTitre.isNotEmpty) ? newTitre : updatedInfo.titrePoste,
+          titrePoste: (newTitre != null && newTitre.isNotEmpty)
+              ? newTitre
+              : updatedInfo.titrePoste,
           linkedIn: updatedInfo.linkedIn,
           portfolio: updatedInfo.portfolio,
           photoUrl: updatedInfo.photoUrl,
-          resumeProfessionnel: (newResume != null && newResume.isNotEmpty) ? newResume : updatedInfo.resumeProfessionnel,
+          resumeProfessionnel: (newResume != null && newResume.isNotEmpty)
+              ? newResume
+              : updatedInfo.resumeProfessionnel,
         );
       }
     }
@@ -211,13 +293,24 @@ class CvProvider with ChangeNotifier {
     if (result['experiences'] != null) {
       final aiExps = result['experiences'] as List<dynamic>;
       for (int i = 0; i < aiExps.length && i < updatedExperiences.length; i++) {
+        final newPoste = aiExps[i]['poste'] as String?;
         final newDesc = aiExps[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        if ((newPoste != null && newPoste.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty)) {
           final old = updatedExperiences[i];
           updatedExperiences[i] = Experience(
-            id: old.id, poste: old.poste, entreprise: old.entreprise,
-            lieu: old.lieu, dateDebut: old.dateDebut, dateFin: old.dateFin,
-            actuel: old.actuel, description: newDesc,
+            id: old.id,
+            poste: (newPoste != null && newPoste.isNotEmpty)
+                ? newPoste
+                : old.poste,
+            entreprise: old.entreprise,
+            lieu: old.lieu,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
+            actuel: old.actuel,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
           );
         }
       }
@@ -227,13 +320,32 @@ class CvProvider with ChangeNotifier {
     if (result['educations'] != null) {
       final aiEdus = result['educations'] as List<dynamic>;
       for (int i = 0; i < aiEdus.length && i < updatedEducations.length; i++) {
+        final newEtablissement = aiEdus[i]['etablissement'] as String?;
+        final newDiplome = aiEdus[i]['diplome'] as String?;
+        final newDomaine = aiEdus[i]['domaine'] as String?;
         final newDesc = aiEdus[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        if ((newEtablissement != null && newEtablissement.isNotEmpty) ||
+            (newDiplome != null && newDiplome.isNotEmpty) ||
+            (newDomaine != null && newDomaine.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty)) {
           final old = updatedEducations[i];
           updatedEducations[i] = Education(
-            id: old.id, etablissement: old.etablissement, diplome: old.diplome,
-            domaine: old.domaine, dateDebut: old.dateDebut, dateFin: old.dateFin,
-            description: newDesc,
+            id: old.id,
+            etablissement:
+                (newEtablissement != null && newEtablissement.isNotEmpty)
+                    ? newEtablissement
+                    : old.etablissement,
+            diplome: (newDiplome != null && newDiplome.isNotEmpty)
+                ? newDiplome
+                : old.diplome,
+            domaine: (newDomaine != null && newDomaine.isNotEmpty)
+                ? newDomaine
+                : old.domaine,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
           );
         }
       }
@@ -243,10 +355,62 @@ class CvProvider with ChangeNotifier {
     if (result['skills'] != null) {
       final aiSkills = result['skills'] as List<dynamic>;
       if (aiSkills.isNotEmpty) {
-        updatedSkills = aiSkills.map((s) => Skill(
-          nom: s['nom'] as String? ?? '',
-          niveau: s['niveau'] as int? ?? 3,
-        )).toList();
+        updatedSkills = List.generate(aiSkills.length, (index) {
+          final old = index < cv.skills.length ? cv.skills[index] : null;
+          final skill = aiSkills[index] as Map<String, dynamic>;
+          return Skill(
+            id: old?.id,
+            nom: skill['nom'] as String? ?? old?.nom ?? '',
+            niveau: skill['niveau'] as int? ?? old?.niveau ?? 3,
+            categorie: old?.categorie,
+          );
+        });
+      }
+    }
+
+    List<Language> updatedLanguages = List<Language>.from(cv.languages);
+    if (result['languages'] != null) {
+      final correctedLanguages = result['languages'] as List<dynamic>;
+      for (int i = 0;
+          i < correctedLanguages.length && i < updatedLanguages.length;
+          i++) {
+        final newName = correctedLanguages[i]['langue'] as String?;
+        if (newName != null && newName.isNotEmpty) {
+          final old = updatedLanguages[i];
+          updatedLanguages[i] = Language(
+            id: old.id,
+            langue: newName,
+            niveau: old.niveau,
+          );
+        }
+      }
+    }
+
+    List<Certification> updatedCertifications =
+        List<Certification>.from(cv.certifications);
+    if (result['certifications'] != null) {
+      final correctedCertifications = result['certifications'] as List<dynamic>;
+      for (int i = 0;
+          i < correctedCertifications.length &&
+              i < updatedCertifications.length;
+          i++) {
+        final newName = correctedCertifications[i]['nom'] as String?;
+        final newOrganization =
+            correctedCertifications[i]['organisme'] as String?;
+        if ((newName != null && newName.isNotEmpty) ||
+            (newOrganization != null && newOrganization.isNotEmpty)) {
+          final old = updatedCertifications[i];
+          updatedCertifications[i] = Certification(
+            id: old.id,
+            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
+            organisme: (newOrganization != null && newOrganization.isNotEmpty)
+                ? newOrganization
+                : old.organisme,
+            dateObtention: old.dateObtention,
+            dateExpiration: old.dateExpiration,
+            credentialUrl: old.credentialUrl,
+          );
+        }
       }
     }
 
@@ -254,13 +418,26 @@ class CvProvider with ChangeNotifier {
     if (result['projects'] != null) {
       final aiProjs = result['projects'] as List<dynamic>;
       for (int i = 0; i < aiProjs.length && i < updatedProjects.length; i++) {
+        final newName = aiProjs[i]['nom'] as String?;
         final newDesc = aiProjs[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        final newTechnologies = aiProjs[i]['technologies'] as String?;
+        if ((newName != null && newName.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty) ||
+            (newTechnologies != null && newTechnologies.isNotEmpty)) {
           final old = updatedProjects[i];
           updatedProjects[i] = Project(
-            id: old.id, nom: old.nom, description: newDesc,
-            technologies: old.technologies, lien: old.lien,
-            dateDebut: old.dateDebut, dateFin: old.dateFin,
+            id: old.id,
+            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
+            technologies:
+                (newTechnologies != null && newTechnologies.isNotEmpty)
+                    ? newTechnologies
+                    : old.technologies,
+            lien: old.lien,
+            dateDebut: old.dateDebut,
+            dateFin: old.dateFin,
           );
         }
       }
@@ -271,6 +448,8 @@ class CvProvider with ChangeNotifier {
       experiences: updatedExperiences,
       educations: updatedEducations,
       skills: updatedSkills,
+      languages: updatedLanguages,
+      certifications: updatedCertifications,
       projects: updatedProjects,
     );
 
@@ -285,15 +464,49 @@ class CvProvider with ChangeNotifier {
     return true;
   }
 
-  void updateCvStyle(int cvId, CvStyle style) {
+  Future<bool> updateCvStyle(int cvId, CvStyle style) async {
+    final currentIndex = _cvs.indexWhere((c) => c.id == cvId);
+    final cv = _currentCv?.id == cvId
+        ? _currentCv
+        : currentIndex != -1
+            ? _cvs[currentIndex]
+            : null;
+
+    if (cv == null) {
+      _error = 'CV introuvable';
+      notifyListeners();
+      return false;
+    }
+
+    final updatedCv = cv.copyWith(style: style);
+    _error = null;
+
     if (_currentCv?.id == cvId) {
-      _currentCv = _currentCv!.copyWith(style: style);
+      _currentCv = updatedCv;
     }
     final index = _cvs.indexWhere((c) => c.id == cvId);
     if (index != -1) {
-      _cvs[index] = _cvs[index].copyWith(style: style);
+      _cvs[index] = updatedCv;
     }
     notifyListeners();
+
+    final result = await _repository.updateCv(cvId, updatedCv);
+    switch (result) {
+      case Success(:final data):
+        if (_currentCv?.id == cvId) {
+          _currentCv = data;
+        }
+        final index = _cvs.indexWhere((c) => c.id == cvId);
+        if (index != -1) {
+          _cvs[index] = data;
+        }
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
+    }
   }
 
   void setCurrentCv(Cv? cv) {
@@ -301,8 +514,54 @@ class CvProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// True si ce CV a un ID temporaire negatif (cree offline, pas encore sync).
+  bool isPendingSync(Cv cv) => cv.id != null && cv.id! < 0;
+
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  // ── Sync offline ──────────────────────────────────────────────
+
+  /// Rejoue les operations en attente quand la connexion revient.
+  Future<void> _syncPendingOperations() async {
+    final queue = _syncQueue;
+    if (queue == null || !queue.hasPending) return;
+
+    final operations = queue.getAll();
+    for (final op in operations) {
+      try {
+        switch (op.type) {
+          case 'create':
+            if (op.cvJson != null) {
+              final cv =
+                  Cv.fromJson(jsonDecode(op.cvJson!) as Map<String, dynamic>);
+              final result = await _createCv(cv);
+              if (result case Success(:final data)) {
+                final tempIndex = _cvs.indexWhere((c) => c.id == op.cvId);
+                if (tempIndex != -1) _cvs[tempIndex] = data;
+                await queue.remove(op.id);
+              }
+            }
+          case 'update':
+            if (op.cvJson != null && op.cvId != null && op.cvId! > 0) {
+              final cv =
+                  Cv.fromJson(jsonDecode(op.cvJson!) as Map<String, dynamic>);
+              final result =
+                  await _updateCv(UpdateCvParams(id: op.cvId!, cv: cv));
+              if (result.isSuccess) await queue.remove(op.id);
+            }
+          case 'delete':
+            if (op.cvId != null && op.cvId! > 0) {
+              final result = await _deleteCv(op.cvId!);
+              if (result.isSuccess) await queue.remove(op.id);
+            }
+        }
+      } catch (_) {
+        // Garder dans la queue, reessayer plus tard
+      }
+    }
     notifyListeners();
   }
 

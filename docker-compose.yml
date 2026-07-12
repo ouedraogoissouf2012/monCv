@@ -1,0 +1,61 @@
+# Docker Compose pour developpement local
+# Usage : docker compose up -d
+#
+# Pour la prod : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Voir DEPLOYMENT.md
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cvmobile-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cvmobile
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d cvmobile"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cvmobile-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cvmobile-backend
+    restart: unless-stopped
+    env_file:
+      - backend/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_URL: jdbc:postgresql://postgres:5432/cvmobile
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${SERVER_PORT:-8082}:8082"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health/liveness"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cvmobile-net
+
+volumes:
+  postgres_data:
+
+networks:
+  cvmobile-net:
+    driver: bridge

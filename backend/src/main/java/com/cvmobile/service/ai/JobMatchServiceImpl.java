@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +24,16 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class JobMatchServiceImpl implements IJobMatchService {
+
+    private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}]+");
+    private static final Pattern DIACRITICS_PATTERN = Pattern.compile("\\p{M}+");
+
+    private static final Set<String> STOP_WORDS = Set.copyOf(List.of(
+            "le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "en",
+            "pour", "avec", "dans", "sur", "par", "au", "aux", "est", "sont",
+            "nous", "vous", "il", "elle", "ce", "cette", "son", "sa", "ses",
+            "qui", "que", "dont", "plus", "moins", "tres", "bien", "etre",
+            "avoir", "faire", "entre", "votre", "notre", "leur"));
 
     private final IAiClient aiClient;
     private final CvRepository cvRepository;
@@ -38,7 +50,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private JobMatchResponse callAiMatch(Cv cv, String jobDescription) {
         String prompt = buildMatchPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, 1500);
-        log.info("AI match response:\n{}", rawContent);
+        log.debug("AI match response received ({} chars)", rawContent.length());
 
         List<String> allMarkers = List.of(
                 "SCORE:", "MOTS_CLES_PRESENTS:", "MOTS_CLES_MANQUANTS:",
@@ -69,6 +81,8 @@ public class JobMatchServiceImpl implements IJobMatchService {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en recrutement et en optimisation de CV pour les ATS. ");
         sb.append("Analyse ce CV par rapport a cette offre d'emploi et donne un score de correspondance.\n\n");
+        sb.append(AiPromptRules.FRANCOPHONE_MARKET_RULE);
+        sb.append(AiPromptRules.ANTI_CLICHES_RULE);
         sb.append("Reponds EXACTEMENT dans ce format :\n\n");
         sb.append("SCORE: (nombre de 0 a 100)\n\n");
         sb.append("MOTS_CLES_PRESENTS:\n- mot1\n- mot2\n\n");
@@ -95,25 +109,23 @@ public class JobMatchServiceImpl implements IJobMatchService {
     }
 
     private JobMatchResponse buildFallbackMatch(Cv cv, String jobDescription) {
-        String cvText = buildCvText(cv).toLowerCase();
-        String[] jobWords = jobDescription.toLowerCase().split("\\W+");
+        String cvText = normalizeForComparison(buildCvText(cv));
+        Matcher jobWords = WORD_PATTERN.matcher(jobDescription.toLowerCase(Locale.ROOT));
         java.util.List<String> matched = new java.util.ArrayList<>();
         java.util.List<String> missing = new java.util.ArrayList<>();
         Set<String> seen = new java.util.HashSet<>();
-        Set<String> stopWords = Set.of(
-                "le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "en",
-                "pour", "avec", "dans", "sur", "par", "au", "aux", "est", "sont",
-                "nous", "vous", "il", "elle", "ce", "cette", "son", "sa", "ses",
-                "qui", "que", "dont", "ou", "plus", "moins", "tres", "bien", "etre",
-                "avoir", "faire", "entre", "votre", "notre", "leur");
-
-        for (String word : jobWords) {
-            if (word.length() < 4 || stopWords.contains(word) || seen.contains(word)) continue;
-            seen.add(word);
-            if (cvText.contains(word)) {
-                matched.add(word);
+        while (jobWords.find()) {
+            String displayWord = jobWords.group();
+            String normalizedWord = normalizeForComparison(displayWord);
+            if (normalizedWord.length() < 4
+                    || STOP_WORDS.contains(normalizedWord)
+                    || !seen.add(normalizedWord)) {
+                continue;
+            }
+            if (cvText.contains(normalizedWord)) {
+                matched.add(displayWord);
             } else {
-                missing.add(word);
+                missing.add(displayWord);
             }
         }
 
@@ -143,6 +155,21 @@ public class JobMatchServiceImpl implements IJobMatchService {
         cv.getSkills().forEach(s -> sb.append(s.getNom()).append(" "));
         cv.getEducations().forEach(e ->
                 sb.append(e.getDiplome()).append(" ").append(e.getDescription()).append(" "));
+        cv.getLanguages().forEach(l ->
+                sb.append(l.getLangue()).append(" ").append(l.getNiveau()).append(" "));
+        cv.getCertifications().forEach(c ->
+                sb.append(c.getNom()).append(" ").append(c.getOrganisme()).append(" "));
+        cv.getProjects().forEach(p ->
+                sb.append(p.getNom()).append(" ")
+                        .append(p.getDescription()).append(" ")
+                        .append(p.getTechnologies()).append(" "));
         return sb.toString();
+    }
+
+    private String normalizeForComparison(String value) {
+        String decomposed = Normalizer.normalize(value, Normalizer.Form.NFD);
+        return DIACRITICS_PATTERN.matcher(decomposed)
+                .replaceAll("")
+                .toLowerCase(Locale.ROOT);
     }
 }

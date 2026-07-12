@@ -88,6 +88,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Logback JSON encoder pour les logs structures en prod -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
