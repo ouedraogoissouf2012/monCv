@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'core/di/injection_container.dart';
 import 'l10n/app_localizations.dart';
@@ -19,10 +20,12 @@ import 'utils/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
-  try {
-    await Firebase.initializeApp();
-  } catch (_) {
-    // Firebase reste optionnel en local tant que flutterfire configure n'a pas ete execute.
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (_) {
+      // Firebase reste optionnel en local tant que flutterfire configure n'a pas ete execute.
+    }
   }
   await initDependencies();
   runApp(const MyApp());
