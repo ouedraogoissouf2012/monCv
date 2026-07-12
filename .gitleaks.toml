@@ -1,0 +1,10 @@
+title = "MonCV Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valeur JWT locale non-production, limitee au profil dev"
+condition = "AND"
+paths = ['''^backend/src/main/resources/application-dev\.yml$''']
+regexes = ['''cvMobileDevSecretKey2024AtLeast32CharsLong!''']
