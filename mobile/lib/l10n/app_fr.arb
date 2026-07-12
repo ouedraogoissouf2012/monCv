@@ -205,7 +205,7 @@
   "firstName": "Prenom",
   "lastName": "Nom",
   "jobTitle": "Titre du poste",
-  "phone": "Telephone",
+  "phone": "Téléphone",
   "address": "Adresse",
   "city": "Ville",
   "postalCode": "Code postal",
