@@ -1217,7 +1217,7 @@ abstract class AppLocalizations {
   /// No description provided for @phone.
   ///
   /// In fr, this message translates to:
-  /// **'Telephone'**
+  /// **'Téléphone'**
   String get phone;
 
   /// No description provided for @address.
