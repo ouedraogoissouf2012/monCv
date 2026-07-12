@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onDownloadDocx: () => _downloadDocx(context, cv.id!),
       onDelete: () => _confirmDelete(context, cv.id!, cv.titre),
       onDuplicate: () => _duplicateCv(context, cv.id!),
-      onShare: () => _shareLink(context, cv.id!),
+      onShare: () => _shareLink(context, cv),
     );
   }
 
@@ -163,17 +163,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _shareLink(BuildContext context, int cvId) async {
+  Future<void> _shareLink(BuildContext context, Cv cv) async {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final url = await ShareService().generateShareLink(cvId);
-      if (!mounted || url == null) return;
+      final url = await ShareService().generateShareLink(cv.id!);
+      if (!context.mounted || url == null) return;
 
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Lien de partage'),
+          title: const Text('Partager le CV'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,6 +181,30 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text(
                 'Partagez ce lien pour que n\'importe qui puisse voir votre CV :',
                 style: TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF25D366).withValues(alpha: 0.18),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.chat_outlined,
+                        color: Color(0xFF128C7E), size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'WhatsApp est idéal pour envoyer votre CV à un recruteur, une PME ou un contact RH.',
+                        style: TextStyle(fontSize: 12, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               Container(
@@ -200,6 +224,32 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Fermer'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final opened =
+                    await ShareService().shareToWhatsApp(url, title: cv.titre);
+                if (!ctx.mounted) return;
+                if (opened) {
+                  Navigator.pop(ctx);
+                  return;
+                }
+                await ShareService().copyToClipboard(
+                  ShareService().buildRecruiterMessage(url, title: cv.titre),
+                );
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx);
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'WhatsApp indisponible, message copié dans le presse-papier'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Color(0xFFF59E0B),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.chat_outlined, size: 16),
+              label: const Text('WhatsApp'),
             ),
             FilledButton.icon(
               onPressed: () {

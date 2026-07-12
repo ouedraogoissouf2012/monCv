@@ -58,7 +58,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private JobMatchResponse callAiMatch(Cv cv, String jobDescription) {
         String prompt = buildMatchPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, 1500);
-        log.info("AI match response:\n{}", rawContent);
+        log.debug("AI match response received ({} chars)", rawContent.length());
 
         List<String> allMarkers = List.of(
                 "SCORE:", "MOTS_CLES_PRESENTS:", "MOTS_CLES_MANQUANTS:",
@@ -89,6 +89,8 @@ public class JobMatchServiceImpl implements IJobMatchService {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en recrutement et en optimisation de CV pour les ATS. ");
         sb.append("Analyse ce CV par rapport a cette offre d'emploi et donne un score de correspondance.\n\n");
+        sb.append(AiPromptRules.FRANCOPHONE_MARKET_RULE);
+        sb.append(AiPromptRules.ANTI_CLICHES_RULE);
         sb.append("Reponds EXACTEMENT dans ce format :\n\n");
         sb.append("SCORE: (nombre de 0 a 100)\n\n");
         sb.append("MOTS_CLES_PRESENTS:\n- mot1\n- mot2\n\n");
