@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/providers/theme_provider.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/screens/auth/login_screen.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
 import 'package:cv_mobile/screens/cv/cv_detail_screen.dart';
@@ -50,6 +51,8 @@ Widget buildTestApp({
     ],
     child: MaterialApp.router(
       theme: ThemeData(useMaterial3: true),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     ),
   );

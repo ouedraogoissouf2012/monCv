@@ -79,7 +79,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = ErrorHelper.friendlyMessage(e.toString());
+        _error = ErrorHelper.friendlyMessage(context, e.toString());
         _loading = false;
       });
     }

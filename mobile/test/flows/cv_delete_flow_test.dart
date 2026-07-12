@@ -116,15 +116,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.more_vert));
       await tester.pumpAndSettle();
 
-      // Tap "Supprimer" dans le menu
-      await tester.tap(find.text('Supprimer'));
+      // Tap l'action de suppression dans le menu, quel que soit le libelle
+      await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
 
       // Dialog de confirmation apparait
-      expect(find.text('Supprimer le CV'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsOneWidget);
 
       // Confirmer la suppression (FilledButton rouge)
-      final deleteButton = find.widgetWithText(FilledButton, 'Supprimer');
+      final deleteButton = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(FilledButton),
+      );
       await tester.tap(deleteButton);
       await tester.pumpAndSettle();
 
