@@ -44,12 +44,28 @@ flutter build web --release \
 |----------|-------------|---------|------|
 | `APP_ENV` | Oui en prod | `production` | Active les garde-fous production |
 | `API_BASE_URL` | Oui en prod | `https://api.moncv.com/api` | URL publique de l'API |
+| `ALLOWED_ORIGINS` | Oui en prod | `https://app.moncv.com` | Origines PWA autorisees par CORS |
+| `JWT_SECRET` | Oui en prod | secret 32+ caracteres | Signature des tokens, jamais en dur |
+| `JWT_EXPIRATION` | Recommande | `3600000` | Duree courte access token web |
+| `JWT_REFRESH_EXPIRATION` | Recommande | `604800000` | Duree refresh token |
+| `DEEPSEEK_API_KEY` | Si IA active | valeur secrete | Cle fournisseur IA, jamais exposee au frontend |
 
 Regles :
 
 - En production, `API_BASE_URL` doit commencer par `https://`.
 - En production, `API_BASE_URL` ne doit pas etre vide.
 - En developpement web, l'application peut encore utiliser `http://localhost:8082/api`.
+- Aucun secret backend ne doit etre injecte dans le build Flutter Web.
+
+## Confidentialite et securite PWA
+
+- La page `/privacy` explique les donnees stockees, l'usage de l'IA, l'export et la suppression.
+- Les appels IA sensibles exigent un consentement explicite dans l'interface et dans l'API (`aiConsentAccepted=true`).
+- Le profil permet d'exporter les donnees utilisateur au format JSON via `/api/users/me/export`.
+- `DELETE /api/users/me` supprime le compte et les CV rattaches grace au cascade JPA.
+- Les logs applicatifs doivent rester techniques: ids, statuts et erreurs; ne pas journaliser contenu de CV, tokens, prompts IA, reponses IA completes ou fichiers importes.
+- Le stockage token web utilise le stockage local du navigateur via `shared_preferences_web`; court terme: expiration JWT courte, HTTPS obligatoire, CORS strict. Cible entreprise: session serveur avec cookies `HttpOnly`, `Secure`, `SameSite=Lax/Strict` et rotation refresh token.
+- Les endpoints `/api/auth/*`, `/api/ai/*` et `/api/cvs/public/*` ont une limite par IP en memoire. En production multi-instance, remplacer par Redis/Bucket4j.
 
 ## Configuration backend
 
