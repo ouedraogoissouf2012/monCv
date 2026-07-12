@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/cv.dart';
+import '../../../utils/cv_levels.dart';
 import 'form_sheet.dart';
 
 class SkillsSection extends StatelessWidget {
@@ -39,7 +40,8 @@ class SkillsSection extends StatelessWidget {
 
     showFormSheet(
       context: context,
-      title: skill == null ? 'Ajouter une compétence' : 'Modifier la compétence',
+      title:
+          skill == null ? 'Ajouter une compétence' : 'Modifier la compétence',
       icon: Icons.psychology_outlined,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -77,13 +79,15 @@ class SkillsSection extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.1),
+                  color:
+                      Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  _levelLabel(niveau),
+                  skillLevelLabel(niveau),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -105,7 +109,7 @@ class SkillsSection extends StatelessWidget {
               min: 1,
               max: 5,
               divisions: 4,
-              label: _levelLabel(niveau),
+              label: skillLevelLabel(niveau),
               onChanged: (v) => setState(() => niveau = v.toInt()),
             ),
           ),
@@ -142,14 +146,6 @@ class SkillsSection extends StatelessWidget {
       },
     );
   }
-
-  static String _levelLabel(int n) => switch (n) {
-        1 => 'Débutant',
-        2 => 'Intermédiaire',
-        3 => 'Avancé',
-        4 => 'Confirmé',
-        _ => 'Expert',
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -204,8 +200,7 @@ class _SkillChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-            color: colorScheme.primary.withValues(alpha: 0.25)),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -240,17 +235,18 @@ class _SkillChip extends StatelessWidget {
           const SizedBox(width: 4),
           InkWell(
             onTap: onEdit,
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+            borderRadius:
+                const BorderRadius.horizontal(right: Radius.circular(20)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               child: Icon(Icons.edit_outlined,
-                  size: 14,
-                  color: colorScheme.primary.withValues(alpha: 0.7)),
+                  size: 14, color: colorScheme.primary.withValues(alpha: 0.7)),
             ),
           ),
           InkWell(
             onTap: onDelete,
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(20)),
+            borderRadius:
+                const BorderRadius.horizontal(right: Radius.circular(20)),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(0, 6, 10, 6),
               child: Icon(Icons.close_rounded,

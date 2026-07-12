@@ -25,7 +25,19 @@ public interface CvMapper {
 
     @Mapping(target = "parentCvId", source = "parent.id")
     @Mapping(target = "variantCount", ignore = true)
+    @Mapping(target = "style", expression = "java(toStyleDto(cv))")
     CvResponse toResponse(Cv cv);
+
+    default CvResponse.StyleDto toStyleDto(Cv cv) {
+        if (cv == null) {
+            return null;
+        }
+        return CvResponse.StyleDto.builder()
+                .templateId(cv.getStyleTemplateId())
+                .primaryColor(cv.getStylePrimaryColor())
+                .fontFamily(cv.getStyleFontFamily())
+                .build();
+    }
 
     CvResponse.PersonalInfoDto toPersonalInfoDto(PersonalInfo info);
 
