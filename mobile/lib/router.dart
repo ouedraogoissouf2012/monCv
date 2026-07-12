@@ -10,6 +10,7 @@ import 'screens/cv/cv_detail_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
+import 'screens/privacy/privacy_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
 class AppRouter {
@@ -24,6 +25,7 @@ class AppRouter {
 
     final isPublic = location == '/login' ||
         location == '/register' ||
+        location == '/privacy' ||
         location == '/landing';
 
     if (!isAuthenticated && !isPublic) {
@@ -57,6 +59,10 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/privacy',
+          builder: (context, state) => const PrivacyScreen(),
         ),
         GoRoute(
           path: '/home',
