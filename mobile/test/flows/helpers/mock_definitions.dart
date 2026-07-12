@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -23,26 +22,38 @@ import 'fake_data.dart';
 
 // ── Auth Use Cases ──────────────────────────────────────────
 class MockLoginUseCase extends Mock implements LoginUseCase {}
+
 class MockRegisterUseCase extends Mock implements RegisterUseCase {}
+
 class MockLogoutUseCase extends Mock implements LogoutUseCase {}
+
 class MockGetCurrentUserUseCase extends Mock implements GetCurrentUserUseCase {}
+
 class MockUpdateProfileUseCase extends Mock implements UpdateProfileUseCase {}
 
 // ── CV Use Cases ────────────────────────────────────────────
 class MockGetAllCvsUseCase extends Mock implements GetAllCvsUseCase {}
+
 class MockGetCvByIdUseCase extends Mock implements GetCvByIdUseCase {}
+
 class MockCreateCvUseCase extends Mock implements CreateCvUseCase {}
+
 class MockUpdateCvUseCase extends Mock implements UpdateCvUseCase {}
+
 class MockDeleteCvUseCase extends Mock implements DeleteCvUseCase {}
+
 class MockDuplicateCvUseCase extends Mock implements DuplicateCvUseCase {}
 
 // ── Repositories ────────────────────────────────────────────
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockCvRepository extends Mock implements CvRepository {}
 
 // ── Services ────────────────────────────────────────────────
 class MockApiService extends Mock implements ApiService {}
+
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
+
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
 /// Enregistre les fallback values pour tous les types utilises dans les mocks.
