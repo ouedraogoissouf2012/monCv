@@ -11,6 +11,7 @@
 backend/target/
 backend/.mvn/
 backend/.metadata/
+backend/uploads/
 *.class
 *.jar
 *.war
