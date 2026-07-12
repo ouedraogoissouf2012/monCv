@@ -7,6 +7,7 @@ import '../core/error/error_mapper.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/cv.dart';
+import '../models/notification_preferences.dart';
 import 'token_storage.dart';
 
 class ApiService {
@@ -115,6 +116,54 @@ class ApiService {
 
   Future<void> logout() async {
     await clearTokens();
+  }
+
+  Future<void> registerDeviceToken(String token, String platform) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'token': token, 'platform': platform}),
+    );
+    if (response.statusCode != 204) {
+      _throwTypedError(response, 'Impossible d\'enregistrer cet appareil');
+    }
+  }
+
+  Future<void> unregisterDeviceToken(String token) async {
+    final request = http.Request(
+      'DELETE',
+      Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
+    )
+      ..headers.addAll(await _getHeaders())
+      ..body = jsonEncode({'token': token});
+    final response = await http.Response.fromStream(await request.send());
+    if (response.statusCode != 204) {
+      _throwTypedError(response, 'Impossible de retirer cet appareil');
+    }
+  }
+
+  Future<NotificationPreferences> getNotificationPreferences() async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/notifications/preferences'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return NotificationPreferences.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Impossible de charger les preferences');
+  }
+
+  Future<NotificationPreferences> updateNotificationPreferences(
+      NotificationPreferences value) async {
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/notifications/preferences'),
+      headers: await _getHeaders(),
+      body: jsonEncode(value.toJson()),
+    );
+    if (response.statusCode == 200) {
+      return NotificationPreferences.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Impossible d\'enregistrer les preferences');
   }
 
   // User endpoints
@@ -329,9 +378,11 @@ class ApiService {
     }
   }
 
-  Future<Cv> createVariant(int cvId, String jobDescription, {String? label}) async {
+  Future<Cv> createVariant(int cvId, String jobDescription,
+      {String? label}) async {
     final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant'),
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant'),
       headers: await _getHeaders(),
       body: jsonEncode({
         'jobDescription': jobDescription,
@@ -343,7 +394,8 @@ class ApiService {
       return Cv.fromJson(jsonDecode(response.body));
     } else {
       final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de la creation de la variante');
+      throw Exception(
+          error['message'] ?? 'Erreur lors de la creation de la variante');
     }
   }
 

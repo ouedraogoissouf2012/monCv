@@ -1321,4 +1321,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'An error occurred';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get staleCvReminder => 'Update reminder';
+
+  @override
+  String get staleCvReminderSubtitle =>
+      'Notify me after 30 days without changes';
+
+  @override
+  String get cvViewNotifications => 'Shared CV views';
+
+  @override
+  String get cvViewNotificationsSubtitle => 'Notify me every 10 new visitors';
+
+  @override
+  String get aiTipNotifications => 'AI improvement tips';
+
+  @override
+  String get aiTipNotificationsSubtitle => 'Receive ideas to strengthen my CV';
 }

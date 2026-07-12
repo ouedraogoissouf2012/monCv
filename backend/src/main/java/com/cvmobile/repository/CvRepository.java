@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Repository
 public interface CvRepository extends JpaRepository<Cv, Long> {
@@ -33,4 +34,5 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
 
     @Query("SELECT c.parent.id, COUNT(c) FROM Cv c WHERE c.parent.id IN :parentIds GROUP BY c.parent.id")
     List<Object[]> countVariantsByParentIds(@Param("parentIds") List<Long> parentIds);
+    List<Cv> findByUpdatedAtBefore(LocalDateTime cutoff);
 }
