@@ -63,8 +63,9 @@ Future<void> showSuggestionsSheet(
               itemBuilder: (_, i) => InkWell(
                 onTap: () {
                   final current = controller.text.trim();
-                  controller.text =
-                      current.isEmpty ? '• ${suggestions[i]}' : '$current\n• ${suggestions[i]}';
+                  controller.text = current.isEmpty
+                      ? '• ${suggestions[i]}'
+                      : '$current\n• ${suggestions[i]}';
                   Navigator.of(ctx).pop();
                 },
                 borderRadius: BorderRadius.circular(10),
@@ -74,7 +75,8 @@ Future<void> showSuggestionsSheet(
                     border: Border.all(color: Colors.grey.shade200),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text('• ${suggestions[i]}', style: const TextStyle(fontSize: 13)),
+                  child: Text('• ${suggestions[i]}',
+                      style: const TextStyle(fontSize: 13)),
                 ),
               ),
             ),
@@ -144,7 +146,7 @@ class ExperienceSection extends StatelessWidget {
           TextFormField(
             controller: entrepriseCtrl,
             decoration: const InputDecoration(
-              labelText: 'Entreprise',
+              labelText: 'Entreprise *',
               prefixIcon: Icon(Icons.business_outlined, size: 20),
             ),
           ),
@@ -169,7 +171,7 @@ class ExperienceSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Début',
+                  label: 'Début *',
                   date: debut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -280,7 +282,8 @@ class ExperienceSection extends StatelessWidget {
             itemBuilder: (ctx, i) {
               final exp = experiences[i];
               return SectionItemTile(
-                title: exp.poste?.isNotEmpty == true ? exp.poste! : 'Sans titre',
+                title:
+                    exp.poste?.isNotEmpty == true ? exp.poste! : 'Sans titre',
                 subtitle: exp.entreprise ?? '',
                 badge: exp.actuel ? 'En poste' : null,
                 badgeColor: Colors.green,

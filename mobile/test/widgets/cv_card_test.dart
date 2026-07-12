@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/widgets/cv_card.dart';
 
@@ -35,6 +36,9 @@ Widget _buildCard(
 }) {
   return MaterialApp(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     home: Scaffold(
       body: CvCard(
         cv: cv,
@@ -59,7 +63,8 @@ void main() {
       expect(find.text('CV Test'), findsOneWidget);
     });
 
-    testWidgets('affiche le score de complétion en pourcentage', (tester) async {
+    testWidgets('affiche le score de complétion en pourcentage',
+        (tester) async {
       final cv = _fakeCvComplete();
       await tester.pumpWidget(_buildCard(cv));
       await tester.pump();
@@ -78,7 +83,8 @@ void main() {
       expect(cv.completionScore, lessThan(50));
     });
 
-    testWidgets('appelle onTap quand le bouton Voir est pressé', (tester) async {
+    testWidgets('appelle onTap quand le bouton Voir est pressé',
+        (tester) async {
       bool tapped = false;
       await tester.pumpWidget(
           _buildCard(_fakeCvComplete(), onTap: () => tapped = true));
@@ -206,6 +212,48 @@ void main() {
       await tester.pump();
 
       expect(find.text('Vues'), findsNothing);
+    });
+
+    // ── Tests variantes ───────────────────────────────────────
+
+    testWidgets('affiche le badge Variante quand isVariante est true',
+        (tester) async {
+      final variant = Cv(
+        id: 20,
+        titre: 'Mon CV — Dev Backend',
+        varianteLabel: 'Dev Backend Java',
+        parentCvId: 10,
+      );
+      await tester.pumpWidget(_buildCard(variant));
+      await tester.pump();
+
+      expect(find.textContaining('Variante'), findsOneWidget);
+      expect(find.textContaining('Dev Backend Java'), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+    });
+
+    testWidgets('n\'affiche PAS le badge Variante pour un CV normal',
+        (tester) async {
+      await tester.pumpWidget(_buildCard(_fakeCvComplete()));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.tune_rounded), findsNothing);
+    });
+
+    testWidgets('affiche le compteur variantes quand variantCount > 0',
+        (tester) async {
+      final parent = Cv(
+        id: 10,
+        titre: 'Mon CV Original',
+        variantCount: 3,
+        personalInfo:
+            PersonalInfo(nom: 'Doe', prenom: 'John', email: 'j@e.com'),
+        experiences: [Experience(entreprise: 'Acme', poste: 'Dev')],
+      );
+      await tester.pumpWidget(_buildCard(parent));
+      await tester.pump();
+
+      expect(find.text('3 variantes'), findsOneWidget);
     });
   });
 }
