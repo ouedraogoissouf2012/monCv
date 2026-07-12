@@ -85,6 +85,18 @@ public class Cv {
     @Column(name = "public_token", unique = true)
     private String publicToken;
 
+    @Builder.Default
+    @Column(name = "style_template_id", nullable = false, length = 50)
+    private String styleTemplateId = "moderne";
+
+    @Builder.Default
+    @Column(name = "style_primary_color", nullable = false)
+    private Long stylePrimaryColor = 4280648683L;
+
+    @Builder.Default
+    @Column(name = "style_font_family", nullable = false, length = 100)
+    private String styleFontFamily = "Roboto";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

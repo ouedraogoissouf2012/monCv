@@ -1,18 +1,42 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+class AppEnvironment {
+  static const String value = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'development',
+  );
+
+  static bool get isProduction => value.toLowerCase() == 'production';
+}
+
 class ApiConstants {
-  // Valeur injectée au moment du build via --dart-define=API_BASE_URL=...
-  // Défaut : localhost pour web, 10.0.2.2 pour émulateur Android.
-  //   Émulateur Android  → http://10.0.2.2:8082/api
-  //   Simulateur iOS     → http://localhost:8082/api
-  //   Appareil physique  → http://<IP_LAN>:8082/api
-  //   Production         → https://api.moncv.com/api
+  // Valeur injectee au build via --dart-define=API_BASE_URL=...
+  //   Web local          -> http://localhost:8082/api
+  //   Emulateur Android  -> http://10.0.2.2:8082/api
+  //   Appareil physique  -> http://<IP_LAN>:8082/api
+  //   Production         -> https://api.moncv.com/api
   static const String _envUrl = String.fromEnvironment('API_BASE_URL');
 
   static String get baseUrl {
-    if (_envUrl.isNotEmpty) return _envUrl;
+    if (_envUrl.isNotEmpty) return _normalizeApiUrl(_envUrl);
+    if (AppEnvironment.isProduction) {
+      throw StateError(
+        'API_BASE_URL is required when APP_ENV=production. '
+        'Use --dart-define=API_BASE_URL=https://api.example.com/api.',
+      );
+    }
     return kIsWeb ? 'http://localhost:8082/api' : 'http://10.0.2.2:8082/api';
+  }
+
+  static String _normalizeApiUrl(String value) {
+    final normalized = value.trim().replaceFirst(RegExp(r'/+$'), '');
+    if (AppEnvironment.isProduction && !normalized.startsWith('https://')) {
+      throw StateError(
+        'API_BASE_URL must use HTTPS when APP_ENV=production.',
+      );
+    }
+    return normalized;
   }
 
   static const String authEndpoint = '/auth';

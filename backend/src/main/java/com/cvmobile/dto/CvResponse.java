@@ -28,9 +28,20 @@ public class CvResponse {
     private Long parentCvId;
     private String varianteLabel;
     private Integer variantCount;
+    private StyleDto style;
     private String publicToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StyleDto {
+        private String templateId;
+        private Long primaryColor;
+        private String fontFamily;
+    }
 
     @Data
     @Builder

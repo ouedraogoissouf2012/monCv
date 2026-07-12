@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../models/cv.dart';
+import 'cv_levels.dart';
 
 // ── Charger photo depuis URL ────────────────────────────────────────────────
 
@@ -51,7 +52,8 @@ String _fmtDate(DateTime? d) {
 
 String _dateRange(DateTime? debut, DateTime? fin, {bool actuel = false}) {
   final d = _fmtDate(debut);
-  if (actuel || fin == null && debut != null) return d.isEmpty ? 'En cours' : '$d - En cours';
+  if (actuel || fin == null && debut != null)
+    return d.isEmpty ? 'En cours' : '$d - En cours';
   final f = _fmtDate(fin);
   if (d.isEmpty && f.isEmpty) return '';
   if (f.isEmpty) return d;
@@ -85,34 +87,32 @@ List<_SkillData> _splitSkillsWithLevel(List<Skill> skills) {
   return result;
 }
 
-List<String> _splitSkills(List<Skill> skills) =>
-    _splitSkillsWithLevel(skills).map((s) => s.name).toList();
-
-
 // Nettoie le texte : Unicode, markdown, accents courants
 String _sanitize(String text) {
   return text
       // Markdown
-      .replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1')  // **gras** → gras
-      .replaceAll(RegExp(r'\*([^*]+)\*'), r'$1')       // *italique* → italique
-      .replaceAll(RegExp(r'^#{1,3}\s+', multiLine: true), '')  // # titre → titre
+      .replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1') // **gras** → gras
+      .replaceAll(RegExp(r'\*([^*]+)\*'), r'$1') // *italique* → italique
+      .replaceAll(RegExp(r'^#{1,3}\s+', multiLine: true), '') // # titre → titre
       // Unicode
-      .replaceAll('\u2022', '-')   // • → -
-      .replaceAll('\u00B7', '-')   // · → -
-      .replaceAll('\u2013', '-')   // – → -
-      .replaceAll('\u2014', '-')   // — → -
-      .replaceAll('\u2018', "'")   // ' → '
-      .replaceAll('\u2019', "'")   // ' → '
-      .replaceAll('\u201C', '"')   // " → "
-      .replaceAll('\u201D', '"')   // " → "
-      .replaceAll('\u0153', 'oe')  // œ → oe
-      .replaceAll('\u0152', 'OE')  // Œ → OE
-      .replaceAll('\u2026', '...')  // … → ...
-      .replaceAll('\u00ab', '"')   // « → "
-      .replaceAll('\u00bb', '"');  // » → "
+      .replaceAll('\u2022', '-') // • → -
+      .replaceAll('\u00B7', '-') // · → -
+      .replaceAll('\u2013', '-') // – → -
+      .replaceAll('\u2014', '-') // — → -
+      .replaceAll('\u2018', "'") // ' → '
+      .replaceAll('\u2019', "'") // ' → '
+      .replaceAll('\u201C', '"') // " → "
+      .replaceAll('\u201D', '"') // " → "
+      .replaceAll('\u0153', 'oe') // œ → oe
+      .replaceAll('\u0152', 'OE') // Œ → OE
+      .replaceAll('\u2026', '...') // … → ...
+      .replaceAll('\u00ab', '"') // « → "
+      .replaceAll('\u00bb', '"'); // » → "
 }
 
-pw.TextStyle _bodyStyle({double size = 8.5, PdfColor? color, double height = 1.35}) => pw.TextStyle(
+pw.TextStyle _bodyStyle(
+        {double size = 8.5, PdfColor? color, double height = 1.35}) =>
+    pw.TextStyle(
       fontSize: size,
       color: color ?? PdfColors.grey800,
       lineSpacing: height,
@@ -124,16 +124,32 @@ pw.TextStyle _boldStyle({double size = 9.5, PdfColor? color}) => pw.TextStyle(
       color: color ?? PdfColor.fromHex('#1a1a1a'),
     );
 
+PdfColor _mixPdfColors(PdfColor from, PdfColor to, double amount) {
+  final ratio = amount.clamp(0.0, 1.0).toDouble();
+  return PdfColor(
+    from.red + (to.red - from.red) * ratio,
+    from.green + (to.green - from.green) * ratio,
+    from.blue + (to.blue - from.blue) * ratio,
+  );
+}
+
+PdfColor _progressTrackColor(PdfColor accent) =>
+    _mixPdfColors(PdfColors.white, accent, 0.12);
+
 // Section header: colored left bar + title + fine line
 pw.Widget _sectionHeader(String title, PdfColor accent) => pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 5, top: 10),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Container(width: 3, height: 12, decoration: pw.BoxDecoration(
-            color: accent,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(1.5)),
-          )),
+          pw.Container(
+              width: 3,
+              height: 12,
+              decoration: pw.BoxDecoration(
+                color: accent,
+                borderRadius:
+                    const pw.BorderRadius.all(pw.Radius.circular(1.5)),
+              )),
           pw.SizedBox(width: 8),
           pw.Text(
             title.toUpperCase(),
@@ -146,9 +162,11 @@ pw.Widget _sectionHeader(String title, PdfColor accent) => pw.Padding(
           ),
           pw.SizedBox(width: 10),
           pw.Expanded(
-            child: pw.Container(height: 0.5, decoration: pw.BoxDecoration(
-              color: PdfColor(accent.red, accent.green, accent.blue, 0.3),
-            )),
+            child: pw.Container(
+                height: 0.5,
+                decoration: pw.BoxDecoration(
+                  color: PdfColor(accent.red, accent.green, accent.blue, 0.3),
+                )),
           ),
         ],
       ),
@@ -165,7 +183,6 @@ pw.Widget _datePill(String text, PdfColor accent) => pw.Text(
     );
 
 // Barre de competence visuelle
-
 
 // Bullet dot
 pw.Widget _dot(PdfColor accent) => pw.Container(
@@ -196,11 +213,13 @@ pw.Widget _experienceItem(Experience e, PdfColor accent) => pw.Padding(
                 ),
               ),
               pw.SizedBox(width: 8),
-              _datePill(_dateRange(e.dateDebut, e.dateFin, actuel: e.actuel), accent),
+              _datePill(
+                  _dateRange(e.dateDebut, e.dateFin, actuel: e.actuel), accent),
             ],
           ),
           // Ligne 2: Entreprise + Lieu
-          if (e.entreprise?.isNotEmpty == true || e.lieu?.isNotEmpty == true) ...[
+          if (e.entreprise?.isNotEmpty == true ||
+              e.lieu?.isNotEmpty == true) ...[
             pw.SizedBox(height: 2),
             pw.Text(
               _sanitize([
@@ -237,7 +256,8 @@ List<pw.Widget> _buildDescriptionLines(String desc, PdfColor accent) {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Container(
-              width: 4, height: 4,
+              width: 4,
+              height: 4,
               margin: const pw.EdgeInsets.only(top: 3, right: 6),
               decoration: pw.BoxDecoration(
                 color: accent,
@@ -291,10 +311,12 @@ pw.Widget _educationItem(Education e, PdfColor accent) => pw.Padding(
                   ),
                 ],
                 if (e.domaine?.isNotEmpty == true)
-                  pw.Text(e.domaine!, style: _bodyStyle(size: 8, color: PdfColors.grey500)),
+                  pw.Text(e.domaine!,
+                      style: _bodyStyle(size: 8, color: PdfColors.grey500)),
                 if (e.description?.isNotEmpty == true) ...[
                   pw.SizedBox(height: 3),
-                  pw.Text(_sanitize(e.description!), style: _bodyStyle(size: 9)),
+                  pw.Text(_sanitize(e.description!),
+                      style: _bodyStyle(size: 9)),
                 ],
               ],
             ),
@@ -307,8 +329,8 @@ pw.Widget _educationItem(Education e, PdfColor accent) => pw.Padding(
 // et les affiche proprement
 pw.Widget _skillsSection(List<Skill> skills, PdfColor accent) {
   // Verifier si les skills contiennent des categories (format "Categorie: skill1, skill2")
-  final hasCategories = skills.any((s) =>
-      (s.nom ?? '').contains(':') || (s.nom ?? '').contains('|'));
+  final hasCategories = skills
+      .any((s) => (s.nom ?? '').contains(':') || (s.nom ?? '').contains('|'));
 
   if (hasCategories) {
     return _skillsCategorized(skills, accent);
@@ -321,7 +343,11 @@ pw.Widget _skillsCategorized(List<Skill> skills, PdfColor accent) {
   // Joindre tous les skills et parser les categories
   final allText = skills.map((s) => s.nom ?? '').join(', ');
   // Separer par | pour obtenir les categories
-  final categories = allText.split('|').map((c) => c.trim()).where((c) => c.isNotEmpty).toList();
+  final categories = allText
+      .split('|')
+      .map((c) => c.trim())
+      .where((c) => c.isNotEmpty)
+      .toList();
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -335,10 +361,16 @@ pw.Widget _skillsCategorized(List<Skill> skills, PdfColor accent) {
           padding: const pw.EdgeInsets.only(bottom: 4),
           child: pw.RichText(
             text: pw.TextSpan(children: [
-              pw.TextSpan(text: '$label : ', style: pw.TextStyle(
-                fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: accent)),
-              pw.TextSpan(text: items, style: const pw.TextStyle(
-                fontSize: 8.5, color: PdfColors.grey800)),
+              pw.TextSpan(
+                  text: '$label : ',
+                  style: pw.TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: pw.FontWeight.bold,
+                      color: accent)),
+              pw.TextSpan(
+                  text: items,
+                  style: const pw.TextStyle(
+                      fontSize: 8.5, color: PdfColors.grey800)),
             ]),
           ),
         );
@@ -355,27 +387,47 @@ pw.Widget _skillsCategorized(List<Skill> skills, PdfColor accent) {
 pw.Widget _skillsSimple(List<Skill> skills, PdfColor accent) {
   final splitData = _splitSkillsWithLevel(skills);
   return pw.Column(
-    children: splitData.map((s) => pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 5),
-      child: pw.Row(children: [
-        pw.SizedBox(
-          width: 90,
-          child: pw.Text(_sanitize(s.name), style: pw.TextStyle(
-            fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900,
-          )),
-        ),
-        pw.Expanded(
-          child: pw.ClipRRect(
-            horizontalRadius: 1.5, verticalRadius: 1.5,
-            child: pw.LinearProgressIndicator(
-              value: s.niveau / 5, minHeight: 3,
-              backgroundColor: PdfColor(accent.red, accent.green, accent.blue, 0.12),
-              valueColor: accent,
-            ),
-          ),
-        ),
-      ]),
-    )).toList(),
+    children: splitData
+        .map((s) => pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 5),
+              child: pw.Row(children: [
+                pw.SizedBox(
+                  width: 78,
+                  child: pw.Text(_sanitize(s.name),
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.grey900,
+                      )),
+                ),
+                pw.Expanded(
+                  child: pw.ClipRRect(
+                    horizontalRadius: 1.5,
+                    verticalRadius: 1.5,
+                    child: pw.LinearProgressIndicator(
+                      value: skillLevelProgress(s.niveau),
+                      minHeight: 3,
+                      backgroundColor: _progressTrackColor(accent),
+                      valueColor: accent,
+                    ),
+                  ),
+                ),
+                pw.SizedBox(width: 5),
+                pw.SizedBox(
+                  width: 58,
+                  child: pw.Text(
+                    skillLevelLabel(s.niveau),
+                    textAlign: pw.TextAlign.right,
+                    style: pw.TextStyle(
+                      fontSize: 7,
+                      color: accent,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ]),
+            ))
+        .toList(),
   );
 }
 
@@ -383,8 +435,8 @@ pw.Widget _skillsSimple(List<Skill> skills, PdfColor accent) {
 pw.Widget _languagesSection(List<Language> langs, PdfColor accent) => pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: langs.map((l) {
-        final label = _niveauLabel(l.niveau);
-        final level = _niveauToDouble(l.niveau);
+        final label = languageLevelDisplay(l.niveau);
+        final level = languageLevelProgress(l.niveau);
         return pw.Padding(
           padding: const pw.EdgeInsets.only(bottom: 6),
           child: pw.Column(
@@ -394,9 +446,15 @@ pw.Widget _languagesSection(List<Language> langs, PdfColor accent) => pw.Column(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(_sanitize(l.langue ?? ''),
-                      style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900)),
+                      style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.grey900)),
                   pw.Text(label,
-                      style: pw.TextStyle(fontSize: 7.5, color: accent, fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(
+                          fontSize: 7.5,
+                          color: accent,
+                          fontWeight: pw.FontWeight.bold)),
                 ],
               ),
               pw.SizedBox(height: 2),
@@ -406,7 +464,7 @@ pw.Widget _languagesSection(List<Language> langs, PdfColor accent) => pw.Column(
                 child: pw.LinearProgressIndicator(
                   value: level,
                   minHeight: 3,
-                  backgroundColor: PdfColor(accent.red, accent.green, accent.blue, 0.12),
+                  backgroundColor: _progressTrackColor(accent),
                   valueColor: accent,
                 ),
               ),
@@ -415,32 +473,6 @@ pw.Widget _languagesSection(List<Language> langs, PdfColor accent) => pw.Column(
         );
       }).toList(),
     );
-
-String _niveauLabel(String? n) {
-  switch (n) {
-    case 'A1': return 'Débutant';
-    case 'A2': return 'Élémentaire';
-    case 'B1': return 'Intermédiaire';
-    case 'B2': return 'Avancé';
-    case 'C1': return 'Courant';
-    case 'C2': return 'Bilingue';
-    case 'NATIF': return 'Langue maternelle';
-    default: return n ?? '';
-  }
-}
-
-double _niveauToDouble(String? n) {
-  switch (n) {
-    case 'A1': return 0.15;
-    case 'A2': return 0.30;
-    case 'B1': return 0.50;
-    case 'B2': return 0.65;
-    case 'C1': return 0.82;
-    case 'C2': return 0.95;
-    case 'NATIF': return 1.0;
-    default: return 0.5;
-  }
-}
 
 pw.Widget _certItem(Certification c, PdfColor accent) => pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 6),
@@ -458,7 +490,9 @@ pw.Widget _certItem(Certification c, PdfColor accent) => pw.Padding(
                     children: [
                       pw.Text(c.nom ?? '', style: _boldStyle(size: 9)),
                       if (c.organisme?.isNotEmpty == true)
-                        pw.Text(c.organisme!, style: _bodyStyle(size: 8, color: PdfColors.grey600)),
+                        pw.Text(c.organisme!,
+                            style:
+                                _bodyStyle(size: 8, color: PdfColors.grey600)),
                     ],
                   ),
                 ),
@@ -486,7 +520,8 @@ pw.Widget _projectItem(Project p, PdfColor accent) => pw.Padding(
                   pw.Text(_sanitize(p.technologies!),
                       style: _bodyStyle(size: 8, color: PdfColors.grey600)),
                 if (p.description?.isNotEmpty == true)
-                  pw.Text(_sanitize(p.description!), style: _bodyStyle(size: 9)),
+                  pw.Text(_sanitize(p.description!),
+                      style: _bodyStyle(size: 9)),
               ],
             ),
           ),
@@ -495,7 +530,11 @@ pw.Widget _projectItem(Project p, PdfColor accent) => pw.Padding(
     );
 
 // Sidebar mini bar for Créatif template
-pw.Widget _miniBar(int niveau, PdfColor color) {
+pw.Widget _miniBar(
+  int niveau,
+  PdfColor filledColor,
+  PdfColor emptyColor,
+) {
   final filled = niveau.clamp(1, 5);
   return pw.Row(
     mainAxisSize: pw.MainAxisSize.min,
@@ -505,9 +544,7 @@ pw.Widget _miniBar(int niveau, PdfColor color) {
         height: 4,
         margin: const pw.EdgeInsets.only(right: 2),
         decoration: pw.BoxDecoration(
-          color: i < filled
-              ? color
-              : PdfColor(color.red, color.green, color.blue, 0.3),
+          color: i < filled ? filledColor : emptyColor,
           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
         ),
       );
@@ -517,7 +554,8 @@ pw.Widget _miniBar(int niveau, PdfColor color) {
 
 // ── TEMPLATE 1 : MODERNE ─────────────────────────────────────────────────────
 
-Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
+Future<Uint8List> _buildModerne(Cv cv, PdfColor accent,
+    {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
   final contactItems = <String>[
@@ -543,12 +581,15 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
           children: [
             if (photo != null) ...[
               pw.ClipOval(
-                child: pw.Image(photo, width: 60, height: 60, fit: pw.BoxFit.cover),
+                child: pw.Image(photo,
+                    width: 60, height: 60, fit: pw.BoxFit.cover),
               ),
               pw.SizedBox(height: 8),
             ],
             pw.Text(
-              _sanitize('${info?.prenom ?? ''} ${info?.nom ?? ''}').trim().toUpperCase(),
+              _sanitize('${info?.prenom ?? ''} ${info?.nom ?? ''}')
+                  .trim()
+                  .toUpperCase(),
               textAlign: pw.TextAlign.center,
               style: pw.TextStyle(
                 fontSize: 28,
@@ -570,9 +611,12 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
               ),
             ],
             pw.SizedBox(height: 12),
-            pw.Container(height: 0.4, width: 250, decoration: pw.BoxDecoration(
-              color: PdfColor(1, 1, 1, 0.4),
-            )),
+            pw.Container(
+                height: 0.4,
+                width: 250,
+                decoration: pw.BoxDecoration(
+                  color: PdfColor(1, 1, 1, 0.4),
+                )),
             pw.SizedBox(height: 10),
             pw.Text(
               contactItems.map(_sanitize).join('   |   '),
@@ -592,7 +636,8 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
             // 1. Resume
             if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
               _sectionHeader('Profil', accent),
-              pw.Text(_sanitize(info!.resumeProfessionnel!), style: _bodyStyle(size: 8.5)),
+              pw.Text(_sanitize(info!.resumeProfessionnel!),
+                  style: _bodyStyle(size: 8.5)),
             ],
 
             // 2. Competences + Langues (cote a cote, AVANT les experiences)
@@ -677,10 +722,10 @@ Future<Uint8List> _buildModerne(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
   return doc.save();
 }
 
-
 // ── TEMPLATE 2 : CLASSIQUE ───────────────────────────────────────────────────
 
-Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
+Future<Uint8List> _buildClassique(Cv cv, PdfColor accent,
+    {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
@@ -695,7 +740,9 @@ Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo
             pw.Text(
               '${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
               style: pw.TextStyle(
-                  fontSize: 26, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                  fontSize: 26,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black),
             ),
             if (info?.titrePoste?.isNotEmpty == true) ...[
               pw.SizedBox(height: 4),
@@ -722,11 +769,15 @@ Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo
       pw.SizedBox(height: 6),
       pw.Container(height: 2, decoration: pw.BoxDecoration(color: accent)),
       pw.SizedBox(height: 2),
-      pw.Container(height: 0.5, decoration: pw.BoxDecoration(color: PdfColor(accent.red, accent.green, accent.blue, 0.3))),
+      pw.Container(
+          height: 0.5,
+          decoration: pw.BoxDecoration(
+              color: PdfColor(accent.red, accent.green, accent.blue, 0.3))),
       pw.SizedBox(height: 16),
       if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
         _sectionHeader('Résumé professionnel', accent),
-        pw.Text(_sanitize(info!.resumeProfessionnel!), style: _bodyStyle(size: 9.5)),
+        pw.Text(_sanitize(info!.resumeProfessionnel!),
+            style: _bodyStyle(size: 9.5)),
         pw.SizedBox(height: 12),
       ],
       if (cv.experiences.isNotEmpty) ...[
@@ -758,7 +809,8 @@ Future<Uint8List> _buildClassique(Cv cv, PdfColor accent, {pw.MemoryImage? photo
 
 // ── TEMPLATE 3 : MINIMALISTE ─────────────────────────────────────────────────
 
-Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
+Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent,
+    {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
@@ -769,7 +821,9 @@ Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? pho
       pw.Text(
         '${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
         style: pw.TextStyle(
-            fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+            fontSize: 30,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.black),
       ),
       if (info?.titrePoste?.isNotEmpty == true) ...[
         pw.SizedBox(height: 2),
@@ -780,24 +834,33 @@ Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? pho
       pw.Row(
         children: [
           if (info?.email?.isNotEmpty == true)
-            pw.Text(info!.email!, style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
+            pw.Text(info!.email!,
+                style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
           if (info?.telephone?.isNotEmpty == true) ...[
-            pw.Text('   |   ', style: _bodyStyle(size: 8.5, color: PdfColors.grey400)),
-            pw.Text(info!.telephone!, style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
+            pw.Text('   |   ',
+                style: _bodyStyle(size: 8.5, color: PdfColors.grey400)),
+            pw.Text(info!.telephone!,
+                style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
           ],
           if (info?.ville?.isNotEmpty == true) ...[
-            pw.Text('   |   ', style: _bodyStyle(size: 8.5, color: PdfColors.grey400)),
-            pw.Text(info!.ville!, style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
+            pw.Text('   |   ',
+                style: _bodyStyle(size: 8.5, color: PdfColors.grey400)),
+            pw.Text(info!.ville!,
+                style: _bodyStyle(size: 8.5, color: PdfColors.grey600)),
           ],
         ],
       ),
       pw.SizedBox(height: 20),
-      pw.Container(height: 0.8, decoration: pw.BoxDecoration(color: PdfColors.grey300)),
+      pw.Container(
+          height: 0.8, decoration: pw.BoxDecoration(color: PdfColors.grey300)),
       pw.SizedBox(height: 20),
       if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
-        pw.Text(_sanitize(info!.resumeProfessionnel!), style: _bodyStyle(size: 9.5)),
+        pw.Text(_sanitize(info!.resumeProfessionnel!),
+            style: _bodyStyle(size: 9.5)),
         pw.SizedBox(height: 16),
-        pw.Container(height: 0.5, decoration: pw.BoxDecoration(color: PdfColors.grey200)),
+        pw.Container(
+            height: 0.5,
+            decoration: pw.BoxDecoration(color: PdfColors.grey200)),
         pw.SizedBox(height: 16),
       ],
       if (cv.experiences.isNotEmpty) ...[
@@ -828,11 +891,12 @@ Future<Uint8List> _buildMinimaliste(Cv cv, PdfColor accent, {pw.MemoryImage? pho
 
 // ── TEMPLATE 4 : CRÉATIF (sidebar) ───────────────────────────────────────────
 
-Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
+Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent,
+    {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
   const sidebarWidth = 185.0;
-  final splitNames = _splitSkills(cv.skills);
+  final splitSkills = _splitSkillsWithLevel(cv.skills);
 
   doc.addPage(pw.Page(
     pageFormat: PdfPageFormat.a4,
@@ -850,8 +914,10 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
             children: [
               // Photo
               if (photo != null) ...[
-                pw.Center(child: pw.ClipOval(
-                  child: pw.Image(photo, width: 55, height: 55, fit: pw.BoxFit.cover),
+                pw.Center(
+                    child: pw.ClipOval(
+                  child: pw.Image(photo,
+                      width: 55, height: 55, fit: pw.BoxFit.cover),
                 )),
                 pw.SizedBox(height: 10),
               ],
@@ -866,7 +932,9 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
               ),
               if (info?.titrePoste?.isNotEmpty == true) ...[
                 pw.SizedBox(height: 8),
-                pw.Container(height: 0.4, decoration: const pw.BoxDecoration(color: PdfColors.white)),
+                pw.Container(
+                    height: 0.4,
+                    decoration: const pw.BoxDecoration(color: PdfColors.white)),
                 pw.SizedBox(height: 6),
                 pw.Text(_sanitize(info!.titrePoste!),
                     style: pw.TextStyle(
@@ -884,18 +952,43 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
               if (info?.ville?.isNotEmpty == true)
                 _sideItem(_sanitize(info!.ville!)),
               // Competences separees avec barres
-              if (splitNames.isNotEmpty) ...[
+              if (splitSkills.isNotEmpty) ...[
                 pw.SizedBox(height: 18),
                 _sideSection('COMPÉTENCES'),
-                ...splitNames.take(10).map((name) => pw.Padding(
+                ...splitSkills.take(10).map((skill) => pw.Padding(
                       padding: const pw.EdgeInsets.only(bottom: 5),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text(_sanitize(name),
-                              style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
+                          pw.Row(
+                            mainAxisAlignment:
+                                pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Expanded(
+                                child: pw.Text(
+                                  _sanitize(skill.name),
+                                  style: const pw.TextStyle(
+                                    fontSize: 8,
+                                    color: PdfColors.white,
+                                  ),
+                                ),
+                              ),
+                              pw.Text(
+                                skillLevelLabel(skill.niveau),
+                                style: pw.TextStyle(
+                                  fontSize: 6.2,
+                                  color: PdfColors.white,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                           pw.SizedBox(height: 2),
-                          _miniBar(3, PdfColors.white),
+                          _miniBar(
+                            skill.niveau,
+                            PdfColors.white,
+                            _mixPdfColors(accent, PdfColors.white, 0.30),
+                          ),
                         ],
                       ),
                     )),
@@ -910,8 +1003,9 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(_sanitize(l.langue ?? ''),
-                              style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
-                          pw.Text(l.niveau ?? '',
+                              style: const pw.TextStyle(
+                                  fontSize: 8, color: PdfColors.white)),
+                          pw.Text(languageLevelLabel(l.niveau),
                               style: pw.TextStyle(
                                   fontSize: 7.5,
                                   color: PdfColors.white,
@@ -927,7 +1021,8 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
                 ...cv.certifications.map((c) => pw.Padding(
                       padding: const pw.EdgeInsets.only(bottom: 4),
                       child: pw.Text(_sanitize(c.nom ?? ''),
-                          style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
+                          style: const pw.TextStyle(
+                              fontSize: 8, color: PdfColors.white)),
                     )),
               ],
             ],
@@ -936,7 +1031,8 @@ Future<Uint8List> _buildCreatif(Cv cv, PdfColor accent, {pw.MemoryImage? photo})
         // Contenu principal
         pw.Expanded(
           child: pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+            padding:
+                const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -989,19 +1085,23 @@ pw.Widget _sideSection(String title) => pw.Padding(
                 letterSpacing: 1.2),
           ),
           pw.SizedBox(height: 4),
-          pw.Container(height: 0.5, decoration: pw.BoxDecoration(color: PdfColors.white)),
+          pw.Container(
+              height: 0.5,
+              decoration: pw.BoxDecoration(color: PdfColors.white)),
         ],
       ),
     );
 
 pw.Widget _sideItem(String text) => pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
-      child: pw.Text(text, style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
+      child: pw.Text(text,
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
     );
 
 // ── TEMPLATE 5 : EXECUTIVE ───────────────────────────────────────────────────
 
-Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo}) async {
+Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent,
+    {pw.MemoryImage? photo}) async {
   final doc = pw.Document();
   final info = cv.personalInfo;
 
@@ -1018,7 +1118,9 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
             pw.Text(
               '${info?.prenom ?? ''} ${info?.nom ?? ''}'.trim(),
               style: pw.TextStyle(
-                  fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black),
             ),
             if (info?.titrePoste?.isNotEmpty == true)
               pw.Text(info!.titrePoste!,
@@ -1042,7 +1144,10 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
       pw.SizedBox(height: 8),
       pw.Container(height: 3, decoration: pw.BoxDecoration(color: accent)),
       pw.SizedBox(height: 1),
-      pw.Container(height: 0.5, decoration: pw.BoxDecoration(color: PdfColor(accent.red, accent.green, accent.blue, 0.3))),
+      pw.Container(
+          height: 0.5,
+          decoration: pw.BoxDecoration(
+              color: PdfColor(accent.red, accent.green, accent.blue, 0.3))),
       pw.SizedBox(height: 16),
       if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
         pw.Text(
@@ -1050,7 +1155,9 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
           style: _bodyStyle(size: 9.5, color: PdfColors.grey800),
         ),
         pw.SizedBox(height: 14),
-        pw.Container(height: 0.5, decoration: pw.BoxDecoration(color: PdfColors.grey300)),
+        pw.Container(
+            height: 0.5,
+            decoration: pw.BoxDecoration(color: PdfColors.grey300)),
         pw.SizedBox(height: 12),
       ],
       if (cv.experiences.isNotEmpty) ...[
@@ -1070,20 +1177,24 @@ Future<Uint8List> _buildExecutive(Cv cv, PdfColor accent, {pw.MemoryImage? photo
             if (cv.skills.isNotEmpty)
               pw.Expanded(
                 flex: 3,
-                child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  _sectionHeader('Compétences', accent),
-                  _skillsSection(cv.skills, accent),
-                ]),
+                child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _sectionHeader('Compétences', accent),
+                      _skillsSection(cv.skills, accent),
+                    ]),
               ),
             if (cv.skills.isNotEmpty && cv.languages.isNotEmpty)
               pw.SizedBox(width: 24),
             if (cv.languages.isNotEmpty)
               pw.Expanded(
                 flex: 2,
-                child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  _sectionHeader('Langues', accent),
-                  _languagesSection(cv.languages, accent),
-                ]),
+                child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _sectionHeader('Langues', accent),
+                      _languagesSection(cv.languages, accent),
+                    ]),
               ),
           ],
         ),
@@ -1112,20 +1223,25 @@ Future<Uint8List> _buildAts(Cv cv, PdfColor accent) async {
   final info = cv.personalInfo;
   final black = PdfColors.black;
   final grey = PdfColors.grey700;
-  final splitNames = _splitSkills(cv.skills);
+  final splitSkills = _splitSkillsWithLevel(cv.skills);
 
   pw.Widget atsSection(String title) => pw.Padding(
-    padding: const pw.EdgeInsets.only(top: 12, bottom: 4),
-    child: pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(title.toUpperCase(), style: pw.TextStyle(
-          fontSize: 10, fontWeight: pw.FontWeight.bold, color: black, letterSpacing: 1,
-        )),
-        pw.Container(height: 0.8, decoration: pw.BoxDecoration(color: black)),
-      ],
-    ),
-  );
+        padding: const pw.EdgeInsets.only(top: 12, bottom: 4),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(title.toUpperCase(),
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  color: black,
+                  letterSpacing: 1,
+                )),
+            pw.Container(
+                height: 0.8, decoration: pw.BoxDecoration(color: black)),
+          ],
+        ),
+      );
 
   doc.addPage(pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
@@ -1133,18 +1249,21 @@ Future<Uint8List> _buildAts(Cv cv, PdfColor accent) async {
     build: (ctx) => [
       pw.Text(
         _sanitize('${info?.prenom ?? ''} ${info?.nom ?? ''}').trim(),
-        style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: black),
+        style: pw.TextStyle(
+            fontSize: 22, fontWeight: pw.FontWeight.bold, color: black),
       ),
       if (info?.titrePoste?.isNotEmpty == true)
         pw.Text(_sanitize(info!.titrePoste!),
-            style: pw.TextStyle(fontSize: 12, color: grey, fontWeight: pw.FontWeight.bold)),
+            style: pw.TextStyle(
+                fontSize: 12, color: grey, fontWeight: pw.FontWeight.bold)),
       pw.SizedBox(height: 6),
       pw.Text(
         [
           if (info?.email?.isNotEmpty == true) _sanitize(info!.email!),
           if (info?.telephone?.isNotEmpty == true) _sanitize(info!.telephone!),
           if (info?.ville?.isNotEmpty == true)
-            _sanitize('${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}'),
+            _sanitize(
+                '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}'),
           if (info?.linkedIn?.isNotEmpty == true) _sanitize(info!.linkedIn!),
           if (info?.portfolio?.isNotEmpty == true) _sanitize(info!.portfolio!),
         ].join('  |  '),
@@ -1155,58 +1274,94 @@ Future<Uint8List> _buildAts(Cv cv, PdfColor accent) async {
         pw.Text(_sanitize(info!.resumeProfessionnel!),
             style: pw.TextStyle(fontSize: 10, color: black, lineSpacing: 1.3)),
       ],
-      if (splitNames.isNotEmpty) ...[
+      if (splitSkills.isNotEmpty) ...[
         atsSection('Compétences'),
-        pw.Text(splitNames.join('  -  '), style: pw.TextStyle(fontSize: 10, color: black)),
+        pw.Text(
+          splitSkills
+              .map((skill) =>
+                  '${_sanitize(skill.name)} (${skillLevelLabel(skill.niveau)})')
+              .join('  -  '),
+          style: pw.TextStyle(fontSize: 10, color: black),
+        ),
       ],
       if (cv.languages.isNotEmpty) ...[
         atsSection('Langues'),
         pw.Text(
-          cv.languages.map((l) => '${_sanitize(l.langue ?? '')} (${_niveauLabel(l.niveau)})').join('  -  '),
+          cv.languages
+              .map((l) =>
+                  '${_sanitize(l.langue ?? '')} (${languageLevelDisplay(l.niveau)})')
+              .join('  -  '),
           style: pw.TextStyle(fontSize: 10, color: black),
         ),
       ],
       if (cv.experiences.isNotEmpty) ...[
         atsSection('Experience professionnelle'),
         ...cv.experiences.map((e) => pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 8),
-          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-              pw.Text(_sanitize(e.poste ?? ''), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: black)),
-              pw.Text(_dateRange(e.dateDebut, e.dateFin, actuel: e.actuel), style: pw.TextStyle(fontSize: 9, color: grey)),
-            ]),
-            pw.Text(_sanitize([e.entreprise, e.lieu].where((s) => s?.isNotEmpty == true).join(', ')),
-                style: pw.TextStyle(fontSize: 9, color: grey)),
-            if (e.description?.isNotEmpty == true) ...[
-              pw.SizedBox(height: 3),
-              ..._buildDescriptionLines(_sanitize(e.description!), accent),
-            ],
-          ]),
-        )),
+              padding: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(_sanitize(e.poste ?? ''),
+                              style: pw.TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: pw.FontWeight.bold,
+                                  color: black)),
+                          pw.Text(
+                              _dateRange(e.dateDebut, e.dateFin,
+                                  actuel: e.actuel),
+                              style: pw.TextStyle(fontSize: 9, color: grey)),
+                        ]),
+                    pw.Text(
+                        _sanitize([e.entreprise, e.lieu]
+                            .where((s) => s?.isNotEmpty == true)
+                            .join(', ')),
+                        style: pw.TextStyle(fontSize: 9, color: grey)),
+                    if (e.description?.isNotEmpty == true) ...[
+                      pw.SizedBox(height: 3),
+                      ..._buildDescriptionLines(
+                          _sanitize(e.description!), accent),
+                    ],
+                  ]),
+            )),
       ],
       if (cv.educations.isNotEmpty) ...[
         atsSection('Formation'),
         ...cv.educations.map((e) => pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 6),
-          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-              pw.Text(e.diplome ?? '', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: black)),
-              pw.Text(_dateRange(e.dateDebut, e.dateFin), style: pw.TextStyle(fontSize: 9, color: grey)),
-            ]),
-            if (e.etablissement?.isNotEmpty == true)
-              pw.Text(_sanitize(e.etablissement!), style: pw.TextStyle(fontSize: 9, color: grey)),
-          ]),
-        )),
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(e.diplome ?? '',
+                              style: pw.TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: pw.FontWeight.bold,
+                                  color: black)),
+                          pw.Text(_dateRange(e.dateDebut, e.dateFin),
+                              style: pw.TextStyle(fontSize: 9, color: grey)),
+                        ]),
+                    if (e.etablissement?.isNotEmpty == true)
+                      pw.Text(_sanitize(e.etablissement!),
+                          style: pw.TextStyle(fontSize: 9, color: grey)),
+                  ]),
+            )),
       ],
       if (cv.certifications.isNotEmpty) ...[
         atsSection('Certifications'),
         ...cv.certifications.map((c) => pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            pw.Text(_sanitize(c.nom ?? ''), style: pw.TextStyle(fontSize: 10, color: black)),
-            pw.Text(_fmtDate(c.dateObtention), style: pw.TextStyle(fontSize: 9, color: grey)),
-          ],
-        )),
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(_sanitize(c.nom ?? ''),
+                    style: pw.TextStyle(fontSize: 10, color: black)),
+                pw.Text(_fmtDate(c.dateObtention),
+                    style: pw.TextStyle(fontSize: 9, color: grey)),
+              ],
+            )),
       ],
     ],
   ));
