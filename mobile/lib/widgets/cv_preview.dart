@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/cv.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/cv_levels.dart';
 
 /// Preview du CV — reproduit exactement le layout de chaque template PDF.
@@ -53,10 +54,11 @@ String _fmt(DateTime? d) {
   return '${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
-String _dateRange(DateTime? debut, DateTime? fin, {bool actuel = false}) {
+String _dateRange(DateTime? debut, DateTime? fin, String ongoing,
+    {bool actuel = false}) {
   final d = _fmt(debut);
   if (actuel || fin == null && debut != null)
-    return d.isEmpty ? 'En cours' : '$d - En cours';
+    return d.isEmpty ? ongoing : '$d - $ongoing';
   final f = _fmt(fin);
   if (d.isEmpty && f.isEmpty) return '';
   if (f.isEmpty) return d;
@@ -122,8 +124,9 @@ Widget _sectionTitle(String title, Color accent) => Padding(
     );
 
 // ── Experience entry ──
-Widget _expEntry(Experience e, Color accent) {
-  final date = _dateRange(e.dateDebut, e.dateFin, actuel: e.actuel);
+Widget _expEntry(Experience e, Color accent, AppLocalizations l) {
+  final date = _dateRange(e.dateDebut, e.dateFin, l.inProgress,
+      actuel: e.actuel);
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: Column(
@@ -197,8 +200,8 @@ List<Widget> _buildDescLines(String desc, Color accent) {
 }
 
 // ── Education entry ──
-Widget _eduEntry(Education e, Color accent) {
-  final date = _dateRange(e.dateDebut, e.dateFin);
+Widget _eduEntry(Education e, Color accent, AppLocalizations l) {
+  final date = _dateRange(e.dateDebut, e.dateFin, l.inProgress);
   return Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Column(
@@ -228,7 +231,8 @@ Widget _eduEntry(Education e, Color accent) {
 }
 
 // ── Competences avec barres et vrai niveau ──
-Widget _skillsBars(List<Skill> skills, Color accent) {
+Widget _skillsBars(
+    List<Skill> skills, Color accent, AppLocalizations l) {
   final data = _splitSkillsWithLevel(skills);
   return Column(
       children: data
@@ -252,7 +256,7 @@ Widget _skillsBars(List<Skill> skills, Color accent) {
                   const SizedBox(width: 6),
                   SizedBox(
                       width: 62,
-                      child: Text(skillLevelLabel(s.level),
+                      child: Text(localizedSkillLevelLabel(l, s.level),
                           textAlign: TextAlign.right,
                           style: TextStyle(
                               fontSize: 7.5,
@@ -264,10 +268,12 @@ Widget _skillsBars(List<Skill> skills, Color accent) {
 }
 
 // ── Langues avec barres ──
-Widget _langBars(List<Language> langs, Color accent) => Column(
+Widget _langBars(
+        List<Language> langs, Color accent, AppLocalizations l) =>
+    Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: langs
-          .map((l) => Padding(
+          .map((lang) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,10 +281,10 @@ Widget _langBars(List<Language> langs, Color accent) => Column(
                       Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(l.langue ?? '',
+                            Text(lang.langue ?? '',
                                 style: const TextStyle(
                                     fontSize: 10, fontWeight: FontWeight.w600)),
-                            Text(languageLevelDisplay(l.niveau),
+                            Text(localizedLanguageLevelDisplay(l, lang.niveau),
                                 style: TextStyle(
                                     fontSize: 7.5,
                                     color: accent,
@@ -288,7 +294,7 @@ Widget _langBars(List<Language> langs, Color accent) => Column(
                       ClipRRect(
                           borderRadius: BorderRadius.circular(2),
                           child: LinearProgressIndicator(
-                              value: languageLevelProgress(l.niveau),
+                              value: languageLevelProgress(lang.niveau),
                               minHeight: 4,
                               backgroundColor: accent.withValues(alpha: 0.12),
                               valueColor: AlwaysStoppedAnimation(accent))),
@@ -333,11 +339,11 @@ Widget _projEntry(Project p, Color accent) => Padding(
     );
 
 // ── Body sections (ordre: Profil > Competences+Langues > Experiences > Formations > Certif+Projets) ──
-Widget _bodySections(Cv cv, Color accent) => Column(
+Widget _bodySections(Cv cv, Color accent, AppLocalizations l) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (cv.personalInfo?.resumeProfessionnel?.isNotEmpty == true) ...[
-          _sectionTitle('Profil', accent),
+          _sectionTitle(l.profile, accent),
           Text(cv.personalInfo!.resumeProfessionnel!,
               style: const TextStyle(
                   fontSize: 10, height: 1.5, color: Color(0xFF374151))),
@@ -350,8 +356,8 @@ Widget _bodySections(Cv cv, Color accent) => Column(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionTitle('Competences', accent),
-                        _skillsBars(cv.skills, accent),
+                        _sectionTitle(l.skills, accent),
+                        _skillsBars(cv.skills, accent, l),
                       ])),
             if (cv.skills.isNotEmpty && cv.languages.isNotEmpty)
               const SizedBox(width: 20),
@@ -361,17 +367,17 @@ Widget _bodySections(Cv cv, Color accent) => Column(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionTitle('Langues', accent),
-                        _langBars(cv.languages, accent),
+                        _sectionTitle(l.languages, accent),
+                        _langBars(cv.languages, accent, l),
                       ])),
           ]),
         if (cv.experiences.isNotEmpty) ...[
-          _sectionTitle('Experiences professionnelles', accent),
-          ...cv.experiences.map((e) => _expEntry(e, accent)),
+          _sectionTitle(l.experiences, accent),
+          ...cv.experiences.map((e) => _expEntry(e, accent, l)),
         ],
         if (cv.educations.isNotEmpty) ...[
-          _sectionTitle('Formations', accent),
-          ...cv.educations.map((e) => _eduEntry(e, accent)),
+          _sectionTitle(l.education, accent),
+          ...cv.educations.map((e) => _eduEntry(e, accent, l)),
         ],
         if (cv.certifications.isNotEmpty || cv.projects.isNotEmpty)
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -380,7 +386,7 @@ Widget _bodySections(Cv cv, Color accent) => Column(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    _sectionTitle('Certifications', accent),
+                    _sectionTitle(l.certifications, accent),
                     ...cv.certifications.map((c) => _certEntry(c, accent)),
                   ])),
             if (cv.certifications.isNotEmpty && cv.projects.isNotEmpty)
@@ -390,7 +396,7 @@ Widget _bodySections(Cv cv, Color accent) => Column(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    _sectionTitle('Projets', accent),
+                    _sectionTitle(l.projects, accent),
                     ...cv.projects.map((p) => _projEntry(p, accent)),
                   ])),
           ]),
@@ -407,6 +413,7 @@ class _ModerneTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final accent = cv.style.primaryColor;
     final info = cv.personalInfo;
     final contact = [
@@ -474,7 +481,7 @@ class _ModerneTemplate extends StatelessWidget {
         // Body
         Padding(
             padding: const EdgeInsets.fromLTRB(32, 8, 32, 24),
-            child: _bodySections(cv, accent)),
+            child: _bodySections(cv, accent, l)),
       ]),
     );
   }
@@ -490,6 +497,7 @@ class _ClassiqueTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final accent = cv.style.primaryColor;
     final info = cv.personalInfo;
     final contact = [
@@ -527,7 +535,7 @@ class _ClassiqueTemplate extends StatelessWidget {
           Container(height: 2.5, color: accent),
           const SizedBox(height: 1),
           Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
-          _bodySections(cv, accent),
+          _bodySections(cv, accent, l),
         ]),
       ),
     );
@@ -544,6 +552,7 @@ class _MinimalisteTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final accent = cv.style.primaryColor;
     final info = cv.personalInfo;
     final contact = [
@@ -569,7 +578,7 @@ class _MinimalisteTemplate extends StatelessWidget {
               style: const TextStyle(fontSize: 9, color: Color(0xFF9CA3AF))),
           const SizedBox(height: 14),
           Container(height: 0.8, color: const Color(0xFFE5E7EB)),
-          _bodySections(cv, accent),
+          _bodySections(cv, accent, l),
         ]),
       ),
     );
@@ -586,6 +595,7 @@ class _CreatifTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final accent = cv.style.primaryColor;
     final info = cv.personalInfo;
     final splitSkills = _splitSkillsWithLevel(cv.skills);
@@ -640,7 +650,7 @@ class _CreatifTemplate extends StatelessWidget {
                         fontStyle: FontStyle.italic)),
               ],
               const SizedBox(height: 20),
-              _sideLabel('CONTACT'),
+              _sideLabel(l.information.toUpperCase()),
               if (info?.email?.isNotEmpty == true) _sideText(info!.email!),
               if (info?.telephone?.isNotEmpty == true)
                 _sideText(info!.telephone!),
@@ -648,7 +658,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Competences
               if (splitSkills.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _sideLabel('COMPÉTENCES'),
+              _sideLabel(l.skills.toUpperCase()),
                 ...splitSkills.take(10).map((skill) => Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Column(
@@ -663,7 +673,7 @@ class _CreatifTemplate extends StatelessWidget {
                                           style: const TextStyle(
                                               fontSize: 8.5,
                                               color: Colors.white))),
-                                  Text(skillLevelLabel(skill.level),
+                                  Text(localizedSkillLevelLabel(l, skill.level),
                                       style: const TextStyle(
                                           fontSize: 6.5,
                                           color: Colors.white,
@@ -693,16 +703,16 @@ class _CreatifTemplate extends StatelessWidget {
               // Langues
               if (cv.languages.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _sideLabel('LANGUES'),
-                ...cv.languages.map((l) => Padding(
+              _sideLabel(l.languages.toUpperCase()),
+                ...cv.languages.map((lang) => Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(l.langue ?? '',
+                            Text(lang.langue ?? '',
                                 style: const TextStyle(
                                     fontSize: 8.5, color: Colors.white)),
-                            Text(languageLevelLabel(l.niveau),
+                            Text(localizedLanguageLevelLabel(l, lang.niveau),
                                 style: const TextStyle(
                                     fontSize: 6.5,
                                     color: Colors.white,
@@ -713,7 +723,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Certifications
               if (cv.certifications.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _sideLabel('CERTIFICATIONS'),
+              _sideLabel(l.certifications.toUpperCase()),
                 ...cv.certifications.map((c) => Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Text(c.nom ?? '',
@@ -731,7 +741,7 @@ class _CreatifTemplate extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
-                      _sectionTitle('Resume', accent),
+                      _sectionTitle(l.professionalSummary, accent),
                       Text(info!.resumeProfessionnel!,
                           style: const TextStyle(
                               fontSize: 10,
@@ -739,15 +749,15 @@ class _CreatifTemplate extends StatelessWidget {
                               color: Color(0xFF374151))),
                     ],
                     if (cv.experiences.isNotEmpty) ...[
-                      _sectionTitle('Experiences', accent),
-                      ...cv.experiences.map((e) => _expEntry(e, accent)),
+                      _sectionTitle(l.experiences, accent),
+                      ...cv.experiences.map((e) => _expEntry(e, accent, l)),
                     ],
                     if (cv.educations.isNotEmpty) ...[
-                      _sectionTitle('Formations', accent),
-                      ...cv.educations.map((e) => _eduEntry(e, accent)),
+                      _sectionTitle(l.education, accent),
+                      ...cv.educations.map((e) => _eduEntry(e, accent, l)),
                     ],
                     if (cv.projects.isNotEmpty) ...[
-                      _sectionTitle('Projets', accent),
+                      _sectionTitle(l.projects, accent),
                       ...cv.projects.map((p) => _projEntry(p, accent)),
                     ],
                   ]),
@@ -789,6 +799,7 @@ class _ExecutiveTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final accent = cv.style.primaryColor;
     final info = cv.personalInfo;
 
@@ -834,7 +845,7 @@ class _ExecutiveTemplate extends StatelessWidget {
           Container(height: 3, color: accent),
           const SizedBox(height: 1),
           Container(height: 0.5, color: accent.withValues(alpha: 0.3)),
-          _bodySections(cv, accent),
+          _bodySections(cv, accent, l),
         ]),
       ),
     );
@@ -851,6 +862,7 @@ class _AtsTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final info = cv.personalInfo;
     const black = Color(0xFF111827);
     const grey = Color(0xFF6B7280);
@@ -894,34 +906,35 @@ class _AtsTemplate extends StatelessWidget {
           const SizedBox(height: 6),
           Text(contact, style: const TextStyle(fontSize: 10, color: grey)),
           if (info?.resumeProfessionnel?.isNotEmpty == true) ...[
-            atsSection('Profil'),
+            atsSection(l.profile),
             Text(info!.resumeProfessionnel!,
                 style:
                     const TextStyle(fontSize: 11, height: 1.5, color: black)),
           ],
           if (splitSkills.isNotEmpty) ...[
-            atsSection('Competences'),
+            atsSection(l.skills),
             Text(
               splitSkills
                   .map((skill) =>
-                      '${skill.name} (${skillLevelLabel(skill.level)})')
+                      '${skill.name} (${localizedSkillLevelLabel(l, skill.level)})')
                   .join('  -  '),
               style: const TextStyle(fontSize: 11, color: black),
             ),
           ],
           if (cv.languages.isNotEmpty) ...[
-            atsSection('Langues'),
+            atsSection(l.languages),
             Text(
                 cv.languages
-                    .map((l) =>
-                        '${l.langue ?? ''} (${languageLevelDisplay(l.niveau)})')
+                    .map((lang) =>
+                        '${lang.langue ?? ''} (${localizedLanguageLevelDisplay(l, lang.niveau)})')
                     .join('  -  '),
                 style: const TextStyle(fontSize: 11, color: black)),
           ],
           if (cv.experiences.isNotEmpty) ...[
-            atsSection('Experience professionnelle'),
+            atsSection(l.experiences),
             ...cv.experiences.map((e) {
-              final date = _dateRange(e.dateDebut, e.dateFin, actuel: e.actuel);
+              final date = _dateRange(e.dateDebut, e.dateFin, l.inProgress,
+                  actuel: e.actuel);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Column(
@@ -953,9 +966,9 @@ class _AtsTemplate extends StatelessWidget {
             }),
           ],
           if (cv.educations.isNotEmpty) ...[
-            atsSection('Formation'),
+            atsSection(l.education),
             ...cv.educations.map((e) {
-              final date = _dateRange(e.dateDebut, e.dateFin);
+              final date = _dateRange(e.dateDebut, e.dateFin, l.inProgress);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Column(
@@ -981,7 +994,7 @@ class _AtsTemplate extends StatelessWidget {
             }),
           ],
           if (cv.certifications.isNotEmpty) ...[
-            atsSection('Certifications'),
+            atsSection(l.certifications),
             ...cv.certifications.map((c) => Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Row(children: [

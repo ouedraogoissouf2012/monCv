@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/cv_validator.dart';
@@ -23,16 +24,18 @@ class _StepInfo {
   const _StepInfo(this.icon, this.label, this.description);
 }
 
-const _kSteps = [
-  _StepInfo(Icons.person_outline_rounded, 'Identite', 'Coordonnees & profil'),
-  _StepInfo(
-      Icons.work_outline_rounded, 'Experiences', 'Parcours professionnel'),
-  _StepInfo(Icons.school_outlined, 'Formations', 'Diplomes & etudes'),
-  _StepInfo(Icons.psychology_outlined, 'Competences', 'Skills & langues'),
-  _StepInfo(Icons.verified_outlined, 'Extras', 'Certifications & projets'),
-];
+List<_StepInfo> _steps(BuildContext context) {
+  final l = AppLocalizations.of(context)!;
+  return [
+    _StepInfo(Icons.person_outline_rounded, l.identity, l.contactAndProfile),
+    _StepInfo(Icons.work_outline_rounded, l.experiences, l.careerPath),
+    _StepInfo(Icons.school_outlined, l.education, l.degreesAndStudies),
+    _StepInfo(Icons.psychology_outlined, l.skills, l.skillsAndLanguages),
+    _StepInfo(Icons.verified_outlined, l.extras, l.certificationsAndProjects),
+  ];
+}
 
-final _kStepCount = _kSteps.length;
+const _kStepCount = 5;
 
 // ── Écran principal ────────────────────────────────────────────
 
@@ -76,12 +79,15 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
   // Genere le titre automatiquement depuis le titre du poste ou le nom
   String get _autoTitre {
+    final l = AppLocalizations.of(context)!;
     final poste = _personalInfo?.titrePoste;
     if (poste != null && poste.trim().isNotEmpty) return poste;
     final prenom = _personalInfo?.prenom ?? '';
     final nom = _personalInfo?.nom ?? '';
-    if (prenom.isNotEmpty || nom.isNotEmpty) return 'CV $prenom $nom'.trim();
-    return 'Mon CV';
+    if (prenom.isNotEmpty || nom.isNotEmpty) {
+      return l.cvDefaultTitle(prenom, nom).trim();
+    }
+    return l.myCv;
   }
 
   @override
@@ -176,7 +182,8 @@ class _CvFormScreenState extends State<CvFormScreen> {
       return;
     }
 
-    final saveIssue = CvValidator().validateForSave(_currentCv);
+    final saveIssue = CvValidator()
+        .validateForSave(_currentCv, AppLocalizations.of(context)!);
     if (saveIssue != null) {
       _goToStep(_stepIndexForSaveIssue(saveIssue.category));
       _showSaveValidationError(saveIssue.message);
@@ -186,6 +193,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     setState(() => _isLoading = true);
     final cvProvider = context.read<CvProvider>();
@@ -199,14 +207,14 @@ class _CvFormScreenState extends State<CvFormScreen> {
     if (success) {
       router.pop();
       messenger.showSnackBar(SnackBar(
-        content: Text(isEditing ? 'CV mis à jour ✓' : 'CV créé avec succès ✓'),
+        content: Text(isEditing ? l.cvUpdatedSuccess : l.cvCreatedSuccess),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ));
     } else {
       messenger.showSnackBar(SnackBar(
-        content: Text(cvProvider.error ?? 'Erreur'),
+        content: Text(cvProvider.error ?? l.errorGeneric),
         backgroundColor: colorScheme.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -245,6 +253,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
   }
 
   void _showPreview() {
+    final l = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -265,7 +274,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Aperçu — ${_currentCv.titre}',
+                      child: Text('${l.preview} — ${_currentCv.titre}',
                           style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 15),
                           maxLines: 1,
@@ -324,6 +333,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 900;
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
@@ -332,13 +342,13 @@ class _CvFormScreenState extends State<CvFormScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          isEditing ? 'Modifier le CV' : 'Nouveau CV',
+          isEditing ? l.editCv : l.newCv,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.visibility_outlined),
-            tooltip: 'Aperçu',
+            tooltip: l.preview,
             onPressed: _showPreview,
           ),
           if (isWide) ...[
@@ -355,7 +365,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
                             strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.check_rounded, size: 18),
-                label: Text(isEditing ? 'Mettre à jour' : 'Enregistrer'),
+                label: Text(isEditing ? l.update : l.save),
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
@@ -422,6 +432,7 @@ class _MobileLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLastStep = currentStep == _kStepCount - 1;
+    final l = AppLocalizations.of(context)!;
 
     return Column(
       children: [
@@ -473,7 +484,7 @@ class _MobileLayout extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onPrevious,
                     icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                    label: const Text('Précédent'),
+                    label: Text(l.previous),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -498,10 +509,10 @@ class _MobileLayout extends StatelessWidget {
                             : const Icon(Icons.check_rounded, size: 20),
                         label: Text(
                           isLoading
-                              ? 'Enregistrement...'
+                              ? l.saving
                               : isEditing
-                                  ? 'Mettre à jour'
-                                  : 'Enregistrer le CV',
+                                  ? l.update
+                                  : l.saveCv,
                           style: const TextStyle(
                               fontWeight: FontWeight.w700, fontSize: 15),
                         ),
@@ -517,8 +528,8 @@ class _MobileLayout extends StatelessWidget {
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('Suivant',
-                                style: TextStyle(
+                            Text(l.next,
+                                style: const TextStyle(
                                     fontWeight: FontWeight.w700, fontSize: 15)),
                             const SizedBox(width: 6),
                             Container(
@@ -632,7 +643,7 @@ class _StepperHeader extends StatelessWidget {
                               ? Icon(Icons.check_rounded,
                                   size: 16, color: colorScheme.primary)
                               : Icon(
-                                  _kSteps[i].icon,
+                                  _steps(context)[i].icon,
                                   size: 16,
                                   color: isActive
                                       ? Colors.white
@@ -645,7 +656,7 @@ class _StepperHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _kSteps[i].label,
+                        _steps(context)[i].label,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight:
@@ -683,6 +694,7 @@ class _CompletionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final color = _barColor(colorScheme);
+    final l = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -696,7 +708,7 @@ class _CompletionBar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(0, 4, 16, 2),
           child: Text(
-            'Complétion : $percent%',
+            l.completion(percent),
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -736,6 +748,7 @@ class _DesktopLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final barColor = _barColor(colorScheme, completionPercent);
+    final l = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -759,7 +772,7 @@ class _DesktopLayout extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'COMPLÉTION DU CV',
+                      l.cvCompletion,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -792,10 +805,10 @@ class _DesktopLayout extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           completionPercent < 50
-                              ? 'À compléter'
+                              ? l.toComplete
                               : completionPercent < 80
-                                  ? 'Bon début !'
-                                  : 'Excellent !',
+                                  ? l.goodStart
+                                  : l.excellent,
                           style: TextStyle(
                             fontSize: 12,
                             color:
@@ -852,7 +865,7 @@ class _DesktopLayout extends StatelessWidget {
                                   child: Icon(
                                     isDone && !isActive
                                         ? Icons.check_rounded
-                                        : _kSteps[i].icon,
+                                        : _steps(context)[i].icon,
                                     size: 17,
                                     color: isActive
                                         ? Colors.white
@@ -869,7 +882,7 @@ class _DesktopLayout extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _kSteps[i].label,
+                                        _steps(context)[i].label,
                                         style: TextStyle(
                                           fontWeight: isActive
                                               ? FontWeight.w700
@@ -881,7 +894,7 @@ class _DesktopLayout extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        _kSteps[i].description,
+                                        _steps(context)[i].description,
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: colorScheme.onSurface
@@ -966,17 +979,17 @@ class _StepWrapper extends StatelessWidget {
               color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(_kSteps[stepIndex].icon,
+            child: Icon(_steps(context)[stepIndex].icon,
                 color: colorScheme.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_kSteps[stepIndex].label,
+            Text(_steps(context)[stepIndex].label,
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w800)),
-            Text(_kSteps[stepIndex].description,
+            Text(_steps(context)[stepIndex].description,
                 style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.onSurface.withValues(alpha: 0.5))),
@@ -1006,12 +1019,13 @@ class _CompetencesStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SubSectionTitle(
           icon: Icons.psychology_outlined,
-          title: 'Compétences',
+          title: l.skills,
           count: skills.length,
         ),
         const SizedBox(height: 12),
@@ -1019,7 +1033,7 @@ class _CompetencesStep extends StatelessWidget {
         const SizedBox(height: 28),
         _SubSectionTitle(
           icon: Icons.translate_rounded,
-          title: 'Langues',
+          title: l.languages,
           count: languages.length,
         ),
         const SizedBox(height: 12),
@@ -1046,12 +1060,13 @@ class _ExtrasStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SubSectionTitle(
           icon: Icons.verified_outlined,
-          title: 'Certifications',
+          title: l.certifications,
           count: certifications.length,
         ),
         const SizedBox(height: 12),
@@ -1060,7 +1075,7 @@ class _ExtrasStep extends StatelessWidget {
         const SizedBox(height: 28),
         _SubSectionTitle(
           icon: Icons.rocket_launch_outlined,
-          title: 'Projets',
+          title: l.projects,
           count: projects.length,
         ),
         const SizedBox(height: 12),
@@ -1162,7 +1177,7 @@ class _DesktopNavBar extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: () => onStepTap(currentStep - 1),
                   icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                  label: Text(_kSteps[currentStep - 1].label),
+                  label: Text(_steps(context)[currentStep - 1].label),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
@@ -1185,7 +1200,7 @@ class _DesktopNavBar extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => onStepTap(currentStep + 1),
                   icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                  label: Text(_kSteps[currentStep + 1].label),
+                  label: Text(_steps(context)[currentStep + 1].label),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),

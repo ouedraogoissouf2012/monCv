@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/cv/sections/experience_section.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       home: Scaffold(body: SingleChildScrollView(child: child)),
     );
 
@@ -118,6 +122,9 @@ void main() {
     testWidgets('affiche les suggestions dans la sheet', (tester) async {
       final ctrl = TextEditingController();
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: Builder(
             builder: (ctx) => ElevatedButton(
@@ -140,6 +147,9 @@ void main() {
     testWidgets('tap sur suggestion l\'ajoute au controller et ferme la sheet', (tester) async {
       final ctrl = TextEditingController();
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: Builder(
             builder: (ctx) => ElevatedButton(
@@ -161,6 +171,9 @@ void main() {
     testWidgets('ajoute sur une nouvelle ligne si description non vide', (tester) async {
       final ctrl = TextEditingController(text: 'Première ligne');
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
         home: Scaffold(
           body: Builder(
             builder: (ctx) => ElevatedButton(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/error/result.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../providers/cv_provider.dart';
 import '../services/ai_service.dart';
@@ -25,6 +26,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
   String? _error;
 
   Future<void> _createVariant() async {
+    final l = AppLocalizations.of(context)!;
     setState(() => _creatingVariant = true);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
@@ -36,14 +38,14 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       if (variant != null) {
         navigator.pop();
         messenger.showSnackBar(SnackBar(
-          content: Text('Variante "${variant.varianteLabel}" creee'),
+          content: Text(l.variantCreated(variant.varianteLabel ?? '')),
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF10B981),
         ));
       } else {
         setState(() => _creatingVariant = false);
-        messenger.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de la creation de la variante'),
+        messenger.showSnackBar(SnackBar(
+          content: Text(l.variantCreationError),
           behavior: SnackBarBehavior.floating,
         ));
       }
@@ -51,16 +53,17 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       if (!mounted) return;
       setState(() => _creatingVariant = false);
       messenger.showSnackBar(SnackBar(
-        content: Text('Erreur: ${e.toString().replaceAll('Exception: ', '')}'),
+        content: Text(l.errorWithDetails(
+            e.toString().replaceAll('Exception: ', ''))),
         behavior: SnackBarBehavior.floating,
       ));
     }
   }
 
   Future<void> _analyze() async {
+    final l = AppLocalizations.of(context)!;
     if (_controller.text.trim().length < 20) {
-      setState(() =>
-          _error = 'Collez le texte complet de l\'offre (min 20 caracteres)');
+      setState(() => _error = l.jobOfferTooShort);
       return;
     }
     setState(() {
@@ -107,6 +110,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -139,15 +143,14 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   child: const Icon(Icons.work_outline_rounded,
                       color: Color(0xFF2563EB), size: 20)),
               const SizedBox(width: 10),
-              Text('Adapter a une offre',
+              Text(l.adaptToJob,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
                       ?.copyWith(fontWeight: FontWeight.w700)),
             ]),
             const SizedBox(height: 6),
-            Text(
-                'Collez le texte d\'une offre d\'emploi pour analyser la correspondance',
+            Text(l.adaptToJobDescription,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.55))),
             const SizedBox(height: 16),
@@ -158,7 +161,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 controller: _controller,
                 maxLines: 6,
                 decoration: InputDecoration(
-                  hintText: 'Collez ici le texte de l\'offre d\'emploi...',
+                  hintText: l.jobOfferHint,
                   hintStyle: TextStyle(
                       color: colorScheme.onSurface.withValues(alpha: 0.3)),
                   border: OutlineInputBorder(
@@ -187,7 +190,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'J\'accepte que le CV et le texte de l\'offre soient envoyés au service IA pour calculer la correspondance.',
+                        l.jobMatchConsent,
                         style: TextStyle(
                           fontSize: 12,
                           height: 1.35,
@@ -212,8 +215,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                                 strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.analytics_outlined),
                     label: Text(_loading
-                        ? 'Analyse en cours...'
-                        : 'Analyser la correspondance'),
+                        ? l.analyzing
+                        : l.analyzeMatch),
                     style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB)),
                   )),
@@ -231,7 +234,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               if (_result!['matchedKeywords'] != null &&
                   (_result!['matchedKeywords'] as List).isNotEmpty) ...[
                 _KeywordSection(
-                  title: 'Mots-cles presents',
+                  title: l.matchedKeywords,
                   icon: Icons.check_circle_rounded,
                   color: const Color(0xFF10B981),
                   keywords: List<String>.from(_result!['matchedKeywords']),
@@ -243,7 +246,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               if (_result!['missingKeywords'] != null &&
                   (_result!['missingKeywords'] as List).isNotEmpty) ...[
                 _KeywordSection(
-                  title: 'Mots-cles manquants',
+                  title: l.missingKeywords,
                   icon: Icons.error_outline_rounded,
                   color: const Color(0xFFEF4444),
                   keywords: List<String>.from(_result!['missingKeywords']),
@@ -254,7 +257,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               // Suggestions
               if (_result!['suggestions'] != null &&
                   (_result!['suggestions'] as List).isNotEmpty) ...[
-                Text('Suggestions',
+                Text(l.suggestions,
                     style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -289,8 +292,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                                 strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.auto_fix_high_rounded),
                     label: Text(_creatingVariant
-                        ? 'Creation en cours...'
-                        : 'Creer une variante adaptee'),
+                        ? l.creatingVariant
+                        : l.createAdaptedVariant),
                     style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB)),
                   )),
@@ -301,7 +304,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: () => setState(() => _result = null),
-                    child: const Text('Analyser une autre offre'),
+                    child: Text(l.analyzeAnotherOffer),
                   )),
             ],
           ],
@@ -317,16 +320,17 @@ class _ScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final color = score >= 70
         ? const Color(0xFF10B981)
         : score >= 40
             ? const Color(0xFFF59E0B)
             : const Color(0xFFEF4444);
     final label = score >= 70
-        ? 'Bon match'
+        ? l.goodMatch
         : score >= 40
-            ? 'Match moyen'
-            : 'Faible match';
+            ? l.averageMatch
+            : l.lowMatch;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -357,7 +361,7 @@ class _ScoreCard extends StatelessWidget {
               style: TextStyle(
                   fontSize: 16, fontWeight: FontWeight.w700, color: color)),
           const SizedBox(height: 2),
-          Text('Score de correspondance avec l\'offre',
+          Text(l.jobMatchScore,
               style: TextStyle(
                   fontSize: 11,
                   color: Theme.of(context)

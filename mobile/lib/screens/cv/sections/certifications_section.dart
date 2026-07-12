@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import 'form_sheet.dart';
 
@@ -33,6 +34,7 @@ class CertificationsSection extends StatelessWidget {
     Certification? cert,
     Function(Certification) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: cert?.nom);
     final organismeCtrl = TextEditingController(text: cert?.organisme);
     final urlCtrl = TextEditingController(text: cert?.credentialUrl);
@@ -41,7 +43,7 @@ class CertificationsSection extends StatelessWidget {
 
     showFormSheet(
       context: context,
-      title: cert == null ? 'Ajouter une certification' : 'Modifier la certification',
+      title: cert == null ? l.addCertification : l.editCertification,
       icon: Icons.verified_outlined,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -49,16 +51,16 @@ class CertificationsSection extends StatelessWidget {
         children: [
           TextFormField(
             controller: nomCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nom de la certification *',
+            decoration: InputDecoration(
+              labelText: l.certificationNameRequired,
               prefixIcon: Icon(Icons.verified_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: organismeCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Organisme émetteur',
+            decoration: InputDecoration(
+              labelText: l.issuingOrganization,
               prefixIcon: Icon(Icons.business_outlined, size: 20),
             ),
           ),
@@ -67,7 +69,7 @@ class CertificationsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Date d\'obtention',
+              label: l.issueDate,
                   date: dateObtention,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -83,7 +85,7 @@ class CertificationsSection extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: SectionDateButton(
-                  label: 'Expiration',
+              label: l.expiration,
                   date: dateExpiration,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -101,8 +103,8 @@ class CertificationsSection extends StatelessWidget {
           const SizedBox(height: 12),
           TextFormField(
             controller: urlCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Lien de vérification',
+            decoration: InputDecoration(
+              labelText: l.verificationLink,
               prefixIcon: Icon(Icons.link_rounded, size: 20),
               hintText: 'https://...',
             ),
@@ -123,14 +125,15 @@ class CertificationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (certifications.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.verified_outlined,
-            label: 'Aucune certification ajoutée',
+            label: l.noneCertification,
           )
         else
           ListView.builder(
@@ -142,9 +145,9 @@ class CertificationsSection extends StatelessWidget {
               final expired = cert.dateExpiration != null &&
                   cert.dateExpiration!.isBefore(DateTime.now());
               return SectionItemTile(
-                title: cert.nom?.isNotEmpty == true ? cert.nom! : 'Certification',
+                title: cert.nom?.isNotEmpty == true ? cert.nom! : l.certifications,
                 subtitle: cert.organisme ?? '',
-                badge: expired ? 'Expiré' : null,
+                badge: expired ? l.expired : null,
                 badgeColor: Colors.orange,
                 onEdit: () => _edit(ctx, i),
                 onDelete: () => _delete(i),
@@ -153,7 +156,7 @@ class CertificationsSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter une certification',
+          label: l.addCertification,
           onTap: () => _add(context),
         ),
       ],

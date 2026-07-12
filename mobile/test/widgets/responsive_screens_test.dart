@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/screens/auth/register_screen.dart';
 import 'package:cv_mobile/screens/landing/landing_screen.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 class MockAuthProvider extends Mock implements AuthProvider {}
 
@@ -17,6 +18,9 @@ void _setMobileViewport(WidgetTester tester) {
 Future<void> _pumpAnimatedScreen(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(MaterialApp(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     home: child,
   ));
 

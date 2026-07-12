@@ -1,10 +1,12 @@
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/services/cv_validator.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cv_mobile/l10n/app_localizations_fr.dart';
 
 void main() {
   group('CvValidator.validateForSave', () {
     final validator = CvValidator();
+    final l = AppLocalizationsFr();
 
     Cv baseCv({
       List<Experience> experiences = const [],
@@ -31,7 +33,7 @@ void main() {
     }
 
     test('accepte un CV minimal sauvegardable par le backend', () {
-      final issue = validator.validateForSave(baseCv());
+      final issue = validator.validateForSave(baseCv(), l);
 
       expect(issue, isNull);
     });
@@ -47,10 +49,11 @@ void main() {
             ),
           ],
         ),
+        l,
       );
 
       expect(issue?.category, 'experiences');
-      expect(issue?.message, contains('entreprise obligatoire'));
+      expect(issue?.message.toLowerCase(), contains('entreprise obligatoire'));
     });
 
     test('bloque une formation sans date de debut', () {
@@ -63,33 +66,37 @@ void main() {
             ),
           ],
         ),
+        l,
       );
 
       expect(issue?.category, 'formations');
-      expect(issue?.message, contains('date de debut obligatoire'));
+      expect(issue?.message.toLowerCase(), contains('debut obligatoire'));
     });
 
     test('bloque une langue sans niveau', () {
       final issue = validator.validateForSave(
         baseCv(languages: [Language(langue: 'Francais')]),
+        l,
       );
 
       expect(issue?.category, 'langues');
-      expect(issue?.message, contains('niveau obligatoire'));
+      expect(issue?.message.toLowerCase(), contains('niveau obligatoire'));
     });
 
     test('bloque les extras incomplets', () {
       final certificationIssue = validator.validateForSave(
         baseCv(certifications: [Certification(nom: '')]),
+        l,
       );
       final projectIssue = validator.validateForSave(
         baseCv(projects: [Project(nom: '')]),
+        l,
       );
 
       expect(certificationIssue?.category, 'certifications');
-      expect(certificationIssue?.message, contains('nom obligatoire'));
+      expect(certificationIssue?.message.toLowerCase(), contains('nom obligatoire'));
       expect(projectIssue?.category, 'projets');
-      expect(projectIssue?.message, contains('nom obligatoire'));
+      expect(projectIssue?.message.toLowerCase(), contains('nom obligatoire'));
     });
   });
 }

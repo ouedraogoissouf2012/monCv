@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 
 // ── showFormSheet ─────────────────────────────────────────────
 
@@ -10,6 +11,7 @@ void showFormSheet({
   required Widget Function(BuildContext, StateSetter) builder,
   required VoidCallback onSave,
 }) {
+  final l = AppLocalizations.of(context)!;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -94,7 +96,7 @@ void showFormSheet({
                           style: OutlinedButton.styleFrom(
                               padding:
                                   const EdgeInsets.symmetric(vertical: 14)),
-                          child: const Text('Annuler'),
+                          child: Text(l.cancel),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -106,8 +108,8 @@ void showFormSheet({
                             Navigator.of(ctx).pop();
                           },
                           icon: const Icon(Icons.check_rounded, size: 18),
-                          label: const Text('Enregistrer',
-                              style: TextStyle(fontWeight: FontWeight.w700)),
+                          label: Text(l.save,
+                              style: const TextStyle(fontWeight: FontWeight.w700)),
                           style: FilledButton.styleFrom(
                               padding:
                                   const EdgeInsets.symmetric(vertical: 14)),
@@ -369,8 +371,10 @@ class SectionDateButton extends StatelessWidget {
                         color: colorScheme.onSurface.withValues(alpha: 0.5))),
                 Text(
                   hasDate
-                      ? DateFormat('MMM yyyy', 'fr_FR').format(date!)
-                      : 'Choisir',
+                      ? DateFormat('MMM yyyy',
+                              Localizations.localeOf(context).toString())
+                          .format(date!)
+                      : AppLocalizations.of(context)!.choose,
                   style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -408,7 +412,9 @@ class AiSuggestButton extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.auto_awesome, size: 16),
-        label: Text(isLoading ? 'Génération…' : 'Suggestions IA'),
+        label: Text(isLoading
+            ? AppLocalizations.of(context)!.generating
+            : AppLocalizations.of(context)!.aiSuggestions),
         style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
       ),
     );
@@ -426,6 +432,7 @@ class SectionCurrentSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -448,7 +455,7 @@ class SectionCurrentSwitch extends StatelessWidget {
                   : colorScheme.onSurface.withValues(alpha: 0.5)),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Poste actuel',
+            child: Text(l.currentRole,
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,

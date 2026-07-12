@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/error_helper.dart';
 
@@ -49,16 +50,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String label;
     Color color;
     if (strength < 0.3) {
-      label = 'Faible';
+      label = 'weak';
       color = Colors.red;
     } else if (strength < 0.6) {
-      label = 'Moyen';
+      label = 'medium';
       color = Colors.orange;
     } else if (strength < 0.8) {
-      label = 'Bon';
+      label = 'good';
       color = const Color(0xFF2563EB);
     } else {
-      label = 'Fort';
+      label = 'strong';
       color = const Color(0xFF10B981);
     }
 
@@ -89,7 +90,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       nom: _nomCtrl.text.trim(),
     );
     if (!ok && mounted) {
-      ErrorHelper.showError(context, auth.error ?? 'Erreur d\'inscription');
+      ErrorHelper.showError(
+          context, auth.error ?? AppLocalizations.of(context)!.registerError);
     }
   }
 
@@ -134,6 +136,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildCard() {
     final isNarrow = MediaQuery.of(context).size.width < 420;
+    final l = AppLocalizations.of(context)!;
+    final passwordLabel = switch (_passwordLabel) {
+      'weak' => l.passwordStrengthWeak,
+      'medium' => l.passwordStrengthMedium,
+      'good' => l.passwordStrengthGood,
+      'strong' => l.passwordStrengthStrong,
+      _ => '',
+    };
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -202,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 28),
               // Headline
               Text(
-                'Créez votre\ncompte.',
+                l.createAccount,
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 32,
                   fontWeight: FontWeight.w400,
@@ -212,32 +222,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Rejoignez MonCV gratuitement',
+              Text(
+                l.createAccountSubtitle,
                 style: TextStyle(
                     fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300),
               ),
               const SizedBox(height: 28),
               // Prénom + Nom
-              _buildNameFields(isNarrow),
+              _buildNameFields(isNarrow, l),
               const SizedBox(height: 14),
               _buildField(
-                label: 'Adresse email',
+                label: l.email,
                 icon: Icons.email_outlined,
                 controller: _emailCtrl,
-                hint: 'vous@exemple.com',
+                hint: l.emailHint,
                 compact: isNarrow,
                 keyboardType: TextInputType.emailAddress,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Champ requis';
-                  if (!v.contains('@')) return 'Email invalide';
+                  if (v == null || v.isEmpty) return l.fieldRequired;
+                  if (!v.contains('@')) return l.invalidEmail;
                   return null;
                 },
               ),
               const SizedBox(height: 14),
               // Mot de passe
               _buildField(
-                label: 'Mot de passe',
+                label: l.password,
                 icon: Icons.lock_outline,
                 controller: _passwordCtrl,
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
@@ -255,8 +265,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Requis';
-                  if (v.length < 6) return 'Minimum 6 caractères';
+                  if (v == null || v.isEmpty) return l.required;
+                  if (v.length < 6) return l.passwordMinLength;
                   return null;
                 },
               ),
@@ -276,7 +286,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(_passwordLabel,
+                  Text(passwordLabel,
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -286,7 +296,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 14),
               // Confirmation mot de passe
               _buildField(
-                label: 'Confirmer le mot de passe',
+                label: l.confirmPassword,
                 icon: Icons.lock_outline,
                 controller: _confirmCtrl,
                 hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
@@ -304,9 +314,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Requis';
+                  if (v == null || v.isEmpty) return l.required;
                   if (v != _passwordCtrl.text) {
-                    return 'Les mots de passe ne correspondent pas';
+                    return l.passwordsDoNotMatch;
                   }
                   return null;
                 },
@@ -336,8 +346,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               valueColor: AlwaysStoppedAnimation(_kWhite),
                             ),
                           )
-                        : const Text(
-                            'Créer mon compte',
+                        : Text(
+                            l.createMyAccount,
                             style: TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w500),
                           ),
@@ -350,14 +360,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text(
-                    'Déjà un compte ? ',
+                  Text(
+                    '${l.hasAccount} ',
                     style: TextStyle(fontSize: 13, color: _kMuted),
                   ),
                   GestureDetector(
                     onTap: () => context.go('/login'),
-                    child: const Text(
-                      'Se connecter',
+                    child: Text(
+                      l.login,
                       style: TextStyle(
                         fontSize: 13,
                         color: _kBlue,
@@ -374,14 +384,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const BoxDecoration(
                   border: Border(top: BorderSide(color: _kBorder, width: 0.5)),
                 ),
-                child: const Wrap(
+                child: Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 20,
                   runSpacing: 8,
                   children: [
-                    _FeatureChip('Suggestions IA'),
-                    _FeatureChip('Export PDF'),
-                    _FeatureChip('Partage public'),
+                    _FeatureChip(l.featureAi),
+                    _FeatureChip(l.featurePdf),
+                    _FeatureChip(l.featureShare),
                   ],
                 ),
               ),
@@ -392,22 +402,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildNameFields(bool isNarrow) {
+  Widget _buildNameFields(bool isNarrow, AppLocalizations l) {
     final prenom = _buildField(
-      label: 'Prénom',
+      label: l.firstName,
       icon: Icons.person_outline,
       controller: _prenomCtrl,
       hint: 'Issouf',
       compact: isNarrow,
-      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+      validator: (v) => (v == null || v.isEmpty) ? l.required : null,
     );
     final nom = _buildField(
-      label: 'Nom',
+      label: l.lastName,
       icon: Icons.person_outline,
       controller: _nomCtrl,
       hint: 'Ouedraogo',
       compact: isNarrow,
-      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+      validator: (v) => (v == null || v.isEmpty) ? l.required : null,
     );
 
     if (isNarrow) {
