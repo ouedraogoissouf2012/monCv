@@ -14,6 +14,7 @@ class JobMatchSheet extends StatefulWidget {
 class _JobMatchSheetState extends State<JobMatchSheet> {
   final _controller = TextEditingController();
   bool _loading = false;
+  bool _aiConsentAccepted = false;
   Map<String, dynamic>? _result;
   String? _error;
 
@@ -115,10 +116,44 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 ),
               ),
               const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.14)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _aiConsentAccepted,
+                      onChanged: (value) => setState(() {
+                        _aiConsentAccepted = value ?? false;
+                      }),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'J\'accepte que le CV et le texte de l\'offre soient envoyés au service IA pour calculer la correspondance.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.35,
+                          color: colorScheme.onSurface.withValues(alpha: 0.72),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: _loading ? null : _analyze,
+                    onPressed:
+                        _loading || !_aiConsentAccepted ? null : _analyze,
                     icon: _loading
                         ? const SizedBox(
                             width: 16,

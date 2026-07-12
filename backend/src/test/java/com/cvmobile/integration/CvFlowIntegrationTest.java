@@ -288,7 +288,8 @@ class CvFlowIntegrationTest {
                 .content(mapper.writeValueAsString(Map.of(
                         "titrePoste", "Developpeur Java",
                         "competences", "Java, Spring Boot",
-                        "experience", "2 ans"
+                        "experience", "2 ans",
+                        "aiConsentAccepted", true
                 ))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resume").isNotEmpty());
