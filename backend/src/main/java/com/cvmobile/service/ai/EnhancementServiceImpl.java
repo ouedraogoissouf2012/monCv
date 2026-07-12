@@ -5,6 +5,7 @@ import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.ai.client.IAiClient;
 import com.cvmobile.service.quality.ICvQualityService;
+import com.cvmobile.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private final IAiClient aiClient;
     private final CvRepository cvRepository;
     private final ICvQualityService qualityService;
+    private final NotificationService notificationService;
 
     @Override
     public EnhanceCvResponse enhanceCv(Long cvId, String level) {
@@ -38,7 +40,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
         // Les exceptions AiServiceException propagent jusqu'au GlobalExceptionHandler
         // (plus de catch silencieux qui masque les erreurs config/quota/timeout).
-        return callAiEnhance(cv, level);
+        EnhanceCvResponse response = callAiEnhance(cv, level);
+        notificationService.notifyAiTips(cv, response.getCorrectionCount());
+        return response;
     }
 
     @Override
