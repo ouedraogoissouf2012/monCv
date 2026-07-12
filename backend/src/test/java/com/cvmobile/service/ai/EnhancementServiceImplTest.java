@@ -12,6 +12,7 @@ import com.cvmobile.model.Skill;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EnhancementServiceImplTest {
@@ -37,7 +38,7 @@ class EnhancementServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new EnhancementServiceImpl(aiClient, cvRepository, new CvQualityService());
+        service = new EnhancementServiceImpl(aiClient, cvRepository, new CvQualityService(), mock(NotificationService.class));
     }
 
     @Test

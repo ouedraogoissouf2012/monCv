@@ -2515,6 +2515,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Une erreur est survenue'**
   String get errorGeneric;
+
+  /// No description provided for @notifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @staleCvReminder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappel de mise a jour'**
+  String get staleCvReminder;
+
+  /// No description provided for @staleCvReminderSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me prevenir apres 30 jours sans modification'**
+  String get staleCvReminderSubtitle;
+
+  /// No description provided for @cvViewNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vues du CV partage'**
+  String get cvViewNotifications;
+
+  /// No description provided for @cvViewNotificationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me prevenir tous les 10 nouveaux visiteurs'**
+  String get cvViewNotificationsSubtitle;
+
+  /// No description provided for @aiTipNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conseils d\'amelioration IA'**
+  String get aiTipNotifications;
+
+  /// No description provided for @aiTipNotificationsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recevoir des pistes pour renforcer mon CV'**
+  String get aiTipNotificationsSubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -55,6 +55,12 @@ ai:
   fallback:
     enabled: ${AI_FALLBACK_ENABLED:true}
 
+notifications:
+  firebase:
+    enabled: ${FIREBASE_NOTIFICATIONS_ENABLED:false}
+  stale-cv-days: ${STALE_CV_DAYS:30}
+  reminder-cron: ${NOTIFICATION_REMINDER_CRON:0 0 9 * * *}
+
 # Actuator / Monitoring
 management:
   endpoints:

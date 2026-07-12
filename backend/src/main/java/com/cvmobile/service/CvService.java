@@ -9,6 +9,7 @@ import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.ai.IEnhancementService;
+import com.cvmobile.service.notification.NotificationService;
 import com.cvmobile.service.cv.ICvService;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class CvService implements ICvService {
     private final IUserService userService;
     private final CvMapper cvMapper;
     private final IEnhancementService enhancementService;
+    private final NotificationService notificationService;
 
     // ── Lecture ───────────────────────────────────────────────────
 
@@ -328,6 +330,7 @@ public class CvService implements ICvService {
                     .build());
             cv.setViewCount(cv.getViewCount() + 1);
             cvRepository.save(cv);
+            notificationService.notifyViewMilestone(cv);
             log.debug("Vue enregistree: cv={}, ipHash={}", cv.getId(), ipHash);
         }
     }

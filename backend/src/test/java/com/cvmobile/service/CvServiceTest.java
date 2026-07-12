@@ -9,6 +9,7 @@ import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.ai.IEnhancementService;
+import com.cvmobile.service.notification.NotificationService;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,7 @@ class CvServiceTest {
     @Mock private IUserService userService;
     @Mock private CvMapper cvMapper;
     @Mock private IEnhancementService enhancementService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private CvService cvService;
