@@ -623,7 +623,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get jobTitle => 'Titre du poste';
 
   @override
-  String get phone => 'Telephone';
+  String get phone => 'Téléphone';
 
   @override
   String get address => 'Adresse';
