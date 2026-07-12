@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cv_mobile/l10n/app_localizations.dart';
+
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
@@ -11,6 +13,7 @@ import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
 
 class MockAuthProvider extends Mock implements AuthProvider {}
+
 class MockCvProvider extends Mock implements CvProvider {}
 
 Cv _fakeCv({int id = 1, String titre = 'CV Test'}) => Cv(
@@ -29,6 +32,11 @@ User _fakeUser() => User(
       prenom: 'John',
       role: 'USER',
     );
+
+void _setMobileViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(430, 900);
+  tester.view.devicePixelRatio = 1.0;
+}
 
 Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
   final router = GoRouter(
@@ -61,6 +69,9 @@ Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
 
   return MaterialApp.router(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     routerConfig: router,
   );
 }
@@ -95,14 +106,15 @@ void main() {
       expect(find.text('Mes CVs'), findsWidgets);
     });
 
-    testWidgets('affiche l\'état vide quand il n\'y a pas de CVs', (tester) async {
+    testWidgets('affiche l\'état vide quand il n\'y a pas de CVs',
+        (tester) async {
       when(() => mockCv.cvs).thenReturn([]);
 
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
       await tester.pumpAndSettle();
 
       expect(find.text('Aucun CV pour l\'instant'), findsOneWidget);
-      expect(find.text('Créez votre premier CV professionnel'), findsOneWidget);
+      expect(find.text('Creez votre premier CV professionnel'), findsOneWidget);
     });
 
     testWidgets('affiche la liste des CVs quand il y en a', (tester) async {
@@ -118,7 +130,25 @@ void main() {
       expect(find.text('CV Designer'), findsOneWidget);
     });
 
-    testWidgets('affiche un indicateur de chargement pendant loadCvs', (tester) async {
+    testWidgets('affiche les cartes CV en liste sur mobile sans overflow',
+        (tester) async {
+      _setMobileViewport(tester);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      when(() => mockCv.cvs).thenReturn([
+        _fakeCv(id: 1, titre: 'Architecte QA Web'),
+      ]);
+
+      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsOneWidget);
+      expect(find.text('Architecte QA Web'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('affiche un indicateur de chargement pendant loadCvs',
+        (tester) async {
       when(() => mockCv.isLoading).thenReturn(true);
       when(() => mockCv.cvs).thenReturn([]);
 
@@ -128,7 +158,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('affiche le FAB Nouveau CV quand la liste est vide', (tester) async {
+    testWidgets('affiche le FAB Nouveau CV quand la liste est vide',
+        (tester) async {
       await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
       await tester.pumpAndSettle();
 

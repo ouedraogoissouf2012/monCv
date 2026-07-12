@@ -121,6 +121,28 @@ cd mobile && flutter run -d chrome --web-port=3001
 
 ---
 
+## Build PWA production
+
+La procedure complete est documentee dans `docs/PWA_PRODUCTION.md`.
+
+Commande minimale :
+
+```bash
+cd mobile
+flutter build web --release \
+  --pwa-strategy=offline-first \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api
+```
+
+Notes importantes :
+- `APP_ENV=production` interdit le fallback vers `localhost`.
+- `API_BASE_URL` doit etre une URL HTTPS en production.
+- Le dossier genere `mobile/build/web` doit etre servi avec HTTPS.
+- Le backend doit autoriser le domaine PWA via `ALLOWED_ORIGINS`.
+
+---
+
 ## URLs utiles
 
 | Service | URL |
@@ -150,6 +172,14 @@ cd mobile && flutter run -d chrome --web-port=3001
 | `SERVER_PORT` | `8082` | Port du backend |
 | `JWT_SECRET` | (auto) | Cle JWT |
 | `DEEPSEEK_API_KEY` | (configure) | Cle API DeepSeek pour l'IA |
+| `ALLOWED_ORIGINS` | localhost | Domaines frontend autorises par CORS |
+
+### Variables Flutter Web
+
+| Variable | Exemple | Description |
+|----------|---------|-------------|
+| `APP_ENV` | `production` | Active les garde-fous production du frontend |
+| `API_BASE_URL` | `https://api.votre-domaine.com/api` | URL publique du backend appelee par la PWA |
 
 ---
 

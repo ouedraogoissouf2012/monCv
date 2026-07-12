@@ -45,6 +45,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccountSubtitle => 'Join MonCV for free';
 
   @override
+  String get emailHint => 'you@example.com';
+
+  @override
+  String get fieldRequired => 'Required field';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get passwordMinLength => 'Minimum 6 characters';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get passwordStrengthWeak => 'Weak';
+
+  @override
+  String get passwordStrengthMedium => 'Fair';
+
+  @override
+  String get passwordStrengthGood => 'Good';
+
+  @override
+  String get passwordStrengthStrong => 'Strong';
+
+  @override
+  String get loginError => 'Login error';
+
+  @override
+  String get registerError => 'Registration error';
+
+  @override
+  String get createMyAccount => 'Create my account';
+
+  @override
   String get myCvs => 'My CVs';
 
   @override
@@ -57,13 +93,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createFirstCv => 'Create your first professional CV';
 
   @override
+  String get createMyFirstCv => 'Create my first CV';
+
+  @override
+  String get importCv => 'Import CV (PDF/DOCX)';
+
+  @override
+  String get deleteCvTitle => 'Delete CV';
+
+  @override
+  String deleteCvConfirm(String titre) {
+    return 'Are you sure you want to delete \"$titre\"?';
+  }
+
+  @override
+  String get cvDeleted => 'CV deleted';
+
+  @override
+  String get cvDuplicated => 'CV duplicated';
+
+  @override
+  String get shareLinkTitle => 'Share link';
+
+  @override
+  String get shareLinkDescription =>
+      'Share this link for anyone to view your CV:';
+
+  @override
+  String get linkCopied => 'Link copied to clipboard';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get pdfDownloading => 'Generating PDF...';
+
+  @override
+  String get pdfDownloaded => 'PDF downloaded';
+
+  @override
+  String pdfError(String error) {
+    return 'PDF error: $error';
+  }
+
+  @override
+  String get docxDownloading => 'Downloading DOCX...';
+
+  @override
+  String get docxDownloaded => 'DOCX downloaded';
+
+  @override
+  String docxError(String error) {
+    return 'DOCX error: $error';
+  }
+
+  @override
+  String get importInProgress => 'Importing CV...';
+
+  @override
+  String importSuccess(String titre) {
+    return 'CV \"$titre\" imported successfully';
+  }
+
+  @override
+  String importError(String error) {
+    return 'Import error: $error';
+  }
+
+  @override
+  String get offlineBanner => 'Offline mode — cached data';
+
+  @override
+  String get view => 'View';
+
+  @override
   String get profile => 'Profile';
 
   @override
   String get logout => 'Log out';
 
   @override
+  String get logoutTitle => 'Log out';
+
+  @override
   String get logoutConfirm => 'Are you sure you want to log out?';
+
+  @override
+  String get disconnect => 'Log out';
+
+  @override
+  String get user => 'User';
 
   @override
   String get cancel => 'Cancel';
@@ -84,6 +206,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get share => 'Share';
 
   @override
+  String get edit => 'Edit';
+
+  @override
   String get download => 'Download';
 
   @override
@@ -100,6 +225,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get options => 'Options';
+
+  @override
+  String get retry => 'Retry';
 
   @override
   String get enhanceWithAi => 'Enhance with AI';
@@ -256,4 +384,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shares => 'Shares';
+
+  @override
+  String get views => 'Views';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String daysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get inProgress => 'In progress';
+
+  @override
+  String get incomplete => 'Incomplete';
+
+  @override
+  String get pdf => 'PDF';
+
+  @override
+  String get docx => 'DOCX';
+
+  @override
+  String nVariants(int count) {
+    return '$count variant(s)';
+  }
+
+  @override
+  String get errorInvalidCredentials =>
+      'Invalid credentials. Check your email and password.';
+
+  @override
+  String get errorEmailAlreadyUsed =>
+      'This email is already in use. Try logging in.';
+
+  @override
+  String get errorNetworkUnavailable =>
+      'Cannot reach the server. Check your internet connection.';
+
+  @override
+  String get errorTimeout =>
+      'The server is taking too long. Try again shortly.';
+
+  @override
+  String get errorServer => 'A server error occurred. Try again shortly.';
+
+  @override
+  String get errorForbidden => 'Access denied. Log in again and retry.';
+
+  @override
+  String get errorRateLimit =>
+      'Too many attempts. Wait a minute before trying again.';
+
+  @override
+  String get errorNotFound => 'This CV no longer exists or has been deleted.';
+
+  @override
+  String get errorDownload => 'Download failed. Try again shortly.';
+
+  @override
+  String get errorAiUnavailable =>
+      'AI service is temporarily unavailable. Try again later.';
+
+  @override
+  String get errorFileUpload =>
+      'File upload failed. Check the format and size.';
+
+  @override
+  String get errorGeneric => 'An error occurred';
 }

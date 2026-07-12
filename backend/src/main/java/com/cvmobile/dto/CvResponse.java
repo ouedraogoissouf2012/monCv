@@ -26,9 +26,23 @@ public class CvResponse {
     private List<CertificationDto> certifications;
     private List<ProjectDto> projects;
     private int viewCount;
+    private Long parentCvId;
+    private String varianteLabel;
+    private Integer variantCount;
+    private StyleDto style;
     private String publicToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StyleDto {
+        private String templateId;
+        private Long primaryColor;
+        private String fontFamily;
+    }
 
     @Data
     @Builder

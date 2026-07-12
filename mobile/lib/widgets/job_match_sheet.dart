@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/cv_provider.dart';
+import '../services/ai_service.dart';
+import '../utils/error_helper.dart';
 
 /// Bottom sheet pour analyser la correspondance CV / offre d'emploi.
+/// Permet aussi de creer une variante du CV adaptee a l'offre.
 class JobMatchSheet extends StatefulWidget {
   final int cvId;
   const JobMatchSheet({super.key, required this.cvId});
@@ -13,23 +17,69 @@ class JobMatchSheet extends StatefulWidget {
 class _JobMatchSheetState extends State<JobMatchSheet> {
   final _controller = TextEditingController();
   bool _loading = false;
+  bool _creatingVariant = false;
+  bool _aiConsentAccepted = false;
   Map<String, dynamic>? _result;
   String? _error;
 
+  Future<void> _createVariant() async {
+    setState(() => _creatingVariant = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      final variant = await context
+          .read<CvProvider>()
+          .createVariant(widget.cvId, _controller.text.trim());
+      if (!mounted) return;
+      if (variant != null) {
+        navigator.pop();
+        messenger.showSnackBar(SnackBar(
+          content: Text('Variante "${variant.varianteLabel}" creee'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF10B981),
+        ));
+      } else {
+        setState(() => _creatingVariant = false);
+        messenger.showSnackBar(const SnackBar(
+          content: Text('Erreur lors de la creation de la variante'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _creatingVariant = false);
+      messenger.showSnackBar(SnackBar(
+        content: Text('Erreur: ${e.toString().replaceAll('Exception: ', '')}'),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   Future<void> _analyze() async {
     if (_controller.text.trim().length < 20) {
-      setState(() => _error = 'Collez le texte complet de l\'offre (min 20 caracteres)');
+      setState(() =>
+          _error = 'Collez le texte complet de l\'offre (min 20 caracteres)');
       return;
     }
-    setState(() { _loading = true; _error = null; _result = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+      _result = null;
+    });
     try {
-      final result = await ApiService().matchJob(widget.cvId, _controller.text.trim());
+      final result = await AiCvService().matchJob(
+        widget.cvId,
+        _controller.text.trim(),
+      );
       if (!mounted) return;
-      setState(() { _result = result; _loading = false; });
+      setState(() {
+        _result = result;
+        _loading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _error = ErrorHelper.friendlyMessage(context, e.toString());
         _loading = false;
       });
     }
@@ -50,32 +100,43 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.fromLTRB(
+          20, 12, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Container(width: 40, height: 4,
-              decoration: BoxDecoration(color: colorScheme.onSurface.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2)))),
+            Center(
+                child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                        color: colorScheme.onSurface.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
 
             // Header
             Row(children: [
-              Container(padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.work_outline_rounded, color: Color(0xFF2563EB), size: 20)),
+              Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.work_outline_rounded,
+                      color: Color(0xFF2563EB), size: 20)),
               const SizedBox(width: 10),
               Text('Adapter a une offre',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700)),
             ]),
             const SizedBox(height: 6),
-            Text('Collez le texte d\'une offre d\'emploi pour analyser la correspondance',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.55))),
+            Text(
+                'Collez le texte d\'une offre d\'emploi pour analyser la correspondance',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.55))),
             const SizedBox(height: 16),
 
             if (_result == null) ...[
@@ -85,24 +146,68 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 maxLines: 6,
                 decoration: InputDecoration(
                   hintText: 'Collez ici le texte de l\'offre d\'emploi...',
-                  hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.3)),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(
+                      color: colorScheme.onSurface.withValues(alpha: 0.3)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 12),
-              SizedBox(width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _loading ? null : _analyze,
-                  icon: _loading
-                    ? const SizedBox(width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.analytics_outlined),
-                  label: Text(_loading ? 'Analyse en cours...' : 'Analyser la correspondance'),
-                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2563EB)),
-                )),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.14)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _aiConsentAccepted,
+                      onChanged: (value) => setState(() {
+                        _aiConsentAccepted = value ?? false;
+                      }),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'J\'accepte que le CV et le texte de l\'offre soient envoyés au service IA pour calculer la correspondance.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.35,
+                          color: colorScheme.onSurface.withValues(alpha: 0.72),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed:
+                        _loading || !_aiConsentAccepted ? null : _analyze,
+                    icon: _loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.analytics_outlined),
+                    label: Text(_loading
+                        ? 'Analyse en cours...'
+                        : 'Analyser la correspondance'),
+                    style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB)),
+                  )),
               if (_error != null) ...[
                 const SizedBox(height: 8),
-                Text(_error!, style: TextStyle(color: colorScheme.error, fontSize: 12)),
+                Text(_error!,
+                    style: TextStyle(color: colorScheme.error, fontSize: 12)),
               ],
             ] else ...[
               // Score
@@ -136,25 +241,55 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               // Suggestions
               if (_result!['suggestions'] != null &&
                   (_result!['suggestions'] as List).isNotEmpty) ...[
-                Text('Suggestions', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13,
-                    color: colorScheme.onSurface)),
+                Text('Suggestions',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: colorScheme.onSurface)),
                 const SizedBox(height: 6),
-                ...List<String>.from(_result!['suggestions']).map((s) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('  →  ', style: TextStyle(color: Color(0xFF2563EB))),
-                    Expanded(child: Text(s, style: const TextStyle(fontSize: 12))),
-                  ]),
-                )),
+                ...List<String>.from(_result!['suggestions'])
+                    .map((s) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('  →  ',
+                                    style: TextStyle(color: Color(0xFF2563EB))),
+                                Expanded(
+                                    child: Text(s,
+                                        style: const TextStyle(fontSize: 12))),
+                              ]),
+                        )),
                 const SizedBox(height: 12),
               ],
 
+              // Bouton creer variante
+              SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _creatingVariant ? null : _createVariant,
+                    icon: _creatingVariant
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.auto_fix_high_rounded),
+                    label: Text(_creatingVariant
+                        ? 'Creation en cours...'
+                        : 'Creer une variante adaptee'),
+                    style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB)),
+                  )),
+              const SizedBox(height: 8),
+
               // Bouton re-analyser
-              SizedBox(width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => setState(() => _result = null),
-                  child: const Text('Analyser une autre offre'),
-                )),
+              SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => setState(() => _result = null),
+                    child: const Text('Analyser une autre offre'),
+                  )),
             ],
           ],
         ),
@@ -169,10 +304,16 @@ class _ScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = score >= 70 ? const Color(0xFF10B981)
-        : score >= 40 ? const Color(0xFFF59E0B)
-        : const Color(0xFFEF4444);
-    final label = score >= 70 ? 'Bon match' : score >= 40 ? 'Match moyen' : 'Faible match';
+    final color = score >= 70
+        ? const Color(0xFF10B981)
+        : score >= 40
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
+    final label = score >= 70
+        ? 'Bon match'
+        : score >= 40
+            ? 'Match moyen'
+            : 'Faible match';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -182,20 +323,34 @@ class _ScoreCard extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(children: [
-        SizedBox(width: 60, height: 60,
-          child: Stack(alignment: Alignment.center, children: [
-            CircularProgressIndicator(
-              value: score / 100, strokeWidth: 6,
-              backgroundColor: color.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation(color)),
-            Text('$score%', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: color)),
-          ])),
+        SizedBox(
+            width: 60,
+            height: 60,
+            child: Stack(alignment: Alignment.center, children: [
+              CircularProgressIndicator(
+                  value: score / 100,
+                  strokeWidth: 6,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation(color)),
+              Text('$score%',
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w800, color: color)),
+            ])),
         const SizedBox(width: 20),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: color)),
           const SizedBox(height: 2),
           Text('Score de correspondance avec l\'offre',
-            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55))),
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.55))),
         ])),
       ]),
     );
@@ -207,7 +362,11 @@ class _KeywordSection extends StatelessWidget {
   final IconData icon;
   final Color color;
   final List<String> keywords;
-  const _KeywordSection({required this.title, required this.icon, required this.color, required this.keywords});
+  const _KeywordSection(
+      {required this.title,
+      required this.icon,
+      required this.color,
+      required this.keywords});
 
   @override
   Widget build(BuildContext context) {
@@ -215,19 +374,30 @@ class _KeywordSection extends StatelessWidget {
       Row(children: [
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 6),
-        Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: color)),
+        Text(title,
+            style: TextStyle(
+                fontWeight: FontWeight.w700, fontSize: 13, color: color)),
       ]),
       const SizedBox(height: 6),
-      Wrap(spacing: 6, runSpacing: 6,
-        children: keywords.map((k) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
-          ),
-          child: Text(k, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
-        )).toList()),
+      Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: keywords
+              .map((k) => Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: color.withValues(alpha: 0.2)),
+                    ),
+                    child: Text(k,
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: color,
+                            fontWeight: FontWeight.w600)),
+                  ))
+              .toList()),
     ]);
   }
 }

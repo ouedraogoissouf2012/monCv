@@ -10,6 +10,7 @@ abstract class CvRepository {
   Future<Result<Cv>> updateCv(int id, Cv cv);
   Future<Result<void>> deleteCv(int id);
   Future<Result<Cv>> duplicateCv(int id);
+  Future<Result<Cv>> createVariant(int cvId, String jobDescription, {String? label});
 }
 
 class HttpCvRepository implements CvRepository {
@@ -34,4 +35,8 @@ class HttpCvRepository implements CvRepository {
 
   @override
   Future<Result<Cv>> duplicateCv(int id) => safeCall(() => _api.duplicateCv(id));
+
+  @override
+  Future<Result<Cv>> createVariant(int cvId, String jobDescription, {String? label}) =>
+      safeCall(() => _api.createVariant(cvId, jobDescription, label: label));
 }
