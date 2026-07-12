@@ -591,19 +591,19 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
           // ── À propos ───────────────────────────────────
           const SizedBox(height: 20),
-          Row(
-            children: [
-              const _GroupLabel('À PROPOS'),
-              const Spacer(),
-              _AiResumeButton(
-                onGenerated: (text) {
-                  setState(() => _resumeCtrl.text = text);
-                  _notify();
-                },
-                titrePoste: _titrePosteCtrl.text,
-              ),
-            ],
+          const _GroupLabel('À PROPOS'),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _AiResumeButton(
+              onGenerated: (text) {
+                setState(() => _resumeCtrl.text = text);
+                _notify();
+              },
+              titrePoste: _titrePosteCtrl.text,
+            ),
           ),
+          const SizedBox(height: 8),
           TextFormField(
             controller: _resumeCtrl,
             decoration: InputDecoration(
@@ -678,6 +678,7 @@ class _AiResumeButton extends StatefulWidget {
 
 class _AiResumeButtonState extends State<_AiResumeButton> {
   bool _loading = false;
+  bool _aiConsentAccepted = false;
 
   Future<void> _generate() async {
     setState(() => _loading = true);
@@ -705,20 +706,46 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: _loading ? null : _generate,
-      icon: _loading
-          ? const SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2))
-          : const Icon(Icons.auto_awesome_rounded, size: 16),
-      label: Text(_loading ? 'Generation...' : 'Generer avec l\'IA',
-          style: const TextStyle(fontSize: 11)),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        foregroundColor: const Color(0xFF8B5CF6),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: _aiConsentAccepted,
+              onChanged: (value) =>
+                  setState(() => _aiConsentAccepted = value ?? false),
+              visualDensity: VisualDensity.compact,
+            ),
+            const Flexible(
+              child: Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: Text(
+                  'J\'accepte d\'envoyer ces informations au service IA.',
+                  style: TextStyle(fontSize: 11),
+                ),
+              ),
+            ),
+          ],
+        ),
+        TextButton.icon(
+          onPressed: _loading || !_aiConsentAccepted ? null : _generate,
+          icon: _loading
+              ? const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.auto_awesome_rounded, size: 16),
+          label: Text(_loading ? 'Generation...' : 'Generer avec l\'IA',
+              style: const TextStyle(fontSize: 11)),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            foregroundColor: const Color(0xFF8B5CF6),
+          ),
+        ),
+      ],
     );
   }
 }

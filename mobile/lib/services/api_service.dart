@@ -135,6 +135,33 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> exportUserData() async {
+    final response = await http.get(
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me/export'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Erreur lors de l\'export des donnees');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 204) {
+      await clearTokens();
+      return;
+    }
+    throw Exception('Erreur lors de la suppression du compte');
+  }
+
   // CV endpoints
   Future<List<Cv>> getAllCvs() async {
     final response = await http.get(
@@ -329,7 +356,11 @@ class ApiService {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/enhance-cv'),
       headers: await _getHeaders(),
-      body: jsonEncode({'cvId': cvId, 'level': level}),
+      body: jsonEncode({
+        'cvId': cvId,
+        'level': level,
+        'aiConsentAccepted': true,
+      }),
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -359,6 +390,7 @@ class ApiService {
         'titrePoste': titrePoste ?? '',
         'competences': competences ?? '',
         'experience': experience ?? '',
+        'aiConsentAccepted': true,
       }),
     );
     if (response.statusCode == 200) {
@@ -373,7 +405,11 @@ class ApiService {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
       headers: await _getHeaders(),
-      body: jsonEncode({'cvId': cvId, 'jobDescription': jobDescription}),
+      body: jsonEncode({
+        'cvId': cvId,
+        'jobDescription': jobDescription,
+        'aiConsentAccepted': true,
+      }),
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
