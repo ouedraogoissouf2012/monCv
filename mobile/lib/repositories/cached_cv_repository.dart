@@ -48,7 +48,17 @@ class CachedCvRepository implements CvRepository {
   }
 
   @override
-  Future<Result<Cv>> getCvById(int id) => _remote.getCvById(id);
+  Future<Result<Cv>> getCvById(int id) async {
+    final result = await _remote.getCvById(id);
+    if (result.isSuccess) return result;
+    // Fallback sur le cache si le reseau echoue
+    final cached = _readCache();
+    if (cached != null) {
+      final cv = cached.where((c) => c.id == id).firstOrNull;
+      if (cv != null) return Result.success(cv);
+    }
+    return result;
+  }
 
   @override
   Future<Result<Cv>> createCv(Cv cv) async {
@@ -87,6 +97,16 @@ class CachedCvRepository implements CvRepository {
   @override
   Future<Result<Cv>> duplicateCv(int id) async {
     final result = await _remote.duplicateCv(id);
+    if (result case Success(:final data)) {
+      final cached = _readCache();
+      if (cached != null) await _writeCache([...cached, data]);
+    }
+    return result;
+  }
+
+  @override
+  Future<Result<Cv>> createVariant(int cvId, String jobDescription, {String? label}) async {
+    final result = await _remote.createVariant(cvId, jobDescription, label: label);
     if (result case Success(:final data)) {
       final cached = _readCache();
       if (cached != null) await _writeCache([...cached, data]);
