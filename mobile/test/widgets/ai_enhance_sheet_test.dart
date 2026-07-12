@@ -2,6 +2,7 @@ import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/widgets/ai_enhance_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 void main() {
   final cv = Cv(id: 42, titre: 'Community manager');
@@ -9,6 +10,9 @@ void main() {
   testWidgets('le mode relecture affiche une action orthographique dédiée',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       home: Scaffold(
         body: AiEnhanceSheet(cv: cv, proofreadOnly: true),
       ),
@@ -26,6 +30,9 @@ void main() {
   testWidgets('le mode amélioration conserve les trois niveaux',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       home: Scaffold(body: AiEnhanceSheet(cv: cv)),
     ));
 

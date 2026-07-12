@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import 'form_sheet.dart';
 
@@ -33,6 +34,7 @@ class EducationSection extends StatelessWidget {
     Education? edu,
     Function(Education) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     final etablissementCtrl = TextEditingController(text: edu?.etablissement);
     final diplomeCtrl = TextEditingController(text: edu?.diplome);
     final domaineCtrl = TextEditingController(text: edu?.domaine);
@@ -43,7 +45,7 @@ class EducationSection extends StatelessWidget {
 
     showFormSheet(
       context: context,
-      title: edu == null ? 'Ajouter une formation' : 'Modifier la formation',
+      title: edu == null ? l.addEducation : l.editEducation,
       icon: Icons.school_outlined,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -51,25 +53,25 @@ class EducationSection extends StatelessWidget {
         children: [
           TextFormField(
             controller: etablissementCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Établissement *',
-              prefixIcon: Icon(Icons.account_balance_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: '${l.establishment} *',
+              prefixIcon: const Icon(Icons.account_balance_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: diplomeCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Diplôme / Titre *',
-              prefixIcon: Icon(Icons.workspace_premium_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: '${l.degree} *',
+              prefixIcon: const Icon(Icons.workspace_premium_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: domaineCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Domaine d\'études',
-              prefixIcon: Icon(Icons.menu_book_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: l.fieldOfStudy,
+              prefixIcon: const Icon(Icons.menu_book_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 16),
@@ -77,7 +79,7 @@ class EducationSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Début *',
+                  label: l.startRequired,
                   date: debut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -104,7 +106,7 @@ class EducationSection extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            'En cours',
+                            l.inProgress,
                             style: TextStyle(
                               color: Theme.of(ctx).colorScheme.primary,
                               fontWeight: FontWeight.w600,
@@ -114,7 +116,7 @@ class EducationSection extends StatelessWidget {
                         ),
                       )
                     : SectionDateButton(
-                        label: 'Fin',
+                        label: l.end,
                         date: fin,
                         onTap: () async {
                           final d = await showDatePicker(
@@ -137,8 +139,8 @@ class EducationSection extends StatelessWidget {
               enCours = v ?? false;
               if (enCours) fin = null;
             }),
-            title: const Text('Formation en cours',
-                style: TextStyle(fontSize: 13)),
+            title: Text(l.educationInProgress,
+                style: const TextStyle(fontSize: 13)),
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -146,8 +148,8 @@ class EducationSection extends StatelessWidget {
           const SizedBox(height: 4),
           TextFormField(
             controller: descCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Description (optionnel)',
+            decoration: InputDecoration(
+              labelText: l.optionalDescription,
               alignLabelWithHint: true,
             ),
             maxLines: 3,
@@ -168,14 +170,15 @@ class EducationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (educations.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.school_outlined,
-            label: 'Aucune formation ajoutée',
+            label: l.noneEducation,
           )
         else
           ListView.builder(
@@ -187,7 +190,7 @@ class EducationSection extends StatelessWidget {
               return SectionItemTile(
                 title: edu.diplome?.isNotEmpty == true
                     ? edu.diplome!
-                    : edu.etablissement ?? 'Sans titre',
+                    : edu.etablissement ?? l.untitled,
                 subtitle: edu.etablissement ?? '',
                 onEdit: () => _edit(ctx, i),
                 onDelete: () => _delete(i),
@@ -196,7 +199,7 @@ class EducationSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter une formation',
+          label: l.addEducation,
           onTap: () => _add(context),
         ),
       ],

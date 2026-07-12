@@ -301,7 +301,7 @@ class CvCard extends StatelessWidget {
                   if (cv.shareToken != null)
                     StatsBadge(
                       count: cv.viewCount,
-                      label: 'Vues',
+                      label: l.views,
                       color: const Color(0xFF6366F1),
                     ),
                 ],

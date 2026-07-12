@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 class MockCvProvider extends Mock implements CvProvider {}
 
@@ -44,6 +45,9 @@ Widget _buildSubject(
     value: cvProvider,
     child: MaterialApp.router(
       theme: ThemeData(useMaterial3: true),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       routerConfig: router,
     ),
   );

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
+import '../../providers/locale_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
@@ -131,29 +132,45 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             const ThemeSelector(),
 
+            const SizedBox(height: 20),
+            _SectionTitle(l.language),
+            const SizedBox(height: 12),
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'fr', label: Text(l.french)),
+                ButtonSegment(value: 'en', label: Text(l.english)),
+              ],
+              selected: {context.watch<LocaleProvider>().locale.languageCode},
+              onSelectionChanged: (selection) {
+                context
+                    .read<LocaleProvider>()
+                    .setLocale(Locale(selection.first));
+              },
+            ),
+
             const SizedBox(height: 32),
 
-            const _SectionTitle('Confidentialité'),
+            _SectionTitle(l.privacy),
             const SizedBox(height: 12),
             _InfoCard(children: [
               _ActionRow(
                 icon: Icons.privacy_tip_outlined,
-                label: 'Politique de confidentialité',
-                value: 'Données, IA, export et suppression',
+                label: l.privacyPolicy,
+                value: l.privacyPolicySubtitle,
                 onTap: () => context.push('/privacy'),
               ),
               const Divider(height: 1),
               _ActionRow(
                 icon: Icons.file_download_outlined,
-                label: 'Exporter mes données',
-                value: 'Copie JSON de votre compte et de vos CV',
+                label: l.exportMyData,
+                value: l.exportMyDataSubtitle,
                 onTap: () => _exportUserData(context),
               ),
               const Divider(height: 1),
               _ActionRow(
                 icon: Icons.delete_forever_outlined,
-                label: 'Supprimer mon compte',
-                value: 'Suppression du compte et des CV associés',
+                label: l.deleteMyAccount,
+                value: l.deleteMyAccountSubtitle,
                 danger: true,
                 onTap: () => _showDeleteAccountDialog(context),
               ),
@@ -219,38 +236,38 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _exportUserData(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     try {
       final data = await ApiService().exportUserData();
       const encoder = JsonEncoder.withIndent('  ');
       await Clipboard.setData(ClipboardData(text: encoder.convert(data)));
       if (!context.mounted) return;
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Export copié dans le presse-papier'),
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.exportCopied),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Color(0xFF10B981),
       ));
     } catch (e) {
       if (!context.mounted) return;
       messenger.showSnackBar(SnackBar(
-        content: Text('Export impossible : $e'),
+        content: Text(l.exportFailed(e.toString())),
         behavior: SnackBarBehavior.floating,
       ));
     }
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer le compte'),
-        content: const Text(
-          'Cette action supprime votre compte et les CV associés côté serveur. Elle est irréversible.',
-        ),
+        title: Text(l.deleteAccountTitle),
+        content: Text(l.deleteAccountConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(l.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -264,13 +281,13 @@ class ProfileScreen extends StatelessWidget {
               } catch (e) {
                 if (!rootContext.mounted) return;
                 ScaffoldMessenger.of(rootContext).showSnackBar(SnackBar(
-                  content: Text('Suppression impossible : $e'),
+                  content: Text(l.deleteAccountFailed(e.toString())),
                   behavior: SnackBarBehavior.floating,
                 ));
               }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            child: Text(l.delete),
           ),
         ],
       ),

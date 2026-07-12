@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/widgets/cv_preview.dart';
+import 'package:cv_mobile/l10n/app_localizations.dart';
 
 Cv _fullCv() => Cv(
       id: 1,
@@ -43,6 +44,9 @@ Cv _fullCv() => Cv(
 
 Widget _buildPreview(Cv cv) => MaterialApp(
       theme: ThemeData(useMaterial3: true),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('fr'),
       home: Scaffold(body: CvPreviewWidget(cv: cv)),
     );
 
@@ -77,7 +81,7 @@ void main() {
       await tester.pumpWidget(_buildPreview(_fullCv()));
       await tester.pump();
 
-      expect(find.text('EXPERIENCES PROFESSIONNELLES'), findsOneWidget);
+      expect(find.text('EXPERIENCES'), findsOneWidget);
       expect(find.text('Développeur Mobile'), findsOneWidget);
     });
 
@@ -135,7 +139,7 @@ void main() {
       await tester.pumpWidget(_buildPreview(cv));
       await tester.pump();
 
-      expect(find.text('EXPERIENCES PROFESSIONNELLES'), findsNothing);
+      expect(find.text('EXPERIENCES'), findsNothing);
       expect(find.text('FORMATIONS'), findsNothing);
       expect(find.text('COMPETENCES'), findsNothing);
       expect(find.text('LANGUES'), findsNothing);

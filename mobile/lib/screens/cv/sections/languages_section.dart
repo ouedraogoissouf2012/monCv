@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../utils/cv_levels.dart';
 import 'form_sheet.dart';
@@ -111,12 +112,13 @@ class LanguagesSection extends StatelessWidget {
     Language? lang,
     Function(Language) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     String langueText = lang?.langue ?? '';
     String? selectedNiveau = lang?.niveau;
 
     showFormSheet(
       context: context,
-      title: lang == null ? 'Ajouter une langue' : 'Modifier la langue',
+      title: lang == null ? l.addLanguage : l.editLanguage,
       icon: Icons.translate_rounded,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -137,9 +139,9 @@ class LanguagesSection extends StatelessWidget {
               return TextFormField(
                 controller: ctrl,
                 focusNode: focusNode,
-                decoration: const InputDecoration(
-                  labelText: 'Langue *',
-                  hintText: 'Tapez pour chercher (ex : fr → Français)',
+                decoration: InputDecoration(
+                  labelText: l.languageRequired,
+                  hintText: l.languageSearchHint,
                   prefixIcon: Icon(Icons.language_rounded, size: 20),
                 ),
                 onChanged: (v) => langueText = v,
@@ -175,7 +177,7 @@ class LanguagesSection extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'NIVEAU *',
+            l.levelRequired,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -220,7 +222,7 @@ class LanguagesSection extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        languageLevelLabel(n),
+                        localizedLanguageLevelLabel(l, n),
                         style: TextStyle(
                           fontSize: 9,
                           color: selected
@@ -250,14 +252,15 @@ class LanguagesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (languages.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.translate_rounded,
-            label: 'Aucune langue ajoutée',
+            label: l.noneLanguage,
           )
         else
           ListView.builder(
@@ -270,9 +273,9 @@ class LanguagesSection extends StatelessWidget {
               return SectionItemTile(
                 title: lang.langue ?? '',
                 subtitle: lang.niveau != null
-                    ? '${lang.niveau} — ${languageLevelLabel(lang.niveau)}'
+                    ? '${lang.niveau} — ${localizedLanguageLevelLabel(l, lang.niveau)}'
                     : '',
-                badge: lang.niveau == 'NATIF' ? 'Natif' : null,
+                badge: lang.niveau == 'NATIF' ? l.native : null,
                 badgeColor: colorScheme.primary,
                 onEdit: () => _edit(ctx, i),
                 onDelete: () => _delete(i),
@@ -281,7 +284,7 @@ class LanguagesSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter une langue',
+          label: l.addLanguage,
           onTap: () => _add(context),
         ),
       ],

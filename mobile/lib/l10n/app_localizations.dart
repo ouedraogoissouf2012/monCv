@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Adresse email'**
   String get email;
 
+  /// No description provided for @emailShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email'**
+  String get emailShort;
+
   /// No description provided for @password.
   ///
   /// In fr, this message translates to:
@@ -182,6 +188,48 @@ abstract class AppLocalizations {
   /// **'Champ requis'**
   String get fieldRequired;
 
+  /// No description provided for @requiredFieldMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'{section} : {field} obligatoire.'**
+  String requiredFieldMessage(String section, String field);
+
+  /// No description provided for @completePersonalInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identite : completez vos informations personnelles.'**
+  String get completePersonalInfo;
+
+  /// No description provided for @invalidEmailMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identite : format email invalide.'**
+  String get invalidEmailMessage;
+
+  /// No description provided for @numberedItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'{section} {index}'**
+  String numberedItem(String section, int index);
+
+  /// No description provided for @endDateBeforeStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : la date de fin doit etre apres la date de debut.'**
+  String endDateBeforeStart(String item);
+
+  /// No description provided for @skillLevelRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : le niveau doit etre entre 1 et 5.'**
+  String skillLevelRange(String item);
+
+  /// No description provided for @certificationExpirationBeforeIssue.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : expiration avant obtention.'**
+  String certificationExpirationBeforeIssue(String item);
+
   /// No description provided for @confirmPassword.
   ///
   /// In fr, this message translates to:
@@ -239,8 +287,290 @@ abstract class AppLocalizations {
   /// No description provided for @createMyAccount.
   ///
   /// In fr, this message translates to:
-  /// **'Creer mon compte'**
+  /// **'Créer mon compte'**
   String get createMyAccount;
+
+  /// No description provided for @landingHeroTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creez un CV\nqui parle aux recruteurs'**
+  String get landingHeroTitle;
+
+  /// No description provided for @landingHeroTitleMobile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creez un CV\nqui parle aux\nrecruteurs'**
+  String get landingHeroTitleMobile;
+
+  /// No description provided for @landingHeroSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Francais professionnel, formats ATS, partage WhatsApp et export PDF/DOCX pour candidatures locales ou internationales.'**
+  String get landingHeroSubtitle;
+
+  /// No description provided for @createCvFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon CV gratuitement'**
+  String get createCvFree;
+
+  /// No description provided for @bilingual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bilingue'**
+  String get bilingual;
+
+  /// No description provided for @templates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Templates'**
+  String get templates;
+
+  /// No description provided for @compatible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compatible'**
+  String get compatible;
+
+  /// No description provided for @aiFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intelligence Artificielle'**
+  String get aiFeatureTitle;
+
+  /// No description provided for @aiFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un francais naturel, precis et sans phrases artificielles.'**
+  String get aiFeatureDescription;
+
+  /// No description provided for @templatesFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Templates cibles'**
+  String get templatesFeatureTitle;
+
+  /// No description provided for @templatesFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corporate, junior, senior, tech et ATS international.'**
+  String get templatesFeatureDescription;
+
+  /// No description provided for @atsFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Score ATS'**
+  String get atsFeatureTitle;
+
+  /// No description provided for @atsFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collez une offre et obtenez un score de correspondance.'**
+  String get atsFeatureDescription;
+
+  /// No description provided for @docxFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export DOCX'**
+  String get docxFeatureTitle;
+
+  /// No description provided for @docxFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Telechargez en Word pour une compatibilite ATS maximale.'**
+  String get docxFeatureDescription;
+
+  /// No description provided for @mobileFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mobile-first Afrique'**
+  String get mobileFeatureTitle;
+
+  /// No description provided for @mobileFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pense pour creer, corriger, exporter et partager depuis un telephone.'**
+  String get mobileFeatureDescription;
+
+  /// No description provided for @whatsAppFeatureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage WhatsApp'**
+  String get whatsAppFeatureTitle;
+
+  /// No description provided for @whatsAppFeatureDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyez un lien propre a un recruteur ou a un contact RH.'**
+  String get whatsAppFeatureDescription;
+
+  /// No description provided for @allYouNeed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout ce dont vous avez besoin'**
+  String get allYouNeed;
+
+  /// No description provided for @allYouNeedSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un outil complet pour creer des CV qui font la difference.'**
+  String get allYouNeedSubtitle;
+
+  /// No description provided for @clearCvTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un CV clair pour candidater partout'**
+  String get clearCvTitle;
+
+  /// No description provided for @clearCvSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un rendu lisible pour recruteurs, PME, cabinets et ATS'**
+  String get clearCvSubtitle;
+
+  /// No description provided for @sampleProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'PROFIL'**
+  String get sampleProfile;
+
+  /// No description provided for @sampleProfileText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ingenieur Full Stack avec 3 ans d\'experience. Expert Java/Spring Boot et Flutter.'**
+  String get sampleProfileText;
+
+  /// No description provided for @sampleSkills.
+  ///
+  /// In fr, this message translates to:
+  /// **'COMPETENCES'**
+  String get sampleSkills;
+
+  /// No description provided for @sampleExperiences.
+  ///
+  /// In fr, this message translates to:
+  /// **'EXPERIENCES'**
+  String get sampleExperiences;
+
+  /// No description provided for @howItWorks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment ca marche'**
+  String get howItWorks;
+
+  /// No description provided for @fillIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplissez'**
+  String get fillIn;
+
+  /// No description provided for @fillInDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des aides courtes guident titre, resume et experiences.'**
+  String get fillInDescription;
+
+  /// No description provided for @adapt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adaptez'**
+  String get adapt;
+
+  /// No description provided for @adaptDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrigez le francais et choisissez un template selon le poste.'**
+  String get adaptDescription;
+
+  /// No description provided for @send.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez'**
+  String get send;
+
+  /// No description provided for @sendDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exportez en PDF/DOCX ou envoyez le lien par WhatsApp.'**
+  String get sendDescription;
+
+  /// No description provided for @readyToApply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pret a candidater avec un CV propre ?'**
+  String get readyToApply;
+
+  /// No description provided for @readyToApplySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mobile, rapide, lisible et pense pour le marche francophone.'**
+  String get readyToApplySubtitle;
+
+  /// No description provided for @startNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer maintenant'**
+  String get startNow;
+
+  /// No description provided for @landingFooter.
+  ///
+  /// In fr, this message translates to:
+  /// **'© 2026 MonCV. CV francophone, mobile-first et compatible ATS.'**
+  String get landingFooter;
+
+  /// No description provided for @sampleCandidateName.
+  ///
+  /// In fr, this message translates to:
+  /// **'ISSOUF OUEDRAOGO'**
+  String get sampleCandidateName;
+
+  /// No description provided for @sampleCandidateRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ingenieur Logiciel Full Stack'**
+  String get sampleCandidateRole;
+
+  /// No description provided for @sampleCandidateContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'issouf@gmail.com | +225 07 44 21 01 12 | Abidjan'**
+  String get sampleCandidateContact;
+
+  /// No description provided for @sampleCandidatePosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lead Developer'**
+  String get sampleCandidatePosition;
+
+  /// No description provided for @sampleCandidateCompany.
+  ///
+  /// In fr, this message translates to:
+  /// **'DIGIT AFRICAN - Abidjan'**
+  String get sampleCandidateCompany;
+
+  /// No description provided for @lite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lite'**
+  String get lite;
+
+  /// No description provided for @medium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Medium'**
+  String get medium;
+
+  /// No description provided for @maximum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Max'**
+  String get maximum;
+
+  /// No description provided for @whatsApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsApp;
 
   /// No description provided for @myCvs.
   ///
@@ -530,11 +860,257 @@ abstract class AppLocalizations {
   /// **'Adapter a une offre'**
   String get adaptToJob;
 
+  /// No description provided for @adaptToJobDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collez le texte d\'une offre d\'emploi pour analyser la correspondance'**
+  String get adaptToJobDescription;
+
+  /// No description provided for @jobOfferHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collez ici le texte de l\'offre d\'emploi...'**
+  String get jobOfferHint;
+
+  /// No description provided for @jobOfferTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Collez le texte complet de l\'offre (min 20 caracteres)'**
+  String get jobOfferTooShort;
+
+  /// No description provided for @jobMatchConsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'accepte que le CV et le texte de l\'offre soient envoyes au service IA pour calculer la correspondance.'**
+  String get jobMatchConsent;
+
+  /// No description provided for @analyzing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyse en cours...'**
+  String get analyzing;
+
+  /// No description provided for @analyzeMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyser la correspondance'**
+  String get analyzeMatch;
+
+  /// No description provided for @analyzeAnotherOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyser une autre offre'**
+  String get analyzeAnotherOffer;
+
+  /// No description provided for @matchedKeywords.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mots-cles presents'**
+  String get matchedKeywords;
+
+  /// No description provided for @missingKeywords.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mots-cles manquants'**
+  String get missingKeywords;
+
+  /// No description provided for @suggestions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions'**
+  String get suggestions;
+
+  /// No description provided for @creatingVariant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creation en cours...'**
+  String get creatingVariant;
+
+  /// No description provided for @createAdaptedVariant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creer une variante adaptee'**
+  String get createAdaptedVariant;
+
+  /// No description provided for @variantCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variante \"{label}\" creee'**
+  String variantCreated(String label);
+
+  /// No description provided for @variantCreationError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de la creation de la variante'**
+  String get variantCreationError;
+
+  /// No description provided for @errorWithDetails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur : {error}'**
+  String errorWithDetails(String error);
+
+  /// No description provided for @goodMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon match'**
+  String get goodMatch;
+
+  /// No description provided for @averageMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Match moyen'**
+  String get averageMatch;
+
+  /// No description provided for @lowMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faible match'**
+  String get lowMatch;
+
+  /// No description provided for @jobMatchScore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Score de correspondance avec l\'offre'**
+  String get jobMatchScore;
+
   /// No description provided for @generateWithAi.
   ///
   /// In fr, this message translates to:
   /// **'Generer avec l\'IA'**
   String get generateWithAi;
+
+  /// No description provided for @proofreadingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correction orthographique'**
+  String get proofreadingTitle;
+
+  /// No description provided for @proofreadingSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relisez tout le CV sans modifier le sens ni inventer de contenu.'**
+  String get proofreadingSubtitle;
+
+  /// No description provided for @enhancementSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez le niveau d\'amelioration souhaite'**
+  String get enhancementSubtitle;
+
+  /// No description provided for @liteLevelDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correction orthographe & grammaire uniquement'**
+  String get liteLevelDescription;
+
+  /// No description provided for @mediumLevelDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correction et reformulation pour plus d\'impact'**
+  String get mediumLevelDescription;
+
+  /// No description provided for @maxLevelDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restructuration complete, mots-cles ATS et verbes d\'action'**
+  String get maxLevelDescription;
+
+  /// No description provided for @proofreadingGuarantee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Orthographe, grammaire, accents et termes professionnels. Les niveaux et les faits restent inchanges.'**
+  String get proofreadingGuarantee;
+
+  /// No description provided for @proofreadingInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relecture en cours...'**
+  String get proofreadingInProgress;
+
+  /// No description provided for @proofreadCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relire le CV'**
+  String get proofreadCv;
+
+  /// No description provided for @improve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ameliorer'**
+  String get improve;
+
+  /// No description provided for @apply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appliquer'**
+  String get apply;
+
+  /// No description provided for @aiConsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'accepte que le contenu de ce CV soit envoye au service IA pour generer des corrections ou suggestions. Les changements restent a valider avant application.'**
+  String get aiConsent;
+
+  /// No description provided for @enhancementGenerated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amelioration generee'**
+  String get enhancementGenerated;
+
+  /// No description provided for @fallbackResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resultat degrade (fournisseur de secours utilise)'**
+  String get fallbackResult;
+
+  /// No description provided for @aiProofreadingComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relecture IA terminee'**
+  String get aiProofreadingComplete;
+
+  /// No description provided for @localProofreadingComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relecture locale terminee'**
+  String get localProofreadingComplete;
+
+  /// No description provided for @noCertainCorrection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune correction certaine detectee.'**
+  String get noCertainCorrection;
+
+  /// No description provided for @correctedFields.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} champ(s) corrige(s).'**
+  String correctedFields(int count);
+
+  /// No description provided for @textCanBeApplied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le texte peut etre applique sans changement.'**
+  String get textCanBeApplied;
+
+  /// No description provided for @pointsToClarify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Points a preciser'**
+  String get pointsToClarify;
+
+  /// No description provided for @before.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant'**
+  String get before;
+
+  /// No description provided for @after.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apres'**
+  String get after;
 
   /// No description provided for @generating.
   ///
@@ -547,6 +1123,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Suggestions IA appliquees'**
   String get aiSuggestionsApplied;
+
+  /// No description provided for @spellingCorrectionsApplied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrections appliquees'**
+  String get spellingCorrectionsApplied;
+
+  /// No description provided for @applicationError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'application'**
+  String get applicationError;
+
+  /// No description provided for @proofreadSpelling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corriger l\'orthographe'**
+  String get proofreadSpelling;
+
+  /// No description provided for @adaptedVariantCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variante adaptee creee'**
+  String get adaptedVariantCreated;
+
+  /// No description provided for @styleNotSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Style non sauvegarde'**
+  String get styleNotSaved;
+
+  /// No description provided for @customizeCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnaliser le CV'**
+  String get customizeCv;
+
+  /// No description provided for @livePreview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apercu en direct'**
+  String get livePreview;
+
+  /// No description provided for @savingShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarde...'**
+  String get savingShort;
 
   /// No description provided for @template.
   ///
@@ -593,7 +1217,7 @@ abstract class AppLocalizations {
   /// No description provided for @phone.
   ///
   /// In fr, this message translates to:
-  /// **'Telephone'**
+  /// **'Téléphone'**
   String get phone;
 
   /// No description provided for @address.
@@ -638,6 +1262,48 @@ abstract class AppLocalizations {
   /// **'Resume professionnel'**
   String get professionalSummary;
 
+  /// No description provided for @description.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @establishment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Etablissement'**
+  String get establishment;
+
+  /// No description provided for @degree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diplome'**
+  String get degree;
+
+  /// No description provided for @fieldOfStudy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Domaine'**
+  String get fieldOfStudy;
+
+  /// No description provided for @organization.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organisme'**
+  String get organization;
+
+  /// No description provided for @technologies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Technologies'**
+  String get technologies;
+
+  /// No description provided for @name.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get name;
+
   /// No description provided for @experiences.
   ///
   /// In fr, this message translates to:
@@ -674,10 +1340,130 @@ abstract class AppLocalizations {
   /// **'Projets'**
   String get projects;
 
+  /// No description provided for @contactAndProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coordonnees & profil'**
+  String get contactAndProfile;
+
+  /// No description provided for @careerPath.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parcours professionnel'**
+  String get careerPath;
+
+  /// No description provided for @degreesAndStudies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diplomes & etudes'**
+  String get degreesAndStudies;
+
+  /// No description provided for @skillsAndLanguages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Competences & langues'**
+  String get skillsAndLanguages;
+
+  /// No description provided for @extras.
+  ///
+  /// In fr, this message translates to:
+  /// **'Extras'**
+  String get extras;
+
+  /// No description provided for @certificationsAndProjects.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certifications & projets'**
+  String get certificationsAndProjects;
+
+  /// No description provided for @myCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon CV'**
+  String get myCv;
+
+  /// No description provided for @cvDefaultTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV {firstName} {lastName}'**
+  String cvDefaultTitle(String firstName, String lastName);
+
+  /// No description provided for @cvCreatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV cree avec succes'**
+  String get cvCreatedSuccess;
+
+  /// No description provided for @cvUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV mis a jour'**
+  String get cvUpdatedSuccess;
+
+  /// No description provided for @editCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le CV'**
+  String get editCv;
+
+  /// No description provided for @previous.
+  ///
+  /// In fr, this message translates to:
+  /// **'Precedent'**
+  String get previous;
+
+  /// No description provided for @next.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivant'**
+  String get next;
+
+  /// No description provided for @saving.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrement...'**
+  String get saving;
+
+  /// No description provided for @saveCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le CV'**
+  String get saveCv;
+
+  /// No description provided for @completion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétion : {percent}%'**
+  String completion(int percent);
+
+  /// No description provided for @cvCompletion.
+  ///
+  /// In fr, this message translates to:
+  /// **'COMPLETION DU CV'**
+  String get cvCompletion;
+
+  /// No description provided for @toComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'A completer'**
+  String get toComplete;
+
+  /// No description provided for @goodStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon debut !'**
+  String get goodStart;
+
+  /// No description provided for @excellent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Excellent !'**
+  String get excellent;
+
   /// No description provided for @addExperience.
   ///
   /// In fr, this message translates to:
-  /// **'Ajouter une experience'**
+  /// **'Ajouter une expérience'**
   String get addExperience;
 
   /// No description provided for @addEducation.
@@ -709,6 +1495,528 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un projet'**
   String get addProject;
+
+  /// No description provided for @editExperience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'expérience'**
+  String get editExperience;
+
+  /// No description provided for @editEducation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la formation'**
+  String get editEducation;
+
+  /// No description provided for @editSkill.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la competence'**
+  String get editSkill;
+
+  /// No description provided for @editLanguage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la langue'**
+  String get editLanguage;
+
+  /// No description provided for @editCertification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la certification'**
+  String get editCertification;
+
+  /// No description provided for @editProject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le projet'**
+  String get editProject;
+
+  /// No description provided for @aiSuggestions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA'**
+  String get aiSuggestions;
+
+  /// No description provided for @tapSuggestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuyez sur une suggestion pour l\'ajouter a la description.'**
+  String get tapSuggestion;
+
+  /// No description provided for @jobTitleRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intitulé du poste *'**
+  String get jobTitleRequired;
+
+  /// No description provided for @companyRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprise *'**
+  String get companyRequired;
+
+  /// No description provided for @location.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu'**
+  String get location;
+
+  /// No description provided for @startRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Debut *'**
+  String get startRequired;
+
+  /// No description provided for @start.
+  ///
+  /// In fr, this message translates to:
+  /// **'Debut'**
+  String get start;
+
+  /// No description provided for @end.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin'**
+  String get end;
+
+  /// No description provided for @responsibilitiesDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description des responsabilites'**
+  String get responsibilitiesDescription;
+
+  /// No description provided for @responsibilitiesHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decrivez vos missions principales...'**
+  String get responsibilitiesHint;
+
+  /// No description provided for @aiSuggestionsUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suggestions IA indisponibles'**
+  String get aiSuggestionsUnavailable;
+
+  /// No description provided for @noneExperience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune expérience ajoutée'**
+  String get noneExperience;
+
+  /// No description provided for @noneEducation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune formation ajoutee'**
+  String get noneEducation;
+
+  /// No description provided for @noneSkill.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune competence ajoutee'**
+  String get noneSkill;
+
+  /// No description provided for @noneLanguage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune langue ajoutee'**
+  String get noneLanguage;
+
+  /// No description provided for @noneCertification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune certification ajoutee'**
+  String get noneCertification;
+
+  /// No description provided for @noneProject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun projet ajoute'**
+  String get noneProject;
+
+  /// No description provided for @untitled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans titre'**
+  String get untitled;
+
+  /// No description provided for @currentPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'En poste'**
+  String get currentPosition;
+
+  /// No description provided for @choose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir'**
+  String get choose;
+
+  /// No description provided for @currentRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poste actuel'**
+  String get currentRole;
+
+  /// No description provided for @firstNameExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Issouf'**
+  String get firstNameExample;
+
+  /// No description provided for @lastNameExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Ouedraogo'**
+  String get lastNameExample;
+
+  /// No description provided for @jobTitleExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Developpeur Full Stack'**
+  String get jobTitleExample;
+
+  /// No description provided for @emailExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : nom@domaine.com'**
+  String get emailExample;
+
+  /// No description provided for @phoneExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : +225 0544210112'**
+  String get phoneExample;
+
+  /// No description provided for @addressExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Cocody, Riviera 3'**
+  String get addressExample;
+
+  /// No description provided for @postalCodeExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : 01 BP 1234'**
+  String get postalCodeExample;
+
+  /// No description provided for @cityExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Abidjan'**
+  String get cityExample;
+
+  /// No description provided for @countryExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Cote d\'Ivoire'**
+  String get countryExample;
+
+  /// No description provided for @technologiesExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Flutter, Dart, Firebase'**
+  String get technologiesExample;
+
+  /// No description provided for @educationInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Formation en cours'**
+  String get educationInProgress;
+
+  /// No description provided for @optionalDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description (optionnel)'**
+  String get optionalDescription;
+
+  /// No description provided for @skillRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Competence *'**
+  String get skillRequired;
+
+  /// No description provided for @skillHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : JavaScript, Python, Photoshop...'**
+  String get skillHint;
+
+  /// No description provided for @optionalCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Categorie (optionnel)'**
+  String get optionalCategory;
+
+  /// No description provided for @categoryHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Developpement, Design, Gestion...'**
+  String get categoryHint;
+
+  /// No description provided for @level.
+  ///
+  /// In fr, this message translates to:
+  /// **'Niveau'**
+  String get level;
+
+  /// No description provided for @languageRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue *'**
+  String get languageRequired;
+
+  /// No description provided for @languageSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez pour chercher une langue'**
+  String get languageSearchHint;
+
+  /// No description provided for @levelRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'NIVEAU *'**
+  String get levelRequired;
+
+  /// No description provided for @native.
+  ///
+  /// In fr, this message translates to:
+  /// **'Natif'**
+  String get native;
+
+  /// No description provided for @certificationNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de la certification *'**
+  String get certificationNameRequired;
+
+  /// No description provided for @issuingOrganization.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organisme emetteur'**
+  String get issuingOrganization;
+
+  /// No description provided for @issueDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'obtention'**
+  String get issueDate;
+
+  /// No description provided for @expiration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expiration'**
+  String get expiration;
+
+  /// No description provided for @verificationLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien de verification'**
+  String get verificationLink;
+
+  /// No description provided for @expired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expire'**
+  String get expired;
+
+  /// No description provided for @projectNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du projet *'**
+  String get projectNameRequired;
+
+  /// No description provided for @technologiesUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Technologies utilisees'**
+  String get technologiesUsed;
+
+  /// No description provided for @projectLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien du projet'**
+  String get projectLink;
+
+  /// No description provided for @projectDescriptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decrivez le projet et votre role...'**
+  String get projectDescriptionHint;
+
+  /// No description provided for @suggestionsGenerationFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de generer des suggestions'**
+  String get suggestionsGenerationFailed;
+
+  /// No description provided for @profilePhotoOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de profil (optionnel)'**
+  String get profilePhotoOptional;
+
+  /// No description provided for @gallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Galerie'**
+  String get gallery;
+
+  /// No description provided for @camera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la photo'**
+  String get removePhoto;
+
+  /// No description provided for @photoLocalOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo visible localement, mais l\'envoi a echoue : {error}'**
+  String photoLocalOnly(String error);
+
+  /// No description provided for @coordinates.
+  ///
+  /// In fr, this message translates to:
+  /// **'COORDONNEES'**
+  String get coordinates;
+
+  /// No description provided for @online.
+  ///
+  /// In fr, this message translates to:
+  /// **'EN LIGNE'**
+  String get online;
+
+  /// No description provided for @about.
+  ///
+  /// In fr, this message translates to:
+  /// **'A PROPOS'**
+  String get about;
+
+  /// No description provided for @firstNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prénom *'**
+  String get firstNameRequired;
+
+  /// No description provided for @lastNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom *'**
+  String get lastNameRequired;
+
+  /// No description provided for @firstNameMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prenom requis'**
+  String get firstNameMissing;
+
+  /// No description provided for @lastNameMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom requis'**
+  String get lastNameMissing;
+
+  /// No description provided for @targetJobHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le poste que vous visez ou occupez'**
+  String get targetJobHelper;
+
+  /// No description provided for @professionalEmailHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre email professionnel de contact'**
+  String get professionalEmailHelper;
+
+  /// No description provided for @emailMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email requis'**
+  String get emailMissing;
+
+  /// No description provided for @phoneCountryHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selectionnez un pays pour l\'indicatif automatique'**
+  String get phoneCountryHelper;
+
+  /// No description provided for @postalAddressHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel - votre adresse postale'**
+  String get postalAddressHelper;
+
+  /// No description provided for @optional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel'**
+  String get optional;
+
+  /// No description provided for @professionalLinksHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel - ajoutez vos liens professionnels'**
+  String get professionalLinksHelper;
+
+  /// No description provided for @linkedinHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel - votre profil LinkedIn'**
+  String get linkedinHelper;
+
+  /// No description provided for @portfolioHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel - votre site ou portfolio'**
+  String get portfolioHelper;
+
+  /// No description provided for @generateSummaryHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cliquez sur le bouton IA pour generer automatiquement'**
+  String get generateSummaryHelper;
+
+  /// No description provided for @summaryGenerated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resume genere par l\'IA'**
+  String get summaryGenerated;
+
+  /// No description provided for @aiPersonalDataConsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'accepte d\'envoyer ces informations au service IA.'**
+  String get aiPersonalDataConsent;
+
+  /// No description provided for @citySuggestionsForCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez pour afficher les villes de {country}'**
+  String citySuggestionsForCountry(String country);
+
+  /// No description provided for @selectCountryForCities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selectionnez un pays pour obtenir des suggestions'**
+  String get selectCountryForCities;
+
+  /// No description provided for @freeCityEntry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie libre - ajoutez votre ville'**
+  String get freeCityEntry;
+
+  /// No description provided for @countryDialCodeHelper.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selectionnez pour ajouter l\'indicatif telephonique'**
+  String get countryDialCodeHelper;
 
   /// No description provided for @required.
   ///
@@ -770,6 +2078,48 @@ abstract class AppLocalizations {
   /// **'Expert'**
   String get expert;
 
+  /// No description provided for @intermediate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intermediaire'**
+  String get intermediate;
+
+  /// No description provided for @confirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get confirmed;
+
+  /// No description provided for @elementary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elementaire'**
+  String get elementary;
+
+  /// No description provided for @upperIntermediate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intermediaire avance'**
+  String get upperIntermediate;
+
+  /// No description provided for @fluent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courant'**
+  String get fluent;
+
+  /// No description provided for @mastery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maitrise'**
+  String get mastery;
+
+  /// No description provided for @nativeLanguage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue maternelle'**
+  String get nativeLanguage;
+
   /// No description provided for @featureAi.
   ///
   /// In fr, this message translates to:
@@ -799,6 +2149,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Theme'**
   String get theme;
+
+  /// No description provided for @language.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue de l\'application'**
+  String get language;
+
+  /// No description provided for @french.
+  ///
+  /// In fr, this message translates to:
+  /// **'Francais'**
+  String get french;
+
+  /// No description provided for @english.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anglais'**
+  String get english;
 
   /// No description provided for @information.
   ///
@@ -835,6 +2203,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vues'**
   String get views;
+
+  /// No description provided for @privacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confidentialite'**
+  String get privacy;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Politique de confidentialite'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyPolicySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnees, IA, export et suppression'**
+  String get privacyPolicySubtitle;
+
+  /// No description provided for @exportMyData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter mes donnees'**
+  String get exportMyData;
+
+  /// No description provided for @exportMyDataSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copie JSON de votre compte et de vos CV'**
+  String get exportMyDataSubtitle;
+
+  /// No description provided for @deleteMyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get deleteMyAccount;
+
+  /// No description provided for @deleteMyAccountSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression du compte et des CV associes'**
+  String get deleteMyAccountSubtitle;
+
+  /// No description provided for @exportCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export copie dans le presse-papier'**
+  String get exportCopied;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export impossible : {error}'**
+  String exportFailed(String error);
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le compte'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action supprime votre compte et les CV associes cote serveur. Elle est irreversible.'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression impossible : {error}'**
+  String deleteAccountFailed(String error);
 
   /// No description provided for @today.
   ///
@@ -955,6 +2395,120 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'L\'envoi du fichier a echoue. Verifiez le format et la taille.'**
   String get errorFileUpload;
+
+  /// No description provided for @validationPersonalInfoMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations personnelles manquantes'**
+  String get validationPersonalInfoMissing;
+
+  /// No description provided for @validationFieldMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'{field} manquant'**
+  String validationFieldMissing(String field);
+
+  /// No description provided for @validationJobTitleMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre du poste manquant - important pour les recruteurs'**
+  String get validationJobTitleMissing;
+
+  /// No description provided for @validationSummaryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resume professionnel vide - utilisez l\'IA pour le generer'**
+  String get validationSummaryEmpty;
+
+  /// No description provided for @validationSummaryShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resume trop court ({count} car.) - min 100 recommande'**
+  String validationSummaryShort(int count);
+
+  /// No description provided for @validationTechLinkMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'LinkedIn ou GitHub manquant - tres attendu pour un profil tech'**
+  String get validationTechLinkMissing;
+
+  /// No description provided for @validationNoExperience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune experience renseignee'**
+  String get validationNoExperience;
+
+  /// No description provided for @validationDescriptionMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : description manquante'**
+  String validationDescriptionMissing(String item);
+
+  /// No description provided for @validationNoMetric.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : aucun chiffre ou indicateur - ajoutez des resultats mesurables'**
+  String validationNoMetric(String item);
+
+  /// No description provided for @validationEndBeforeStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : date de fin avant date de debut'**
+  String validationEndBeforeStart(String item);
+
+  /// No description provided for @validationFutureEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'{item} : date de fin dans le futur'**
+  String validationFutureEnd(String item);
+
+  /// No description provided for @validationNoEducation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune formation renseignee'**
+  String get validationNoEducation;
+
+  /// No description provided for @validationNoSkills.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune competence renseignee'**
+  String get validationNoSkills;
+
+  /// No description provided for @validationFewSkills.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seulement {count} competences - 8 a 12 recommande'**
+  String validationFewSkills(int count);
+
+  /// No description provided for @validationCombinedSkills.
+  ///
+  /// In fr, this message translates to:
+  /// **'\"{name}\" semble contenir plusieurs competences - separez-les'**
+  String validationCombinedSkills(String name);
+
+  /// No description provided for @validationNoLanguages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune langue renseignee'**
+  String get validationNoLanguages;
+
+  /// No description provided for @validationFutureCertification.
+  ///
+  /// In fr, this message translates to:
+  /// **'\"{name}\" datee dans le futur - marquez En cours si necessaire'**
+  String validationFutureCertification(String name);
+
+  /// No description provided for @validationShortProject.
+  ///
+  /// In fr, this message translates to:
+  /// **'\"{name}\" : description trop courte - developpez'**
+  String validationShortProject(String name);
+
+  /// No description provided for @validationTooMuchContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Beaucoup de contenu ({count} elements) - risque de depasser 1 page'**
+  String validationTooMuchContent(int count);
 
   /// No description provided for @errorGeneric.
   ///

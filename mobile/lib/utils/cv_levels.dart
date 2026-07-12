@@ -1,3 +1,36 @@
+import '../l10n/app_localizations.dart';
+
+String localizedSkillLevelLabel(AppLocalizations l, int? level) {
+  return switch ((level ?? 3).clamp(1, 5)) {
+    1 => l.beginner,
+    2 => l.intermediate,
+    3 => l.advanced,
+    4 => l.confirmed,
+    _ => l.expert,
+  };
+}
+
+String localizedLanguageLevelLabel(AppLocalizations l, String? level) {
+  return switch (level?.trim().toUpperCase()) {
+    'A1' => l.beginner,
+    'A2' => l.elementary,
+    'B1' => l.intermediate,
+    'B2' => l.upperIntermediate,
+    'C1' => l.fluent,
+    'C2' => l.mastery,
+    'NATIF' => l.nativeLanguage,
+    _ => level?.trim() ?? '',
+  };
+}
+
+String localizedLanguageLevelDisplay(AppLocalizations l, String? level) {
+  final code = level?.trim().toUpperCase() ?? '';
+  if (code.isEmpty) return '';
+  if (code == 'NATIF') return l.native;
+  final label = localizedLanguageLevelLabel(l, code);
+  return label.isEmpty ? code : '$code - $label';
+}
+
 String skillLevelLabel(int? level) {
   return switch ((level ?? 3).clamp(1, 5)) {
     1 => 'Débutant',
