@@ -170,6 +170,78 @@ abstract class AppLocalizations {
   /// **'Rejoignez MonCV gratuitement'**
   String get createAccountSubtitle;
 
+  /// No description provided for @emailHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'vous@exemple.com'**
+  String get emailHint;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Champ requis'**
+  String get fieldRequired;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In fr, this message translates to:
+  /// **'Minimum 6 caracteres'**
+  String get passwordMinLength;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @passwordStrengthWeak.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faible'**
+  String get passwordStrengthWeak;
+
+  /// No description provided for @passwordStrengthMedium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moyen'**
+  String get passwordStrengthMedium;
+
+  /// No description provided for @passwordStrengthGood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon'**
+  String get passwordStrengthGood;
+
+  /// No description provided for @passwordStrengthStrong.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fort'**
+  String get passwordStrengthStrong;
+
+  /// No description provided for @loginError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de connexion'**
+  String get loginError;
+
+  /// No description provided for @registerError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur d\'inscription'**
+  String get registerError;
+
+  /// No description provided for @createMyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creer mon compte'**
+  String get createMyAccount;
+
   /// No description provided for @myCvs.
   ///
   /// In fr, this message translates to:
@@ -194,6 +266,138 @@ abstract class AppLocalizations {
   /// **'Creez votre premier CV professionnel'**
   String get createFirstCv;
 
+  /// No description provided for @createMyFirstCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creer mon premier CV'**
+  String get createMyFirstCv;
+
+  /// No description provided for @importCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Importer un CV (PDF/DOCX)'**
+  String get importCv;
+
+  /// No description provided for @deleteCvTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le CV'**
+  String get deleteCvTitle;
+
+  /// No description provided for @deleteCvConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment supprimer \"{titre}\" ?'**
+  String deleteCvConfirm(String titre);
+
+  /// No description provided for @cvDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV supprime'**
+  String get cvDeleted;
+
+  /// No description provided for @cvDuplicated.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV duplique'**
+  String get cvDuplicated;
+
+  /// No description provided for @shareLinkTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien de partage'**
+  String get shareLinkTitle;
+
+  /// No description provided for @shareLinkDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partagez ce lien pour que n\'importe qui puisse voir votre CV :'**
+  String get shareLinkDescription;
+
+  /// No description provided for @linkCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien copie dans le presse-papier'**
+  String get linkCopied;
+
+  /// No description provided for @copy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier'**
+  String get copy;
+
+  /// No description provided for @close.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get close;
+
+  /// No description provided for @pdfDownloading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Generation du PDF en cours...'**
+  String get pdfDownloading;
+
+  /// No description provided for @pdfDownloaded.
+  ///
+  /// In fr, this message translates to:
+  /// **'PDF telecharge'**
+  String get pdfDownloaded;
+
+  /// No description provided for @pdfError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur PDF: {error}'**
+  String pdfError(String error);
+
+  /// No description provided for @docxDownloading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Telechargement DOCX en cours...'**
+  String get docxDownloading;
+
+  /// No description provided for @docxDownloaded.
+  ///
+  /// In fr, this message translates to:
+  /// **'DOCX telecharge'**
+  String get docxDownloaded;
+
+  /// No description provided for @docxError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur DOCX: {error}'**
+  String docxError(String error);
+
+  /// No description provided for @importInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Import du CV en cours...'**
+  String get importInProgress;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV \"{titre}\" importe avec succes'**
+  String importSuccess(String titre);
+
+  /// No description provided for @importError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur import: {error}'**
+  String importError(String error);
+
+  /// No description provided for @offlineBanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode hors ligne — donnees en cache'**
+  String get offlineBanner;
+
+  /// No description provided for @view.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir'**
+  String get view;
+
   /// No description provided for @profile.
   ///
   /// In fr, this message translates to:
@@ -206,11 +410,29 @@ abstract class AppLocalizations {
   /// **'Se deconnecter'**
   String get logout;
 
+  /// No description provided for @logoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deconnexion'**
+  String get logoutTitle;
+
   /// No description provided for @logoutConfirm.
   ///
   /// In fr, this message translates to:
   /// **'Voulez-vous vraiment vous deconnecter ?'**
   String get logoutConfirm;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deconnecter'**
+  String get disconnect;
+
+  /// No description provided for @user.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateur'**
+  String get user;
 
   /// No description provided for @cancel.
   ///
@@ -248,6 +470,12 @@ abstract class AppLocalizations {
   /// **'Partager'**
   String get share;
 
+  /// No description provided for @edit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get edit;
+
   /// No description provided for @download.
   ///
   /// In fr, this message translates to:
@@ -283,6 +511,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Options'**
   String get options;
+
+  /// No description provided for @retry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reessayer'**
+  String get retry;
 
   /// No description provided for @enhanceWithAi.
   ///
@@ -595,6 +829,132 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Partages'**
   String get shares;
+
+  /// No description provided for @today.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get yesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {count} jours'**
+  String daysAgo(int count);
+
+  /// No description provided for @complete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complet'**
+  String get complete;
+
+  /// No description provided for @inProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get inProgress;
+
+  /// No description provided for @incomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incomplet'**
+  String get incomplete;
+
+  /// No description provided for @pdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'PDF'**
+  String get pdf;
+
+  /// No description provided for @docx.
+  ///
+  /// In fr, this message translates to:
+  /// **'DOCX'**
+  String get docx;
+
+  /// No description provided for @nVariants.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} variante(s)'**
+  String nVariants(int count);
+
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiants incorrects. Verifiez votre email et mot de passe.'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorEmailAlreadyUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette adresse email est deja utilisee. Essayez de vous connecter.'**
+  String get errorEmailAlreadyUsed;
+
+  /// No description provided for @errorNetworkUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de joindre le serveur. Verifiez votre connexion internet.'**
+  String get errorNetworkUnavailable;
+
+  /// No description provided for @errorTimeout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le serveur met trop de temps a repondre. Reessayez dans quelques instants.'**
+  String get errorTimeout;
+
+  /// No description provided for @errorServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur serveur est survenue. Reessayez dans quelques instants.'**
+  String get errorServer;
+
+  /// No description provided for @errorForbidden.
+  ///
+  /// In fr, this message translates to:
+  /// **'Acces refuse. Reconnectez-vous et reessayez.'**
+  String get errorForbidden;
+
+  /// No description provided for @errorRateLimit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop de tentatives. Patientez une minute avant de reessayer.'**
+  String get errorRateLimit;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce CV n\'existe plus ou a ete supprime.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorDownload.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le telechargement a echoue. Reessayez dans quelques instants.'**
+  String get errorDownload;
+
+  /// No description provided for @errorAiUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le service IA est temporairement indisponible. Reessayez plus tard.'**
+  String get errorAiUnavailable;
+
+  /// No description provided for @errorFileUpload.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'envoi du fichier a echoue. Verifiez le format et la taille.'**
+  String get errorFileUpload;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue'**
+  String get errorGeneric;
 }
 
 class _AppLocalizationsDelegate

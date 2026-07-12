@@ -113,21 +113,20 @@ void main() {
       // LoginScreen s'affiche (redirection car non authentifie)
       await pumpPastAnimations(tester);
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.text('ADRESSE EMAIL'), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(2));
 
       // Remplir les champs
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'vous@exemple.com'),
+        find.byType(TextFormField).at(0),
         'test@example.com',
       );
       await tester.enterText(
-        find.widgetWithText(
-            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.byType(TextFormField).at(1),
         'password123',
       );
 
       // Tap Se connecter
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Se connecter'));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
 
       // Attendre la navigation vers home
@@ -167,15 +166,14 @@ void main() {
 
       // Remplir et soumettre
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'vous@exemple.com'),
+        find.byType(TextFormField).at(0),
         'wrong@test.com',
       );
       await tester.enterText(
-        find.widgetWithText(
-            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.byType(TextFormField).at(1),
         'badpassword',
       );
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Se connecter'));
+      await tester.tap(find.byType(ElevatedButton));
 
       // Pump pour le traitement async
       for (int i = 0; i < 5; i++) {

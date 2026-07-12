@@ -112,10 +112,10 @@ void main() {
       // Attendre que AuthProvider check le token et charge les CVs
       await tester.pumpAndSettle();
 
-      // Tap sur le bouton "Voir" du CvCard
-      final voirButton = find.text('Voir');
-      expect(voirButton, findsOneWidget);
-      await tester.tap(voirButton);
+      // Tap sur l'action principale du CvCard, quel que soit le libelle
+      final viewButton = find.byType(FilledButton);
+      expect(viewButton, findsOneWidget);
+      await tester.tap(viewButton);
       await tester.pumpAndSettle();
 
       // Verifier qu'on est sur CvDetailScreen avec le preview
