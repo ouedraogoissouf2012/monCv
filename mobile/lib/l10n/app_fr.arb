@@ -446,5 +446,12 @@
   "@validationShortProject": { "placeholders": { "name": { "type": "String" } } },
   "validationTooMuchContent": "Beaucoup de contenu ({count} elements) - risque de depasser 1 page",
   "@validationTooMuchContent": { "placeholders": { "count": { "type": "int" } } },
-  "errorGeneric": "Une erreur est survenue"
+  "errorGeneric": "Une erreur est survenue",
+  "notifications": "Notifications",
+  "staleCvReminder": "Rappel de mise a jour",
+  "staleCvReminderSubtitle": "Me prevenir apres 30 jours sans modification",
+  "cvViewNotifications": "Vues du CV partage",
+  "cvViewNotificationsSubtitle": "Me prevenir tous les 10 nouveaux visiteurs",
+  "aiTipNotifications": "Conseils d'amelioration IA",
+  "aiTipNotificationsSubtitle": "Recevoir des pistes pour renforcer mon CV"
 }

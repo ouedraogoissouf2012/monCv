@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/locale_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
@@ -145,6 +146,49 @@ class ProfileScreen extends StatelessWidget {
                 context
                     .read<LocaleProvider>()
                     .setLocale(Locale(selection.first));
+              },
+            ),
+
+            const SizedBox(height: 28),
+            _SectionTitle(l.notifications),
+            const SizedBox(height: 12),
+            Consumer<NotificationProvider>(
+              builder: (context, provider, _) {
+                final value = provider.value;
+                return _InfoCard(children: [
+                  SwitchListTile(
+                    secondary: const Icon(Icons.update_rounded),
+                    title: Text(l.staleCvReminder),
+                    subtitle: Text(l.staleCvReminderSubtitle),
+                    value: value.staleCvEnabled,
+                    onChanged: provider.isLoading
+                        ? null
+                        : (enabled) => provider
+                            .update(value.copyWith(staleCvEnabled: enabled)),
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.visibility_outlined),
+                    title: Text(l.cvViewNotifications),
+                    subtitle: Text(l.cvViewNotificationsSubtitle),
+                    value: value.cvViewsEnabled,
+                    onChanged: provider.isLoading
+                        ? null
+                        : (enabled) => provider
+                            .update(value.copyWith(cvViewsEnabled: enabled)),
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.auto_awesome_outlined),
+                    title: Text(l.aiTipNotifications),
+                    subtitle: Text(l.aiTipNotificationsSubtitle),
+                    value: value.aiTipsEnabled,
+                    onChanged: provider.isLoading
+                        ? null
+                        : (enabled) => provider
+                            .update(value.copyWith(aiTipsEnabled: enabled)),
+                  ),
+                ]);
               },
             ),
 

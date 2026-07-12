@@ -25,6 +25,8 @@ import '../../usecases/ai/suggest_bullets_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../services/push_notification_service.dart';
 
 /// Instance globale du service locator.
 final sl = GetIt.instance;
@@ -39,6 +41,8 @@ Future<void> initDependencies() async {
   // ── Services ──────────────────────────────────────────────────
   sl.registerLazySingleton<ApiService>(() => ApiService());
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+  sl.registerLazySingleton<PushNotificationService>(
+      () => PushNotificationService(sl<ApiService>()));
 
   // ── Repositories ──────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(
@@ -98,4 +102,6 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
+  sl.registerFactory<NotificationProvider>(
+      () => NotificationProvider(sl<ApiService>()));
 }

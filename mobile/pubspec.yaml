@@ -37,6 +37,8 @@ dependencies:
 
   # Connectivity
   connectivity_plus: ^6.1.4
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.2.10
 
   # File picker (import CV)
   file_picker: ^8.0.0

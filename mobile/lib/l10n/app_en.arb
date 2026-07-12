@@ -414,5 +414,12 @@
   "validationFutureCertification": "\"{name}\" is dated in the future - mark it In progress if needed",
   "validationShortProject": "\"{name}\": description is too short - add more detail",
   "validationTooMuchContent": "A lot of content ({count} items) - may exceed one page",
-  "errorGeneric": "An error occurred"
+  "errorGeneric": "An error occurred",
+  "notifications": "Notifications",
+  "staleCvReminder": "Update reminder",
+  "staleCvReminderSubtitle": "Notify me after 30 days without changes",
+  "cvViewNotifications": "Shared CV views",
+  "cvViewNotificationsSubtitle": "Notify me every 10 new visitors",
+  "aiTipNotifications": "AI improvement tips",
+  "aiTipNotificationsSubtitle": "Receive ideas to strengthen my CV"
 }
