@@ -64,7 +64,8 @@ void main() {
     });
 
     // Le template Moderne utilise "PROFIL" comme section title
-    testWidgets('affiche la section PROFIL quand resume renseigne', (tester) async {
+    testWidgets('affiche la section PROFIL quand resume renseigne',
+        (tester) async {
       await tester.pumpWidget(_buildPreview(_fullCv()));
       await tester.pump();
 
@@ -104,6 +105,31 @@ void main() {
       expect(find.text('Français'), findsOneWidget);
     });
 
+    testWidgets('affiche les libellés explicites des niveaux', (tester) async {
+      await tester.pumpWidget(_buildPreview(_fullCv()));
+      await tester.pump();
+
+      expect(find.text('Expert'), findsOneWidget);
+      expect(find.text('Confirmé'), findsOneWidget);
+      expect(find.text('Natif'), findsOneWidget);
+      expect(find.text('C1 - Courant'), findsOneWidget);
+    });
+
+    testWidgets('utilise des progressions distinctes selon les niveaux',
+        (tester) async {
+      await tester.pumpWidget(_buildPreview(_fullCv()));
+      await tester.pump();
+
+      final values = tester
+          .widgetList<LinearProgressIndicator>(
+            find.byType(LinearProgressIndicator),
+          )
+          .map((indicator) => indicator.value)
+          .toList();
+
+      expect(values, containsAll(<double?>[1.0, 0.8, 0.82]));
+    });
+
     testWidgets('n\'affiche pas les sections vides', (tester) async {
       final cv = Cv(titre: 'CV Vide');
       await tester.pumpWidget(_buildPreview(cv));
@@ -116,14 +142,16 @@ void main() {
     });
 
     // L'experience actuelle affiche "En cours" (pas "En poste")
-    testWidgets('badge En cours visible pour experience actuelle', (tester) async {
+    testWidgets('badge En cours visible pour experience actuelle',
+        (tester) async {
       await tester.pumpWidget(_buildPreview(_fullCv()));
       await tester.pump();
 
       expect(find.textContaining('En cours'), findsOneWidget);
     });
 
-    testWidgets('affiche un header vide si pas de personalInfo', (tester) async {
+    testWidgets('affiche un header vide si pas de personalInfo',
+        (tester) async {
       final cv = Cv(titre: 'Mon Super CV');
       await tester.pumpWidget(_buildPreview(cv));
       await tester.pump();
@@ -162,7 +190,8 @@ void main() {
       expect(find.text('MonCV App'), findsOneWidget);
     });
 
-    testWidgets('n\'affiche pas CERTIFICATIONS et PROJETS quand vides', (tester) async {
+    testWidgets('n\'affiche pas CERTIFICATIONS et PROJETS quand vides',
+        (tester) async {
       final cv = Cv(titre: 'CV Vide');
       await tester.pumpWidget(_buildPreview(cv));
       await tester.pump();

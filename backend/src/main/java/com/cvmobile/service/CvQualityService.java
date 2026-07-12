@@ -1,12 +1,15 @@
 package com.cvmobile.service;
 
+import com.cvmobile.model.Cv;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,39 +43,91 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
     private static final Pattern MARKDOWN_HEADING = Pattern.compile("^#{1,3}\\s+", Pattern.MULTILINE);
 
     // Mots courants sans accents
-    private static final java.util.Map<String, String> ACCENT_FIXES = java.util.Map.ofEntries(
-            java.util.Map.entry("Developpeur", "Développeur"),
-            java.util.Map.entry("developpeur", "développeur"),
-            java.util.Map.entry("Ingenieur", "Ingénieur"),
-            java.util.Map.entry("ingenieur", "ingénieur"),
-            java.util.Map.entry("experience", "expérience"),
-            java.util.Map.entry("Experience", "Expérience"),
-            java.util.Map.entry("Universite", "Université"),
-            java.util.Map.entry("universite", "université"),
-            java.util.Map.entry("Francais", "Français"),
-            java.util.Map.entry("francais", "français"),
-            java.util.Map.entry("Intermediaire", "Intermédiaire"),
-            java.util.Map.entry("intermediaire", "intermédiaire"),
-            java.util.Map.entry("Lycee", "Lycée"),
-            java.util.Map.entry("lycee", "lycée"),
-            java.util.Map.entry("specialite", "spécialité"),
-            java.util.Map.entry("Specialite", "Spécialité"),
-            java.util.Map.entry("securite", "sécurité"),
-            java.util.Map.entry("Securite", "Sécurité"),
-            java.util.Map.entry("reponse", "réponse"),
-            java.util.Map.entry("deploiement", "déploiement"),
-            java.util.Map.entry("ameliore", "amélioré"),
-            java.util.Map.entry("Ameliore", "Amélioré"),
-            java.util.Map.entry("reduit", "réduit"),
-            java.util.Map.entry("Reduit", "Réduit"),
-            java.util.Map.entry("cree", "créé"),
-            java.util.Map.entry("Cree", "Créé"),
-            java.util.Map.entry("implemente", "implémenté"),
-            java.util.Map.entry("Implemente", "Implémenté"),
-            java.util.Map.entry("deploye", "déployé"),
-            java.util.Map.entry("Deploye", "Déployé"),
-            java.util.Map.entry("Cote d Ivoire", "Côte d'Ivoire"),
-            java.util.Map.entry("Cote d'Ivoire", "Côte d'Ivoire")
+    private static final Map<String, String> COMMON_FIXES = Map.ofEntries(
+            Map.entry("Developpeur", "Développeur"),
+            Map.entry("developpeur", "développeur"),
+            Map.entry("Ingenieur", "Ingénieur"),
+            Map.entry("ingenieur", "ingénieur"),
+            Map.entry("experience", "expérience"),
+            Map.entry("Experience", "Expérience"),
+            Map.entry("Universite", "Université"),
+            Map.entry("universite", "université"),
+            Map.entry("Francais", "Français"),
+            Map.entry("francais", "français"),
+            Map.entry("Intermediaire", "Intermédiaire"),
+            Map.entry("intermediaire", "intermédiaire"),
+            Map.entry("Baccalaureat", "Baccalauréat"),
+            Map.entry("baccalaureat", "baccalauréat"),
+            Map.entry("Diplome", "Diplôme"),
+            Map.entry("diplome", "diplôme"),
+            Map.entry("Lycee", "Lycée"),
+            Map.entry("lycee", "lycée"),
+            Map.entry("Lyce", "Lycée"),
+            Map.entry("lyce", "lycée"),
+            Map.entry("specialite", "spécialité"),
+            Map.entry("Specialite", "Spécialité"),
+            Map.entry("securite", "sécurité"),
+            Map.entry("Securite", "Sécurité"),
+            Map.entry("Competence", "Compétence"),
+            Map.entry("competence", "compétence"),
+            Map.entry("Competences", "Compétences"),
+            Map.entry("competences", "compétences"),
+            Map.entry("Developpement", "Développement"),
+            Map.entry("developpement", "développement"),
+            Map.entry("Integration", "Intégration"),
+            Map.entry("integration", "intégration"),
+            Map.entry("Creation", "Création"),
+            Map.entry("creation", "création"),
+            Map.entry("Equipe", "Équipe"),
+            Map.entry("equipe", "équipe"),
+            Map.entry("Reseau", "Réseau"),
+            Map.entry("reseau", "réseau"),
+            Map.entry("Reseaux", "Réseaux"),
+            Map.entry("reseaux", "réseaux"),
+            Map.entry("Systeme", "Système"),
+            Map.entry("systeme", "système"),
+            Map.entry("Systemes", "Systèmes"),
+            Map.entry("systemes", "systèmes"),
+            Map.entry("Parallele", "Parallèle"),
+            Map.entry("parallele", "parallèle"),
+            Map.entry("Resultat", "Résultat"),
+            Map.entry("resultat", "résultat"),
+            Map.entry("Resultats", "Résultats"),
+            Map.entry("resultats", "résultats"),
+            Map.entry("Etude", "Étude"),
+            Map.entry("etude", "étude"),
+            Map.entry("Etudes", "Études"),
+            Map.entry("etudes", "études"),
+            Map.entry("reponse", "réponse"),
+            Map.entry("deploiement", "déploiement"),
+            Map.entry("ameliore", "amélioré"),
+            Map.entry("Ameliore", "Amélioré"),
+            Map.entry("reduit", "réduit"),
+            Map.entry("Reduit", "Réduit"),
+            Map.entry("cree", "créé"),
+            Map.entry("Cree", "Créé"),
+            Map.entry("implemente", "implémenté"),
+            Map.entry("Implemente", "Implémenté"),
+            Map.entry("deploye", "déployé"),
+            Map.entry("Deploye", "Déployé"),
+            Map.entry("Comminoty", "Community"),
+            Map.entry("comminoty", "community"),
+            Map.entry("Comunity", "Community"),
+            Map.entry("comunity", "community"),
+            Map.entry("Managment", "Management"),
+            Map.entry("managment", "management"),
+            Map.entry("Cote d Ivoire", "Côte d'Ivoire"),
+            Map.entry("Cote d'Ivoire", "Côte d'Ivoire")
+    );
+
+    private static final Map<String, String> PROFESSIONAL_TERM_FIXES = Map.ofEntries(
+            Map.entry("world", "Word"),
+            Map.entry("World", "Word"),
+            Map.entry("excel", "Excel"),
+            Map.entry("powerpoint", "PowerPoint"),
+            Map.entry("canva", "Canva"),
+            Map.entry("community management", "Community Management"),
+            Map.entry("ia", "IA")
     );
 
     /**
@@ -95,6 +150,45 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
         result = fixAccents(result);
 
         return result.trim();
+    }
+
+    @Override
+    public String cleanProfessionalTerm(String text) {
+        String result = clean(text);
+        if (result == null || result.isBlank()) return result;
+        return applyKnownFixes(result, PROFESSIONAL_TERM_FIXES).trim();
+    }
+
+    @Override
+    public List<String> findReviewWarnings(Cv cv) {
+        Set<String> warnings = new LinkedHashSet<>();
+        String allText = collectCvText(cv);
+        String normalized = allText.toLowerCase();
+
+        if (Pattern.compile("(?iu)(?<![\\p{L}\\p{N}])prr(?![\\p{L}\\p{N}])")
+                .matcher(allText).find()) {
+            warnings.add("Développez le sigle « PRR » au moins une fois pour le recruteur et l'ATS.");
+        }
+        if (normalized.contains("géré plusieurs projets en parallèle")
+                || normalized.contains("gere plusieurs projets en parallele")) {
+            warnings.add("Précisez le nombre de projets, les outils utilisés et un résultat concret.");
+        }
+        if (normalized.contains("dirigé une équipe pluridisciplinaire")
+                || normalized.contains("dirige une equipe pluridisciplinaire")) {
+            warnings.add("Précisez la taille de l'équipe, votre rôle et la méthode de mesure des résultats.");
+        }
+
+        for (int i = 0; i < cv.getExperiences().size(); i++) {
+            String description = cv.getExperiences().get(i).getDescription();
+            if (description == null || description.isBlank()) {
+                warnings.add("Ajoutez une description à l'expérience " + (i + 1) + ".");
+            } else if (description.strip().length() < 80) {
+                warnings.add("Détaillez davantage l'expérience " + (i + 1)
+                        + " avec missions, outils et résultats vérifiables.");
+            }
+        }
+
+        return List.copyOf(warnings);
     }
 
     /**
@@ -204,11 +298,35 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
     }
 
     String fixAccents(String text) {
+        return applyKnownFixes(text, COMMON_FIXES);
+    }
+
+    private String applyKnownFixes(String text, Map<String, String> fixes) {
         String result = text;
-        for (var entry : ACCENT_FIXES.entrySet()) {
-            result = result.replace(entry.getKey(), entry.getValue());
+        for (var entry : fixes.entrySet()) {
+            Pattern wholeTerm = Pattern.compile(
+                    "(?<![\\p{L}\\p{N}])" + Pattern.quote(entry.getKey())
+                            + "(?![\\p{L}\\p{N}])");
+            result = wholeTerm.matcher(result)
+                    .replaceAll(Matcher.quoteReplacement(entry.getValue()));
         }
         return result;
+    }
+
+    private String collectCvText(Cv cv) {
+        StringBuilder text = new StringBuilder();
+        if (cv.getPersonalInfo() != null) {
+            text.append(cv.getPersonalInfo().getTitrePoste()).append(' ')
+                    .append(cv.getPersonalInfo().getResumeProfessionnel()).append(' ');
+        }
+        cv.getExperiences().forEach(e -> text.append(e.getPoste()).append(' ')
+                .append(e.getDescription()).append(' '));
+        cv.getEducations().forEach(e -> text.append(e.getDiplome()).append(' ')
+                .append(e.getDomaine()).append(' ').append(e.getDescription()).append(' '));
+        cv.getSkills().forEach(s -> text.append(s.getNom()).append(' '));
+        cv.getProjects().forEach(p -> text.append(p.getNom()).append(' ')
+                .append(p.getTechnologies()).append(' ').append(p.getDescription()).append(' '));
+        return text.toString();
     }
 
     @Data

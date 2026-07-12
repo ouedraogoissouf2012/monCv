@@ -235,6 +235,79 @@ void main() {
       verify(() => mockRepo.updateCv(7, any())).called(1);
     });
 
+    test('applyAiEnhancements applique la relecture sans perdre les niveaux',
+        () async {
+      final cv = Cv(
+        id: 42,
+        titre: 'CV test',
+        personalInfo: PersonalInfo(
+          titrePoste: 'Comminoty manager',
+          resumeProfessionnel: 'Developpeur de contenus',
+        ),
+        experiences: [
+          Experience(id: 1, poste: 'Comminoty manager', description: 'Texte')
+        ],
+        educations: [
+          Education(
+            id: 2,
+            etablissement: 'lyce municipal',
+            diplome: 'Baccalaureat',
+          )
+        ],
+        skills: [Skill(id: 3, nom: 'world', niveau: 1)],
+        languages: [Language(id: 4, langue: 'Francais', niveau: 'NATIF')],
+        certifications: [
+          Certification(id: 5, nom: 'Certificat', organisme: 'Universite')
+        ],
+        projects: [
+          Project(id: 6, nom: 'Creation', technologies: 'excel, canva')
+        ],
+      );
+      when(() => mockRepo.updateCv(42, any())).thenAnswer((invocation) async {
+        return Result.success(invocation.positionalArguments[1] as Cv);
+      });
+
+      final provider = buildProvider()..setCurrentCv(cv);
+      final result = await provider.applyAiEnhancements(42, {
+        'titrePoste': 'Community manager',
+        'resumeProfessionnel': 'Développeur de contenus',
+        'experiences': [
+          {'poste': 'Community manager', 'description': 'Texte'}
+        ],
+        'educations': [
+          {
+            'etablissement': 'lycée municipal',
+            'diplome': 'Baccalauréat',
+            'description': null,
+          }
+        ],
+        'skills': [
+          {'nom': 'Word', 'niveau': 1}
+        ],
+        'languages': [
+          {'langue': 'Français'}
+        ],
+        'certifications': [
+          {'nom': 'Certificat', 'organisme': 'Université'}
+        ],
+        'projects': [
+          {'nom': 'Création', 'technologies': 'Excel, Canva'}
+        ],
+      });
+
+      expect(result, true);
+      expect(provider.currentCv?.personalInfo?.titrePoste, 'Community manager');
+      expect(provider.currentCv?.experiences.first.poste, 'Community manager');
+      expect(provider.currentCv?.educations.first.etablissement,
+          'lycée municipal');
+      expect(provider.currentCv?.skills.first.nom, 'Word');
+      expect(provider.currentCv?.skills.first.niveau, 1);
+      expect(provider.currentCv?.languages.first.langue, 'Français');
+      expect(provider.currentCv?.certifications.first.organisme, 'Université');
+      expect(provider.currentCv?.projects.first.technologies, 'Excel, Canva');
+      verify(() => mockRepo.updateCv(42, any())).called(1);
+    });
+
     test('connectivity offline', () async {
       final provider = buildProvider();
       connectivityCtrl.add(false);

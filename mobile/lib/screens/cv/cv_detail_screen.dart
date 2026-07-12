@@ -84,6 +84,34 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     }
   }
 
+  Future<void> _openEnhancement(Cv cv, {bool proofreadOnly = false}) async {
+    final provider = context.read<CvProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AiEnhanceSheet(
+        cv: cv,
+        initialLevel: proofreadOnly ? 'LITE' : 'MEDIUM',
+        proofreadOnly: proofreadOnly,
+      ),
+    );
+    if (result == null || !mounted) return;
+
+    final ok = await provider.applyAiEnhancements(cv.id!, result);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(
+      content: Text(ok
+          ? proofreadOnly
+              ? 'Corrections appliquées'
+              : 'Suggestions IA appliquées'
+          : 'Erreur lors de l\'application'),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+    ));
+  }
+
   void _openCustomizePanel(BuildContext context, Cv cv) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -124,33 +152,14 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.spellcheck_rounded),
+                tooltip: 'Corriger l\'orthographe',
+                onPressed: () => _openEnhancement(cv, proofreadOnly: true),
+              ),
+              IconButton(
                 icon: const Icon(Icons.auto_awesome_rounded),
-                tooltip: 'Ameliorer avec l\'IA',
-                onPressed: () async {
-                  final result =
-                      await showModalBottomSheet<Map<String, dynamic>>(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => AiEnhanceSheet(cv: cv),
-                  );
-                  // print('[AI-DETAIL] showModalBottomSheet returned: ${result?.keys}');
-                  if (result != null && mounted) {
-                    // print('[AI-DETAIL] Calling applyAiEnhancements with cvId=${cv.id}');
-                    final ok = await context
-                        .read<CvProvider>()
-                        .applyAiEnhancements(cv.id!, result);
-                    // print('[AI-DETAIL] applyAiEnhancements returned: $ok');
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content:
-                          Text(ok ? 'Suggestions IA appliquees' : 'Erreur'),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor:
-                          ok ? const Color(0xFF10B981) : Colors.red,
-                    ));
-                  }
-                },
+                tooltip: 'Améliorer avec l\'IA',
+                onPressed: () => _openEnhancement(cv),
               ),
               IconButton(
                 icon: const Icon(Icons.work_outline_rounded),

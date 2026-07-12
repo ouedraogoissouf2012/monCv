@@ -261,8 +261,7 @@ class ApiService {
     }
     request.files.add(
       http.MultipartFile.fromBytes('file', bytes,
-          filename: filename,
-          contentType: MediaType.parse(mimeType)),
+          filename: filename, contentType: MediaType.parse(mimeType)),
     );
 
     final streamed = await request.send();
@@ -278,7 +277,8 @@ class ApiService {
 
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
       headers: await _getHeaders(),
     );
 
@@ -298,7 +298,8 @@ class ApiService {
       headers: await _getHeaders(),
       body: jsonEncode({
         'poste': poste,
-        if (entreprise != null && entreprise.isNotEmpty) 'entreprise': entreprise,
+        if (entreprise != null && entreprise.isNotEmpty)
+          'entreprise': entreprise,
       }),
     );
 
@@ -338,7 +339,8 @@ class ApiService {
   }
 
   Future<List<int>> downloadCvDocx(int id) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
+    final uri = Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
     final response = await http.get(uri, headers: await _getHeaders());
     if (response.statusCode == 200) {
       return response.bodyBytes;
@@ -347,9 +349,11 @@ class ApiService {
     }
   }
 
-  Future<String> generateResume(String? titrePoste, String? competences, String? experience) async {
+  Future<String> generateResume(
+      String? titrePoste, String? competences, String? experience) async {
     final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
       headers: await _getHeaders(),
       body: jsonEncode({
         'titrePoste': titrePoste ?? '',
@@ -374,7 +378,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
-      throw Exception('Erreur lors de l\'analyse');
+      _throwApiError(response, 'Erreur lors de l\'analyse de l\'offre');
     }
   }
 
@@ -403,7 +407,8 @@ class ApiService {
     final lower = filename.toLowerCase();
     final contentType = lower.endsWith('.pdf')
         ? MediaType('application', 'pdf')
-        : MediaType('application', 'vnd.openxmlformats-officedocument.wordprocessingml.document');
+        : MediaType('application',
+            'vnd.openxmlformats-officedocument.wordprocessingml.document');
     request.files.add(http.MultipartFile.fromBytes(
       'file',
       bytes,
