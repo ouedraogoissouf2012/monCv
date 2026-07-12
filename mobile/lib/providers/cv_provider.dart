@@ -216,18 +216,24 @@ class CvProvider with ChangeNotifier {
     if (result['experiences'] != null) {
       final aiExps = result['experiences'] as List<dynamic>;
       for (int i = 0; i < aiExps.length && i < updatedExperiences.length; i++) {
+        final newPoste = aiExps[i]['poste'] as String?;
         final newDesc = aiExps[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        if ((newPoste != null && newPoste.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty)) {
           final old = updatedExperiences[i];
           updatedExperiences[i] = Experience(
             id: old.id,
-            poste: old.poste,
+            poste: (newPoste != null && newPoste.isNotEmpty)
+                ? newPoste
+                : old.poste,
             entreprise: old.entreprise,
             lieu: old.lieu,
             dateDebut: old.dateDebut,
             dateFin: old.dateFin,
             actuel: old.actuel,
-            description: newDesc,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
           );
         }
       }
@@ -237,17 +243,32 @@ class CvProvider with ChangeNotifier {
     if (result['educations'] != null) {
       final aiEdus = result['educations'] as List<dynamic>;
       for (int i = 0; i < aiEdus.length && i < updatedEducations.length; i++) {
+        final newEtablissement = aiEdus[i]['etablissement'] as String?;
+        final newDiplome = aiEdus[i]['diplome'] as String?;
+        final newDomaine = aiEdus[i]['domaine'] as String?;
         final newDesc = aiEdus[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        if ((newEtablissement != null && newEtablissement.isNotEmpty) ||
+            (newDiplome != null && newDiplome.isNotEmpty) ||
+            (newDomaine != null && newDomaine.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty)) {
           final old = updatedEducations[i];
           updatedEducations[i] = Education(
             id: old.id,
-            etablissement: old.etablissement,
-            diplome: old.diplome,
-            domaine: old.domaine,
+            etablissement:
+                (newEtablissement != null && newEtablissement.isNotEmpty)
+                    ? newEtablissement
+                    : old.etablissement,
+            diplome: (newDiplome != null && newDiplome.isNotEmpty)
+                ? newDiplome
+                : old.diplome,
+            domaine: (newDomaine != null && newDomaine.isNotEmpty)
+                ? newDomaine
+                : old.domaine,
             dateDebut: old.dateDebut,
             dateFin: old.dateFin,
-            description: newDesc,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
           );
         }
       }
@@ -257,12 +278,62 @@ class CvProvider with ChangeNotifier {
     if (result['skills'] != null) {
       final aiSkills = result['skills'] as List<dynamic>;
       if (aiSkills.isNotEmpty) {
-        updatedSkills = aiSkills
-            .map((s) => Skill(
-                  nom: s['nom'] as String? ?? '',
-                  niveau: s['niveau'] as int? ?? 3,
-                ))
-            .toList();
+        updatedSkills = List.generate(aiSkills.length, (index) {
+          final old = index < cv.skills.length ? cv.skills[index] : null;
+          final skill = aiSkills[index] as Map<String, dynamic>;
+          return Skill(
+            id: old?.id,
+            nom: skill['nom'] as String? ?? old?.nom ?? '',
+            niveau: skill['niveau'] as int? ?? old?.niveau ?? 3,
+            categorie: old?.categorie,
+          );
+        });
+      }
+    }
+
+    List<Language> updatedLanguages = List<Language>.from(cv.languages);
+    if (result['languages'] != null) {
+      final correctedLanguages = result['languages'] as List<dynamic>;
+      for (int i = 0;
+          i < correctedLanguages.length && i < updatedLanguages.length;
+          i++) {
+        final newName = correctedLanguages[i]['langue'] as String?;
+        if (newName != null && newName.isNotEmpty) {
+          final old = updatedLanguages[i];
+          updatedLanguages[i] = Language(
+            id: old.id,
+            langue: newName,
+            niveau: old.niveau,
+          );
+        }
+      }
+    }
+
+    List<Certification> updatedCertifications =
+        List<Certification>.from(cv.certifications);
+    if (result['certifications'] != null) {
+      final correctedCertifications = result['certifications'] as List<dynamic>;
+      for (int i = 0;
+          i < correctedCertifications.length &&
+              i < updatedCertifications.length;
+          i++) {
+        final newName = correctedCertifications[i]['nom'] as String?;
+        final newOrganization =
+            correctedCertifications[i]['organisme'] as String?;
+        if ((newName != null && newName.isNotEmpty) ||
+            (newOrganization != null && newOrganization.isNotEmpty)) {
+          final old = updatedCertifications[i];
+          updatedCertifications[i] = Certification(
+            id: old.id,
+            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
+            organisme: (newOrganization != null && newOrganization.isNotEmpty)
+                ? newOrganization
+                : old.organisme,
+            dateObtention: old.dateObtention,
+            dateExpiration: old.dateExpiration,
+            credentialUrl: old.credentialUrl,
+          );
+        }
       }
     }
 
@@ -270,14 +341,23 @@ class CvProvider with ChangeNotifier {
     if (result['projects'] != null) {
       final aiProjs = result['projects'] as List<dynamic>;
       for (int i = 0; i < aiProjs.length && i < updatedProjects.length; i++) {
+        final newName = aiProjs[i]['nom'] as String?;
         final newDesc = aiProjs[i]['description'] as String?;
-        if (newDesc != null && newDesc.isNotEmpty) {
+        final newTechnologies = aiProjs[i]['technologies'] as String?;
+        if ((newName != null && newName.isNotEmpty) ||
+            (newDesc != null && newDesc.isNotEmpty) ||
+            (newTechnologies != null && newTechnologies.isNotEmpty)) {
           final old = updatedProjects[i];
           updatedProjects[i] = Project(
             id: old.id,
-            nom: old.nom,
-            description: newDesc,
-            technologies: old.technologies,
+            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
+            description: (newDesc != null && newDesc.isNotEmpty)
+                ? newDesc
+                : old.description,
+            technologies:
+                (newTechnologies != null && newTechnologies.isNotEmpty)
+                    ? newTechnologies
+                    : old.technologies,
             lien: old.lien,
             dateDebut: old.dateDebut,
             dateFin: old.dateFin,
@@ -291,6 +371,8 @@ class CvProvider with ChangeNotifier {
       experiences: updatedExperiences,
       educations: updatedEducations,
       skills: updatedSkills,
+      languages: updatedLanguages,
+      certifications: updatedCertifications,
       projects: updatedProjects,
     );
 

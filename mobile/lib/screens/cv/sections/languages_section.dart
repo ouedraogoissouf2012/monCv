@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/cv.dart';
+import '../../../utils/cv_levels.dart';
 import 'form_sheet.dart';
 
 class LanguagesSection extends StatelessWidget {
@@ -13,31 +14,80 @@ class LanguagesSection extends StatelessWidget {
   });
 
   static const _niveaux = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIF'];
-  static const _descriptions = {
-    'A1': 'Débutant',
-    'A2': 'Élémentaire',
-    'B1': 'Intermédiaire',
-    'B2': 'Interm. avancé',
-    'C1': 'Avancé',
-    'C2': 'Maîtrise',
-    'NATIF': 'Langue maternelle',
-  };
 
   // Liste de langues pour l'autocomplétion
   static const _allLanguages = [
-    'Français', 'Anglais', 'Espagnol', 'Portugais', 'Allemand',
-    'Italien', 'Néerlandais', 'Russe', 'Chinois (Mandarin)', 'Japonais',
-    'Coréen', 'Arabe', 'Hindi', 'Bengali', 'Turc', 'Vietnamien',
-    'Thaïlandais', 'Polonais', 'Ukrainien', 'Roumain', 'Tchèque',
-    'Grec', 'Hongrois', 'Suédois', 'Norvégien', 'Danois', 'Finnois',
-    'Hébreu', 'Persan', 'Swahili', 'Haoussa', 'Yoruba', 'Igbo',
-    'Amharique', 'Somali', 'Wolof', 'Bambara', 'Dioula', 'Lingala',
-    'Kikongo', 'Peul', 'Mooré', 'Baoulé', 'Bété', 'Sénoufo',
-    'Malinké', 'Soussou', 'Créole', 'Tamoul', 'Ourdou', 'Malais',
-    'Indonésien', 'Tagalog', 'Catalan', 'Basque', 'Galicien',
-    'Serbe', 'Croate', 'Bosniaque', 'Bulgare', 'Slovaque', 'Slovène',
-    'Lituanien', 'Letton', 'Estonien', 'Géorgien', 'Arménien',
-    'Kazakh', 'Ouzbek', 'Azerbaïdjanais', 'Mongol',
+    'Français',
+    'Anglais',
+    'Espagnol',
+    'Portugais',
+    'Allemand',
+    'Italien',
+    'Néerlandais',
+    'Russe',
+    'Chinois (Mandarin)',
+    'Japonais',
+    'Coréen',
+    'Arabe',
+    'Hindi',
+    'Bengali',
+    'Turc',
+    'Vietnamien',
+    'Thaïlandais',
+    'Polonais',
+    'Ukrainien',
+    'Roumain',
+    'Tchèque',
+    'Grec',
+    'Hongrois',
+    'Suédois',
+    'Norvégien',
+    'Danois',
+    'Finnois',
+    'Hébreu',
+    'Persan',
+    'Swahili',
+    'Haoussa',
+    'Yoruba',
+    'Igbo',
+    'Amharique',
+    'Somali',
+    'Wolof',
+    'Bambara',
+    'Dioula',
+    'Lingala',
+    'Kikongo',
+    'Peul',
+    'Mooré',
+    'Baoulé',
+    'Bété',
+    'Sénoufo',
+    'Malinké',
+    'Soussou',
+    'Créole',
+    'Tamoul',
+    'Ourdou',
+    'Malais',
+    'Indonésien',
+    'Tagalog',
+    'Catalan',
+    'Basque',
+    'Galicien',
+    'Serbe',
+    'Croate',
+    'Bosniaque',
+    'Bulgare',
+    'Slovaque',
+    'Slovène',
+    'Lituanien',
+    'Letton',
+    'Estonien',
+    'Géorgien',
+    'Arménien',
+    'Kazakh',
+    'Ouzbek',
+    'Azerbaïdjanais',
+    'Mongol',
   ];
 
   void _add(BuildContext context) =>
@@ -77,8 +127,8 @@ class LanguagesSection extends StatelessWidget {
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text.isEmpty) return const [];
               final query = textEditingValue.text.toLowerCase();
-              return _allLanguages.where(
-                  (l) => l.toLowerCase().startsWith(query));
+              return _allLanguages
+                  .where((l) => l.toLowerCase().startsWith(query));
             },
             onSelected: (String selection) {
               langueText = selection;
@@ -141,12 +191,12 @@ class LanguagesSection extends StatelessWidget {
               final selected = selectedNiveau == n;
               final colorScheme = Theme.of(ctx).colorScheme;
               return GestureDetector(
-                onTap: () => setState(
-                    () => selectedNiveau = selected ? null : n),
+                onTap: () =>
+                    setState(() => selectedNiveau = selected ? null : n),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: selected
                         ? colorScheme.primary
@@ -165,19 +215,17 @@ class LanguagesSection extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
-                          color: selected
-                              ? Colors.white
-                              : colorScheme.onSurface,
+                          color:
+                              selected ? Colors.white : colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        _descriptions[n] ?? '',
+                        languageLevelLabel(n),
                         style: TextStyle(
                           fontSize: 9,
                           color: selected
                               ? Colors.white.withValues(alpha: 0.8)
-                              : colorScheme.onSurface
-                                  .withValues(alpha: 0.5),
+                              : colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -222,7 +270,7 @@ class LanguagesSection extends StatelessWidget {
               return SectionItemTile(
                 title: lang.langue ?? '',
                 subtitle: lang.niveau != null
-                    ? '${lang.niveau} — ${_descriptions[lang.niveau] ?? ''}'
+                    ? '${lang.niveau} — ${languageLevelLabel(lang.niveau)}'
                     : '',
                 badge: lang.niveau == 'NATIF' ? 'Natif' : null,
                 badgeColor: colorScheme.primary,
