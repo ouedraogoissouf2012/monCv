@@ -81,6 +81,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private EnhanceCvResponse parseEnhanceResponse(String rawContent, Cv cv, String level) {
         List<String> allMarkers = buildMarkerList(cv);
 
+        // Parse titre de l'offre (pour le label de la variante)
+        String titreOffre = AiResponseParser.extractBetweenMarkers(rawContent, "TITRE_OFFRE:", allMarkers);
+
         // Parse titre poste
         String titrePoste = AiResponseParser.extractBetweenMarkers(rawContent, "TITRE_POSTE:", allMarkers);
         if (titrePoste.isBlank() && cv.getPersonalInfo() != null) {
@@ -175,6 +178,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         EnhanceCvResponse response = EnhanceCvResponse.builder()
                 .titrePoste(cleanedTitre)
                 .resumeProfessionnel(cleanedResume)
+                .titreOffre(titreOffre.isBlank() ? null : titreOffre)
                 .experiences(expEnhancements)
                 .educations(eduEnhancements)
                 .skills(skillEnhancements.stream().limit(10).collect(Collectors.toList()))
@@ -225,7 +229,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
             }
         }
 
-        appendResponseFormat(sb, cv);
+        appendResponseFormat(sb, cv, false);
         appendCurrentCvData(sb, cv);
 
         return sb.toString();
@@ -235,6 +239,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en redaction de CV professionnels. ");
         sb.append("Adapte ce CV pour correspondre au maximum a cette offre d'emploi. ");
+        sb.append("Extrait aussi un titre court de l'offre (ex: 'Developpeur Backend Java — Sopra Steria'). ");
         sb.append("OFFRE D'EMPLOI:\n").append(jobDescription).append("\n\n");
 
         sb.append(GRAMMAR_RULE);
@@ -245,15 +250,18 @@ public class EnhancementServiceImpl implements IEnhancementService {
         sb.append(QUANTIFICATION_RULE);
         sb.append(SKILL_CATEGORY_RULE);
 
-        appendResponseFormat(sb, cv);
+        appendResponseFormat(sb, cv, true);
         appendCurrentCvData(sb, cv);
 
         return sb.toString();
     }
 
-    private void appendResponseFormat(StringBuilder sb, Cv cv) {
+    private void appendResponseFormat(StringBuilder sb, Cv cv, boolean includeJobTitle) {
         sb.append("\nReponds en francais uniquement. ");
         sb.append("IMPORTANT: Utilise EXACTEMENT ce format avec les marqueurs :\n\n");
+        if (includeJobTitle) {
+            sb.append("TITRE_OFFRE:\n(titre court de l'offre, max 60 caracteres, ex: 'Developpeur Backend Java — Sopra Steria')\n\n");
+        }
         sb.append("TITRE_POSTE:\n(titre de poste ameliore)\n\n");
         sb.append("RESUME:\n(resume professionnel ameliore)\n\n");
 
@@ -311,6 +319,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
     private List<String> buildMarkerList(Cv cv) {
         List<String> markers = new ArrayList<>();
+        markers.add("TITRE_OFFRE:");
         markers.add("TITRE_POSTE:");
         markers.add("RESUME:");
         for (Experience exp : cv.getExperiences()) markers.add("EXP_" + exp.getId() + ":");

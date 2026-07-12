@@ -184,5 +184,43 @@ void main() {
       );
       expect(cv.completionScore, 100);
     });
+
+    // ── Tests variantes ───────────────────────────────────────
+
+    testWidgets('affiche le badge Variante quand isVariante est true', (tester) async {
+      final variant = Cv(
+        id: 20,
+        titre: 'Mon CV — Dev Backend',
+        varianteLabel: 'Dev Backend Java',
+        parentCvId: 10,
+      );
+      await tester.pumpWidget(_buildCard(variant));
+      await tester.pump();
+
+      expect(find.textContaining('Variante'), findsOneWidget);
+      expect(find.textContaining('Dev Backend Java'), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+    });
+
+    testWidgets('n\'affiche PAS le badge Variante pour un CV normal', (tester) async {
+      await tester.pumpWidget(_buildCard(_fakeCvComplete()));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.tune_rounded), findsNothing);
+    });
+
+    testWidgets('affiche le compteur variantes quand variantCount > 0', (tester) async {
+      final parent = Cv(
+        id: 10,
+        titre: 'Mon CV Original',
+        variantCount: 3,
+        personalInfo: PersonalInfo(nom: 'Doe', prenom: 'John', email: 'j@e.com'),
+        experiences: [Experience(entreprise: 'Acme', poste: 'Dev')],
+      );
+      await tester.pumpWidget(_buildCard(parent));
+      await tester.pump();
+
+      expect(find.text('3 variantes'), findsOneWidget);
+    });
   });
 }

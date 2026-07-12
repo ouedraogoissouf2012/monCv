@@ -28,6 +28,7 @@ void main() {
   late MockUpdateCvUseCase mockUpdateCv;
   late MockDeleteCvUseCase mockDeleteCv;
   late MockDuplicateCvUseCase mockDuplicate;
+  late MockCreateVariantUseCase mockCreateVariant;
   late MockCvRepository mockCvRepo;
   late MockConnectivityService mockConnectivity;
   late StreamController<bool> connectivityCtrl;
@@ -47,13 +48,15 @@ void main() {
     mockUpdateCv = MockUpdateCvUseCase();
     mockDeleteCv = MockDeleteCvUseCase();
     mockDuplicate = MockDuplicateCvUseCase();
+    mockCreateVariant = MockCreateVariantUseCase();
     mockCvRepo = MockCvRepository();
     mockConnectivity = MockConnectivityService();
     connectivityCtrl = StreamController<bool>.broadcast();
 
     registerAllFallbackValues();
 
-    when(() => mockStorage.read(key: 'access_token')).thenAnswer((_) async => null);
+    when(() => mockStorage.read(key: 'access_token'))
+        .thenAnswer((_) async => null);
     when(() => mockConnectivity.onConnectivityChanged)
         .thenAnswer((_) => connectivityCtrl.stream);
 
@@ -79,6 +82,7 @@ void main() {
         updateCv: mockUpdateCv,
         deleteCv: mockDeleteCv,
         duplicateCv: mockDuplicate,
+        createVariantUseCase: mockCreateVariant,
         repository: mockCvRepo,
         connectivity: mockConnectivity,
       );
@@ -117,7 +121,8 @@ void main() {
         'test@example.com',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.widgetWithText(
+            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
         'password123',
       );
 
@@ -147,8 +152,8 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
 
       // Mock login → echec
-      when(() => mockLogin(any())).thenAnswer((_) async =>
-          const Result.failure(AuthException(message: 'Email ou mot de passe incorrect')));
+      when(() => mockLogin(any())).thenAnswer((_) async => const Result.failure(
+          AuthException(message: 'Email ou mot de passe incorrect')));
 
       final authProvider = buildAuthProvider();
       final cvProvider = buildCvProvider();
@@ -166,7 +171,8 @@ void main() {
         'wrong@test.com',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.widgetWithText(
+            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
         'badpassword',
       );
       await tester.tap(find.widgetWithText(ElevatedButton, 'Se connecter'));

@@ -17,6 +17,7 @@ import 'package:cv_mobile/usecases/cv/create_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/update_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/delete_cv_usecase.dart';
 import 'package:cv_mobile/usecases/cv/duplicate_cv_usecase.dart';
+import 'package:cv_mobile/usecases/cv/create_variant_usecase.dart';
 
 import 'fake_data.dart';
 
@@ -44,6 +45,8 @@ class MockDeleteCvUseCase extends Mock implements DeleteCvUseCase {}
 
 class MockDuplicateCvUseCase extends Mock implements DuplicateCvUseCase {}
 
+class MockCreateVariantUseCase extends Mock implements CreateVariantUseCase {}
+
 // ── Repositories ────────────────────────────────────────────
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -65,4 +68,5 @@ void registerAllFallbackValues() {
   registerFallbackValue(const UpdateProfileParams());
   registerFallbackValue(fakeCv());
   registerFallbackValue(UpdateCvParams(id: 0, cv: fakeCv()));
+  registerFallbackValue(const CreateVariantParams(cvId: 0, jobDescription: ''));
 }
