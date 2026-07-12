@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,25 +10,42 @@ import 'screens/cv/cv_detail_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
+import 'screens/privacy/privacy_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
 class AppRouter {
+  @visibleForTesting
+  static String? resolveAuthRedirect({
+    required bool isCheckingAuth,
+    required bool isAuthenticated,
+    required String location,
+    required bool isWeb,
+  }) {
+    if (isCheckingAuth) return null;
+
+    final isPublic = location == '/login' ||
+        location == '/register' ||
+        location == '/privacy' ||
+        location == '/landing';
+
+    if (!isAuthenticated && !isPublic) {
+      return isWeb ? '/landing' : '/login';
+    }
+    if (isAuthenticated && isPublic) return '/home';
+    return null;
+  }
+
   static GoRouter create(AuthProvider authProvider) {
     return GoRouter(
       refreshListenable: authProvider,
       initialLocation: '/home',
       redirect: (context, state) {
-        final isLoggedIn = authProvider.isAuthenticated;
-        final location = state.matchedLocation;
-        final isPublic = location == '/login' ||
-            location == '/register' ||
-            location == '/landing';
-
-        if (!isLoggedIn && !isPublic) {
-          return kIsWeb ? '/landing' : '/login';
-        }
-        if (isLoggedIn && isPublic) return '/home';
-        return null;
+        return resolveAuthRedirect(
+          isCheckingAuth: authProvider.isCheckingAuth,
+          isAuthenticated: authProvider.isAuthenticated,
+          location: state.matchedLocation,
+          isWeb: kIsWeb,
+        );
       },
       routes: [
         GoRoute(
@@ -42,6 +59,10 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/privacy',
+          builder: (context, state) => const PrivacyScreen(),
         ),
         GoRoute(
           path: '/home',
@@ -65,7 +86,9 @@ class AppRouter {
             return CvFormScreen(cv: cv);
           },
         ),
-        GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+        GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen()),
       ],
       errorBuilder: (context, state) => Scaffold(
         appBar: AppBar(title: const Text('Page introuvable')),

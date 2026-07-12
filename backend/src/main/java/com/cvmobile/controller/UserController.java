@@ -1,8 +1,10 @@
 package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
+import com.cvmobile.dto.CvResponse;
 import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
+import com.cvmobile.service.cv.ICvService;
 import com.cvmobile.service.user.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,6 +25,7 @@ public class UserController {
 
     private final IUserService userService;
     private final UserMapper userMapper;
+    private final ICvService cvService;
 
     @GetMapping("/me")
     @Operation(summary = "Obtenir le profil de l'utilisateur connecte")
@@ -45,6 +48,20 @@ public class UserController {
 
         User updatedUser = userService.save(user);
         return ResponseEntity.ok(userMapper.toUserDto(updatedUser));
+    }
+
+    @GetMapping("/me/export")
+    @Operation(summary = "Exporter les donnees personnelles et CV de l'utilisateur connecte")
+    public ResponseEntity<Map<String, Object>> exportCurrentUser(@AuthenticationPrincipal User user) {
+        AuthResponse.UserDto profile = userMapper.toUserDto(user);
+        java.util.List<CvResponse> cvs = cvService.getAllCvsByUserId(user.getId());
+
+        return ResponseEntity.ok(Map.of(
+                "profile", profile,
+                "cvs", cvs,
+                "cvCount", cvs.size(),
+                "exportedAt", java.time.OffsetDateTime.now().toString(),
+                "notice", "Export JSON des donnees MonCV rattachees au compte connecte."));
     }
 
     @DeleteMapping("/me")

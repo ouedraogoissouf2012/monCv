@@ -15,14 +15,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Rate limiter simple sur les endpoints /api/auth/*.
- * Max 10 requetes par minute par IP.
+ * Rate limiter simple sur les endpoints exposes aux abus publics ou IA.
+ * Les compteurs sont en memoire: suffisant pour une premiere protection PWA,
+ * a remplacer par Redis/Bucket4j en environnement multi-instance.
  */
 @Slf4j
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_REQUESTS_PER_MINUTE = 10;
+    private static final int AUTH_MAX_REQUESTS_PER_MINUTE = 10;
+    private static final int AI_MAX_REQUESTS_PER_MINUTE = 20;
+    private static final int PUBLIC_MAX_REQUESTS_PER_MINUTE = 60;
     private static final long WINDOW_MS = 60_000;
 
     private final Map<String, RateWindow> ipWindows = new ConcurrentHashMap<>();
@@ -33,13 +36,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                      @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        if (!path.startsWith("/api/auth/")) {
+        int limit = limitForPath(path);
+        if (limit <= 0) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String ip = getClientIp(request);
-        RateWindow window = ipWindows.compute(ip, (k, v) -> {
+        String key = ip + ":" + bucketForPath(path);
+        RateWindow window = ipWindows.compute(key, (k, v) -> {
             long now = System.currentTimeMillis();
             if (v == null || now - v.startTime > WINDOW_MS) {
                 return new RateWindow(now);
@@ -48,8 +53,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         });
 
         int count = window.counter.incrementAndGet();
-        if (count > MAX_REQUESTS_PER_MINUTE) {
-            log.warn("Rate limit depasse pour IP: {} sur {}", ip, path);
+        if (count > limit) {
+            log.warn("Rate limit depasse pour IP: {} sur endpoint {}", ip, bucketForPath(path));
             response.setStatus(429);
             response.setContentType("application/json");
             response.setHeader("Retry-After", "60");
@@ -60,6 +65,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private int limitForPath(String path) {
+        if (path.startsWith("/api/auth/")) return AUTH_MAX_REQUESTS_PER_MINUTE;
+        if (path.startsWith("/api/ai/")) return AI_MAX_REQUESTS_PER_MINUTE;
+        if (path.startsWith("/api/cvs/public/")) return PUBLIC_MAX_REQUESTS_PER_MINUTE;
+        return 0;
+    }
+
+    private String bucketForPath(String path) {
+        if (path.startsWith("/api/auth/")) return "auth";
+        if (path.startsWith("/api/ai/")) return "ai";
+        if (path.startsWith("/api/cvs/public/")) return "public-cv";
+        return "other";
     }
 
     private String getClientIp(HttpServletRequest request) {
