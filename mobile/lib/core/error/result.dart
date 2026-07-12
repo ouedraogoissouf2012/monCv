@@ -132,3 +132,23 @@ final class ConflictException extends AppException {
     super.originalError,
   });
 }
+
+/// Erreur specifique au sous-systeme IA.
+/// Mappe les codes backend AI_* (AI_KEY_INVALID, AI_QUOTA_EXCEEDED, AI_TIMEOUT,
+/// AI_PROVIDER_DOWN, AI_PARSE_ERROR) en messages user-friendly.
+///
+/// Remplace l'ancien message trompeur "Mode hors ligne - cle DeepSeek manquante"
+/// qui s'affichait pour toutes les erreurs IA sans distinction.
+final class AiException extends AppException {
+  /// Nombre de secondes avant de pouvoir retenter (pour AI_QUOTA_EXCEEDED).
+  final int? retryAfterSeconds;
+  final String? provider;
+
+  const AiException({
+    required super.message,
+    required String super.code,
+    this.retryAfterSeconds,
+    this.provider,
+    super.originalError,
+  });
+}

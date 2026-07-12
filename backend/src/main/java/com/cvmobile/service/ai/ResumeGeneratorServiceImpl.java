@@ -20,32 +20,25 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
 
     @Override
     public Map<String, String> generateResume(String titrePoste, String competences, String experience) {
-        if (!aiClient.isAvailable()) {
-            return Map.of("resume", buildFallbackResume(titrePoste));
-        }
-        try {
-            String prompt = "Tu es un expert en redaction de CV professionnels. "
-                    + "Ecris un resume professionnel de 3-4 phrases pour un CV francophone. "
-                    + "REGLES: "
-                    + AiPromptRules.FRANCOPHONE_MARKET_RULE
-                    + AiPromptRules.ANTI_CLICHES_RULE
-                    + "- Commence par le titre du poste et les annees d'experience "
-                    + "- Mentionne les competences cles "
-                    + "- Inclus un resultat chiffre si possible "
-                    + "- Utilise des verbes d'action concrets "
-                    + "- Garde un ton naturel, sobre, credible pour PME, cabinets RH et recruteurs internationaux "
-                    + "- Reponds UNIQUEMENT avec le texte du resume, rien d'autre\n\n"
-                    + "Poste: " + (titrePoste != null ? titrePoste : "non precise") + "\n"
-                    + "Competences: " + (competences != null ? competences : "non precisees") + "\n"
-                    + "Experience: " + (experience != null ? experience : "non precisee");
+        String prompt = "Tu es un expert en redaction de CV professionnels. "
+                + "Ecris un resume professionnel de 3-4 phrases pour un CV francophone. "
+                + "REGLES: "
+                + AiPromptRules.FRANCOPHONE_MARKET_RULE
+                + AiPromptRules.ANTI_CLICHES_RULE
+                + "- Commence par le titre du poste et les annees d'experience "
+                + "- Mentionne les competences cles "
+                + "- Inclus un resultat chiffre si possible "
+                + "- Utilise des verbes d'action concrets "
+                + "- Garde un ton naturel, sobre, credible pour PME, cabinets RH et recruteurs internationaux "
+                + "- Reponds UNIQUEMENT avec le texte du resume, rien d'autre\n\n"
+                + "Poste: " + (titrePoste != null ? titrePoste : "non precise") + "\n"
+                + "Competences: " + (competences != null ? competences : "non precisees") + "\n"
+                + "Experience: " + (experience != null ? experience : "non precisee");
 
-            String result = aiClient.complete(prompt, 500).strip();
-            result = result.replaceAll("^\"|\"$", "");
-            return Map.of("resume", result);
-        } catch (Exception e) {
-            log.warn("Resume generation failed: {}", e.getMessage());
-            return Map.of("resume", buildFallbackResume(titrePoste));
-        }
+        // Exceptions IA propagees au GlobalExceptionHandler (plus de fallback silencieux)
+        String result = aiClient.complete(prompt, 500).strip();
+        result = result.replaceAll("^\"|\"$", "");
+        return Map.of("resume", result);
     }
 
     private String buildFallbackResume(String titrePoste) {
