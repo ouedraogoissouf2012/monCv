@@ -198,6 +198,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
+        sb.append(FRANCOPHONE_MARKET_RULE);
 
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
@@ -240,6 +241,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         sb.append(TITLE_RULE);
         sb.append(ANTI_CLICHES_RULE);
         sb.append(STYLE_RULE);
+        sb.append(FRANCOPHONE_MARKET_RULE);
         sb.append(QUANTIFICATION_RULE);
         sb.append(SKILL_CATEGORY_RULE);
 
