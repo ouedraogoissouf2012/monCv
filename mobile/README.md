@@ -1,16 +1,29 @@
-# cv_mobile
+# MonCV Mobile
 
-A new Flutter project.
+Application Flutter de creation, optimisation et export de CV professionnels.
 
-## Getting Started
+## Lancement local web
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run -d chrome --web-port=3001
+```
 
-A few resources to get you started if this is your first Flutter project:
+Par defaut, le web local appelle :
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```text
+http://localhost:8082/api
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Build PWA production
+
+```bash
+flutter build web --release \
+  --pwa-strategy=offline-first \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api
+```
+
+En production, `APP_ENV=production` bloque le fallback vers `localhost`. `API_BASE_URL` doit etre fourni et commencer par `https://`.
+
+Voir aussi : `../docs/PWA_PRODUCTION.md`.
