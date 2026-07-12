@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/api_service.dart';
 import 'form_sheet.dart';
@@ -8,6 +9,7 @@ Future<void> showSuggestionsSheet(
   List<String> suggestions,
   TextEditingController controller,
 ) {
+  final l = AppLocalizations.of(context)!;
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -32,25 +34,25 @@ Future<void> showSuggestionsSheet(
             ),
           ),
           const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.auto_awesome, size: 18),
-                SizedBox(width: 8),
+                const Icon(Icons.auto_awesome, size: 18),
+                const SizedBox(width: 8),
                 Text(
-                  'Suggestions IA',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  l.aiSuggestions,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 4),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Appuyez sur une suggestion pour l\'ajouter à la description.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              l.tapSuggestion,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ),
           const Divider(height: 20),
@@ -118,6 +120,7 @@ class ExperienceSection extends StatelessWidget {
     Experience? exp,
     Function(Experience) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     final posteCtrl = TextEditingController(text: exp?.poste);
     final entrepriseCtrl = TextEditingController(text: exp?.entreprise);
     final lieuCtrl = TextEditingController(text: exp?.lieu);
@@ -129,7 +132,7 @@ class ExperienceSection extends StatelessWidget {
 
     showFormSheet(
       context: context,
-      title: exp == null ? 'Ajouter une expérience' : 'Modifier l\'expérience',
+      title: exp == null ? l.addExperience : l.editExperience,
       icon: Icons.work_outline_rounded,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -137,25 +140,25 @@ class ExperienceSection extends StatelessWidget {
         children: [
           TextFormField(
             controller: posteCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Intitulé du poste *',
-              prefixIcon: Icon(Icons.badge_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: l.jobTitleRequired,
+              prefixIcon: const Icon(Icons.badge_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: entrepriseCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Entreprise *',
-              prefixIcon: Icon(Icons.business_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: l.companyRequired,
+              prefixIcon: const Icon(Icons.business_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: lieuCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Lieu',
-              prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: l.location,
+              prefixIcon: const Icon(Icons.location_on_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 16),
@@ -171,7 +174,7 @@ class ExperienceSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Début *',
+              label: l.startRequired,
                   date: debut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -188,7 +191,7 @@ class ExperienceSection extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: SectionDateButton(
-                    label: 'Fin',
+              label: l.end,
                     date: fin,
                     onTap: () async {
                       final d = await showDatePicker(
@@ -207,9 +210,9 @@ class ExperienceSection extends StatelessWidget {
           const SizedBox(height: 12),
           TextFormField(
             controller: descCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Description des responsabilités',
-              hintText: 'Décrivez vos missions principales...',
+            decoration: InputDecoration(
+              labelText: l.responsibilitiesDescription,
+              hintText: l.responsibilitiesHint,
               alignLabelWithHint: true,
             ),
             maxLines: 3,
@@ -230,15 +233,15 @@ class ExperienceSection extends StatelessWidget {
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(
-                    content: const Text(
-                      'Suggestions IA indisponibles — clé OpenAI non configurée sur le serveur',
+                    content: Text(
+                      l.aiSuggestionsUnavailable,
                     ),
                     backgroundColor: Theme.of(ctx).colorScheme.errorContainer,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                     action: SnackBarAction(
-                      label: 'OK',
+                  label: l.close,
                       onPressed: () {},
                     ),
                   ),
@@ -265,14 +268,15 @@ class ExperienceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (experiences.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.work_outline_rounded,
-            label: 'Aucune expérience ajoutée',
+            label: l.noneExperience,
           )
         else
           ListView.builder(
@@ -283,9 +287,9 @@ class ExperienceSection extends StatelessWidget {
               final exp = experiences[i];
               return SectionItemTile(
                 title:
-                    exp.poste?.isNotEmpty == true ? exp.poste! : 'Sans titre',
+                    exp.poste?.isNotEmpty == true ? exp.poste! : l.untitled,
                 subtitle: exp.entreprise ?? '',
-                badge: exp.actuel ? 'En poste' : null,
+                badge: exp.actuel ? l.currentPosition : null,
                 badgeColor: Colors.green,
                 onEdit: () => _edit(ctx, i),
                 onDelete: () => _delete(i),
@@ -294,7 +298,7 @@ class ExperienceSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter une expérience',
+          label: l.addExperience,
           onTap: () => _add(context),
         ),
       ],

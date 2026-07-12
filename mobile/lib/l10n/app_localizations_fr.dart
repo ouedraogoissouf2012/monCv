@@ -21,6 +21,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get email => 'Adresse email';
 
   @override
+  String get emailShort => 'Email';
+
+  @override
   String get password => 'Mot de passe';
 
   @override
@@ -51,6 +54,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fieldRequired => 'Champ requis';
 
   @override
+  String requiredFieldMessage(String section, String field) {
+    return '$section : $field obligatoire.';
+  }
+
+  @override
+  String get completePersonalInfo =>
+      'Identite : completez vos informations personnelles.';
+
+  @override
+  String get invalidEmailMessage => 'Identite : format email invalide.';
+
+  @override
+  String numberedItem(String section, int index) {
+    return '$section $index';
+  }
+
+  @override
+  String endDateBeforeStart(String item) {
+    return '$item : la date de fin doit etre apres la date de debut.';
+  }
+
+  @override
+  String skillLevelRange(String item) {
+    return '$item : le niveau doit etre entre 1 et 5.';
+  }
+
+  @override
+  String certificationExpirationBeforeIssue(String item) {
+    return '$item : expiration avant obtention.';
+  }
+
+  @override
   String get confirmPassword => 'Confirmer le mot de passe';
 
   @override
@@ -78,7 +113,164 @@ class AppLocalizationsFr extends AppLocalizations {
   String get registerError => 'Erreur d\'inscription';
 
   @override
-  String get createMyAccount => 'Creer mon compte';
+  String get createMyAccount => 'Créer mon compte';
+
+  @override
+  String get landingHeroTitle => 'Creez un CV\nqui parle aux recruteurs';
+
+  @override
+  String get landingHeroTitleMobile => 'Creez un CV\nqui parle aux\nrecruteurs';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Francais professionnel, formats ATS, partage WhatsApp et export PDF/DOCX pour candidatures locales ou internationales.';
+
+  @override
+  String get createCvFree => 'Créer mon CV gratuitement';
+
+  @override
+  String get bilingual => 'Bilingue';
+
+  @override
+  String get templates => 'Templates';
+
+  @override
+  String get compatible => 'Compatible';
+
+  @override
+  String get aiFeatureTitle => 'Intelligence Artificielle';
+
+  @override
+  String get aiFeatureDescription =>
+      'Un francais naturel, precis et sans phrases artificielles.';
+
+  @override
+  String get templatesFeatureTitle => 'Templates cibles';
+
+  @override
+  String get templatesFeatureDescription =>
+      'Corporate, junior, senior, tech et ATS international.';
+
+  @override
+  String get atsFeatureTitle => 'Score ATS';
+
+  @override
+  String get atsFeatureDescription =>
+      'Collez une offre et obtenez un score de correspondance.';
+
+  @override
+  String get docxFeatureTitle => 'Export DOCX';
+
+  @override
+  String get docxFeatureDescription =>
+      'Telechargez en Word pour une compatibilite ATS maximale.';
+
+  @override
+  String get mobileFeatureTitle => 'Mobile-first Afrique';
+
+  @override
+  String get mobileFeatureDescription =>
+      'Pense pour creer, corriger, exporter et partager depuis un telephone.';
+
+  @override
+  String get whatsAppFeatureTitle => 'Partage WhatsApp';
+
+  @override
+  String get whatsAppFeatureDescription =>
+      'Envoyez un lien propre a un recruteur ou a un contact RH.';
+
+  @override
+  String get allYouNeed => 'Tout ce dont vous avez besoin';
+
+  @override
+  String get allYouNeedSubtitle =>
+      'Un outil complet pour creer des CV qui font la difference.';
+
+  @override
+  String get clearCvTitle => 'Un CV clair pour candidater partout';
+
+  @override
+  String get clearCvSubtitle =>
+      'Un rendu lisible pour recruteurs, PME, cabinets et ATS';
+
+  @override
+  String get sampleProfile => 'PROFIL';
+
+  @override
+  String get sampleProfileText =>
+      'Ingenieur Full Stack avec 3 ans d\'experience. Expert Java/Spring Boot et Flutter.';
+
+  @override
+  String get sampleSkills => 'COMPETENCES';
+
+  @override
+  String get sampleExperiences => 'EXPERIENCES';
+
+  @override
+  String get howItWorks => 'Comment ca marche';
+
+  @override
+  String get fillIn => 'Remplissez';
+
+  @override
+  String get fillInDescription =>
+      'Des aides courtes guident titre, resume et experiences.';
+
+  @override
+  String get adapt => 'Adaptez';
+
+  @override
+  String get adaptDescription =>
+      'Corrigez le francais et choisissez un template selon le poste.';
+
+  @override
+  String get send => 'Partagez';
+
+  @override
+  String get sendDescription =>
+      'Exportez en PDF/DOCX ou envoyez le lien par WhatsApp.';
+
+  @override
+  String get readyToApply => 'Pret a candidater avec un CV propre ?';
+
+  @override
+  String get readyToApplySubtitle =>
+      'Mobile, rapide, lisible et pense pour le marche francophone.';
+
+  @override
+  String get startNow => 'Commencer maintenant';
+
+  @override
+  String get landingFooter =>
+      '© 2026 MonCV. CV francophone, mobile-first et compatible ATS.';
+
+  @override
+  String get sampleCandidateName => 'ISSOUF OUEDRAOGO';
+
+  @override
+  String get sampleCandidateRole => 'Ingenieur Logiciel Full Stack';
+
+  @override
+  String get sampleCandidateContact =>
+      'issouf@gmail.com | +225 07 44 21 01 12 | Abidjan';
+
+  @override
+  String get sampleCandidatePosition => 'Lead Developer';
+
+  @override
+  String get sampleCandidateCompany => 'DIGIT AFRICAN - Abidjan';
+
+  @override
+  String get lite => 'Lite';
+
+  @override
+  String get medium => 'Medium';
+
+  @override
+  String get maximum => 'Max';
+
+  @override
+  String get whatsApp => 'WhatsApp';
 
   @override
   String get myCvs => 'Mes CVs';
@@ -236,13 +428,178 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptToJob => 'Adapter a une offre';
 
   @override
+  String get adaptToJobDescription =>
+      'Collez le texte d\'une offre d\'emploi pour analyser la correspondance';
+
+  @override
+  String get jobOfferHint => 'Collez ici le texte de l\'offre d\'emploi...';
+
+  @override
+  String get jobOfferTooShort =>
+      'Collez le texte complet de l\'offre (min 20 caracteres)';
+
+  @override
+  String get jobMatchConsent =>
+      'J\'accepte que le CV et le texte de l\'offre soient envoyes au service IA pour calculer la correspondance.';
+
+  @override
+  String get analyzing => 'Analyse en cours...';
+
+  @override
+  String get analyzeMatch => 'Analyser la correspondance';
+
+  @override
+  String get analyzeAnotherOffer => 'Analyser une autre offre';
+
+  @override
+  String get matchedKeywords => 'Mots-cles presents';
+
+  @override
+  String get missingKeywords => 'Mots-cles manquants';
+
+  @override
+  String get suggestions => 'Suggestions';
+
+  @override
+  String get creatingVariant => 'Creation en cours...';
+
+  @override
+  String get createAdaptedVariant => 'Creer une variante adaptee';
+
+  @override
+  String variantCreated(String label) {
+    return 'Variante \"$label\" creee';
+  }
+
+  @override
+  String get variantCreationError =>
+      'Erreur lors de la creation de la variante';
+
+  @override
+  String errorWithDetails(String error) {
+    return 'Erreur : $error';
+  }
+
+  @override
+  String get goodMatch => 'Bon match';
+
+  @override
+  String get averageMatch => 'Match moyen';
+
+  @override
+  String get lowMatch => 'Faible match';
+
+  @override
+  String get jobMatchScore => 'Score de correspondance avec l\'offre';
+
+  @override
   String get generateWithAi => 'Generer avec l\'IA';
+
+  @override
+  String get proofreadingTitle => 'Correction orthographique';
+
+  @override
+  String get proofreadingSubtitle =>
+      'Relisez tout le CV sans modifier le sens ni inventer de contenu.';
+
+  @override
+  String get enhancementSubtitle =>
+      'Choisissez le niveau d\'amelioration souhaite';
+
+  @override
+  String get liteLevelDescription =>
+      'Correction orthographe & grammaire uniquement';
+
+  @override
+  String get mediumLevelDescription =>
+      'Correction et reformulation pour plus d\'impact';
+
+  @override
+  String get maxLevelDescription =>
+      'Restructuration complete, mots-cles ATS et verbes d\'action';
+
+  @override
+  String get proofreadingGuarantee =>
+      'Orthographe, grammaire, accents et termes professionnels. Les niveaux et les faits restent inchanges.';
+
+  @override
+  String get proofreadingInProgress => 'Relecture en cours...';
+
+  @override
+  String get proofreadCv => 'Relire le CV';
+
+  @override
+  String get improve => 'Ameliorer';
+
+  @override
+  String get apply => 'Appliquer';
+
+  @override
+  String get aiConsent =>
+      'J\'accepte que le contenu de ce CV soit envoye au service IA pour generer des corrections ou suggestions. Les changements restent a valider avant application.';
+
+  @override
+  String get enhancementGenerated => 'Amelioration generee';
+
+  @override
+  String get fallbackResult =>
+      'Resultat degrade (fournisseur de secours utilise)';
+
+  @override
+  String get aiProofreadingComplete => 'Relecture IA terminee';
+
+  @override
+  String get localProofreadingComplete => 'Relecture locale terminee';
+
+  @override
+  String get noCertainCorrection => 'Aucune correction certaine detectee.';
+
+  @override
+  String correctedFields(int count) {
+    return '$count champ(s) corrige(s).';
+  }
+
+  @override
+  String get textCanBeApplied => 'Le texte peut etre applique sans changement.';
+
+  @override
+  String get pointsToClarify => 'Points a preciser';
+
+  @override
+  String get before => 'Avant';
+
+  @override
+  String get after => 'Apres';
 
   @override
   String get generating => 'Generation...';
 
   @override
   String get aiSuggestionsApplied => 'Suggestions IA appliquees';
+
+  @override
+  String get spellingCorrectionsApplied => 'Corrections appliquees';
+
+  @override
+  String get applicationError => 'Erreur lors de l\'application';
+
+  @override
+  String get proofreadSpelling => 'Corriger l\'orthographe';
+
+  @override
+  String get adaptedVariantCreated => 'Variante adaptee creee';
+
+  @override
+  String get styleNotSaved => 'Style non sauvegarde';
+
+  @override
+  String get customizeCv => 'Personnaliser le CV';
+
+  @override
+  String get livePreview => 'Apercu en direct';
+
+  @override
+  String get savingShort => 'Sauvegarde...';
 
   @override
   String get template => 'Template';
@@ -290,6 +647,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get professionalSummary => 'Resume professionnel';
 
   @override
+  String get description => 'Description';
+
+  @override
+  String get establishment => 'Etablissement';
+
+  @override
+  String get degree => 'Diplome';
+
+  @override
+  String get fieldOfStudy => 'Domaine';
+
+  @override
+  String get organization => 'Organisme';
+
+  @override
+  String get technologies => 'Technologies';
+
+  @override
+  String get name => 'Nom';
+
+  @override
   String get experiences => 'Experiences';
 
   @override
@@ -308,7 +686,71 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projects => 'Projets';
 
   @override
-  String get addExperience => 'Ajouter une experience';
+  String get contactAndProfile => 'Coordonnees & profil';
+
+  @override
+  String get careerPath => 'Parcours professionnel';
+
+  @override
+  String get degreesAndStudies => 'Diplomes & etudes';
+
+  @override
+  String get skillsAndLanguages => 'Competences & langues';
+
+  @override
+  String get extras => 'Extras';
+
+  @override
+  String get certificationsAndProjects => 'Certifications & projets';
+
+  @override
+  String get myCv => 'Mon CV';
+
+  @override
+  String cvDefaultTitle(String firstName, String lastName) {
+    return 'CV $firstName $lastName';
+  }
+
+  @override
+  String get cvCreatedSuccess => 'CV cree avec succes';
+
+  @override
+  String get cvUpdatedSuccess => 'CV mis a jour';
+
+  @override
+  String get editCv => 'Modifier le CV';
+
+  @override
+  String get previous => 'Precedent';
+
+  @override
+  String get next => 'Suivant';
+
+  @override
+  String get saving => 'Enregistrement...';
+
+  @override
+  String get saveCv => 'Enregistrer le CV';
+
+  @override
+  String completion(int percent) {
+    return 'Complétion : $percent%';
+  }
+
+  @override
+  String get cvCompletion => 'COMPLETION DU CV';
+
+  @override
+  String get toComplete => 'A completer';
+
+  @override
+  String get goodStart => 'Bon debut !';
+
+  @override
+  String get excellent => 'Excellent !';
+
+  @override
+  String get addExperience => 'Ajouter une expérience';
 
   @override
   String get addEducation => 'Ajouter une formation';
@@ -324,6 +766,279 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addProject => 'Ajouter un projet';
+
+  @override
+  String get editExperience => 'Modifier l\'expérience';
+
+  @override
+  String get editEducation => 'Modifier la formation';
+
+  @override
+  String get editSkill => 'Modifier la competence';
+
+  @override
+  String get editLanguage => 'Modifier la langue';
+
+  @override
+  String get editCertification => 'Modifier la certification';
+
+  @override
+  String get editProject => 'Modifier le projet';
+
+  @override
+  String get aiSuggestions => 'Suggestions IA';
+
+  @override
+  String get tapSuggestion =>
+      'Appuyez sur une suggestion pour l\'ajouter a la description.';
+
+  @override
+  String get jobTitleRequired => 'Intitulé du poste *';
+
+  @override
+  String get companyRequired => 'Entreprise *';
+
+  @override
+  String get location => 'Lieu';
+
+  @override
+  String get startRequired => 'Debut *';
+
+  @override
+  String get start => 'Debut';
+
+  @override
+  String get end => 'Fin';
+
+  @override
+  String get responsibilitiesDescription => 'Description des responsabilites';
+
+  @override
+  String get responsibilitiesHint => 'Decrivez vos missions principales...';
+
+  @override
+  String get aiSuggestionsUnavailable => 'Suggestions IA indisponibles';
+
+  @override
+  String get noneExperience => 'Aucune expérience ajoutée';
+
+  @override
+  String get noneEducation => 'Aucune formation ajoutee';
+
+  @override
+  String get noneSkill => 'Aucune competence ajoutee';
+
+  @override
+  String get noneLanguage => 'Aucune langue ajoutee';
+
+  @override
+  String get noneCertification => 'Aucune certification ajoutee';
+
+  @override
+  String get noneProject => 'Aucun projet ajoute';
+
+  @override
+  String get untitled => 'Sans titre';
+
+  @override
+  String get currentPosition => 'En poste';
+
+  @override
+  String get choose => 'Choisir';
+
+  @override
+  String get currentRole => 'Poste actuel';
+
+  @override
+  String get firstNameExample => 'Ex : Issouf';
+
+  @override
+  String get lastNameExample => 'Ex : Ouedraogo';
+
+  @override
+  String get jobTitleExample => 'Ex : Developpeur Full Stack';
+
+  @override
+  String get emailExample => 'Ex : nom@domaine.com';
+
+  @override
+  String get phoneExample => 'Ex : +225 0544210112';
+
+  @override
+  String get addressExample => 'Ex : Cocody, Riviera 3';
+
+  @override
+  String get postalCodeExample => 'Ex : 01 BP 1234';
+
+  @override
+  String get cityExample => 'Ex : Abidjan';
+
+  @override
+  String get countryExample => 'Ex : Cote d\'Ivoire';
+
+  @override
+  String get technologiesExample => 'Ex : Flutter, Dart, Firebase';
+
+  @override
+  String get educationInProgress => 'Formation en cours';
+
+  @override
+  String get optionalDescription => 'Description (optionnel)';
+
+  @override
+  String get skillRequired => 'Competence *';
+
+  @override
+  String get skillHint => 'Ex : JavaScript, Python, Photoshop...';
+
+  @override
+  String get optionalCategory => 'Categorie (optionnel)';
+
+  @override
+  String get categoryHint => 'Ex : Developpement, Design, Gestion...';
+
+  @override
+  String get level => 'Niveau';
+
+  @override
+  String get languageRequired => 'Langue *';
+
+  @override
+  String get languageSearchHint => 'Tapez pour chercher une langue';
+
+  @override
+  String get levelRequired => 'NIVEAU *';
+
+  @override
+  String get native => 'Natif';
+
+  @override
+  String get certificationNameRequired => 'Nom de la certification *';
+
+  @override
+  String get issuingOrganization => 'Organisme emetteur';
+
+  @override
+  String get issueDate => 'Date d\'obtention';
+
+  @override
+  String get expiration => 'Expiration';
+
+  @override
+  String get verificationLink => 'Lien de verification';
+
+  @override
+  String get expired => 'Expire';
+
+  @override
+  String get projectNameRequired => 'Nom du projet *';
+
+  @override
+  String get technologiesUsed => 'Technologies utilisees';
+
+  @override
+  String get projectLink => 'Lien du projet';
+
+  @override
+  String get projectDescriptionHint => 'Decrivez le projet et votre role...';
+
+  @override
+  String get suggestionsGenerationFailed =>
+      'Impossible de generer des suggestions';
+
+  @override
+  String get profilePhotoOptional => 'Photo de profil (optionnel)';
+
+  @override
+  String get gallery => 'Galerie';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get removePhoto => 'Supprimer la photo';
+
+  @override
+  String photoLocalOnly(String error) {
+    return 'Photo visible localement, mais l\'envoi a echoue : $error';
+  }
+
+  @override
+  String get coordinates => 'COORDONNEES';
+
+  @override
+  String get online => 'EN LIGNE';
+
+  @override
+  String get about => 'A PROPOS';
+
+  @override
+  String get firstNameRequired => 'Prénom *';
+
+  @override
+  String get lastNameRequired => 'Nom *';
+
+  @override
+  String get firstNameMissing => 'Prenom requis';
+
+  @override
+  String get lastNameMissing => 'Nom requis';
+
+  @override
+  String get targetJobHelper => 'Le poste que vous visez ou occupez';
+
+  @override
+  String get professionalEmailHelper => 'Votre email professionnel de contact';
+
+  @override
+  String get emailMissing => 'Email requis';
+
+  @override
+  String get phoneCountryHelper =>
+      'Selectionnez un pays pour l\'indicatif automatique';
+
+  @override
+  String get postalAddressHelper => 'Optionnel - votre adresse postale';
+
+  @override
+  String get optional => 'Optionnel';
+
+  @override
+  String get professionalLinksHelper =>
+      'Optionnel - ajoutez vos liens professionnels';
+
+  @override
+  String get linkedinHelper => 'Optionnel - votre profil LinkedIn';
+
+  @override
+  String get portfolioHelper => 'Optionnel - votre site ou portfolio';
+
+  @override
+  String get generateSummaryHelper =>
+      'Cliquez sur le bouton IA pour generer automatiquement';
+
+  @override
+  String get summaryGenerated => 'Resume genere par l\'IA';
+
+  @override
+  String get aiPersonalDataConsent =>
+      'J\'accepte d\'envoyer ces informations au service IA.';
+
+  @override
+  String citySuggestionsForCountry(String country) {
+    return 'Tapez pour afficher les villes de $country';
+  }
+
+  @override
+  String get selectCountryForCities =>
+      'Selectionnez un pays pour obtenir des suggestions';
+
+  @override
+  String get freeCityEntry => 'Saisie libre - ajoutez votre ville';
+
+  @override
+  String get countryDialCodeHelper =>
+      'Selectionnez pour ajouter l\'indicatif telephonique';
 
   @override
   String get required => 'Requis';
@@ -357,6 +1072,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get expert => 'Expert';
 
   @override
+  String get intermediate => 'Intermediaire';
+
+  @override
+  String get confirmed => 'Confirmé';
+
+  @override
+  String get elementary => 'Elementaire';
+
+  @override
+  String get upperIntermediate => 'Intermediaire avance';
+
+  @override
+  String get fluent => 'Courant';
+
+  @override
+  String get mastery => 'Maitrise';
+
+  @override
+  String get nativeLanguage => 'Langue maternelle';
+
+  @override
   String get featureAi => 'Suggestions IA';
 
   @override
@@ -370,6 +1106,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get theme => 'Theme';
+
+  @override
+  String get language => 'Langue de l\'application';
+
+  @override
+  String get french => 'Francais';
+
+  @override
+  String get english => 'Anglais';
 
   @override
   String get information => 'Informations';
@@ -388,6 +1133,48 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get views => 'Vues';
+
+  @override
+  String get privacy => 'Confidentialite';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialite';
+
+  @override
+  String get privacyPolicySubtitle => 'Donnees, IA, export et suppression';
+
+  @override
+  String get exportMyData => 'Exporter mes donnees';
+
+  @override
+  String get exportMyDataSubtitle => 'Copie JSON de votre compte et de vos CV';
+
+  @override
+  String get deleteMyAccount => 'Supprimer mon compte';
+
+  @override
+  String get deleteMyAccountSubtitle =>
+      'Suppression du compte et des CV associes';
+
+  @override
+  String get exportCopied => 'Export copie dans le presse-papier';
+
+  @override
+  String exportFailed(String error) {
+    return 'Export impossible : $error';
+  }
+
+  @override
+  String get deleteAccountTitle => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Cette action supprime votre compte et les CV associes cote serveur. Elle est irreversible.';
+
+  @override
+  String deleteAccountFailed(String error) {
+    return 'Suppression impossible : $error';
+  }
 
   @override
   String get today => 'Aujourd\'hui';
@@ -461,6 +1248,89 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errorFileUpload =>
       'L\'envoi du fichier a echoue. Verifiez le format et la taille.';
+
+  @override
+  String get validationPersonalInfoMissing =>
+      'Informations personnelles manquantes';
+
+  @override
+  String validationFieldMissing(String field) {
+    return '$field manquant';
+  }
+
+  @override
+  String get validationJobTitleMissing =>
+      'Titre du poste manquant - important pour les recruteurs';
+
+  @override
+  String get validationSummaryEmpty =>
+      'Resume professionnel vide - utilisez l\'IA pour le generer';
+
+  @override
+  String validationSummaryShort(int count) {
+    return 'Resume trop court ($count car.) - min 100 recommande';
+  }
+
+  @override
+  String get validationTechLinkMissing =>
+      'LinkedIn ou GitHub manquant - tres attendu pour un profil tech';
+
+  @override
+  String get validationNoExperience => 'Aucune experience renseignee';
+
+  @override
+  String validationDescriptionMissing(String item) {
+    return '$item : description manquante';
+  }
+
+  @override
+  String validationNoMetric(String item) {
+    return '$item : aucun chiffre ou indicateur - ajoutez des resultats mesurables';
+  }
+
+  @override
+  String validationEndBeforeStart(String item) {
+    return '$item : date de fin avant date de debut';
+  }
+
+  @override
+  String validationFutureEnd(String item) {
+    return '$item : date de fin dans le futur';
+  }
+
+  @override
+  String get validationNoEducation => 'Aucune formation renseignee';
+
+  @override
+  String get validationNoSkills => 'Aucune competence renseignee';
+
+  @override
+  String validationFewSkills(int count) {
+    return 'Seulement $count competences - 8 a 12 recommande';
+  }
+
+  @override
+  String validationCombinedSkills(String name) {
+    return '\"$name\" semble contenir plusieurs competences - separez-les';
+  }
+
+  @override
+  String get validationNoLanguages => 'Aucune langue renseignee';
+
+  @override
+  String validationFutureCertification(String name) {
+    return '\"$name\" datee dans le futur - marquez En cours si necessaire';
+  }
+
+  @override
+  String validationShortProject(String name) {
+    return '\"$name\" : description trop courte - developpez';
+  }
+
+  @override
+  String validationTooMuchContent(int count) {
+    return 'Beaucoup de contenu ($count elements) - risque de depasser 1 page';
+  }
 
   @override
   String get errorGeneric => 'Une erreur est survenue';

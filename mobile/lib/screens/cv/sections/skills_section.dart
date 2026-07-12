@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../utils/cv_levels.dart';
 import 'form_sheet.dart';
@@ -34,14 +35,14 @@ class SkillsSection extends StatelessWidget {
     Skill? skill,
     Function(Skill) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: skill?.nom);
     final catCtrl = TextEditingController(text: skill?.categorie);
     int niveau = skill?.niveau ?? 3;
 
     showFormSheet(
       context: context,
-      title:
-          skill == null ? 'Ajouter une compétence' : 'Modifier la compétence',
+      title: skill == null ? l.addSkill : l.editSkill,
       icon: Icons.psychology_outlined,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -49,19 +50,19 @@ class SkillsSection extends StatelessWidget {
         children: [
           TextFormField(
             controller: nomCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Compétence *',
-              hintText: 'Ex : JavaScript, Python, Photoshop...',
-              prefixIcon: Icon(Icons.code_rounded, size: 20),
+            decoration: InputDecoration(
+              labelText: l.skillRequired,
+              hintText: l.skillHint,
+              prefixIcon: const Icon(Icons.code_rounded, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: catCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Catégorie (optionnel)',
-              hintText: 'Ex : Développement, Design, Gestion...',
-              prefixIcon: Icon(Icons.folder_outlined, size: 20),
+            decoration: InputDecoration(
+              labelText: l.optionalCategory,
+              hintText: l.categoryHint,
+              prefixIcon: const Icon(Icons.folder_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 20),
@@ -69,7 +70,7 @@ class SkillsSection extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Niveau',
+                l.level,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -87,7 +88,7 @@ class SkillsSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  skillLevelLabel(niveau),
+                  localizedSkillLevelLabel(l, niveau),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -109,21 +110,21 @@ class SkillsSection extends StatelessWidget {
               min: 1,
               max: 5,
               divisions: 4,
-              label: skillLevelLabel(niveau),
+              label: localizedSkillLevelLabel(l, niveau),
               onChanged: (v) => setState(() => niveau = v.toInt()),
             ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Débutant',
+              Text(l.beginner,
                   style: TextStyle(
                       fontSize: 11,
                       color: Theme.of(ctx)
                           .colorScheme
                           .onSurface
                           .withValues(alpha: 0.45))),
-              Text('Expert',
+              Text(l.expert,
                   style: TextStyle(
                       fontSize: 11,
                       color: Theme.of(ctx)
@@ -149,14 +150,15 @@ class SkillsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (skills.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.psychology_outlined,
-            label: 'Aucune compétence ajoutée',
+            label: l.noneSkill,
           )
         else
           Wrap(
@@ -174,7 +176,7 @@ class SkillsSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter une compétence',
+          label: l.addSkill,
           onTap: () => _add(context),
         ),
       ],

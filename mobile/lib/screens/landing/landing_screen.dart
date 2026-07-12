@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../l10n/app_localizations.dart';
 
 const _kBlue = Color(0xFF1847D6);
 const _kBg = Color(0xFFF5F3EE);
@@ -36,9 +37,8 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heroTitle = isWide
-        ? 'Créez un CV\nqui parle aux recruteurs'
-        : 'Créez un CV\nqui parle aux\nrecruteurs';
+    final l = AppLocalizations.of(context)!;
+    final heroTitle = isWide ? l.landingHeroTitle : l.landingHeroTitleMobile;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -78,7 +78,7 @@ class _HeroSection extends StatelessWidget {
         ConstrainedBox(
           constraints: BoxConstraints(maxWidth: isWide ? 680 : 300),
           child: Text(
-            'Français professionnel, formats ATS, partage WhatsApp et export PDF/DOCX pour candidatures locales ou internationales.',
+            l.landingHeroSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: isWide ? 18 : 14,
@@ -99,6 +99,7 @@ class _HeroActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final primary = ElevatedButton(
       onPressed: () => context.go('/register'),
       style: ElevatedButton.styleFrom(
@@ -107,7 +108,7 @@ class _HeroActions extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: const Text('Créer mon CV gratuitement',
+      child: Text(l.createCvFree,
           textAlign: TextAlign.center,
           style: TextStyle(fontWeight: FontWeight.w700)),
     );
@@ -119,7 +120,7 @@ class _HeroActions extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: const Text('Se connecter'),
+      child: Text(l.login),
     );
 
     if (isWide) {
@@ -147,22 +148,23 @@ class _SocialProof extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
       color: Colors.white,
-      child: const Wrap(
+      child: Wrap(
         alignment: WrapAlignment.center,
         spacing: 12,
         runSpacing: 16,
         children: [
           SizedBox(
-              width: 86, child: _StatChip(value: 'FR/EN', label: 'Bilingue')),
-          SizedBox(width: 72, child: _StatChip(value: '6', label: 'Templates')),
+              width: 86, child: _StatChip(value: 'FR/EN', label: l.bilingual)),
+          SizedBox(width: 72, child: _StatChip(value: '6', label: l.templates)),
           SizedBox(
-              width: 86, child: _StatChip(value: 'ATS', label: 'Compatible')),
+              width: 86, child: _StatChip(value: 'ATS', label: l.compatible)),
           SizedBox(
-              width: 92, child: _StatChip(value: 'WhatsApp', label: 'Partage')),
+              width: 92, child: _StatChip(value: 'WhatsApp', label: l.share)),
         ],
       ),
     );
@@ -197,36 +199,37 @@ class _FeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const features = [
+    final l = AppLocalizations.of(context)!;
+    final features = [
       (
         Icons.auto_awesome_rounded,
-        'Intelligence Artificielle',
-        'Un français naturel, précis et sans phrases artificielles.'
+        l.aiFeatureTitle,
+        l.aiFeatureDescription
       ),
       (
         Icons.picture_as_pdf_outlined,
-        'Templates ciblés',
-        'Corporate, junior, senior, tech et ATS international.'
+        l.templatesFeatureTitle,
+        l.templatesFeatureDescription
       ),
       (
         Icons.work_outline_rounded,
-        'Score ATS',
-        'Collez une offre et obtenez un score de correspondance.'
+        l.atsFeatureTitle,
+        l.atsFeatureDescription
       ),
       (
         Icons.description_outlined,
-        'Export DOCX',
-        'Téléchargez en Word pour une compatibilité ATS maximale.'
+        l.docxFeatureTitle,
+        l.docxFeatureDescription
       ),
       (
         Icons.palette_outlined,
-        'Mobile-first Afrique',
-        'Pensé pour créer, corriger, exporter et partager depuis téléphone.'
+        l.mobileFeatureTitle,
+        l.mobileFeatureDescription
       ),
       (
         Icons.chat_outlined,
-        'Partage WhatsApp',
-        'Envoyez un lien propre à un recruteur ou à un contact RH.'
+        l.whatsAppFeatureTitle,
+        l.whatsAppFeatureDescription
       ),
     ];
 
@@ -234,11 +237,11 @@ class _FeaturesSection extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
       child: Column(children: [
-        const Text('Tout ce dont vous avez besoin',
+        Text(l.allYouNeed,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
-        const Text('Un outil complet pour créer des CV qui font la différence.',
+        Text(l.allYouNeedSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
         const SizedBox(height: 40),
@@ -314,15 +317,16 @@ class _PreviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 800;
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
       color: const Color(0xFFF9FAFB),
       child: Column(children: [
-        const Text('Un CV clair pour candidater partout',
+        Text(l.clearCvTitle,
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
-        const Text('Un rendu lisible pour recruteurs, PME, cabinets et ATS',
+        Text(l.clearCvSubtitle,
             style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
         const SizedBox(height: 32),
         // Mockup CV
@@ -346,21 +350,21 @@ class _PreviewSection extends StatelessWidget {
                   color: _kBlue,
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(12))),
-              child: const Column(children: [
-                Text('ISSOUF OUEDRAOGO',
+              child: Column(children: [
+                Text(l.sampleCandidateName,
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                         letterSpacing: 2)),
                 SizedBox(height: 4),
-                Text('Ingénieur Logiciel Full Stack',
+                Text(l.sampleCandidateRole,
                     style: TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
                         fontStyle: FontStyle.italic)),
                 SizedBox(height: 8),
-                Text('issouf@gmail.com  |  +225 07 44 21 01 12  |  Abidjan',
+                Text(l.sampleCandidateContact,
                     style: TextStyle(fontSize: 9, color: Colors.white60)),
               ]),
             ),
@@ -370,15 +374,15 @@ class _PreviewSection extends StatelessWidget {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _mockSection('PROFIL'),
-                    const Text(
-                        'Ingénieur Full Stack avec 3 ans d\'expérience. Expert Java/Spring Boot et Flutter.',
+                    _mockSection(l.sampleProfile),
+                    Text(
+                        l.sampleProfileText,
                         style: TextStyle(
                             fontSize: 10,
                             color: Color(0xFF374151),
                             height: 1.5)),
                     const SizedBox(height: 12),
-                    _mockSection('COMPÉTENCES'),
+                    _mockSection(l.sampleSkills),
                     Wrap(
                         spacing: 6,
                         runSpacing: 6,
@@ -401,22 +405,22 @@ class _PreviewSection extends StatelessWidget {
                                         fontWeight: FontWeight.w600))))
                             .toList()),
                     const SizedBox(height: 12),
-                    _mockSection('EXPÉRIENCES'),
-                    const Row(
+                    _mockSection(l.sampleExperiences),
+                    Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Lead Developer',
+                          Text(l.sampleCandidatePosition,
                               style: TextStyle(
                                   fontSize: 11, fontWeight: FontWeight.w700)),
-                          Text('2024 - 2026',
+                          const Text('2024 - 2026',
                               style: TextStyle(
                                   fontSize: 9,
                                   color: _kBlue,
                                   fontWeight: FontWeight.w600)),
                         ]),
-                    const Text('DIGIT AFRICAN - Abidjan',
-                        style:
-                            TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+                    Text(l.sampleCandidateCompany,
+                        style: const TextStyle(
+                            fontSize: 9, color: Color(0xFF6B7280))),
                   ]),
             ),
           ]),
@@ -452,11 +456,12 @@ class _HowItWorks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
       child: Column(children: [
-        const Text('Comment ça marche',
+        Text(l.howItWorks,
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 40),
         Wrap(
@@ -464,12 +469,9 @@ class _HowItWorks extends StatelessWidget {
             runSpacing: 32,
             alignment: WrapAlignment.center,
             children: [
-              _step('1', 'Remplissez',
-                  'Des aides courtes guident titre, résumé et expériences.'),
-              _step('2', 'Adaptez',
-                  'Corrigez le français et choisissez un template selon le poste.'),
-              _step('3', 'Partagez',
-                  'Exportez en PDF/DOCX ou envoyez le lien par WhatsApp.'),
+              _step('1', l.fillIn, l.fillInDescription),
+              _step('2', l.adapt, l.adaptDescription),
+              _step('3', l.send, l.sendDescription),
             ]),
       ]),
     );
@@ -504,18 +506,19 @@ class _CtaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
       color: _kBlue,
       child: Column(children: [
-        const Text('Prêt à candidater avec un CV propre ?',
+        Text(l.readyToApply,
             style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Colors.white)),
         const SizedBox(height: 8),
-        Text('Mobile, rapide, lisible et pensé pour le marché francophone.',
+        Text(l.readyToApplySubtitle,
             style: TextStyle(
                 fontSize: 14, color: Colors.white.withValues(alpha: 0.8))),
         const SizedBox(height: 24),
@@ -528,7 +531,7 @@ class _CtaSection extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12))),
-            child: const Text('Commencer maintenant',
+            child: Text(l.startNow,
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
       ]),
     );
@@ -542,6 +545,7 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -557,7 +561,7 @@ class _Footer extends StatelessWidget {
                   fontWeight: FontWeight.w500)),
         ]),
         const SizedBox(height: 12),
-        Text('© 2026 MonCV. CV francophone, mobile-first et compatible ATS.',
+        Text(l.landingFooter,
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 12, color: Colors.white.withValues(alpha: 0.5))),

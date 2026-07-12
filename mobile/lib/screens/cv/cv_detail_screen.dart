@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../models/cv_style.dart';
 import '../../providers/cv_provider.dart';
@@ -31,6 +32,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
   }
 
   Future<void> _downloadPdf(Cv cv) async {
+    final l = AppLocalizations.of(context)!;
     if (_isDownloadingPdf) return;
     final messenger = ScaffoldMessenger.of(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -38,8 +40,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     try {
       await PdfService().downloadPdf(cv);
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(
-          content: Text('PDF telecharge'),
+        messenger.showSnackBar(SnackBar(
+          content: Text(l.pdfDownloaded),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Color(0xFF10B981),
         ));
@@ -47,7 +49,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     } catch (e) {
       if (mounted) {
         messenger.showSnackBar(SnackBar(
-          content: Text('Erreur PDF : $e'),
+          content: Text(l.pdfError(e.toString())),
           behavior: SnackBarBehavior.floating,
           backgroundColor: colorScheme.error,
         ));
@@ -58,6 +60,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
   }
 
   Future<void> _downloadDocx(Cv cv) async {
+    final l = AppLocalizations.of(context)!;
     if (_isDownloadingDocx) return;
     final messenger = ScaffoldMessenger.of(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -65,8 +68,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     try {
       await PdfService().downloadDocx(cv.id!);
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(
-          content: Text('DOCX telecharge'),
+        messenger.showSnackBar(SnackBar(
+          content: Text(l.docxDownloaded),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Color(0xFF10B981),
         ));
@@ -74,7 +77,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     } catch (e) {
       if (mounted) {
         messenger.showSnackBar(SnackBar(
-          content: Text('Erreur DOCX : $e'),
+          content: Text(l.docxError(e.toString())),
           behavior: SnackBarBehavior.floating,
           backgroundColor: colorScheme.error,
         ));
@@ -85,6 +88,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
   }
 
   Future<void> _openEnhancement(Cv cv, {bool proofreadOnly = false}) async {
+    final l = AppLocalizations.of(context)!;
     final provider = context.read<CvProvider>();
     final messenger = ScaffoldMessenger.of(context);
     final result = await showModalBottomSheet<Map<String, dynamic>>(
@@ -104,9 +108,9 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     messenger.showSnackBar(SnackBar(
       content: Text(ok
           ? proofreadOnly
-              ? 'Corrections appliquées'
-              : 'Suggestions IA appliquées'
-          : 'Erreur lors de l\'application'),
+              ? l.spellingCorrectionsApplied
+              : l.aiSuggestionsApplied
+          : l.applicationError),
       behavior: SnackBarBehavior.floating,
       backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
     ));
@@ -127,13 +131,14 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Consumer<CvProvider>(
       builder: (context, cvProvider, _) {
         final cv = cvProvider.currentCv;
 
         if (cvProvider.isLoading || cv == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('CV')),
+            appBar: AppBar(title: Text(l.myCv)),
             body: const Center(child: CircularProgressIndicator()),
           );
         }
@@ -153,17 +158,17 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.spellcheck_rounded),
-                tooltip: 'Corriger l\'orthographe',
+                tooltip: l.proofreadSpelling,
                 onPressed: () => _openEnhancement(cv, proofreadOnly: true),
               ),
               IconButton(
                 icon: const Icon(Icons.auto_awesome_rounded),
-                tooltip: 'Améliorer avec l\'IA',
+                tooltip: l.enhanceWithAi,
                 onPressed: () => _openEnhancement(cv),
               ),
               IconButton(
                 icon: const Icon(Icons.work_outline_rounded),
-                tooltip: 'Adapter a une offre',
+                tooltip: l.adaptToJob,
                 onPressed: () async {
                   final adapted =
                       await showModalBottomSheet<Map<String, dynamic>>(
@@ -194,8 +199,8 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                       }
                       if (mounted) {
                         ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text('Variante adaptee creee'),
+                            .showSnackBar(SnackBar(
+                          content: Text(l.adaptedVariantCreated),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: Color(0xFF10B981),
                         ));
@@ -206,7 +211,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.palette_outlined),
-                tooltip: 'Personnaliser',
+                tooltip: l.customize,
                 onPressed: () => _openCustomizePanel(context, cv),
               ),
               if (_isDownloadingPdf)
@@ -221,7 +226,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               else
                 IconButton(
                   icon: const Icon(Icons.picture_as_pdf_outlined),
-                  tooltip: 'Telecharger PDF',
+                  tooltip: l.downloadPdf,
                   onPressed: () => _downloadPdf(cv),
                 ),
               if (_isDownloadingDocx)
@@ -236,12 +241,12 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               else
                 IconButton(
                   icon: const Icon(Icons.description_outlined),
-                  tooltip: 'Telecharger DOCX',
+                  tooltip: l.downloadDocx,
                   onPressed: () => _downloadDocx(cv),
                 ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
-                tooltip: 'Modifier',
+                tooltip: l.edit,
                 onPressed: () => context.push('/cvs/${cv.id}/edit', extra: cv),
               ),
             ],
@@ -295,19 +300,22 @@ class _CvStylePageState extends State<_CvStylePage> {
 
     setState(() {
       _savingStyle = false;
-      _styleError = saved ? null : 'Style non sauvegarde';
+      _styleError = saved
+          ? null
+          : AppLocalizations.of(context)!.styleNotSaved;
     });
   }
 
   Cv get _styledCv => widget.cv.copyWith(style: _style);
 
   Future<void> _download() async {
+    final l = AppLocalizations.of(context)!;
     setState(() => _downloading = true);
     try {
       await PdfService().downloadPdf(_styledCv);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('PDF telecharge'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l.pdfDownloaded),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Color(0xFF10B981),
         ));
@@ -315,7 +323,7 @@ class _CvStylePageState extends State<_CvStylePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Erreur : $e'),
+          content: Text(l.errorWithDetails(e.toString())),
           behavior: SnackBarBehavior.floating,
         ));
       }
@@ -327,6 +335,7 @@ class _CvStylePageState extends State<_CvStylePage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 900;
 
@@ -336,7 +345,7 @@ class _CvStylePageState extends State<_CvStylePage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Personnaliser le CV',
+        title: Text(l.customizeCv,
             style: TextStyle(fontWeight: FontWeight.w700)),
         actions: [
           if (!isWide)
@@ -346,7 +355,7 @@ class _CvStylePageState extends State<_CvStylePage> {
                 _showPreview ? Icons.tune_rounded : Icons.visibility_rounded,
                 size: 18,
               ),
-              label: Text(_showPreview ? 'Options' : 'Apercu'),
+              label: Text(_showPreview ? l.options : l.preview),
             ),
         ],
       ),
@@ -409,7 +418,7 @@ class _CvStylePageState extends State<_CvStylePage> {
                         ),
                       const SizedBox(width: 8),
                       Text(
-                        _savingStyle ? 'Sauvegarde...' : _styleError!,
+                        _savingStyle ? l.savingShort : _styleError!,
                         style: TextStyle(
                           fontSize: 12,
                           color: _savingStyle
@@ -434,7 +443,7 @@ class _CvStylePageState extends State<_CvStylePage> {
                                 : Icons.visibility_rounded,
                             size: 18,
                           ),
-                          label: Text(_showPreview ? 'Options' : 'Apercu'),
+                          label: Text(_showPreview ? l.options : l.preview),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             side: BorderSide(color: _style.primaryColor),
@@ -466,7 +475,7 @@ class _CvStylePageState extends State<_CvStylePage> {
                                     strokeWidth: 2, color: Colors.white),
                               )
                             : const Icon(Icons.download_rounded, size: 20),
-                        label: const Text('Telecharger PDF'),
+                        label: Text(l.downloadPdf),
                       ),
                     ),
                   ],
@@ -480,6 +489,7 @@ class _CvStylePageState extends State<_CvStylePage> {
   }
 
   Widget _buildPreviewPane() {
+    final l = AppLocalizations.of(context)!;
     return Container(
       color: const Color(0xFFF5F5F5),
       child: Column(
@@ -506,7 +516,7 @@ class _CvStylePageState extends State<_CvStylePage> {
                   ),
                 ),
                 const Spacer(),
-                Text('Apercu en direct',
+                Text(l.livePreview,
                     style: TextStyle(fontSize: 12, color: Colors.grey[600])),
               ],
             ),
@@ -537,11 +547,12 @@ class _CvStylePageState extends State<_CvStylePage> {
   }
 
   Widget _buildOptionsPane(ColorScheme colorScheme) {
+    final l = AppLocalizations.of(context)!;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // Templates en grille 2 colonnes
-        _optionLabel('Template', colorScheme),
+        _optionLabel(l.template, colorScheme),
         const SizedBox(height: 8),
         GridView.count(
           crossAxisCount: 2,
@@ -589,7 +600,7 @@ class _CvStylePageState extends State<_CvStylePage> {
         const SizedBox(height: 16),
 
         // Couleurs
-        _optionLabel('Couleur', colorScheme),
+        _optionLabel(l.color, colorScheme),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -619,7 +630,7 @@ class _CvStylePageState extends State<_CvStylePage> {
         const SizedBox(height: 16),
 
         // Police
-        _optionLabel('Police', colorScheme),
+        _optionLabel(l.font, colorScheme),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,

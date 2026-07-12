@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import '../utils/responsive.dart';
 
@@ -95,11 +96,12 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l = AppLocalizations.of(context)!;
 
     final items = [
-      (Icons.description_outlined, Icons.description, 'Mes CVs'),
-      (Icons.add_circle_outline, Icons.add_circle, 'Nouveau'),
-      (Icons.person_outline, Icons.person, 'Profil'),
+      (Icons.description_outlined, Icons.description, l.myCvs),
+      (Icons.add_circle_outline, Icons.add_circle, l.newCv),
+      (Icons.person_outline, Icons.person, l.profile),
     ];
 
     return Container(
@@ -214,24 +216,25 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return NavigationBar(
       selectedIndex: currentIndex,
       onDestinationSelected: onTap,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.description_outlined),
-          selectedIcon: Icon(Icons.description),
-          label: 'Mes CVs',
+          icon: const Icon(Icons.description_outlined),
+          selectedIcon: const Icon(Icons.description),
+          label: l.myCvs,
         ),
         NavigationDestination(
-          icon: Icon(Icons.add_circle_outline),
-          selectedIcon: Icon(Icons.add_circle),
-          label: 'Nouveau',
+          icon: const Icon(Icons.add_circle_outline),
+          selectedIcon: const Icon(Icons.add_circle),
+          label: l.newCv,
         ),
         NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Profil',
+          icon: const Icon(Icons.person_outline),
+          selectedIcon: const Icon(Icons.person),
+          label: l.profile,
         ),
       ],
     );
@@ -244,24 +247,25 @@ class _LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () async {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Déconnexion'),
-            content: const Text('Voulez-vous vous déconnecter ?'),
+            title: Text(l.logoutTitle),
+            content: Text(l.logoutConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Annuler'),
+                child: Text(l.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.error,
                 ),
-                child: const Text('Déconnecter'),
+                child: Text(l.disconnect),
               ),
             ],
           ),
@@ -280,7 +284,7 @@ class _LogoutButton extends StatelessWidget {
                 color: colorScheme.error.withValues(alpha: 0.8)),
             const SizedBox(width: 12),
             Text(
-              'Déconnexion',
+              l.logoutTitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.error.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,

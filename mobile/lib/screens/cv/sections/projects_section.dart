@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/api_service.dart';
 import 'experience_section.dart' show showSuggestionsSheet;
@@ -35,6 +36,7 @@ class ProjectsSection extends StatelessWidget {
     Project? proj,
     Function(Project) onSave,
   ) {
+    final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: proj?.nom);
     final descCtrl = TextEditingController(text: proj?.description);
     final techCtrl = TextEditingController(text: proj?.technologies);
@@ -45,7 +47,7 @@ class ProjectsSection extends StatelessWidget {
 
     showFormSheet(
       context: context,
-      title: proj == null ? 'Ajouter un projet' : 'Modifier le projet',
+      title: proj == null ? l.addProject : l.editProject,
       icon: Icons.rocket_launch_outlined,
       builder: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -53,25 +55,25 @@ class ProjectsSection extends StatelessWidget {
         children: [
           TextFormField(
             controller: nomCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Nom du projet *',
+            decoration: InputDecoration(
+              labelText: l.projectNameRequired,
               prefixIcon: Icon(Icons.rocket_launch_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: techCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Technologies utilisées',
+            decoration: InputDecoration(
+              labelText: l.technologiesUsed,
               prefixIcon: Icon(Icons.code_rounded, size: 20),
-              hintText: 'Ex : Flutter, Dart, Firebase',
+              hintText: l.technologiesExample,
             ),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: lienCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Lien du projet',
+            decoration: InputDecoration(
+              labelText: l.projectLink,
               prefixIcon: Icon(Icons.link_rounded, size: 20),
               hintText: 'https://github.com/...',
             ),
@@ -82,7 +84,7 @@ class ProjectsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-                  label: 'Début',
+              label: l.start,
                   date: dateDebut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -98,7 +100,7 @@ class ProjectsSection extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: SectionDateButton(
-                  label: 'Fin',
+              label: l.end,
                   date: dateFin,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -116,9 +118,9 @@ class ProjectsSection extends StatelessWidget {
           const SizedBox(height: 12),
           TextFormField(
             controller: descCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              hintText: 'Décrivez le projet, votre rôle...',
+            decoration: InputDecoration(
+              labelText: l.description,
+              hintText: l.projectDescriptionHint,
               alignLabelWithHint: true,
             ),
             maxLines: 3,
@@ -138,8 +140,8 @@ class ProjectsSection extends StatelessWidget {
               } catch (_) {
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(
-                    content: Text('Impossible de générer des suggestions'),
+                  SnackBar(
+                    content: Text(l.suggestionsGenerationFailed),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -164,14 +166,15 @@ class ProjectsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (projects.isEmpty)
-          const SectionEmptyState(
+          SectionEmptyState(
             icon: Icons.rocket_launch_outlined,
-            label: 'Aucun projet ajouté',
+            label: l.noneProject,
           )
         else
           ListView.builder(
@@ -181,7 +184,7 @@ class ProjectsSection extends StatelessWidget {
             itemBuilder: (ctx, i) {
               final proj = projects[i];
               return SectionItemTile(
-                title: proj.nom?.isNotEmpty == true ? proj.nom! : 'Projet',
+                title: proj.nom?.isNotEmpty == true ? proj.nom! : l.projects,
                 subtitle: proj.technologies ?? proj.lien ?? '',
                 onEdit: () => _edit(ctx, i),
                 onDelete: () => _delete(i),
@@ -190,7 +193,7 @@ class ProjectsSection extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         SectionAddButton(
-          label: 'Ajouter un projet',
+          label: l.addProject,
           onTap: () => _add(context),
         ),
       ],

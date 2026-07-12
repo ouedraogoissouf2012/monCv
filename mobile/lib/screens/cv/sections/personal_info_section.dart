@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import '../../../data/city_suggestions.dart';
@@ -201,6 +202,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
   }
 
   Future<void> _pickPhoto() async {
+    final l = AppLocalizations.of(context)!;
     final picker = ImagePicker();
     final source = await _showSourceDialog();
     if (source == null || !mounted) return;
@@ -245,7 +247,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
         // Upload echoue — la photo reste affichee localement via _photoBytes
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Photo visible localement (upload: $e)'),
+            content: Text(l.photoLocalOnly(e.toString())),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ));
@@ -257,7 +259,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
       setState(() => _uploadingPhoto = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur : $e'),
+          content: Text(l.errorWithDetails(e.toString())),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -265,6 +267,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
   }
 
   Future<ImageSource?> _showSourceDialog() {
+    final l = AppLocalizations.of(context)!;
     // En web, on va directement à la galerie (pas de caméra)
     if (kIsWeb) {
       return Future.value(ImageSource.gallery);
@@ -277,19 +280,19 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Galerie'),
+              title: Text(l.gallery),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Caméra'),
+              title: Text(l.camera),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             if (_photoUrl != null)
               ListTile(
                 leading: Icon(Icons.delete_outline,
                     color: Theme.of(ctx).colorScheme.error),
-                title: Text('Supprimer la photo',
+                title: Text(l.removePhoto,
                     style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -369,6 +372,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Form(
@@ -424,7 +428,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 4),
           Center(
             child: Text(
-              'Photo de profil (optionnel)',
+                    l.profilePhotoOptional,
               style: TextStyle(
                 fontSize: 11,
                 color: colorScheme.onSurface.withValues(alpha: 0.45),
@@ -434,34 +438,34 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 20),
 
           // ── Identité ───────────────────────────────────
-          const _GroupLabel('IDENTITÉ'),
+          _GroupLabel(l.identity.toUpperCase()),
           Row(
             children: [
               Expanded(
                 child: TextFormField(
                   controller: _prenomCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Prénom *',
-                    helperText: 'Ex : Issouf',
+                  decoration: InputDecoration(
+              labelText: l.firstNameRequired,
+                    helperText: l.firstNameExample,
                   ),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _notify(),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Prénom requis' : null,
+                  (v == null || v.trim().isEmpty) ? l.firstNameMissing : null,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
                   controller: _nomCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom *',
-                    helperText: 'Ex : Ouedraogo',
+                  decoration: InputDecoration(
+              labelText: l.lastNameRequired,
+                    helperText: l.lastNameExample,
                   ),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _notify(),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Nom requis' : null,
+                  (v == null || v.trim().isEmpty) ? l.lastNameMissing : null,
                 ),
               ),
             ],
@@ -469,32 +473,32 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _titrePosteCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Titre du poste',
-              helperText: 'Le poste que vous visez ou occupez',
-              hintText: 'Ex : Développeur Full Stack',
+            decoration: InputDecoration(
+              labelText: l.jobTitle,
+              helperText: l.targetJobHelper,
+              hintText: l.jobTitleExample,
             ),
             onChanged: (_) => _notify(),
           ),
 
           // ── Coordonnées ────────────────────────────────
           const SizedBox(height: 20),
-          const _GroupLabel('COORDONNÉES'),
+          _GroupLabel(l.coordinates),
           TextFormField(
             controller: _emailCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Email *',
+            decoration: InputDecoration(
+              labelText: '${l.emailShort} *',
               prefixIcon: Icon(Icons.email_outlined, size: 20),
-              helperText: 'Votre email professionnel de contact',
-              hintText: 'Ex : issouf.ouedraogo@email.com',
+              helperText: l.professionalEmailHelper,
+              hintText: l.emailExample,
             ),
             keyboardType: TextInputType.emailAddress,
             onChanged: (_) => _notify(),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Email requis';
+              if (v == null || v.trim().isEmpty) return l.emailMissing;
               if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$')
                   .hasMatch(v.trim())) {
-                return 'Email invalide (ex: nom@domaine.com)';
+              return l.invalidEmail;
               }
               return null;
             },
@@ -503,12 +507,12 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           TextFormField(
             controller: _telCtrl,
             decoration: InputDecoration(
-              labelText: 'Téléphone',
+              labelText: l.phone,
               prefixIcon: const Icon(Icons.phone_outlined, size: 20),
               helperText: _paysCtrl.text.isNotEmpty
                   ? 'Indicatif ${_countryDialCodes[_paysCtrl.text] ?? "auto"} ajouté selon le pays'
-                  : 'Sélectionnez un pays pour l\'indicatif auto',
-              hintText: 'Ex : +225 0544210112',
+                  : l.phoneCountryHelper,
+              hintText: l.phoneExample,
             ),
             keyboardType: TextInputType.phone,
             onChanged: (_) => _notify(),
@@ -516,7 +520,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
           // ── Localisation ───────────────────────────────
           const SizedBox(height: 20),
-          const _GroupLabel('LOCALISATION'),
+          _GroupLabel(l.location.toUpperCase()),
           _PaysAutocomplete(
             controller: _paysCtrl,
             onChanged: _onCountryChanged,
@@ -530,21 +534,21 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _adresseCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Adresse',
+            decoration: InputDecoration(
+              labelText: l.address,
               prefixIcon: Icon(Icons.location_on_outlined, size: 20),
-              helperText: 'Optionnel — votre adresse postale',
-              hintText: 'Ex : Cocody, Riviera 3',
+              helperText: l.postalAddressHelper,
+              hintText: l.addressExample,
             ),
             onChanged: (_) => _notify(),
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _cpCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Code postal',
-              helperText: 'Optionnel',
-              hintText: 'Ex : 01 BP 1234',
+            decoration: InputDecoration(
+              labelText: l.postalCode,
+              helperText: l.optional,
+              hintText: l.postalCodeExample,
             ),
             keyboardType: TextInputType.text,
             onChanged: (_) => _notify(),
@@ -552,12 +556,12 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
           // ── En ligne ───────────────────────────────────
           const SizedBox(height: 20),
-          const _GroupLabel('EN LIGNE'),
+          _GroupLabel(l.online),
           Center(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Optionnel — ajoutez vos liens professionnels',
+            l.professionalLinksHelper,
                 style: TextStyle(
                   fontSize: 11,
                   color: colorScheme.onSurface.withValues(alpha: 0.45),
@@ -567,11 +571,11 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           ),
           TextFormField(
             controller: _linkedInCtrl,
-            decoration: const InputDecoration(
-              labelText: 'LinkedIn',
+            decoration: InputDecoration(
+              labelText: l.linkedin,
               prefixIcon: Icon(Icons.link_rounded, size: 20),
               hintText: 'Ex : linkedin.com/in/issouf-ouedraogo',
-              helperText: 'Optionnel — votre profil LinkedIn',
+              helperText: l.linkedinHelper,
             ),
             keyboardType: TextInputType.url,
             onChanged: (_) => _notify(),
@@ -579,11 +583,11 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _portfolioCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Portfolio / Site web',
+            decoration: InputDecoration(
+              labelText: l.portfolio,
               prefixIcon: Icon(Icons.language_rounded, size: 20),
               hintText: 'Ex : github.com/issouf',
-              helperText: 'Optionnel — votre site ou portfolio',
+              helperText: l.portfolioHelper,
             ),
             keyboardType: TextInputType.url,
             onChanged: (_) => _notify(),
@@ -591,7 +595,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
           // ── À propos ───────────────────────────────────
           const SizedBox(height: 20),
-          const _GroupLabel('À PROPOS'),
+          _GroupLabel(l.about),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
@@ -607,15 +611,15 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           TextFormField(
             controller: _resumeCtrl,
             decoration: InputDecoration(
-              labelText: 'Resume professionnel',
+              labelText: l.professionalSummary,
               hintText:
                   'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
               alignLabelWithHint: true,
               helperText: _resumeCtrl.text.isEmpty
-                  ? 'Cliquez sur le bouton IA pour generer automatiquement'
+                    ? l.generateSummaryHelper
                   : _resumeCtrl.text.length < 100
-                      ? 'Resume trop court — utilisez l\'IA pour l\'ameliorer'
-                      : 'Bon resume (${_resumeCtrl.text.length} caracteres)',
+                    ? l.resumeTooShort
+                    : '${l.goodResume} (${_resumeCtrl.text.length} ${l.characters})',
               helperStyle: TextStyle(
                 color: _resumeCtrl.text.isEmpty
                     ? null
@@ -681,6 +685,7 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
   bool _aiConsentAccepted = false;
 
   Future<void> _generate() async {
+    final l = AppLocalizations.of(context)!;
     setState(() => _loading = true);
     try {
       final resume = await AiCvService().generateResume(
@@ -688,15 +693,15 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
       );
       if (!mounted) return;
       widget.onGenerated(resume);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Resume genere par l\'IA'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l.summaryGenerated),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Color(0xFF10B981),
       ));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Erreur: $e'),
+        content: Text(l.errorWithDetails(e.toString())),
         behavior: SnackBarBehavior.floating,
       ));
     } finally {
@@ -706,6 +711,7 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -719,12 +725,12 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
                   setState(() => _aiConsentAccepted = value ?? false),
               visualDensity: VisualDensity.compact,
             ),
-            const Flexible(
+            Flexible(
               child: Padding(
-                padding: EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 10),
                 child: Text(
-                  'J\'accepte d\'envoyer ces informations au service IA.',
-                  style: TextStyle(fontSize: 11),
+                  l.aiPersonalDataConsent,
+                  style: const TextStyle(fontSize: 11),
                 ),
               ),
             ),
@@ -738,7 +744,7 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
                   height: 14,
                   child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.auto_awesome_rounded, size: 16),
-          label: Text(_loading ? 'Generation...' : 'Generer avec l\'IA',
+          label: Text(_loading ? l.generating : l.generateWithAi,
               style: const TextStyle(fontSize: 11)),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -766,6 +772,7 @@ class _VilleAutocomplete extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasSuggestions = hasCitySuggestionsForCountry(country);
+    final l = AppLocalizations.of(context)!;
 
     return Autocomplete<String>(
       initialValue: TextEditingValue(text: controller.text),
@@ -791,14 +798,14 @@ class _VilleAutocomplete extends StatelessWidget {
           controller: ctrl,
           focusNode: focusNode,
           decoration: InputDecoration(
-            labelText: 'Ville',
+            labelText: l.city,
             prefixIcon: const Icon(Icons.location_city_outlined, size: 20),
             helperText: hasSuggestions
-                ? 'Tapez pour afficher les villes de $country'
+                ? l.citySuggestionsForCountry(country)
                 : country.trim().isEmpty
-                    ? 'Sélectionnez un pays pour obtenir des suggestions'
-                    : 'Saisie libre — ajoutez votre ville',
-            hintText: 'Ex : Abidjan',
+                    ? l.selectCountryForCities
+                    : l.freeCityEntry,
+            hintText: l.cityExample,
           ),
           textCapitalization: TextCapitalization.words,
           onChanged: (value) {
@@ -992,6 +999,7 @@ class _PaysAutocomplete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Autocomplete<String>(
       initialValue: TextEditingValue(text: controller.text),
       optionsBuilder: (TextEditingValue textEditingValue) {
@@ -1008,11 +1016,11 @@ class _PaysAutocomplete extends StatelessWidget {
         return TextFormField(
           controller: ctrl,
           focusNode: focusNode,
-          decoration: const InputDecoration(
-            labelText: 'Pays',
-            prefixIcon: Icon(Icons.flag_outlined, size: 20),
-            helperText: 'Sélectionnez pour ajouter l\'indicatif téléphonique',
-            hintText: 'Ex : Côte d\'Ivoire',
+          decoration: InputDecoration(
+            labelText: l.country,
+            prefixIcon: const Icon(Icons.flag_outlined, size: 20),
+            helperText: l.countryDialCodeHelper,
+            hintText: l.countryExample,
           ),
           onChanged: (v) {
             controller.text = v;
