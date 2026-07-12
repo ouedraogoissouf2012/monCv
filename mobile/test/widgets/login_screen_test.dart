@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cv_mobile/l10n/app_localizations.dart';
+
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/screens/auth/login_screen.dart';
 
@@ -12,6 +14,9 @@ class MockAuthProvider extends Mock implements AuthProvider {}
 Widget _buildSubject(AuthProvider authProvider) {
   return MaterialApp(
     theme: ThemeData(useMaterial3: true),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: const Locale('fr'),
     home: ChangeNotifierProvider<AuthProvider>.value(
       value: authProvider,
       child: const LoginScreen(),
@@ -66,7 +71,8 @@ void main() {
       expect(find.text('Se connecter'), findsOneWidget);
     });
 
-    testWidgets('affiche erreurs de validation si champs vides', (tester) async {
+    testWidgets('affiche erreurs de validation si champs vides',
+        (tester) async {
       _setScreenSize(tester);
       addTearDown(tester.view.resetPhysicalSize);
 
@@ -114,7 +120,8 @@ void main() {
         'user@test.com',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
+        find.widgetWithText(
+            TextFormField, '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'),
         'password123',
       );
 

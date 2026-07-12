@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.cvmobile.service.ai.AiPromptRules.*;
@@ -61,6 +63,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private EnhanceCvResponse parseEnhanceResponse(String rawContent, Cv cv, String level) {
         List<String> allMarkers = buildMarkerList(cv);
 
+        // Parse titre de l'offre (pour le label de la variante)
+        String titreOffre = AiResponseParser.extractBetweenMarkers(rawContent, "TITRE_OFFRE:", allMarkers);
+
         // Parse titre poste
         String titrePoste = AiResponseParser.extractBetweenMarkers(rawContent, "TITRE_POSTE:", allMarkers);
         if (titrePoste.isBlank() && cv.getPersonalInfo() != null) {
@@ -81,7 +86,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
             if (enhanced.isBlank()) enhanced = exp.getDescription() != null ? exp.getDescription() : "";
             expEnhancements.add(EnhanceCvResponse.ExperienceEnhancement.builder()
                     .id(exp.getId())
-                    .poste(exp.getPoste())
+                    .poste(qualityService.cleanProfessionalTerm(exp.getPoste()))
                     .description(enhanced)
                     .build());
         }
@@ -94,25 +99,18 @@ public class EnhancementServiceImpl implements IEnhancementService {
             if (enhanced.isBlank()) enhanced = edu.getDescription() != null ? edu.getDescription() : "";
             eduEnhancements.add(EnhanceCvResponse.EducationEnhancement.builder()
                     .id(edu.getId())
+                    .etablissement(qualityService.clean(edu.getEtablissement()))
+                    .diplome(qualityService.cleanProfessionalTerm(edu.getDiplome()))
+                    .domaine(qualityService.cleanProfessionalTerm(edu.getDomaine()))
                     .description(enhanced)
                     .build());
         }
 
         // Parse competences
         String competencesRaw = AiResponseParser.extractBetweenMarkers(rawContent, "COMPETENCES:", allMarkers);
-        List<EnhanceCvResponse.SkillEnhancement> skillEnhancements = new ArrayList<>();
-        if (!competencesRaw.isBlank()) {
-            String[] parts = competencesRaw.split("[,\\n]");
-            for (String part : parts) {
-                String skillName = part.replaceAll("^[\\-\\*•]+\\s*", "").strip();
-                if (!skillName.isBlank()) {
-                    skillEnhancements.add(EnhanceCvResponse.SkillEnhancement.builder()
-                            .nom(skillName)
-                            .niveau(3)
-                            .build());
-                }
-            }
-        }
+        List<String> parsedSkillNames = parseSkillNames(competencesRaw);
+        List<EnhanceCvResponse.SkillEnhancement> skillEnhancements =
+                buildSkillEnhancements(cv.getSkills(), parsedSkillNames, level);
 
         // Parse projets
         List<EnhanceCvResponse.ProjectEnhancement> projEnhancements = new ArrayList<>();
@@ -122,9 +120,27 @@ public class EnhancementServiceImpl implements IEnhancementService {
             if (enhanced.isBlank()) enhanced = proj.getDescription() != null ? proj.getDescription() : "";
             projEnhancements.add(EnhanceCvResponse.ProjectEnhancement.builder()
                     .id(proj.getId())
+                    .nom(qualityService.cleanProfessionalTerm(proj.getNom()))
                     .description(enhanced)
+                    .technologies(qualityService.cleanProfessionalTerm(proj.getTechnologies()))
                     .build());
         }
+
+        List<EnhanceCvResponse.LanguageEnhancement> languageEnhancements = cv.getLanguages().stream()
+                .map(language -> EnhanceCvResponse.LanguageEnhancement.builder()
+                        .id(language.getId())
+                        .langue(qualityService.cleanProfessionalTerm(language.getLangue()))
+                        .build())
+                .collect(Collectors.toList());
+
+        List<EnhanceCvResponse.CertificationEnhancement> certificationEnhancements =
+                cv.getCertifications().stream()
+                        .map(certification -> EnhanceCvResponse.CertificationEnhancement.builder()
+                                .id(certification.getId())
+                                .nom(qualityService.cleanProfessionalTerm(certification.getNom()))
+                                .organisme(qualityService.clean(certification.getOrganisme()))
+                                .build())
+                        .collect(Collectors.toList());
 
         // Nettoyage qualite
         String cleanedTitre = qualityService.clean(titrePoste);
@@ -139,17 +155,24 @@ public class EnhancementServiceImpl implements IEnhancementService {
             enh.setDescription(cleaned);
         }
         eduEnhancements.forEach(e -> e.setDescription(qualityService.clean(e.getDescription())));
+        projEnhancements.forEach(p -> p.setDescription(qualityService.clean(p.getDescription())));
 
-        return EnhanceCvResponse.builder()
+        EnhanceCvResponse response = EnhanceCvResponse.builder()
                 .titrePoste(cleanedTitre)
                 .resumeProfessionnel(cleanedResume)
+                .titreOffre(titreOffre.isBlank() ? null : titreOffre)
                 .experiences(expEnhancements)
                 .educations(eduEnhancements)
                 .skills(skillEnhancements.stream().limit(10).collect(Collectors.toList()))
+                .languages(languageEnhancements)
+                .certifications(certificationEnhancements)
                 .projects(projEnhancements)
+                .warnings(qualityService.findReviewWarnings(cv))
                 .aiGenerated(true)
                 .level(level)
                 .build();
+        response.setCorrectionCount(countCorrections(cv, response));
+        return response;
     }
 
     // ── Construction des prompts ────────────────────────────────────
@@ -161,6 +184,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
+        sb.append(FRANCOPHONE_MARKET_RULE);
 
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
@@ -187,7 +211,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
             }
         }
 
-        appendResponseFormat(sb, cv);
+        appendResponseFormat(sb, cv, false);
         appendCurrentCvData(sb, cv);
 
         return sb.toString();
@@ -197,24 +221,29 @@ public class EnhancementServiceImpl implements IEnhancementService {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en redaction de CV professionnels. ");
         sb.append("Adapte ce CV pour correspondre au maximum a cette offre d'emploi. ");
+        sb.append("Extrait aussi un titre court de l'offre (ex: 'Developpeur Backend Java — Sopra Steria'). ");
         sb.append("OFFRE D'EMPLOI:\n").append(jobDescription).append("\n\n");
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
         sb.append(ANTI_CLICHES_RULE);
         sb.append(STYLE_RULE);
+        sb.append(FRANCOPHONE_MARKET_RULE);
         sb.append(QUANTIFICATION_RULE);
         sb.append(SKILL_CATEGORY_RULE);
 
-        appendResponseFormat(sb, cv);
+        appendResponseFormat(sb, cv, true);
         appendCurrentCvData(sb, cv);
 
         return sb.toString();
     }
 
-    private void appendResponseFormat(StringBuilder sb, Cv cv) {
+    private void appendResponseFormat(StringBuilder sb, Cv cv, boolean includeJobTitle) {
         sb.append("\nReponds en francais uniquement. ");
         sb.append("IMPORTANT: Utilise EXACTEMENT ce format avec les marqueurs :\n\n");
+        if (includeJobTitle) {
+            sb.append("TITRE_OFFRE:\n(titre court de l'offre, max 60 caracteres, ex: 'Developpeur Backend Java — Sopra Steria')\n\n");
+        }
         sb.append("TITRE_POSTE:\n(titre de poste ameliore)\n\n");
         sb.append("RESUME:\n(resume professionnel ameliore)\n\n");
 
@@ -272,6 +301,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
     private List<String> buildMarkerList(Cv cv) {
         List<String> markers = new ArrayList<>();
+        markers.add("TITRE_OFFRE:");
         markers.add("TITRE_POSTE:");
         markers.add("RESUME:");
         for (Experience exp : cv.getExperiences()) markers.add("EXP_" + exp.getId() + ":");
@@ -281,41 +311,164 @@ public class EnhancementServiceImpl implements IEnhancementService {
         return markers;
     }
 
+    private List<String> parseSkillNames(String competencesRaw) {
+        if (competencesRaw == null || competencesRaw.isBlank()) return List.of();
+        List<String> names = new ArrayList<>();
+        for (String part : competencesRaw.split("[,\\n]")) {
+            String skillName = part.replaceAll("^[\\-\\*•]+\\s*", "").strip();
+            if (!skillName.isBlank()) names.add(skillName);
+        }
+        return names;
+    }
+
+    private List<EnhanceCvResponse.SkillEnhancement> buildSkillEnhancements(
+            List<Skill> originalSkills, List<String> parsedNames, String level) {
+        List<EnhanceCvResponse.SkillEnhancement> enhancements = new ArrayList<>();
+        boolean correctionOnly = "LITE".equals(level.toUpperCase(Locale.ROOT));
+
+        if (correctionOnly || parsedNames.isEmpty()) {
+            for (int i = 0; i < originalSkills.size(); i++) {
+                Skill original = originalSkills.get(i);
+                String name = i < parsedNames.size() ? parsedNames.get(i) : original.getNom();
+                enhancements.add(EnhanceCvResponse.SkillEnhancement.builder()
+                        .nom(qualityService.cleanProfessionalTerm(name))
+                        .niveau(original.getNiveau())
+                        .build());
+            }
+            return enhancements;
+        }
+
+        for (int i = 0; i < parsedNames.size(); i++) {
+            Integer levelValue = i < originalSkills.size()
+                    ? originalSkills.get(i).getNiveau() : 3;
+            enhancements.add(EnhanceCvResponse.SkillEnhancement.builder()
+                    .nom(qualityService.cleanProfessionalTerm(parsedNames.get(i)))
+                    .niveau(levelValue)
+                    .build());
+        }
+        return enhancements;
+    }
+
     private EnhanceCvResponse buildFallbackEnhancement(Cv cv, String level) {
         String resume = cv.getPersonalInfo() != null
-                ? cv.getPersonalInfo().getResumeProfessionnel() : null;
+                ? qualityService.clean(cv.getPersonalInfo().getResumeProfessionnel()) : null;
         String titrePoste = cv.getPersonalInfo() != null
-                ? cv.getPersonalInfo().getTitrePoste() : null;
+                ? qualityService.cleanProfessionalTerm(cv.getPersonalInfo().getTitrePoste()) : null;
 
         List<EnhanceCvResponse.ExperienceEnhancement> exps = cv.getExperiences().stream()
                 .map(e -> EnhanceCvResponse.ExperienceEnhancement.builder()
-                        .id(e.getId()).poste(e.getPoste()).description(e.getDescription()).build())
+                        .id(e.getId())
+                        .poste(qualityService.cleanProfessionalTerm(e.getPoste()))
+                        .description(qualityService.clean(e.getDescription()))
+                        .build())
                 .collect(Collectors.toList());
 
         List<EnhanceCvResponse.EducationEnhancement> edus = cv.getEducations().stream()
                 .map(e -> EnhanceCvResponse.EducationEnhancement.builder()
-                        .id(e.getId()).description(e.getDescription()).build())
+                        .id(e.getId())
+                        .etablissement(qualityService.clean(e.getEtablissement()))
+                        .diplome(qualityService.cleanProfessionalTerm(e.getDiplome()))
+                        .domaine(qualityService.cleanProfessionalTerm(e.getDomaine()))
+                        .description(qualityService.clean(e.getDescription()))
+                        .build())
                 .collect(Collectors.toList());
 
         List<EnhanceCvResponse.SkillEnhancement> skills = cv.getSkills().stream()
                 .map(s -> EnhanceCvResponse.SkillEnhancement.builder()
-                        .nom(s.getNom()).niveau(s.getNiveau()).build())
+                        .nom(qualityService.cleanProfessionalTerm(s.getNom()))
+                        .niveau(s.getNiveau())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<EnhanceCvResponse.LanguageEnhancement> languages = cv.getLanguages().stream()
+                .map(l -> EnhanceCvResponse.LanguageEnhancement.builder()
+                        .id(l.getId())
+                        .langue(qualityService.cleanProfessionalTerm(l.getLangue()))
+                        .build())
+                .collect(Collectors.toList());
+
+        List<EnhanceCvResponse.CertificationEnhancement> certifications = cv.getCertifications().stream()
+                .map(c -> EnhanceCvResponse.CertificationEnhancement.builder()
+                        .id(c.getId())
+                        .nom(qualityService.cleanProfessionalTerm(c.getNom()))
+                        .organisme(qualityService.clean(c.getOrganisme()))
+                        .build())
                 .collect(Collectors.toList());
 
         List<EnhanceCvResponse.ProjectEnhancement> projs = cv.getProjects().stream()
                 .map(p -> EnhanceCvResponse.ProjectEnhancement.builder()
-                        .id(p.getId()).description(p.getDescription()).build())
+                        .id(p.getId())
+                        .nom(qualityService.cleanProfessionalTerm(p.getNom()))
+                        .description(qualityService.clean(p.getDescription()))
+                        .technologies(qualityService.cleanProfessionalTerm(p.getTechnologies()))
+                        .build())
                 .collect(Collectors.toList());
 
-        return EnhanceCvResponse.builder()
+        EnhanceCvResponse response = EnhanceCvResponse.builder()
                 .titrePoste(titrePoste)
                 .resumeProfessionnel(resume)
                 .experiences(exps)
                 .educations(edus)
                 .skills(skills)
+                .languages(languages)
+                .certifications(certifications)
                 .projects(projs)
+                .warnings(qualityService.findReviewWarnings(cv))
                 .aiGenerated(false)
                 .level(level)
                 .build();
+        response.setCorrectionCount(countCorrections(cv, response));
+        return response;
+    }
+
+    private int countCorrections(Cv cv, EnhanceCvResponse response) {
+        int count = 0;
+        if (cv.getPersonalInfo() != null) {
+            count += changed(cv.getPersonalInfo().getTitrePoste(), response.getTitrePoste());
+            count += changed(cv.getPersonalInfo().getResumeProfessionnel(), response.getResumeProfessionnel());
+        }
+
+        for (int i = 0; i < Math.min(cv.getExperiences().size(), response.getExperiences().size()); i++) {
+            Experience original = cv.getExperiences().get(i);
+            var corrected = response.getExperiences().get(i);
+            count += changed(original.getPoste(), corrected.getPoste());
+            count += changed(original.getDescription(), corrected.getDescription());
+        }
+        for (int i = 0; i < Math.min(cv.getEducations().size(), response.getEducations().size()); i++) {
+            Education original = cv.getEducations().get(i);
+            var corrected = response.getEducations().get(i);
+            count += changed(original.getEtablissement(), corrected.getEtablissement());
+            count += changed(original.getDiplome(), corrected.getDiplome());
+            count += changed(original.getDomaine(), corrected.getDomaine());
+            count += changed(original.getDescription(), corrected.getDescription());
+        }
+        for (int i = 0; i < Math.min(cv.getSkills().size(), response.getSkills().size()); i++) {
+            count += changed(cv.getSkills().get(i).getNom(), response.getSkills().get(i).getNom());
+        }
+        for (int i = 0; i < Math.min(cv.getLanguages().size(), response.getLanguages().size()); i++) {
+            count += changed(cv.getLanguages().get(i).getLangue(), response.getLanguages().get(i).getLangue());
+        }
+        for (int i = 0; i < Math.min(cv.getCertifications().size(), response.getCertifications().size()); i++) {
+            Certification original = cv.getCertifications().get(i);
+            var corrected = response.getCertifications().get(i);
+            count += changed(original.getNom(), corrected.getNom());
+            count += changed(original.getOrganisme(), corrected.getOrganisme());
+        }
+        for (int i = 0; i < Math.min(cv.getProjects().size(), response.getProjects().size()); i++) {
+            Project original = cv.getProjects().get(i);
+            var corrected = response.getProjects().get(i);
+            count += changed(original.getNom(), corrected.getNom());
+            count += changed(original.getDescription(), corrected.getDescription());
+            count += changed(original.getTechnologies(), corrected.getTechnologies());
+        }
+        return count;
+    }
+
+    private int changed(String original, String corrected) {
+        return Objects.equals(normalizeEmpty(original), normalizeEmpty(corrected)) ? 0 : 1;
+    }
+
+    private String normalizeEmpty(String value) {
+        return value == null ? "" : value;
     }
 }

@@ -1,59 +1,61 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Types d'erreur pour adapter le style.
 enum ErrorType { auth, network, validation, server, info, success }
 
 /// Messages d'erreur bienveillants mappant les erreurs techniques.
 class ErrorHelper {
-  /// Transforme une erreur technique en message utilisateur.
-  static String friendlyMessage(String raw) {
+  /// Transforme une erreur technique en message utilisateur localise.
+  static String friendlyMessage(BuildContext context, String raw) {
+    final l = AppLocalizations.of(context)!;
     final lower = raw.toLowerCase();
 
     // Auth
     if (lower.contains('identifiants') || lower.contains('incorrect') || lower.contains('credentials')) {
-      return 'Identifiants incorrects. Vérifiez votre email et mot de passe.';
+      return l.errorInvalidCredentials;
     }
     if (lower.contains('email') && lower.contains('existe')) {
-      return 'Cette adresse email est déjà utilisée. Essayez de vous connecter.';
+      return l.errorEmailAlreadyUsed;
     }
 
     // Reseau
     if (lower.contains('connection refused') || lower.contains('failed to fetch') || lower.contains('socketexception')) {
-      return 'Impossible de joindre le serveur. Vérifiez votre connexion internet.';
+      return l.errorNetworkUnavailable;
     }
     if (lower.contains('timeout') || lower.contains('timed out')) {
-      return 'Le serveur met trop de temps à répondre. Réessayez dans quelques instants.';
+      return l.errorTimeout;
     }
 
     // Serveur
     if (lower.contains('500') || lower.contains('internal')) {
-      return 'Une erreur serveur est survenue. Réessayez dans quelques instants.';
+      return l.errorServer;
     }
     if (lower.contains('403') || lower.contains('forbidden') || lower.contains('non autorise')) {
-      return 'Accès refusé. Reconnectez-vous et réessayez.';
+      return l.errorForbidden;
     }
     if (lower.contains('429') || lower.contains('rate limit') || lower.contains('trop de tentatives')) {
-      return 'Trop de tentatives. Patientez une minute avant de réessayer.';
+      return l.errorRateLimit;
     }
 
     // CV
     if (lower.contains('cv non trouve')) {
-      return 'Ce CV n\'existe plus ou a été supprimé.';
+      return l.errorNotFound;
     }
 
     // PDF/DOCX
     if (lower.contains('pdf') || lower.contains('docx')) {
-      return 'Le téléchargement a échoué. Réessayez dans quelques instants.';
+      return l.errorDownload;
     }
 
     // IA
     if (lower.contains('deepseek') || lower.contains('ia') || lower.contains('enhance')) {
-      return 'Le service IA est temporairement indisponible. Réessayez plus tard.';
+      return l.errorAiUnavailable;
     }
 
     // Upload
     if (lower.contains('upload') || lower.contains('fichier')) {
-      return 'L\'envoi du fichier a échoué. Vérifiez le format et la taille.';
+      return l.errorFileUpload;
     }
 
     // Defaut : nettoyer le message technique
@@ -73,7 +75,7 @@ class ErrorHelper {
 
   /// Affiche un SnackBar d'erreur bienveillant.
   static void showError(BuildContext context, String rawError, {VoidCallback? onRetry}) {
-    final message = friendlyMessage(rawError);
+    final message = friendlyMessage(context, rawError);
     final type = errorType(rawError);
     _showSnackBar(context, message, type, onRetry: onRetry);
   }
@@ -90,6 +92,7 @@ class ErrorHelper {
 
   static void _showSnackBar(BuildContext context, String message, ErrorType type, {VoidCallback? onRetry}) {
     final config = _configForType(type);
+    final l = AppLocalizations.of(context)!;
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -112,7 +115,7 @@ class ErrorHelper {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 onRetry();
               },
-              child: Text('Réessayer', style: TextStyle(color: config.fg, fontWeight: FontWeight.w700, fontSize: 12)),
+              child: Text(l.retry, style: TextStyle(color: config.fg, fontWeight: FontWeight.w700, fontSize: 12)),
             ),
         ],
       ),

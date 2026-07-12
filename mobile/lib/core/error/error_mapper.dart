@@ -124,9 +124,13 @@ class ErrorMapper {
   ) {
     final details = body?['details'];
     if (details is Map<String, dynamic>) {
+      final fieldErrors = details.map((k, v) => MapEntry(k, v.toString()));
+      final detailMessage = fieldErrors.values.take(3).join(' ');
       return ValidationException(
-        message: message ?? 'Donnees invalides',
-        fieldErrors: details.map((k, v) => MapEntry(k, v.toString())),
+        message: detailMessage.isEmpty
+            ? message ?? 'Donnees invalides'
+            : '${message ?? 'Donnees invalides'} : $detailMessage',
+        fieldErrors: fieldErrors,
       );
     }
     if (code == 'DUPLICATE_EMAIL') {
