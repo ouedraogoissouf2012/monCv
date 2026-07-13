@@ -21,11 +21,6 @@ public class MockAiClient implements IAiClient {
     public static final String PROVIDER_NAME = "mock";
 
     @Override
-    public boolean isAvailable() {
-        return true;
-    }
-
-    @Override
     public boolean isFallbackResult() {
         return true;
     }

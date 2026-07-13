@@ -53,12 +53,6 @@ public class ResilientAiClient implements IAiClient {
     }
 
     @Override
-    public boolean isAvailable() {
-        return circuitBreaker.getState() != CircuitBreaker.State.OPEN
-                && delegate.isAvailable();
-    }
-
-    @Override
     public String complete(String prompt, int maxTokens) {
         // Chaine : Retry(CircuitBreaker(delegate))
         Supplier<String> decorated = Retry.decorateSupplier(retry,

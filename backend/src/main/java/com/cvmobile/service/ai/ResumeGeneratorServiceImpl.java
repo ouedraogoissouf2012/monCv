@@ -44,15 +44,4 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
                 "aiGenerated", !fallback,
                 "fallback", fallback);
     }
-
-    private String buildFallbackResume(String titrePoste) {
-        if (titrePoste == null || titrePoste.isBlank()) {
-            return "Professionnel avec une experience solide dans la gestion de missions operationnelles. "
-                    + "Capable de structurer le travail, suivre les priorites et livrer des resultats utiles aux equipes metier. "
-                    + "Recherche un poste ou contribuer a des projets mesurables dans un environnement exigeant.";
-        }
-        return titrePoste + " avec une experience confirmee dans la realisation de missions concretes. "
-                + "Intervient sur la structuration, l'execution et le suivi des activites avec une attention forte a la qualite. "
-                + "Souhaite contribuer a des projets utiles, mesurables et adaptes aux besoins du terrain.";
-    }
 }
