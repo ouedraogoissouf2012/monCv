@@ -19,7 +19,7 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
     private final IAiClient aiClient;
 
     @Override
-    public Map<String, String> generateResume(String titrePoste, String competences, String experience) {
+    public Map<String, Object> generateResume(String titrePoste, String competences, String experience) {
         String prompt = "Tu es un expert en redaction de CV professionnels. "
                 + "Ecris un resume professionnel de 3-4 phrases pour un CV francophone. "
                 + "REGLES: "
@@ -37,8 +37,12 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
 
         // Exceptions IA propagees au GlobalExceptionHandler (plus de fallback silencieux)
         String result = aiClient.complete(prompt, 500).strip();
+        boolean fallback = aiClient.isFallbackResult();
         result = result.replaceAll("^\"|\"$", "");
-        return Map.of("resume", result);
+        return Map.of(
+                "resume", result,
+                "aiGenerated", !fallback,
+                "fallback", fallback);
     }
 
     private String buildFallbackResume(String titrePoste) {

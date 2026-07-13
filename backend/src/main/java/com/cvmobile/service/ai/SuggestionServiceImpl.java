@@ -24,10 +24,12 @@ public class SuggestionServiceImpl implements ISuggestionService {
         // Exceptions IA propagees au GlobalExceptionHandler
         String prompt = buildSuggestPrompt(poste, entreprise);
         String rawContent = aiClient.complete(prompt, 600);
+        boolean fallback = aiClient.isFallbackResult();
         List<String> suggestions = AiResponseParser.parseSuggestions(rawContent);
         return SuggestResponse.builder()
                 .suggestions(suggestions)
-                .aiGenerated(true)
+                .aiGenerated(!fallback)
+                .fallback(fallback)
                 .build();
     }
 

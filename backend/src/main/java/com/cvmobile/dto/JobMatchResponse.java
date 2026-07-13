@@ -14,4 +14,5 @@ public class JobMatchResponse {
     private List<String> suggestions;         // Suggestions pour ameliorer le match
     private String optimizedResume;           // Resume optimise pour cette offre
     private boolean aiGenerated;
+    private boolean fallback;
 }

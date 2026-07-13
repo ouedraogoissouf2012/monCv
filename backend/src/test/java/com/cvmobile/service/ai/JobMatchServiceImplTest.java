@@ -90,10 +90,38 @@ class JobMatchServiceImplTest {
                 "Pilotage de projet digital, gestion des budgets, communication et analyse de donnees");
 
         assertThat(response.isAiGenerated()).isTrue();
+        assertThat(response.isFallback()).isFalse();
         assertThat(response.getScore()).isEqualTo(70);
         assertThat(response.getMatchedKeywords()).contains("projet", "budgets", "communication");
         assertThat(response.getMissingKeywords()).contains("analyse", "donnees");
         assertThat(response.getSuggestions()).hasSize(3);
+    }
+
+    @Test
+    void matchJob_marqueExplicitementUnResultatFallback() {
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        SCORE: 65
+
+                        MOTS_CLES_PRESENTS:
+                        - projet
+
+                        MOTS_CLES_MANQUANTS:
+                        - kubernetes
+
+                        SUGGESTIONS:
+                        - Ajoutez les competences techniques demandees
+
+                        RESUME_OPTIMISE:
+                        Resume de secours.
+                        """);
+        when(aiClient.isFallbackResult()).thenReturn(true);
+
+        JobMatchResponse response = service.matchJob(22L, "Gestion de projet et Kubernetes");
+
+        assertThat(response.isAiGenerated()).isFalse();
+        assertThat(response.isFallback()).isTrue();
     }
 
     @Test

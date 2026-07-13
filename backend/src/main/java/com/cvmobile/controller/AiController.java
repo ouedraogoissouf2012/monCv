@@ -45,7 +45,7 @@ public class AiController {
 
     @PostMapping("/generate-resume")
     @Operation(summary = "Generer un resume professionnel avec l'IA")
-    public ResponseEntity<java.util.Map<String, String>> generateResume(
+    public ResponseEntity<java.util.Map<String, Object>> generateResume(
             @Valid @RequestBody GenerateResumeRequest request) {
         var response = resumeGeneratorService.generateResume(
                 request.getTitrePoste(),

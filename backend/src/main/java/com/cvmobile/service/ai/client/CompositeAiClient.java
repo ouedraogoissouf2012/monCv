@@ -38,6 +38,7 @@ public class CompositeAiClient implements IAiClient {
 
     private final List<IAiClient> providers;
     private final MeterRegistry meters;
+    private final ThreadLocal<Boolean> fallbackResult = ThreadLocal.withInitial(() -> false);
 
     public CompositeAiClient(
             @Qualifier("resilientDeepSeek") IAiClient primary,
@@ -64,6 +65,7 @@ public class CompositeAiClient implements IAiClient {
 
     @Override
     public String complete(String prompt, int maxTokens) {
+        fallbackResult.set(false);
         AiProviderDownException lastDown = null;
 
         for (int i = 0; i < providers.size(); i++) {
@@ -80,6 +82,7 @@ public class CompositeAiClient implements IAiClient {
                         "provider", providerName,
                         "status", isPrimary ? "primary_ok" : "fallback_ok").increment();
                 if (!isPrimary) {
+                    fallbackResult.set(true);
                     log.warn("Primary provider failed, served via fallback {}", providerName);
                 }
                 return result;
@@ -98,6 +101,11 @@ public class CompositeAiClient implements IAiClient {
                         "provider", providerName,
                         "status", "failed").increment();
                 lastDown = e;
+                if (isPrimary && providers.size() > 1) {
+                    meters.counter("ai.fallback.triggered",
+                            "primary", providerName,
+                            "fallback", providerName(providers.get(1))).increment();
+                }
                 log.warn("Provider {} down, trying next provider. Reason: {}",
                         providerName, e.getMessage());
 
@@ -114,6 +122,11 @@ public class CompositeAiClient implements IAiClient {
         // Tous les providers ont echoue
         throw lastDown != null ? lastDown
                 : new AiProviderDownException("composite", "All providers exhausted", null);
+    }
+
+    @Override
+    public boolean isFallbackResult() {
+        return fallbackResult.get();
     }
 
     private String providerName(IAiClient client) {
