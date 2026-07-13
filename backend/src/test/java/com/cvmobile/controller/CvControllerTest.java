@@ -4,6 +4,7 @@ import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.User;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.PdfGenerationService;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class CvControllerTest {
 
     @Mock private CvService cvService;
     @Mock private PdfGenerationService pdfGenerationService;
+    @Mock private BusinessMetrics businessMetrics;
 
     @InjectMocks private CvController cvController;
 

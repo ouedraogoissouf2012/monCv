@@ -3,6 +3,7 @@ package com.cvmobile.service.ai.client;
 import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ class CompositeAiClientTest {
     private IAiClient primary;
     private IAiClient fallback;
     private SimpleMeterRegistry meters;
+    private BusinessMetrics businessMetrics;
     private CompositeAiClient client;
 
     @BeforeEach
@@ -27,7 +29,8 @@ class CompositeAiClientTest {
         primary = mock(IAiClient.class);
         fallback = mock(IAiClient.class);
         meters = new SimpleMeterRegistry();
-        client = new CompositeAiClient(primary, fallback, meters, new AiTelemetry(), true);
+        businessMetrics = new BusinessMetrics(meters);
+        client = new CompositeAiClient(primary, fallback, meters, businessMetrics, new AiTelemetry(), true);
     }
 
     @Test
@@ -83,6 +86,18 @@ class CompositeAiClientTest {
         client.complete("prompt", 100);
 
         assertThat(meters.get("ai.fallback.triggered").counter().count()).isEqualTo(1.0);
+        assertThat(meters.get("ai.fallback.triggered.total").counter().count()).isEqualTo(1.0);
+    }
+
+    @Test
+    void incrementsAiCallsMetricWhenProviderReturnsParseError() {
+        AiParseException parseError = new AiParseException("deepseek", "bad body", null);
+        when(primary.complete("prompt", 100)).thenThrow(parseError);
+
+        assertThatThrownBy(() -> client.complete("prompt", 100)).isSameAs(parseError);
+
+        assertThat(meters.get("ai.calls.total").counters())
+                .anySatisfy(counter -> assertThat(counter.count()).isEqualTo(1.0));
     }
 
     private AiProviderDownException providerDown(String provider) {

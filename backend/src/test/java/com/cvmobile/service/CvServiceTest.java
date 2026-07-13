@@ -6,6 +6,7 @@ import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.ai.IEnhancementService;
@@ -36,6 +37,7 @@ class CvServiceTest {
     @Mock private CvMapper cvMapper;
     @Mock private IEnhancementService enhancementService;
     @Mock private NotificationService notificationService;
+    @Mock private BusinessMetrics businessMetrics;
 
     @InjectMocks
     private CvService cvService;
@@ -111,6 +113,7 @@ class CvServiceTest {
 
         assertThat(result.getTitre()).isEqualTo("Nouveau CV");
         verify(cvRepository, times(2)).save(any(Cv.class));
+        verify(businessMetrics).recordCvCreated("default");
     }
 
     @Test
