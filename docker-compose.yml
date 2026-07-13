@@ -31,12 +31,26 @@ services:
       dockerfile: Dockerfile
     container_name: cvmobile-backend
     restart: unless-stopped
-    env_file:
-      - backend/.env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      DB_URL: jdbc:postgresql://postgres:5432/cvmobile
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/cvmobile}
       DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8082,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://10.0.2.2:8082}
+      SHOW_SQL: ${SHOW_SQL:-false}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-deepseek-chat}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      AI_FALLBACK_ENABLED: ${AI_FALLBACK_ENABLED:-true}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      FIREBASE_NOTIFICATIONS_ENABLED: ${FIREBASE_NOTIFICATIONS_ENABLED:-false}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-disabled}
+      STALE_CV_DAYS: ${STALE_CV_DAYS:-30}
+      NOTIFICATION_REMINDER_CRON: ${NOTIFICATION_REMINDER_CRON:-0 0 9 * * *}
+      MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES: ${MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES:-127.0.0.1/32,::1/128}
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,6 +64,26 @@ services:
       timeout: 5s
       retries: 3
       start_period: 40s
+    networks:
+      - cvmobile-net
+
+  adminer:
+    image: adminer:latest
+    container_name: cvmobile-adminer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "php -r '$$c=@fsockopen(\"127.0.0.1\", 8080); exit($$c ? 0 : 1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - cvmobile-net
 

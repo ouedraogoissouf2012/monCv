@@ -22,6 +22,22 @@ SPRING_PROFILES_ACTIVE=prod java -jar target/*.jar
 
 Les variables attendues sont documentees dans [backend/.env.example](backend/.env.example).
 
+## Docker local
+
+Pour lancer un environnement dev complet :
+
+```bash
+cp .env.example .env
+cp docker-compose.override.yml.example docker-compose.override.yml
+docker compose up -d
+```
+
+Acces utiles :
+
+- Backend : `http://localhost:8082`
+- Liveness : `http://localhost:8082/actuator/health/liveness`
+- Adminer : `http://localhost:8081`
+
 ## Deploiement
 
 La CI backend execute les tests avec le profil `test`.
