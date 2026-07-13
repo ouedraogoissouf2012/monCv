@@ -3,6 +3,7 @@ target/
 *.log
 hs_err_pid*.log
 replay_pid*.log
+*.md
 uploads/
 .env
 .env.local
@@ -10,3 +11,4 @@ uploads/
 .idea/
 .vscode/
 *.iml
+.git/
