@@ -306,7 +306,9 @@ class CvFlowIntegrationTest {
     @Test
     @Order(14)
     void healthCheck_devraitRetournerUp() throws Exception {
-        mvc.perform(get("/actuator/health"))
-                .andExpect(status().isOk());
+        mvc.perform(get("/actuator/health/liveness"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
     }
 }
