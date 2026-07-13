@@ -4,6 +4,7 @@ import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
+import com.cvmobile.exception.ai.AiTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -13,12 +14,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
@@ -92,6 +97,19 @@ class DeepSeekClientTest {
     }
 
     @Test
+    void complete_402_devraitLeverAiQuotaExceededException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.PAYMENT_REQUIRED)
+                        .body("{\"error\":\"insufficient balance\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiQuotaExceededException.class)
+                .extracting(e -> ((AiQuotaExceededException) e).getErrorCode())
+                .isEqualTo("AI_QUOTA_EXCEEDED");
+    }
+
+    @Test
     void complete_500_devraitLeverAiProviderDownException() {
         server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
                 .andRespond(withServerError().body("{\"error\":\"internal\"}")
@@ -101,6 +119,62 @@ class DeepSeekClientTest {
                 .isInstanceOf(AiProviderDownException.class)
                 .extracting(e -> ((AiProviderDownException) e).getErrorCode())
                 .isEqualTo("AI_PROVIDER_DOWN");
+    }
+
+    @Test
+    void complete_408_devraitLeverAiTimeoutException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.REQUEST_TIMEOUT));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiTimeoutException.class)
+                .extracting(e -> ((AiTimeoutException) e).getErrorCode())
+                .isEqualTo("AI_TIMEOUT");
+    }
+
+    @Test
+    void complete_504_devraitLeverAiTimeoutException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.GATEWAY_TIMEOUT));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiTimeoutException.class)
+                .extracting(e -> ((AiTimeoutException) e).getErrorCode())
+                .isEqualTo("AI_TIMEOUT");
+    }
+
+    @Test
+    void complete_connectionRefused_devraitLeverAiProviderDownException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withException(new ConnectException("connection refused")));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiProviderDownException.class)
+                .isNotInstanceOf(AiTimeoutException.class)
+                .extracting(e -> ((AiProviderDownException) e).getErrorCode())
+                .isEqualTo("AI_PROVIDER_DOWN");
+    }
+
+    @Test
+    void complete_readTimeout_devraitLeverAiTimeoutException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withException(new SocketTimeoutException("read timed out")));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiTimeoutException.class)
+                .extracting(e -> ((AiTimeoutException) e).getErrorCode())
+                .isEqualTo("AI_TIMEOUT");
+    }
+
+    @Test
+    void complete_nonJsonBody_devraitLeverAiParseException() {
+        server.expect(requestTo("http://deepseek.test/v1/chat/completions"))
+                .andRespond(withSuccess("not-json", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.complete("prompt", 100))
+                .isInstanceOf(AiParseException.class)
+                .extracting(e -> ((AiParseException) e).getErrorCode())
+                .isEqualTo("AI_PARSE_ERROR");
     }
 
     @Test
