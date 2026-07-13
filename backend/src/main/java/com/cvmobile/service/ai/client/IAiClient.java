@@ -22,8 +22,4 @@ public interface IAiClient {
         return false;
     }
 
-    /**
-     * Verifie si le client IA est configure (cle API presente).
-     */
-    boolean isAvailable();
 }

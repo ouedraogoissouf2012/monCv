@@ -47,7 +47,7 @@ public class CvImportServiceImpl implements ICvImportService {
             };
         } catch (BusinessException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Erreur extraction texte du fichier {}", filename, e);
             throw new BusinessException("IMPORT_ERROR", "Impossible de lire le fichier");
         }
@@ -59,16 +59,7 @@ public class CvImportServiceImpl implements ICvImportService {
 
         log.info("Texte extrait du CV ({} caracteres)", text.length());
 
-        if (!aiClient.isAvailable()) {
-            return buildFallbackImport(text, filename);
-        }
-
-        try {
-            return parseWithAi(text, filename);
-        } catch (Exception e) {
-            log.warn("IA import failed, using fallback: {}", e.getMessage());
-            return buildFallbackImport(text, filename);
-        }
+        return parseWithAi(text, filename);
     }
 
     // ── Extraction texte ────────────────────────────────────────────
@@ -275,13 +266,4 @@ public class CvImportServiceImpl implements ICvImportService {
         return fields;
     }
 
-    private CvRequest buildFallbackImport(String text, String filename) {
-        String titre = filename.replaceAll("\\.(pdf|docx)$", "");
-        return CvRequest.builder()
-                .titre(titre.isBlank() ? "CV importe" : titre)
-                .personalInfo(CvRequest.PersonalInfoDto.builder()
-                        .resumeProfessionnel(text.length() > 500 ? text.substring(0, 500) : text)
-                        .build())
-                .build();
-    }
 }

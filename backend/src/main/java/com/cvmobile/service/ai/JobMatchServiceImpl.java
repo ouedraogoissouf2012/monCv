@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -24,16 +21,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class JobMatchServiceImpl implements IJobMatchService {
-
-    private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}]+");
-    private static final Pattern DIACRITICS_PATTERN = Pattern.compile("\\p{M}+");
-
-    private static final Set<String> STOP_WORDS = Set.copyOf(List.of(
-            "le", "la", "les", "de", "du", "des", "un", "une", "et", "ou", "en",
-            "pour", "avec", "dans", "sur", "par", "au", "aux", "est", "sont",
-            "nous", "vous", "il", "elle", "ce", "cette", "son", "sa", "ses",
-            "qui", "que", "dont", "plus", "moins", "tres", "bien", "etre",
-            "avoir", "faire", "entre", "votre", "notre", "leur"));
 
     private final IAiClient aiClient;
     private final CvRepository cvRepository;
@@ -110,68 +97,4 @@ public class JobMatchServiceImpl implements IJobMatchService {
         return sb.toString();
     }
 
-    private JobMatchResponse buildFallbackMatch(Cv cv, String jobDescription) {
-        String cvText = normalizeForComparison(buildCvText(cv));
-        Matcher jobWords = WORD_PATTERN.matcher(jobDescription.toLowerCase(Locale.ROOT));
-        java.util.List<String> matched = new java.util.ArrayList<>();
-        java.util.List<String> missing = new java.util.ArrayList<>();
-        Set<String> seen = new java.util.HashSet<>();
-        while (jobWords.find()) {
-            String displayWord = jobWords.group();
-            String normalizedWord = normalizeForComparison(displayWord);
-            if (normalizedWord.length() < 4
-                    || STOP_WORDS.contains(normalizedWord)
-                    || !seen.add(normalizedWord)) {
-                continue;
-            }
-            if (cvText.contains(normalizedWord)) {
-                matched.add(displayWord);
-            } else {
-                missing.add(displayWord);
-            }
-        }
-
-        int score = matched.isEmpty() && missing.isEmpty() ? 0
-                : (int) ((matched.size() * 100.0) / (matched.size() + missing.size()));
-
-        return JobMatchResponse.builder()
-                .score(score)
-                .matchedKeywords(matched.stream().limit(15).collect(Collectors.toList()))
-                .missingKeywords(missing.stream().limit(10).collect(Collectors.toList()))
-                .suggestions(List.of(
-                        "Ajoutez les mots-cles manquants dans votre resume professionnel",
-                        "Adaptez vos descriptions d'experience au vocabulaire de l'offre",
-                        "Mentionnez les technologies specifiques demandees"))
-                .aiGenerated(false)
-                .build();
-    }
-
-    private String buildCvText(Cv cv) {
-        StringBuilder sb = new StringBuilder();
-        if (cv.getPersonalInfo() != null) {
-            sb.append(cv.getPersonalInfo().getTitrePoste()).append(" ");
-            sb.append(cv.getPersonalInfo().getResumeProfessionnel()).append(" ");
-        }
-        cv.getExperiences().forEach(e ->
-                sb.append(e.getPoste()).append(" ").append(e.getDescription()).append(" "));
-        cv.getSkills().forEach(s -> sb.append(s.getNom()).append(" "));
-        cv.getEducations().forEach(e ->
-                sb.append(e.getDiplome()).append(" ").append(e.getDescription()).append(" "));
-        cv.getLanguages().forEach(l ->
-                sb.append(l.getLangue()).append(" ").append(l.getNiveau()).append(" "));
-        cv.getCertifications().forEach(c ->
-                sb.append(c.getNom()).append(" ").append(c.getOrganisme()).append(" "));
-        cv.getProjects().forEach(p ->
-                sb.append(p.getNom()).append(" ")
-                        .append(p.getDescription()).append(" ")
-                        .append(p.getTechnologies()).append(" "));
-        return sb.toString();
-    }
-
-    private String normalizeForComparison(String value) {
-        String decomposed = Normalizer.normalize(value, Normalizer.Form.NFD);
-        return DIACRITICS_PATTERN.matcher(decomposed)
-                .replaceAll("")
-                .toLowerCase(Locale.ROOT);
-    }
 }

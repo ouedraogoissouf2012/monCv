@@ -59,11 +59,6 @@ public class CompositeAiClient implements IAiClient {
     }
 
     @Override
-    public boolean isAvailable() {
-        return providers.stream().anyMatch(IAiClient::isAvailable);
-    }
-
-    @Override
     public String complete(String prompt, int maxTokens) {
         fallbackResult.set(false);
         AiProviderDownException lastDown = null;

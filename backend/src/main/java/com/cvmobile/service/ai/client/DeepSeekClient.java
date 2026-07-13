@@ -57,13 +57,8 @@ public class DeepSeekClient implements IAiClient {
     }
 
     @Override
-    public boolean isAvailable() {
-        return apiKey != null && !apiKey.isBlank();
-    }
-
-    @Override
     public String complete(String prompt, int maxTokens) {
-        if (!isAvailable()) {
+        if (apiKey == null || apiKey.isBlank()) {
             throw new AiKeyInvalidException(PROVIDER_NAME,
                     new IllegalStateException("DeepSeek API key not configured"));
         }
