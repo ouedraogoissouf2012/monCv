@@ -22,21 +22,21 @@ sealed class Result<T> {
 
   /// Transforme les donnees si succes, propage l'erreur sinon.
   Result<R> map<R>(R Function(T data) transform) => switch (this) {
-    Success(:final data) => Result.success(transform(data)),
-    Failure(:final exception) => Result.failure(exception),
-  };
+        Success(:final data) => Result.success(transform(data)),
+        Failure(:final exception) => Result.failure(exception),
+      };
 
   /// Extrait les donnees ou lance l'exception.
   T getOrThrow() => switch (this) {
-    Success(:final data) => data,
-    Failure(:final exception) => throw exception,
-  };
+        Success(:final data) => data,
+        Failure(:final exception) => throw exception,
+      };
 
   /// Extrait les donnees ou retourne la valeur par defaut.
   T getOrElse(T defaultValue) => switch (this) {
-    Success(:final data) => data,
-    Failure() => defaultValue,
-  };
+        Success(:final data) => data,
+        Failure() => defaultValue,
+      };
 
   /// True si l'operation a reussi.
   bool get isSuccess => this is Success<T>;
@@ -63,11 +63,7 @@ sealed class AppException implements Exception {
   final String? code;
   final dynamic originalError;
 
-  const AppException({
-    required this.message,
-    this.code,
-    this.originalError,
-  });
+  const AppException({required this.message, this.code, this.originalError});
 
   @override
   String toString() => 'AppException($code): $message';
@@ -137,17 +133,19 @@ final class ConflictException extends AppException {
 /// Mappe les codes backend AI_* (AI_KEY_INVALID, AI_QUOTA_EXCEEDED, AI_TIMEOUT,
 /// AI_PROVIDER_DOWN, AI_PARSE_ERROR) en messages user-friendly.
 ///
-/// Remplace l'ancien message trompeur "Mode hors ligne - cle DeepSeek manquante"
-/// qui s'affichait pour toutes les erreurs IA sans distinction.
+/// Permet d'afficher une cause precise pour chaque erreur du fournisseur IA.
 final class AiException extends AppException {
-  /// Nombre de secondes avant de pouvoir retenter (pour AI_QUOTA_EXCEEDED).
-  final int? retryAfterSeconds;
+  @override
+  String get code => super.code!;
+
+  /// Delai avant de pouvoir retenter (pour AI_QUOTA_EXCEEDED).
+  final Duration? retryAfter;
   final String? provider;
 
   const AiException({
     required super.message,
     required String super.code,
-    this.retryAfterSeconds,
+    this.retryAfter,
     this.provider,
     super.originalError,
   });
