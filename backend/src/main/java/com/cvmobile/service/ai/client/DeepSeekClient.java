@@ -9,10 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.SocketTimeoutException;
@@ -79,6 +81,7 @@ public class DeepSeekClient implements IAiClient {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
+        long startedAt = System.nanoTime();
         try {
             @SuppressWarnings("unchecked")
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
@@ -87,26 +90,54 @@ public class DeepSeekClient implements IAiClient {
                     entity,
                     (Class<Map<String, Object>>) (Class<?>) Map.class);
 
-            return extractContent(response.getBody());
+            String content = extractContent(response.getBody());
+            log.debug("AI request succeeded provider={} httpStatus={} latencyMs={}",
+                    PROVIDER_NAME, response.getStatusCode().value(), elapsedMillis(startedAt));
+            return content;
 
         } catch (HttpClientErrorException.Unauthorized e) {
+            logFailure(e.getStatusCode().value(), startedAt, e);
             throw new AiKeyInvalidException(PROVIDER_NAME, e);
         } catch (HttpClientErrorException.TooManyRequests e) {
+            logFailure(e.getStatusCode().value(), startedAt, e);
             Integer retryAfter = parseRetryAfter(e.getResponseHeaders());
             throw new AiQuotaExceededException(PROVIDER_NAME, retryAfter, e);
         } catch (HttpClientErrorException e) {
+            logFailure(e.getStatusCode().value(), startedAt, e);
+            if (e.getStatusCode() == HttpStatus.PAYMENT_REQUIRED) {
+                throw new AiQuotaExceededException(PROVIDER_NAME,
+                        parseRetryAfter(e.getResponseHeaders()), e);
+            }
+            if (e.getStatusCode() == HttpStatus.REQUEST_TIMEOUT) {
+                throw new AiTimeoutException(PROVIDER_NAME, e);
+            }
             throw new AiProviderDownException(PROVIDER_NAME,
                     "HTTP " + e.getStatusCode().value(), e);
         } catch (HttpServerErrorException e) {
+            logFailure(e.getStatusCode().value(), startedAt, e);
+            if (e.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
+                throw new AiTimeoutException(PROVIDER_NAME, e);
+            }
             throw new AiProviderDownException(PROVIDER_NAME,
                     "HTTP " + e.getStatusCode().value(), e);
+        } catch (AiParseException e) {
+            logFailure(HttpStatus.OK.value(), startedAt, e);
+            throw e;
         } catch (ResourceAccessException e) {
-            // Timeout reseau (connect ou read) OU connection refused
-            if (e.getCause() instanceof SocketTimeoutException) {
+            logFailure(null, startedAt, e);
+            if (hasCause(e, SocketTimeoutException.class)) {
                 throw new AiTimeoutException(PROVIDER_NAME, e);
             }
             throw new AiProviderDownException(PROVIDER_NAME,
                     "Network error: " + e.getMessage(), e);
+        } catch (RestClientException e) {
+            logFailure(null, startedAt, e);
+            if (hasCause(e, HttpMessageConversionException.class)) {
+                throw new AiParseException(PROVIDER_NAME,
+                        "malformed response body", e);
+            }
+            throw new AiProviderDownException(PROVIDER_NAME,
+                    "Client error: " + e.getMessage(), e);
         }
     }
 
@@ -152,5 +183,28 @@ public class DeepSeekClient implements IAiClient {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (causeType.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void logFailure(Integer httpStatus, long startedAt, Exception exception) {
+        log.warn("AI request failed provider={} httpStatus={} latencyMs={} errorType={}",
+                PROVIDER_NAME,
+                httpStatus != null ? httpStatus : "network",
+                elapsedMillis(startedAt),
+                exception.getClass().getSimpleName());
+    }
+
+    private long elapsedMillis(long startedAt) {
+        return Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
     }
 }
