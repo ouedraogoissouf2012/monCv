@@ -17,7 +17,7 @@ spring:
     enabled: false
 
 jwt:
-  secret: TestSecretKeyForUnitTestsOnly1234567890ABCDEFGHIJ
+  secret: TestOnly-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6nC5sD8wZ1kP4
   expiration: 3600000
   refresh-expiration: 86400000
 

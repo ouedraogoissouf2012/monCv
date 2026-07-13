@@ -6,13 +6,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import jakarta.annotation.PostConstruct;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
+
+    static final int MIN_SECRET_LENGTH = 64;
+    static final double MIN_SECRET_ENTROPY = 4.0;
+    private static final Set<String> BLOCKED_SECRETS = Set.of(
+            "cvMobileDevSecretKey2024AtLeast32CharsLong!");
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -22,6 +32,34 @@ public class JwtTokenProvider {
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
+
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET environment variable is required");
+        }
+        if (BLOCKED_SECRETS.contains(jwtSecret)) {
+            throw new IllegalStateException("JWT_SECRET must not be a known development key");
+        }
+        if (jwtSecret.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must be at least " + MIN_SECRET_LENGTH + " characters");
+        }
+        if (shannonEntropy(jwtSecret) <= MIN_SECRET_ENTROPY) {
+            throw new IllegalStateException("JWT_SECRET entropy must be greater than 4.0 bits per character");
+        }
+    }
+
+    static double shannonEntropy(String value) {
+        if (value == null || value.isEmpty()) return 0.0;
+        Map<Integer, Long> frequencies = value.codePoints().boxed()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        double length = value.codePointCount(0, value.length());
+        return frequencies.values().stream().mapToDouble(count -> {
+            double probability = count / length;
+            return -probability * (Math.log(probability) / Math.log(2));
+        }).sum();
+    }
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
