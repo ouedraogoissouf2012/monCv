@@ -4,6 +4,7 @@ import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiServiceException;
+import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client IA composite avec chaine de fallback : primary -> fallback.
@@ -38,12 +40,14 @@ public class CompositeAiClient implements IAiClient {
 
     private final List<IAiClient> providers;
     private final MeterRegistry meters;
+    private final AiTelemetry telemetry;
     private final ThreadLocal<Boolean> fallbackResult = ThreadLocal.withInitial(() -> false);
 
     public CompositeAiClient(
             @Qualifier("resilientDeepSeek") IAiClient primary,
             @Qualifier("mockAiClient") IAiClient fallback,
             MeterRegistry meters,
+            AiTelemetry telemetry,
             @Value("${ai.fallback.enabled:true}") boolean fallbackEnabled) {
         List<IAiClient> chain = new ArrayList<>();
         chain.add(primary);
@@ -56,10 +60,12 @@ public class CompositeAiClient implements IAiClient {
         }
         this.providers = List.copyOf(chain);
         this.meters = meters;
+        this.telemetry = telemetry;
     }
 
     @Override
     public String complete(String prompt, int maxTokens) {
+        long startedAt = System.nanoTime();
         fallbackResult.set(false);
         AiProviderDownException lastDown = null;
 
@@ -80,6 +86,7 @@ public class CompositeAiClient implements IAiClient {
                     fallbackResult.set(true);
                     log.warn("Primary provider failed, served via fallback {}", providerName);
                 }
+                telemetry.recordSuccess(elapsedMillis(startedAt), !isPrimary);
                 return result;
 
             } catch (AiKeyInvalidException | AiQuotaExceededException e) {
@@ -88,6 +95,7 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", "config_error").increment();
+                telemetry.recordFailure(elapsedMillis(startedAt), e);
                 throw e;
 
             } catch (AiProviderDownException e) {
@@ -96,6 +104,7 @@ public class CompositeAiClient implements IAiClient {
                         "provider", providerName,
                         "status", "failed").increment();
                 lastDown = e;
+                telemetry.recordLastError(e);
                 if (isPrimary && providers.size() > 1) {
                     meters.counter("ai.fallback.triggered",
                             "primary", providerName,
@@ -110,18 +119,25 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", "error").increment();
+                telemetry.recordFailure(elapsedMillis(startedAt), e);
                 throw e;
             }
         }
 
         // Tous les providers ont echoue
-        throw lastDown != null ? lastDown
+        AiProviderDownException failure = lastDown != null ? lastDown
                 : new AiProviderDownException("composite", "All providers exhausted", null);
+        telemetry.recordFailure(elapsedMillis(startedAt), failure);
+        throw failure;
     }
 
     @Override
     public boolean isFallbackResult() {
         return fallbackResult.get();
+    }
+
+    private long elapsedMillis(long startedAt) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
     }
 
     private String providerName(IAiClient client) {

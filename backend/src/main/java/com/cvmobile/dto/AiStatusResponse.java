@@ -27,6 +27,17 @@ public class AiStatusResponse {
     /** Etat du provider principal : UP, DOWN, KEY_INVALID, RATE_LIMITED, CIRCUIT_OPEN, UNKNOWN. */
     private String primaryStatus;
 
+    /** Etat Resilience4j exact : CLOSED, OPEN, HALF_OPEN, etc. */
+    private String circuitBreakerState;
+
+    /** Derniere erreur fournisseur connue. */
+    private LastAiError lastError;
+
+    private long latencyP50Ms;
+    private long latencyP95Ms;
+    private double errorRatePercent;
+    private boolean fallbackInUse;
+
     /** True si un provider de fallback est configure et disponible. */
     private boolean fallbackAvailable;
 
@@ -35,4 +46,16 @@ public class AiStatusResponse {
 
     /** Horodatage de la derniere mise a jour du status. */
     private Instant lastChecked;
+
+    /** Alias contractuel du nouvel endpoint. */
+    private Instant checkedAt;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LastAiError {
+        private Instant timestamp;
+        private String type;
+    }
 }

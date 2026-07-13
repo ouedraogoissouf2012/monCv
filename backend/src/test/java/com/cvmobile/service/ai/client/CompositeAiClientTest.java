@@ -3,6 +3,7 @@ package com.cvmobile.service.ai.client;
 import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
+import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class CompositeAiClientTest {
         primary = mock(IAiClient.class);
         fallback = mock(IAiClient.class);
         meters = new SimpleMeterRegistry();
-        client = new CompositeAiClient(primary, fallback, meters, true);
+        client = new CompositeAiClient(primary, fallback, meters, new AiTelemetry(), true);
     }
 
     @Test
