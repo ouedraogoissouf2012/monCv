@@ -24,6 +24,27 @@ Les migrations presentes dans `backend/src/main/resources/db/migration` sont:
 
 Le gap historique entre `V4` et `V6` n'existe plus: `V5__add_cv_style_columns.sql` a ete ajoutee avant mise en production.
 
+## Schema logique simplifie
+
+Tables coeur :
+
+- `users` : compte, email, auth et profil de base
+- `cvs` : metadonnees du CV, token public, style visuel, parent de variante
+- `experiences` : parcours professionnel
+- `educations` / `formations` : cursus
+- `skills` : competences et niveaux
+- `languages` : langues et niveaux
+- `certifications` : certifications rattachees au CV
+- `projects` : projets rattaches au CV
+- `cv_views` : analytics de consultation publique
+- `notification_device_tokens` : tokens de push
+
+Principes :
+
+- une entite `Cv` appartient a un `User`
+- les variantes de CV referencent un `parent_cv_id`
+- les tables enfants sont supprimees avec leur CV selon la strategie JPA / schema en place
+
 ## Verification locale
 
 Pour verifier l'ordre des migrations sur une base PostgreSQL vierge:

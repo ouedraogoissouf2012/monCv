@@ -1,45 +1,78 @@
 # MonCV
 
-MonCV contient un backend Spring Boot et une application Flutter pour creer,
-adapter et exporter des CV.
+[![CI](https://github.com/ouedraogoissouf2012/monCv/actions/workflows/ci.yml/badge.svg)](https://github.com/ouedraogoissouf2012/monCv/actions/workflows/ci.yml)
+![Coverage](https://img.shields.io/badge/coverage-local%20validation-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 
-## Profils Spring Boot
+MonCV est une plateforme de creation, adaptation et export de CV avec :
 
-Le backend utilise `SPRING_PROFILES_ACTIVE` pour choisir sa configuration :
+- un backend Spring Boot pour l'API, l'authentification, l'IA et la generation documentaire ;
+- une application Flutter pour le web et le mobile ;
+- un socle Docker local pour developper rapidement avec PostgreSQL.
 
-- `dev` : developpement local, Swagger actif, logs plus verbeux
-- `test` : tests automatises, H2 en memoire, aucun secret de prod requis
-- `prod` : production, secrets obligatoires, Swagger desactive
+## Demarrage rapide
 
-Exemples :
+### Backend local
 
 ```bash
 cd backend
-SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
-SPRING_PROFILES_ACTIVE=test ./mvnw test
-SPRING_PROFILES_ACTIVE=prod java -jar target/*.jar
+cp .env.example .env
+mvn spring-boot:run
 ```
 
-Les variables attendues sont documentees dans [backend/.env.example](backend/.env.example).
-
-## Docker local
-
-Pour lancer un environnement dev complet :
+### Stack Docker locale
 
 ```bash
 cp .env.example .env
-cp docker-compose.override.yml.example docker-compose.override.yml
 docker compose up -d
+```
+
+### Flutter web local
+
+```bash
+cd mobile
+flutter pub get
+flutter run -d chrome --web-port=3001
 ```
 
 Acces utiles :
 
-- Backend : `http://localhost:8082`
-- Liveness : `http://localhost:8082/actuator/health/liveness`
+- API : `http://localhost:8082`
+- Swagger UI : `http://localhost:8082/swagger-ui.html`
+- Health readiness : `http://localhost:8082/actuator/health/readiness`
 - Adminer : `http://localhost:8081`
 
-## Deploiement
+## Documentation
 
-La CI backend execute les tests avec le profil `test`.
-Les deploiements doivent toujours injecter `SPRING_PROFILES_ACTIVE=prod` avec
-les secrets via l'orchestrateur ou le gestionnaire de secrets.
+- [Architecture](docs/ARCHITECTURE.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Runbook](docs/RUNBOOK.md)
+- [Security](docs/SECURITY.md)
+- [Database](docs/DATABASE.md)
+- [API](docs/API.md)
+- [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Deployment detaille](DEPLOYMENT.md)
+- [Guide de lancement](GUIDE_LANCEMENT.md)
+
+## Repo layout
+
+```text
+backend/   API Spring Boot + PostgreSQL + Flyway + Resilience4j
+mobile/    App Flutter web/mobile
+docs/      Documentation technique et operationnelle
+ops/       Artefacts ops (ex: dashboard Grafana)
+```
+
+## Qualite et securite
+
+- tests backend et Flutter executes via GitHub Actions quand la CI est disponible ;
+- scan secrets via `security.yml` + Gitleaks ;
+- logs structures, correlation ID, metriques Prometheus et dashboard Grafana ;
+- tracking d'erreurs Sentry/GlitchTip active uniquement si les DSN sont fournis.
+
+## Versionnement
+
+- migrations Flyway strictement incrementales ;
+- merge sur `main` apres validation locale ou CI selon disponibilite ;
+- historique des changements dans [CHANGELOG.md](CHANGELOG.md).

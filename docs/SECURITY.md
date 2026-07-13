@@ -13,8 +13,23 @@ l'historique Git.
 - Utiliser des valeurs clairement fictives et limitees aux tests lorsque cela
   est indispensable.
 
+Secrets critiques actuels :
+
+- `DB_PASSWORD`
+- `JWT_SECRET`
+- `DEEPSEEK_API_KEY`
+- `GOOGLE_APPLICATION_CREDENTIALS`
+- `SENTRY_DSN`
+
 Les fichiers `.env.example` documentent uniquement les noms des variables. Ils
 ne contiennent aucune valeur utilisable.
+
+## Rotation
+
+- rotation immediate apres tout incident ou doute d'exposition ;
+- rotation planifiee au minimum trimestrielle pour les cles API externes ;
+- rotation a chaque changement d'equipe pour les secrets partages manuellement ;
+- apres rotation, verifier les healthchecks et l'absence d'erreurs auth.
 
 ## Controle avant commit
 
@@ -66,3 +81,9 @@ pas. Il faut immediatement :
 
 L'incident DeepSeek de mai 2026 est documente dans
 `docs/SECURITY_INCIDENT_2026-05.md`.
+
+## Responsabilites
+
+- proprietaire depot : `@ouedraogoissouf2012`
+- responsable technique du secret impacte : mainteneur du scope backend/mobile concerne
+- contact escalade plateforme : a formaliser avant exploitation 24/7

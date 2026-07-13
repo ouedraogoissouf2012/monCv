@@ -1,87 +1,90 @@
-# Configuration du backend MonCV
+# Configuration MonCV
 
-Le backend lit sa configuration depuis les variables d'environnement Spring Boot. En local, copiez
-`backend/.env.example` vers `backend/.env`. Le fichier `.env` est ignore par Git et ne doit jamais etre
-committe.
+Ce document centralise les variables de configuration du backend Spring Boot, du stack Docker local et du build Flutter.
 
-En production, injectez les secrets avec le gestionnaire de secrets de l'orchestrateur. Ne placez pas
-de secret de production dans une image Docker, un fichier versionne ou une variable du frontend.
+## Conventions
 
-## Variables obligatoires
+- les secrets ne doivent jamais etre commits ;
+- `backend/.env.example` documente les variables backend locales ;
+- `.env.example` a la racine documente le flux `docker compose` ;
+- le frontend Flutter utilise principalement des `--dart-define`.
 
-| Variable | Dev | Prod | Description |
-| --- | --- | --- | --- |
-| `DB_PASSWORD` | Requise | Requise | Mot de passe PostgreSQL. Aucun default n'est accepte. |
-| `JWT_SECRET` | Default dev-only | Requise | Signature JWT, 64 caracteres minimum et entropie superieure a 4 bits par caractere. |
-| `ALLOWED_ORIGINS` | Default localhost | Requise | Origines CORS, separees par des virgules. |
-| `DEEPSEEK_API_KEY` | Optionnelle | Requise | Cle de l'API DeepSeek. Le mode degrade est disponible en dev. |
+## Backend Spring Boot
 
-Le profil `test` utilise H2, une cle JWT fixe non productive et des mocks. Il n'exige pas ces variables.
+| Variable | Type | Requise | Default | Description |
+| --- | --- | --- | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | string | non | `dev` | Profil actif : `dev`, `test`, `prod`. |
+| `DB_URL` | string | non en dev / oui en prod | `jdbc:postgresql://localhost:5432/cvmobile` | URL JDBC PostgreSQL. |
+| `DB_USERNAME` | string | non en dev / oui en prod | `postgres` | Utilisateur PostgreSQL. |
+| `DB_PASSWORD` | secret string | oui hors `test` | aucun | Mot de passe PostgreSQL. |
+| `JWT_SECRET` | secret string | oui en prod | aucun en prod, valeur locale en dev | Secret JWT. |
+| `JWT_EXPIRATION` | long | non | `86400000` | Duree du token d'acces en ms. |
+| `JWT_REFRESH_EXPIRATION` | long | non | `604800000` | Duree du refresh token en ms. |
+| `ALLOWED_ORIGINS` | csv string | oui en prod | aucun en prod | Origines CORS autorisees. |
+| `SERVER_PORT` | int | non | `8082` | Port HTTP du backend. |
+| `SHOW_SQL` | bool | non | `false` | Active l'affichage SQL en dev si branche. |
+| `UPLOAD_DIR` | path | non | `${user.home}/cv-uploads/photos` | Dossier de stockage des photos. |
+| `DEEPSEEK_API_KEY` | secret string | oui en prod | vide en dev | Cle API du fournisseur IA. |
+| `AI_MODEL` | string | non | `deepseek-chat` | Modele IA. |
+| `DEEPSEEK_BASE_URL` | url | non | `https://api.deepseek.com/v1` | Base URL du fournisseur. |
+| `AI_FALLBACK_ENABLED` | bool | non | `true` | Active le fallback mock/local. |
+| `FIREBASE_NOTIFICATIONS_ENABLED` | bool | non | `false` | Active FCM cote backend. |
+| `GOOGLE_APPLICATION_CREDENTIALS` | path | requise si Firebase active | aucun | Compte de service Google. |
+| `STALE_CV_DAYS` | int | non | `30` | Seuil de CV stale pour les rappels. |
+| `NOTIFICATION_REMINDER_CRON` | cron | non | `0 0 9 * * *` | Cron Spring des notifications. |
+| `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES` | csv CIDR | non | `127.0.0.1/32,::1/128` | Allowlist IP pour `/actuator/prometheus`. |
+| `SENTRY_DSN` | secret string | non | vide | Active Sentry / GlitchTip backend si defini. |
+| `SENTRY_ENVIRONMENT` | string | non | valeur de `SPRING_PROFILES_ACTIVE` | Nom d'environnement remonte a Sentry. |
 
-## Base de donnees
+## Flutter / build web-mobile
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/cvmobile` | URL JDBC PostgreSQL. |
-| `DB_USERNAME` | `postgres` | Utilisateur PostgreSQL. |
-| `DB_PASSWORD` | Aucun | Mot de passe PostgreSQL obligatoire hors profil `test`. |
+| Variable | Type | Requise | Default | Description |
+| --- | --- | --- | --- | --- |
+| `APP_ENV` | string | non | `development` | Environnement Flutter. `production` force une API HTTPS explicite. |
+| `API_BASE_URL` | url | oui si `APP_ENV=production` | `http://localhost:8082/api` en web local, `http://10.0.2.2:8082/api` hors web | Base URL de l'API. |
+| `SENTRY_DSN` | secret string | non | vide | Active `sentry_flutter` si fournie au build. |
 
-## Application et serveur
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `SPRING_PROFILES_ACTIVE` | `dev` | Profil actif : `dev`, `prod` ou `test`. |
-| `SERVER_PORT` | `8082` | Port HTTP du backend. |
-| `UPLOAD_DIR` | `${user.home}/cv-uploads/photos` | Repertoire des photos chargees. |
-| `SHOW_SQL` | `false` | Affiche les requetes Hibernate en developpement. Toujours `false` en prod. |
-| `ALLOWED_ORIGINS` | Localhost en dev, aucun en prod | Liste CORS separee par des virgules. |
-
-## Authentification JWT
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `JWT_SECRET` | Cle dev-only en profil `dev`, aucun en prod | Secret de signature JWT. |
-| `JWT_EXPIRATION` | `86400000` | Duree du jeton d'acces en millisecondes, soit 24 heures. |
-| `JWT_REFRESH_EXPIRATION` | `604800000` | Duree du refresh token en millisecondes, soit 7 jours. |
-
-Generez un secret de production sans l'afficher dans les logs :
+Exemple :
 
 ```bash
-openssl rand -base64 64
+flutter build web --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://api.example.com/api \
+  --dart-define=SENTRY_DSN=https://public@example.ingest.sentry.io/1
 ```
 
-## Intelligence artificielle
+## Docker Compose local
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DEEPSEEK_API_KEY` | Vide en dev, aucun en prod | Cle API du fournisseur DeepSeek. |
-| `AI_MODEL` | `deepseek-chat` | Modele DeepSeek utilise. |
-| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1` | URL de base du fournisseur. |
-| `AI_FALLBACK_ENABLED` | `true` | Active le fournisseur de secours local. |
+Le `.env` racine sert surtout au `docker compose` local.
 
-## Notifications
+Variables attendues :
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `FIREBASE_NOTIFICATIONS_ENABLED` | `false` | Active Firebase Cloud Messaging. |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Aucun | Chemin du compte de service Google, requis si Firebase est active. |
-| `STALE_CV_DAYS` | `30` | Age d'un CV avant rappel. |
-| `NOTIFICATION_REMINDER_CRON` | `0 0 9 * * *` | Planification Spring des rappels. |
+- `SPRING_PROFILES_ACTIVE`
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `JWT_SECRET`
+- `JWT_EXPIRATION`
+- `JWT_REFRESH_EXPIRATION`
+- `ALLOWED_ORIGINS`
+- `SERVER_PORT`
+- `SHOW_SQL`
+- `DEEPSEEK_API_KEY`
+- `AI_MODEL`
+- `DEEPSEEK_BASE_URL`
+- `AI_FALLBACK_ENABLED`
+- `UPLOAD_DIR`
+- `FIREBASE_NOTIFICATIONS_ENABLED`
+- `GOOGLE_APPLICATION_CREDENTIALS`
+- `STALE_CV_DAYS`
+- `NOTIFICATION_REMINDER_CRON`
+- `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES`
 
-## Monitoring
+## Regles d'exploitation
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES` | `127.0.0.1/32,::1/128` | CIDR autorises pour `/actuator/prometheus`. |
-
-Les probes `/actuator/health/liveness` et `/actuator/health/readiness` sont publiques. Les autres
-endpoints Actuator exigent un administrateur, sauf Prometheus qui est controle par cette allowlist.
-
-## Echec au demarrage
-
-`AppStartupValidator` s'execute pendant l'initialisation du contexte Spring. Le demarrage est refuse :
-
-- dans tout profil non-test lorsque `DB_PASSWORD` est absent ou vide ;
-- en production lorsque `JWT_SECRET`, `ALLOWED_ORIGINS` ou `DEEPSEEK_API_KEY` est aussi absent ou vide.
-
-Le validateur journalise le nom et la source des variables, jamais leur valeur.
+- profil `test` : H2, mocks et secrets non productifs ;
+- profil `prod` : pas de fallback silencieux sur les secrets critiques ;
+- toute nouvelle variable doit etre ajoutee dans :
+  - `backend/.env.example` ou `.env.example`
+  - ce document
+  - le runbook si elle impacte l'ops
