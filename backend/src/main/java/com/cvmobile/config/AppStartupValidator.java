@@ -1,11 +1,10 @@
 package com.cvmobile.config;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.env.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +13,7 @@ import java.util.List;
 /**
  * Valide au demarrage que les secrets critiques sont bien charges.
  *
- * En profil dev : log warning + mode degrade autorise.
+ * En profil dev : DB_PASSWORD obligatoire, services optionnels en mode degrade.
  * En profil prod : throw IllegalStateException → l'app crash (container restart).
  *
  * Affiche aussi une banniere montrant la source de chaque secret pour le debug
@@ -25,7 +24,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AppStartupValidator implements ApplicationListener<ApplicationReadyEvent> {
+public class AppStartupValidator {
 
     private static final List<String> ALL_SECRETS = List.of(
             "DEEPSEEK_API_KEY",
@@ -40,14 +39,17 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
             "DB_PASSWORD",
             "ALLOWED_ORIGINS");
 
-    @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        ConfigurableEnvironment env = (ConfigurableEnvironment) event.getApplicationContext().getEnvironment();
-        String[] profiles = env.getActiveProfiles();
-        String profile = profiles.length > 0 ? profiles[0] : "default";
+    private static final List<String> NON_TEST_REQUIRED = List.of("DB_PASSWORD");
 
-        // Pas de validation en profil test (H2 + mocks)
-        if ("test".equals(profile)) return;
+    private final ConfigurableEnvironment env;
+
+    @PostConstruct
+    void validateSecrets() {
+        if (env.acceptsProfiles(Profiles.of("test"))) return;
+
+        String[] profiles = env.getActiveProfiles();
+        String profile = profiles.length > 0 ? String.join(",", profiles) : "default";
+        boolean production = env.acceptsProfiles(Profiles.of("prod"));
 
         log.info("=== CV Mobile Startup Config ===");
         log.info("Profile: {}", profile);
@@ -70,16 +72,14 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
 
         log.info("================================");
 
-        // Fail-fast en prod si un secret critique manque
-        if ("prod".equals(profile)) {
-            List<String> critical = missing.stream()
-                    .filter(PROD_REQUIRED::contains)
-                    .toList();
-            if (!critical.isEmpty()) {
-                throw new IllegalStateException(
-                        "Impossible de demarrer en profil 'prod' : secrets manquants " + critical
-                        + ". Verifiez la configuration de l'orchestrateur ou du secrets manager.");
-            }
+        List<String> required = production ? PROD_REQUIRED : NON_TEST_REQUIRED;
+        List<String> critical = missing.stream()
+                .filter(required::contains)
+                .toList();
+        if (!critical.isEmpty()) {
+            throw new IllegalStateException(
+                    "Impossible de demarrer avec le profil '" + profile + "' : secrets manquants " + critical
+                    + ". Verifiez les variables d'environnement ou le secrets manager.");
         }
 
         // Warnings actionnables en dev
