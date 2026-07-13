@@ -63,6 +63,8 @@ notifications:
 
 # Actuator / Monitoring
 management:
+  prometheus:
+    allowed-ip-ranges: ${MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES:127.0.0.1/32,::1/128}
   endpoints:
     web:
       exposure:
@@ -73,6 +75,8 @@ management:
       probes:
         enabled: true
       group:
+        liveness:
+          include: livenessState
         readiness:
           include: readinessState,db
 

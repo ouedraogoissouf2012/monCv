@@ -1,9 +1,13 @@
 package com.cvmobile.config;
 
 import com.cvmobile.security.JwtAuthenticationFilter;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,15 +17,21 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +42,24 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
+
+    @Value("${management.prometheus.allowed-ip-ranges:127.0.0.1/32,::1/128}")
+    private String prometheusAllowedIpRanges;
+
+    private List<IpAddressMatcher> prometheusIpMatchers;
+
+    @PostConstruct
+    void initializePrometheusIpMatchers() {
+        prometheusIpMatchers = Arrays.stream(prometheusAllowedIpRanges.split(","))
+                .map(String::trim)
+                .filter(range -> !range.isEmpty())
+                .map(IpAddressMatcher::new)
+                .toList();
+
+        if (prometheusIpMatchers.isEmpty()) {
+            throw new IllegalStateException("At least one Prometheus IP range must be configured");
+        }
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -55,10 +83,10 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
-                                "/actuator/health",
-                                "/actuator/health/**",
-                                "/actuator/info"
+                                "/actuator/health/liveness",
+                                "/actuator/health/readiness"
                         ).permitAll()
+                        .requestMatchers("/actuator/prometheus").access(this::isPrometheusRequestAllowed)
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -68,6 +96,14 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private AuthorizationDecision isPrometheusRequestAllowed(
+            Supplier<? extends Authentication> authentication,
+            RequestAuthorizationContext context) {
+        boolean allowed = prometheusIpMatchers.stream()
+                .anyMatch(matcher -> matcher.matches(context.getRequest()));
+        return new AuthorizationDecision(allowed);
     }
 
     @Bean
