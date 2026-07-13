@@ -57,6 +57,11 @@ class AppStartupValidatorTest {
         var context = new AnnotationConfigApplicationContext();
         ConfigurableEnvironment environment = context.getEnvironment();
         environment.setActiveProfiles(profile);
+        environment.getPropertySources().addFirst(new MapPropertySource("masked-system-secrets", Map.of(
+                "DB_PASSWORD", "",
+                "JWT_SECRET", "",
+                "DEEPSEEK_API_KEY", "",
+                "ALLOWED_ORIGINS", "")));
         context.registerBean(AppStartupValidator.class, () -> new AppStartupValidator(environment));
         return context;
     }
