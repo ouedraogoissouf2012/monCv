@@ -3,6 +3,11 @@
 
 spring:
   # Secrets obligatoires : DB_PASSWORD, JWT_SECRET (deja references sans default dans application.yml)
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
 
   jpa:
     show-sql: false
@@ -52,3 +57,9 @@ logging:
     com.cvmobile: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

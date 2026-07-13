@@ -104,5 +104,15 @@ class ActuatorSecurityIntegrationTest {
 
         assertThat(propertySource.getProperty("management.endpoints.web.exposure.include"))
                 .isEqualTo("health,metrics,prometheus");
+        assertThat(propertySource.getProperty("springdoc.api-docs.enabled"))
+                .isEqualTo(false);
+        assertThat(propertySource.getProperty("springdoc.swagger-ui.enabled"))
+                .isEqualTo(false);
+        assertThat(propertySource.getProperty("spring.datasource.hikari.maximum-pool-size"))
+                .isEqualTo(20);
+        assertThat(propertySource.getProperty("spring.datasource.hikari.minimum-idle"))
+                .isEqualTo(5);
+        assertThat(propertySource.getProperty("spring.datasource.hikari.idle-timeout"))
+                .isEqualTo(30000);
     }
 }
