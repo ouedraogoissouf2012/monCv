@@ -1,9 +1,8 @@
-# Profil dev — tolerant pour le developpement local
-# Defaults permissifs, mode degrade autorise pour DeepSeek
+# Profil dev — mode degrade autorise pour DeepSeek
 
 spring:
   datasource:
-    password: ${DB_PASSWORD:seven}
+    password: ${DB_PASSWORD}
 
   jpa:
     show-sql: ${SHOW_SQL:false}
