@@ -50,6 +50,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private JobMatchResponse callAiMatch(Cv cv, String jobDescription) {
         String prompt = buildMatchPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, 1500);
+        boolean fallback = aiClient.isFallbackResult();
         log.debug("AI match response received ({} chars)", rawContent.length());
 
         List<String> allMarkers = List.of(
@@ -73,7 +74,8 @@ public class JobMatchServiceImpl implements IJobMatchService {
                 .missingKeywords(missing)
                 .suggestions(suggestions)
                 .optimizedResume(optimizedResume.isBlank() ? null : optimizedResume)
-                .aiGenerated(true)
+                .aiGenerated(!fallback)
+                .fallback(fallback)
                 .build();
     }
 

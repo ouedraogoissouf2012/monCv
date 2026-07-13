@@ -15,4 +15,5 @@ public class SuggestResponse {
 
     private List<String> suggestions;
     private boolean aiGenerated;
+    private boolean fallback;
 }

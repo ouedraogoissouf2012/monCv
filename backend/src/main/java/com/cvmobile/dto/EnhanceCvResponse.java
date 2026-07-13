@@ -21,6 +21,7 @@ public class EnhanceCvResponse {
     private List<String> warnings;
     private int correctionCount;
     private boolean aiGenerated;
+    private boolean fallback;
     private String level;
 
     @Data

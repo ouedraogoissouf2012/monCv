@@ -15,6 +15,14 @@ public interface IAiClient {
     String complete(String prompt, int maxTokens);
 
     /**
+     * Indique si le dernier resultat retourne sur le thread courant provient
+     * d'un fournisseur de secours.
+     */
+    default boolean isFallbackResult() {
+        return false;
+    }
+
+    /**
      * Verifie si le client IA est configure (cle API presente).
      */
     boolean isAvailable();

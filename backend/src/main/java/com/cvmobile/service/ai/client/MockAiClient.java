@@ -26,6 +26,11 @@ public class MockAiClient implements IAiClient {
     }
 
     @Override
+    public boolean isFallbackResult() {
+        return true;
+    }
+
+    @Override
     public String complete(String prompt, int maxTokens) {
         // Detection du type d'operation par les markers du prompt
         if (prompt.contains("SCORE:") || prompt.contains("MOTS_CLES_PRESENTS:")) {

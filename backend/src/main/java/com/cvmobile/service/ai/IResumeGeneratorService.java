@@ -7,5 +7,5 @@ import java.util.Map;
  */
 public interface IResumeGeneratorService {
 
-    Map<String, String> generateResume(String titrePoste, String competences, String experience);
+    Map<String, Object> generateResume(String titrePoste, String competences, String experience);
 }

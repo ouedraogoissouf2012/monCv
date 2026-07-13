@@ -51,8 +51,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
         String prompt = buildAdaptPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, 3000);
+        boolean fallback = aiClient.isFallbackResult();
         log.info("AI adapt response:\n{}", rawContent);
-        return parseEnhanceResponse(rawContent, cv, "MAX");
+        return parseEnhanceResponse(rawContent, cv, "MAX", fallback);
     }
 
     // ── Appel IA et parsing ─────────────────────────────────────────
@@ -60,11 +61,13 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private EnhanceCvResponse callAiEnhance(Cv cv, String level) {
         String prompt = buildEnhancePrompt(cv, level);
         String rawContent = aiClient.complete(prompt, 3000);
+        boolean fallback = aiClient.isFallbackResult();
         log.info("AI enhance response:\n{}", rawContent);
-        return parseEnhanceResponse(rawContent, cv, level);
+        return parseEnhanceResponse(rawContent, cv, level, fallback);
     }
 
-    private EnhanceCvResponse parseEnhanceResponse(String rawContent, Cv cv, String level) {
+    private EnhanceCvResponse parseEnhanceResponse(String rawContent, Cv cv, String level,
+                                                    boolean fallback) {
         List<String> allMarkers = buildMarkerList(cv);
 
         // Parse titre de l'offre (pour le label de la variante)
@@ -172,7 +175,8 @@ public class EnhancementServiceImpl implements IEnhancementService {
                 .certifications(certificationEnhancements)
                 .projects(projEnhancements)
                 .warnings(qualityService.findReviewWarnings(cv))
-                .aiGenerated(true)
+                .aiGenerated(!fallback)
+                .fallback(fallback)
                 .level(level)
                 .build();
         response.setCorrectionCount(countCorrections(cv, response));
