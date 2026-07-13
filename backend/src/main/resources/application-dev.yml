@@ -15,9 +15,9 @@ spring:
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8082,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://10.0.2.2:8082}
 
-# JWT — default dev (OK pour local uniquement)
+# JWT — valeur locale uniquement, interdite en production
 jwt:
-  secret: ${JWT_SECRET:cvMobileDevSecretKey2024AtLeast32CharsLong!}
+  secret: ${JWT_SECRET:moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6n}
 
 # AI — DeepSeek optionnel en dev (mode degrade accepte)
 ai:

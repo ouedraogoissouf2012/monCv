@@ -3,8 +3,16 @@ title = "MonCV Gitleaks configuration"
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Valeur JWT locale non-production, limitee au profil dev"
 condition = "AND"
+regexTarget = "match"
 paths = ['''^backend/src/main/resources/application-dev\.yml$''']
-regexes = ['''cvMobileDevSecretKey2024AtLeast32CharsLong!''']
+regexes = ['''moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6n''']
+
+[[allowlists]]
+description = "Secrets JWT fixes et non-production des tests reproductibles"
+condition = "AND"
+regexTarget = "match"
+paths = ['''^backend/src/test/(resources/application-test\.yml|java/com/cvmobile/(integration/CvFlowIntegrationTest|security/JwtTokenProviderTest)\.java)$''']
+regexes = ['''(TestOnly-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6nC5sD8wZ1kP4|IntegrationTest-B8yR4nM7qW2xK9pL5vT1sD6fH3jU0eA7zC4gN8mQ2rX6kP9wV5b)''']
