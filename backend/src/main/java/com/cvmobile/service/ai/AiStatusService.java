@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Agrège l'état du sous-système IA pour l'endpoint GET /api/ai/status.
@@ -25,6 +25,7 @@ import java.util.Optional;
 public class AiStatusService {
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final AiTelemetry telemetry;
 
     @Autowired(required = false)
     private MockAiClient mockAiClient;
@@ -35,29 +36,72 @@ public class AiStatusService {
     @Value("${ai.fallback.enabled:true}")
     private boolean fallbackEnabled;
 
+    private volatile AiStatusResponse cachedStatus;
+    private volatile long cacheExpiresAtNanos;
+
+    private static final long CACHE_TTL_NANOS = TimeUnit.SECONDS.toNanos(10);
+
     public AiStatusResponse currentStatus() {
-        String primaryStatus = computePrimaryStatus();
-        boolean primaryUp = "UP".equals(primaryStatus);
+        long now = System.nanoTime();
+        AiStatusResponse cached = cachedStatus;
+        if (cached != null && now < cacheExpiresAtNanos) {
+            return cached;
+        }
+        synchronized (this) {
+            now = System.nanoTime();
+            if (cachedStatus != null && now < cacheExpiresAtNanos) {
+                return cachedStatus;
+            }
+            cachedStatus = buildStatus();
+            cacheExpiresAtNanos = now + CACHE_TTL_NANOS;
+            return cachedStatus;
+        }
+    }
+
+    private AiStatusResponse buildStatus() {
+        boolean keyConfigured = deepSeekApiKey != null && !deepSeekApiKey.isBlank();
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry
+                .find("ai-deepseek")
+                .orElseGet(() -> circuitBreakerRegistry.circuitBreaker("ai-deepseek"));
+        CircuitBreaker.State cbState = circuitBreaker.getState();
+        String primaryStatus = computePrimaryStatus(keyConfigured, cbState);
         boolean fallbackUp = fallbackEnabled && mockAiClient != null;
+        boolean primaryUp = keyConfigured && switch (cbState) {
+            case OPEN, FORCED_OPEN -> false;
+            case HALF_OPEN, CLOSED, DISABLED, METRICS_ONLY -> true;
+        };
+        boolean available = keyConfigured && (primaryUp || fallbackUp);
+        float failureRate = circuitBreaker.getMetrics().getFailureRate();
+        double errorRate = failureRate < 0 ? 0 : failureRate;
+        AiTelemetry.Snapshot snapshot = telemetry.snapshot();
+        Instant checkedAt = Instant.now();
+        AiStatusResponse.LastAiError lastError = snapshot.lastError() == null ? null
+                : AiStatusResponse.LastAiError.builder()
+                .timestamp(snapshot.lastError().timestamp())
+                .type(snapshot.lastError().type())
+                .build();
 
         return AiStatusResponse.builder()
-                .available(primaryUp || fallbackUp)
+                .available(available)
                 .primaryProvider(DeepSeekClient.PROVIDER_NAME)
                 .primaryStatus(primaryStatus)
+                .circuitBreakerState(cbState.name())
+                .lastError(lastError)
+                .latencyP50Ms(snapshot.latencyP50Ms())
+                .latencyP95Ms(snapshot.latencyP95Ms())
+                .errorRatePercent(errorRate)
+                .fallbackInUse(snapshot.fallbackInUse())
                 .fallbackAvailable(fallbackUp)
                 .fallbackProvider(fallbackUp ? MockAiClient.PROVIDER_NAME : null)
-                .lastChecked(Instant.now())
+                .lastChecked(checkedAt)
+                .checkedAt(checkedAt)
                 .build();
     }
 
-    private String computePrimaryStatus() {
-        if (deepSeekApiKey == null || deepSeekApiKey.isBlank()) {
+    private String computePrimaryStatus(boolean keyConfigured, CircuitBreaker.State cbState) {
+        if (!keyConfigured) {
             return "KEY_INVALID";
         }
-        CircuitBreaker.State cbState = Optional.ofNullable(
-                circuitBreakerRegistry.find("ai-deepseek").orElse(null))
-                .map(CircuitBreaker::getState)
-                .orElse(CircuitBreaker.State.CLOSED);
         return switch (cbState) {
             case OPEN, FORCED_OPEN -> "CIRCUIT_OPEN";
             case HALF_OPEN -> "RECOVERING";

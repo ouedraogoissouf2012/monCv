@@ -1,8 +1,14 @@
 package com.cvmobile.config;
 
+import com.cvmobile.exception.ai.AiKeyInvalidException;
+import com.cvmobile.exception.ai.AiServiceException;
+import com.cvmobile.service.ai.client.DeepSeekClient;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Profiles;
 import org.springframework.core.env.PropertySource;
@@ -24,7 +30,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AppStartupValidator {
+public class AppStartupValidator implements ApplicationListener<ApplicationReadyEvent> {
 
     private static final List<String> ALL_SECRETS = List.of(
             "DEEPSEEK_API_KEY",
@@ -42,6 +48,9 @@ public class AppStartupValidator {
     private static final List<String> NON_TEST_REQUIRED = List.of("DB_PASSWORD");
 
     private final ConfigurableEnvironment env;
+
+    @Autowired(required = false)
+    private DeepSeekClient deepSeekClient;
 
     @PostConstruct
     void validateSecrets() {
@@ -86,6 +95,28 @@ public class AppStartupValidator {
         if (missing.contains("DEEPSEEK_API_KEY")) {
             log.warn("⚠ DeepSeek desactive (mode degrade). "
                     + "Ajoutez DEEPSEEK_API_KEY dans backend/.env ou exportez-la dans votre shell.");
+        }
+    }
+
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        if (env.acceptsProfiles(Profiles.of("test")) || deepSeekClient == null) {
+            return;
+        }
+
+        boolean production = env.acceptsProfiles(Profiles.of("prod"));
+        try {
+            deepSeekClient.complete("Reponds uniquement par OK.", 8);
+            log.info("DeepSeek startup probe OK");
+        } catch (AiKeyInvalidException e) {
+            if (production) {
+                throw new IllegalStateException(
+                        "DeepSeek a refuse DEEPSEEK_API_KEY au demarrage", e);
+            }
+            log.warn("DeepSeek startup probe: cle invalide, demarrage en mode degrade");
+        } catch (AiServiceException e) {
+            log.warn("DeepSeek startup probe transitoire: code={} provider={}",
+                    e.getErrorCode(), e.getProviderName());
         }
     }
 
