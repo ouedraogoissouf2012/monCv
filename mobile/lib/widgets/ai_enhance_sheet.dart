@@ -5,6 +5,7 @@ import '../core/error/result.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../services/api_service.dart';
+import 'ai_button.dart';
 
 /// Bottom sheet d'amelioration IA — 3 niveaux : Lite / Medium / Max
 /// Retourne le resultat via Navigator.pop (pas de callback)
@@ -34,27 +35,27 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
   List<_LevelInfo> get _levels {
     final l = AppLocalizations.of(context)!;
     return [
-    _LevelInfo(
-      id: 'LITE',
-      label: l.lite,
-      description: l.liteLevelDescription,
-      icon: Icons.spellcheck_rounded,
-      color: const Color(0xFF10B981),
-    ),
-    _LevelInfo(
-      id: 'MEDIUM',
-      label: l.medium,
-      description: l.mediumLevelDescription,
-      icon: Icons.auto_fix_normal_rounded,
-      color: const Color(0xFF2563EB),
-    ),
-    _LevelInfo(
-      id: 'MAX',
-      label: l.maximum,
-      description: l.maxLevelDescription,
-      icon: Icons.rocket_launch_rounded,
-      color: const Color(0xFF8B5CF6),
-    ),
+      _LevelInfo(
+        id: 'LITE',
+        label: l.lite,
+        description: l.liteLevelDescription,
+        icon: Icons.spellcheck_rounded,
+        color: const Color(0xFF10B981),
+      ),
+      _LevelInfo(
+        id: 'MEDIUM',
+        label: l.medium,
+        description: l.mediumLevelDescription,
+        icon: Icons.auto_fix_normal_rounded,
+        color: const Color(0xFF2563EB),
+      ),
+      _LevelInfo(
+        id: 'MAX',
+        label: l.maximum,
+        description: l.maxLevelDescription,
+        icon: Icons.rocket_launch_rounded,
+        color: const Color(0xFF8B5CF6),
+      ),
     ];
   }
 
@@ -72,8 +73,10 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
       _result = null;
     });
     try {
-      final result =
-          await ApiService().enhanceCv(widget.cv.id!, _selectedLevel);
+      final result = await ApiService().enhanceCv(
+        widget.cv.id!,
+        _selectedLevel,
+      );
       if (!mounted) return;
       setState(() {
         _result = result;
@@ -88,11 +91,15 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
       });
       // Rafraichir le status IA pour mettre a jour l'UI globale
       if (!mounted) return;
-      context.read<AiStatusProvider>().refresh();
+      final status = context.read<AiStatusProvider>();
+      status.recordError(e);
+      status.refresh();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e is AppException ? e.message : e.toString().replaceAll('Exception: ', '');
+        _error = e is AppException
+            ? e.message
+            : e.toString().replaceAll('Exception: ', '');
         _loading = false;
       });
     }
@@ -109,7 +116,11 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 12, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
+        20,
+        12,
+        20,
+        24 + MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -147,20 +158,18 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                    widget.proofreadOnly
-                    ? l.proofreadingTitle
-                    : l.enhanceWithAi,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                  widget.proofreadOnly ? l.proofreadingTitle : l.enhanceWithAi,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
               widget.proofreadOnly
-                ? l.proofreadingSubtitle
-                : l.enhancementSubtitle,
+                  ? l.proofreadingSubtitle
+                  : l.enhancementSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
@@ -183,11 +192,13 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   ),
                 )
               else
-                ..._levels.map((lvl) => _LevelTile(
-                      info: lvl,
-                      selected: _selectedLevel == lvl.id,
-                      onTap: () => setState(() => _selectedLevel = lvl.id),
-                    )),
+                ..._levels.map(
+                  (lvl) => _LevelTile(
+                    info: lvl,
+                    selected: _selectedLevel == lvl.id,
+                    onTap: () => setState(() => _selectedLevel = lvl.id),
+                  ),
+                ),
               const SizedBox(height: 16),
               _AiConsentNotice(
                 value: _aiConsentAccepted,
@@ -198,25 +209,23 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _loading || !_aiConsentAccepted ? null : _enhance,
-                  icon: _loading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : Icon(widget.proofreadOnly
-                          ? Icons.spellcheck_rounded
-                          : Icons.auto_awesome_rounded),
-                  label: Text(_loading
+                child: AiButton(
+                  onPressed: _enhance,
+                  enabled: _aiConsentAccepted,
+                  loading: _loading,
+                  icon: Icon(
+                    widget.proofreadOnly
+                        ? Icons.spellcheck_rounded
+                        : Icons.auto_awesome_rounded,
+                  ),
+                  label: _loading
                       ? l.proofreadingInProgress
                       : widget.proofreadOnly
                           ? l.proofreadCv
-                          : l.improve),
+                          : l.improve,
                   style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6)),
+                    backgroundColor: const Color(0xFF8B5CF6),
+                  ),
                 ),
               ),
               if (_error != null) ...[
@@ -229,14 +238,20 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline,
-                          color: colorScheme.onErrorContainer, size: 18),
+                      Icon(
+                        Icons.error_outline,
+                        color: colorScheme.onErrorContainer,
+                        size: 18,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(_error!,
-                            style: TextStyle(
-                                color: colorScheme.onErrorContainer,
-                                fontSize: 12)),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: colorScheme.onErrorContainer,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -268,7 +283,8 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                       icon: const Icon(Icons.check_rounded),
                       label: Text(l.apply),
                       style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981)),
+                        backgroundColor: const Color(0xFF10B981),
+                      ),
                     ),
                   ),
                 ],
@@ -342,8 +358,11 @@ class _LevelTile extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _LevelTile(
-      {required this.info, required this.selected, required this.onTap});
+  const _LevelTile({
+    required this.info,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -380,17 +399,22 @@ class _LevelTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(info.label,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: selected ? info.color : null)),
+                  Text(
+                    info.label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: selected ? info.color : null,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(info.description,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color:
-                              colorScheme.onSurface.withValues(alpha: 0.55))),
+                  Text(
+                    info.description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.55),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -440,9 +464,7 @@ class _ResultSection extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              aiGenerated
-                  ? l.enhancementGenerated
-                  : l.fallbackResult,
+              aiGenerated ? l.enhancementGenerated : l.fallbackResult,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -479,17 +501,16 @@ class _ResultSection extends StatelessWidget {
         // Experiences
         if (result['experiences'] != null) ...[
           _sectionLabel(context, l.experiences),
-          ...List.generate(
-            (result['experiences'] as List<dynamic>).length,
-            (i) {
-              final e = (result['experiences'] as List<dynamic>)[i];
-              final enhanced = e['description'] as String? ?? '';
-              final original = i < cv.experiences.length
-                  ? cv.experiences[i].description ?? ''
-                  : '';
-              return _BeforeAfter(before: original, after: enhanced);
-            },
-          ),
+          ...List.generate((result['experiences'] as List<dynamic>).length, (
+            i,
+          ) {
+            final e = (result['experiences'] as List<dynamic>)[i];
+            final enhanced = e['description'] as String? ?? '';
+            final original = i < cv.experiences.length
+                ? cv.experiences[i].description ?? ''
+                : '';
+            return _BeforeAfter(before: original, after: enhanced);
+          }),
           const SizedBox(height: 10),
         ],
 
@@ -497,17 +518,14 @@ class _ResultSection extends StatelessWidget {
         if (result['educations'] != null &&
             (result['educations'] as List).isNotEmpty) ...[
           _sectionLabel(context, l.education),
-          ...List.generate(
-            (result['educations'] as List<dynamic>).length,
-            (i) {
-              final e = (result['educations'] as List<dynamic>)[i];
-              final enhanced = e['description'] as String? ?? '';
-              final original = i < cv.educations.length
-                  ? cv.educations[i].description ?? ''
-                  : '';
-              return _BeforeAfter(before: original, after: enhanced);
-            },
-          ),
+          ...List.generate((result['educations'] as List<dynamic>).length, (i) {
+            final e = (result['educations'] as List<dynamic>)[i];
+            final enhanced = e['description'] as String? ?? '';
+            final original = i < cv.educations.length
+                ? cv.educations[i].description ?? ''
+                : '';
+            return _BeforeAfter(before: original, after: enhanced);
+          }),
           const SizedBox(height: 10),
         ],
 
@@ -528,17 +546,13 @@ class _ResultSection extends StatelessWidget {
         if (result['projects'] != null &&
             (result['projects'] as List).isNotEmpty) ...[
           _sectionLabel(context, l.projects),
-          ...List.generate(
-            (result['projects'] as List<dynamic>).length,
-            (i) {
-              final p = (result['projects'] as List<dynamic>)[i];
-              final enhanced = p['description'] as String? ?? '';
-              final original = i < cv.projects.length
-                  ? cv.projects[i].description ?? ''
-                  : '';
-              return _BeforeAfter(before: original, after: enhanced);
-            },
-          ),
+          ...List.generate((result['projects'] as List<dynamic>).length, (i) {
+            final p = (result['projects'] as List<dynamic>)[i];
+            final enhanced = p['description'] as String? ?? '';
+            final original =
+                i < cv.projects.length ? cv.projects[i].description ?? '' : '';
+            return _BeforeAfter(before: original, after: enhanced);
+          }),
         ],
       ],
     );
@@ -573,69 +587,106 @@ class _ProofreadingResult extends StatelessWidget {
           .toList();
     }
 
-    addChange(l.jobTitle, cv.personalInfo?.titrePoste,
-        result['titrePoste'] as String?);
-    addChange(l.professionalSummary, cv.personalInfo?.resumeProfessionnel,
-        result['resumeProfessionnel'] as String?);
+    addChange(
+      l.jobTitle,
+      cv.personalInfo?.titrePoste,
+      result['titrePoste'] as String?,
+    );
+    addChange(
+      l.professionalSummary,
+      cv.personalInfo?.resumeProfessionnel,
+      result['resumeProfessionnel'] as String?,
+    );
 
     final experiences = items('experiences');
     for (int i = 0; i < experiences.length && i < cv.experiences.length; i++) {
-      addChange('${l.experiences} ${i + 1} - ${l.jobTitle}', cv.experiences[i].poste,
-          experiences[i]['poste'] as String?);
       addChange(
-          '${l.experiences} ${i + 1} - ${l.description}',
-          cv.experiences[i].description,
-          experiences[i]['description'] as String?);
+        '${l.experiences} ${i + 1} - ${l.jobTitle}',
+        cv.experiences[i].poste,
+        experiences[i]['poste'] as String?,
+      );
+      addChange(
+        '${l.experiences} ${i + 1} - ${l.description}',
+        cv.experiences[i].description,
+        experiences[i]['description'] as String?,
+      );
     }
 
     final educations = items('educations');
     for (int i = 0; i < educations.length && i < cv.educations.length; i++) {
       addChange(
-          '${l.education} ${i + 1} - ${l.establishment}',
-          cv.educations[i].etablissement,
-          educations[i]['etablissement'] as String?);
-      addChange('${l.education} ${i + 1} - ${l.degree}', cv.educations[i].diplome,
-          educations[i]['diplome'] as String?);
-      addChange('${l.education} ${i + 1} - ${l.fieldOfStudy}', cv.educations[i].domaine,
-          educations[i]['domaine'] as String?);
+        '${l.education} ${i + 1} - ${l.establishment}',
+        cv.educations[i].etablissement,
+        educations[i]['etablissement'] as String?,
+      );
       addChange(
-          '${l.education} ${i + 1} - ${l.description}',
-          cv.educations[i].description,
-          educations[i]['description'] as String?);
+        '${l.education} ${i + 1} - ${l.degree}',
+        cv.educations[i].diplome,
+        educations[i]['diplome'] as String?,
+      );
+      addChange(
+        '${l.education} ${i + 1} - ${l.fieldOfStudy}',
+        cv.educations[i].domaine,
+        educations[i]['domaine'] as String?,
+      );
+      addChange(
+        '${l.education} ${i + 1} - ${l.description}',
+        cv.educations[i].description,
+        educations[i]['description'] as String?,
+      );
     }
 
     final skills = items('skills');
     for (int i = 0; i < skills.length && i < cv.skills.length; i++) {
       addChange(
-          '${l.skills} ${i + 1}', cv.skills[i].nom, skills[i]['nom'] as String?);
+        '${l.skills} ${i + 1}',
+        cv.skills[i].nom,
+        skills[i]['nom'] as String?,
+      );
     }
 
     final languages = items('languages');
     for (int i = 0; i < languages.length && i < cv.languages.length; i++) {
-      addChange('${l.languages} ${i + 1}', cv.languages[i].langue,
-          languages[i]['langue'] as String?);
+      addChange(
+        '${l.languages} ${i + 1}',
+        cv.languages[i].langue,
+        languages[i]['langue'] as String?,
+      );
     }
 
     final certifications = items('certifications');
     for (int i = 0;
         i < certifications.length && i < cv.certifications.length;
         i++) {
-      addChange('${l.certifications} ${i + 1}', cv.certifications[i].nom,
-          certifications[i]['nom'] as String?);
       addChange(
-          '${l.certifications} ${i + 1} - ${l.organization}',
-          cv.certifications[i].organisme,
-          certifications[i]['organisme'] as String?);
+        '${l.certifications} ${i + 1}',
+        cv.certifications[i].nom,
+        certifications[i]['nom'] as String?,
+      );
+      addChange(
+        '${l.certifications} ${i + 1} - ${l.organization}',
+        cv.certifications[i].organisme,
+        certifications[i]['organisme'] as String?,
+      );
     }
 
     final projects = items('projects');
     for (int i = 0; i < projects.length && i < cv.projects.length; i++) {
-      addChange('${l.projects} ${i + 1} - ${l.name}', cv.projects[i].nom,
-          projects[i]['nom'] as String?);
-      addChange('${l.projects} ${i + 1} - ${l.technologies}', cv.projects[i].technologies,
-          projects[i]['technologies'] as String?);
-      addChange('${l.projects} ${i + 1} - ${l.description}', cv.projects[i].description,
-          projects[i]['description'] as String?);
+      addChange(
+        '${l.projects} ${i + 1} - ${l.name}',
+        cv.projects[i].nom,
+        projects[i]['nom'] as String?,
+      );
+      addChange(
+        '${l.projects} ${i + 1} - ${l.technologies}',
+        cv.projects[i].technologies,
+        projects[i]['technologies'] as String?,
+      );
+      addChange(
+        '${l.projects} ${i + 1} - ${l.description}',
+        cv.projects[i].description,
+        projects[i]['description'] as String?,
+      );
     }
 
     final correctionCount =
@@ -658,8 +709,11 @@ class _ProofreadingResult extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.spellcheck_rounded,
-                  color: Color(0xFF10B981), size: 20),
+              const Icon(
+                Icons.spellcheck_rounded,
+                color: Color(0xFF10B981),
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -670,7 +724,9 @@ class _ProofreadingResult extends StatelessWidget {
                           ? l.aiProofreadingComplete
                           : l.localProofreadingComplete,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 13),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                     Text(
                       correctionCount == 0
@@ -697,18 +753,21 @@ class _ProofreadingResult extends StatelessWidget {
             ),
           )
         else
-          ...changes.expand((change) => [
-                _sectionLabel(context, change.section),
-                _BeforeAfter(before: change.before, after: change.after),
-                const SizedBox(height: 2),
-              ]),
+          ...changes.expand(
+            (change) => [
+              _sectionLabel(context, change.section),
+              _BeforeAfter(before: change.before, after: change.after),
+              const SizedBox(height: 2),
+            ],
+          ),
         if (warnings.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text(l.pointsToClarify,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            l.pointsToClarify,
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -719,22 +778,31 @@ class _ProofreadingResult extends StatelessWidget {
             ),
             child: Column(
               children: warnings
-                  .map((warning) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.info_outline_rounded,
-                                size: 16, color: Color(0xFFD97706)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(warning,
-                                  style: const TextStyle(
-                                      fontSize: 12, height: 1.35)),
+                  .map(
+                    (warning) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 16,
+                            color: Color(0xFFD97706),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              warning,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                height: 1.35,
+                              ),
                             ),
-                          ],
-                        ),
-                      ))
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -755,11 +823,12 @@ class _ReviewChange {
 Widget _sectionLabel(BuildContext context, String text) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 6),
-    child: Text(text,
-        style: Theme.of(context)
-            .textTheme
-            .labelMedium
-            ?.copyWith(fontWeight: FontWeight.w700)),
+    child: Text(
+      text,
+      style: Theme.of(
+        context,
+      ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+    ),
   );
 }
 
@@ -788,33 +857,43 @@ class _BeforeAfter extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l.before,
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color:
-                              colorScheme.onSurface.withValues(alpha: 0.45))),
+                  Text(
+                    l.before,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface.withValues(alpha: 0.45),
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(before,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
-                          decoration: TextDecoration.lineThrough)),
+                  Text(
+                    before,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
                 ],
               ),
             ),
           Divider(
-              height: 1, color: colorScheme.outline.withValues(alpha: 0.15)),
+            height: 1,
+            color: colorScheme.outline.withValues(alpha: 0.15),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l.after,
-                    style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF10B981))),
+                Text(
+                  l.after,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF10B981),
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(after, style: const TextStyle(fontSize: 12)),
               ],

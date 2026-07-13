@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/cv.dart';
 import '../models/notification_preferences.dart';
+import '../models/ai_status.dart';
 import 'token_storage.dart';
 
 class ApiService {
@@ -499,13 +500,15 @@ class ApiService {
 
   /// GET /api/ai/status - etat du sous-systeme IA.
   /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
-  Future<Map<String, dynamic>> getAiStatus() async {
+  Future<AiStatus> getAiStatus() async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/status'),
       headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      return AiStatus.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
     }
     _throwTypedError(response, 'Erreur lors de la recuperation du status IA');
   }
