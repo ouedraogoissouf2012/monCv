@@ -4,6 +4,7 @@ import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiServiceException;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -40,6 +41,7 @@ public class CompositeAiClient implements IAiClient {
 
     private final List<IAiClient> providers;
     private final MeterRegistry meters;
+    private final BusinessMetrics businessMetrics;
     private final AiTelemetry telemetry;
     private final ThreadLocal<Boolean> fallbackResult = ThreadLocal.withInitial(() -> false);
 
@@ -47,6 +49,7 @@ public class CompositeAiClient implements IAiClient {
             @Qualifier("resilientDeepSeek") IAiClient primary,
             @Qualifier("mockAiClient") IAiClient fallback,
             MeterRegistry meters,
+            BusinessMetrics businessMetrics,
             AiTelemetry telemetry,
             @Value("${ai.fallback.enabled:true}") boolean fallbackEnabled) {
         List<IAiClient> chain = new ArrayList<>();
@@ -60,6 +63,7 @@ public class CompositeAiClient implements IAiClient {
         }
         this.providers = List.copyOf(chain);
         this.meters = meters;
+        this.businessMetrics = businessMetrics;
         this.telemetry = telemetry;
     }
 
@@ -82,6 +86,7 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", isPrimary ? "primary_ok" : "fallback_ok").increment();
+                businessMetrics.recordAiCall(providerName, "complete", isPrimary ? "primary_ok" : "fallback_ok");
                 if (!isPrimary) {
                     fallbackResult.set(true);
                     log.warn("Primary provider failed, served via fallback {}", providerName);
@@ -95,6 +100,7 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", "config_error").increment();
+                businessMetrics.recordAiCall(providerName, "complete", "config_error");
                 telemetry.recordFailure(elapsedMillis(startedAt), e);
                 throw e;
 
@@ -103,12 +109,14 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", "failed").increment();
+                businessMetrics.recordAiCall(providerName, "complete", "failed");
                 lastDown = e;
                 telemetry.recordLastError(e);
                 if (isPrimary && providers.size() > 1) {
                     meters.counter("ai.fallback.triggered",
                             "primary", providerName,
                             "fallback", providerName(providers.get(1))).increment();
+                    businessMetrics.recordAiFallback(providerName, providerName(providers.get(1)), "complete");
                 }
                 log.warn("Provider {} down, trying next provider. Reason: {}",
                         providerName, e.getMessage());
@@ -119,6 +127,7 @@ public class CompositeAiClient implements IAiClient {
                 meters.counter("ai.requests.total",
                         "provider", providerName,
                         "status", "error").increment();
+                businessMetrics.recordAiCall(providerName, "complete", "error");
                 telemetry.recordFailure(elapsedMillis(startedAt), e);
                 throw e;
             }

@@ -1,5 +1,6 @@
 package com.cvmobile.exception;
 
+import com.cvmobile.observability.CorrelationIdFilter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -25,6 +26,7 @@ class GlobalExceptionHandlerTest {
     private final MockMvc mvc = MockMvcBuilders
             .standaloneSetup(new FailingController())
             .setControllerAdvice(new GlobalExceptionHandler())
+            .addFilters(new CorrelationIdFilter())
             .build();
 
     @Test
@@ -34,6 +36,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
                 .andExpect(jsonPath("$.message").value(PUBLIC_MESSAGE))
+                .andExpect(jsonPath("$.correlationId").isString())
                 .andExpect(jsonPath("$.details").doesNotExist())
                 .andReturn();
 
@@ -41,7 +44,9 @@ class GlobalExceptionHandlerTest {
                 .doesNotContain("10.0.0.5")
                 .doesNotContain("5432")
                 .doesNotContain("DB connection failed");
+        assertThat(result.getResponse().getHeader(CorrelationIdFilter.HEADER_NAME)).isNotBlank();
         assertThat(output).contains(INTERNAL_MESSAGE);
+        assertThat(output).contains("correlationId=");
     }
 
     @RestController

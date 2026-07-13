@@ -10,6 +10,12 @@ class AppEnvironment {
   static bool get isProduction => value.toLowerCase() == 'production';
 }
 
+class MonitoringConstants {
+  static const String sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+  static bool get sentryEnabled => sentryDsn.trim().isNotEmpty;
+}
+
 class ApiConstants {
   // Valeur injectee au build via --dart-define=API_BASE_URL=...
   //   Web local          -> http://localhost:8082/api

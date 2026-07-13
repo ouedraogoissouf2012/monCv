@@ -21,10 +21,13 @@ http://localhost:8082/api
 flutter build web --release \
   --pwa-strategy=offline-first \
   --dart-define=APP_ENV=production \
-  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api \
+  --dart-define=SENTRY_DSN=https://public@example.ingest.sentry.io/1
 ```
 
 En production, `APP_ENV=production` bloque le fallback vers `localhost`. `API_BASE_URL` doit etre fourni et commencer par `https://`.
+
+Le suivi d'erreurs est desactive par defaut. Il s'active uniquement si `SENTRY_DSN` est fourni au build via `--dart-define`.
 
 Voir aussi : `../docs/PWA_PRODUCTION.md`.
 # Notifications push Firebase

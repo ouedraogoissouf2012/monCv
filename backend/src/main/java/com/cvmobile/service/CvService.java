@@ -6,6 +6,7 @@ import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.repository.CvViewRepository;
 import com.cvmobile.service.ai.IEnhancementService;
@@ -36,6 +37,7 @@ public class CvService implements ICvService {
     private final CvMapper cvMapper;
     private final IEnhancementService enhancementService;
     private final NotificationService notificationService;
+    private final BusinessMetrics businessMetrics;
 
     // ── Lecture ───────────────────────────────────────────────────
 
@@ -109,6 +111,7 @@ public class CvService implements ICvService {
         cv = cvRepository.save(cv);
 
         log.info("CV cree: id={}, titre='{}', userId={}", cv.getId(), cv.getTitre(), userId);
+        businessMetrics.recordCvCreated(resolveTemplateTag(request));
         return cvMapper.toResponse(cv);
     }
 
@@ -393,6 +396,13 @@ public class CvService implements ICvService {
         if (style.getFontFamily() != null) {
             cv.setStyleFontFamily(style.getFontFamily());
         }
+    }
+
+    private String resolveTemplateTag(CvRequest request) {
+        if (request == null || request.getStyle() == null || request.getStyle().getTemplateId() == null) {
+            return "default";
+        }
+        return request.getStyle().getTemplateId();
     }
 
     /**

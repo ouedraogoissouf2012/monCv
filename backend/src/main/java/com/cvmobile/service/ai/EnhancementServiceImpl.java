@@ -52,7 +52,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         String prompt = buildAdaptPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, 3000);
         boolean fallback = aiClient.isFallbackResult();
-        log.info("AI adapt response:\n{}", rawContent);
+        log.info("AI adapt response summary: {}", AiLogSanitizer.summarize(rawContent));
         return parseEnhanceResponse(rawContent, cv, "MAX", fallback);
     }
 
@@ -62,7 +62,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         String prompt = buildEnhancePrompt(cv, level);
         String rawContent = aiClient.complete(prompt, 3000);
         boolean fallback = aiClient.isFallbackResult();
-        log.info("AI enhance response:\n{}", rawContent);
+        log.info("AI enhance response summary: {}", AiLogSanitizer.summarize(rawContent));
         return parseEnhanceResponse(rawContent, cv, level, fallback);
     }
 

@@ -5,6 +5,7 @@ import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
+import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.DocxGenerationService;
@@ -37,6 +38,7 @@ public class CvController {
     private final DocxGenerationService docxGenerationService;
     private final CvRepository cvRepository;
     private final ICvImportService cvImportService;
+    private final BusinessMetrics businessMetrics;
 
     @GetMapping
     @Operation(summary = "Obtenir tous les CV de l'utilisateur connecte")
@@ -86,9 +88,12 @@ public class CvController {
         } catch (IllegalArgumentException e) {
             pdfTemplate = PdfTemplate.MODERNE;
         }
-        byte[] pdf = pdfGenerationService.generateCvPdf(cv, pdfTemplate);
+        final PdfTemplate selectedTemplate = pdfTemplate;
+        byte[] pdf = businessMetrics.recordPdfGeneration(
+                selectedTemplate.name(),
+                () -> pdfGenerationService.generateCvPdf(cv, selectedTemplate));
 
-        String filename = "cv-" + id + "-" + pdfTemplate.name().toLowerCase() + ".pdf";
+        String filename = "cv-" + id + "-" + selectedTemplate.name().toLowerCase() + ".pdf";
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -186,8 +191,23 @@ public class CvController {
     public ResponseEntity<CvResponse> importCv(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal User user) {
-        CvRequest parsed = cvImportService.importCv(file);
-        CvResponse created = cvService.createCv(parsed, user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        String format = detectImportFormat(file);
+        try {
+            CvRequest parsed = cvImportService.importCv(file);
+            CvResponse created = cvService.createCv(parsed, user.getId());
+            businessMetrics.recordImport(format, true);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (RuntimeException ex) {
+            businessMetrics.recordImport(format, false);
+            throw ex;
+        }
+    }
+
+    private String detectImportFormat(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename == null || !filename.contains(".")) {
+            return "unknown";
+        }
+        return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
     }
 }

@@ -1,5 +1,6 @@
 package com.cvmobile.service.ai.client;
 
+import com.cvmobile.observability.BusinessMetrics;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
@@ -52,6 +53,7 @@ public class AiProviderConfig {
             CircuitBreakerRegistry cbRegistry,
             TimeLimiterRegistry tlRegistry,
             MeterRegistry meters,
+            BusinessMetrics businessMetrics,
             Executor aiExecutor) {
         return new ResilientAiClient(
                 raw,
