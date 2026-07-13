@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'core/di/injection_container.dart';
 import 'l10n/app_localizations.dart';
@@ -16,6 +17,7 @@ import 'providers/notification_provider.dart';
 import 'services/push_notification_service.dart';
 import 'router.dart';
 import 'utils/app_theme.dart';
+import 'utils/constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +30,19 @@ void main() async {
     }
   }
   await initDependencies();
-  runApp(const MyApp());
+  if (!MonitoringConstants.sentryEnabled) {
+    runApp(const MyApp());
+    return;
+  }
+
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = MonitoringConstants.sentryDsn;
+      options.environment = AppEnvironment.value;
+      options.sendDefaultPii = false;
+    },
+    appRunner: () => runApp(const MyApp()),
+  );
 }
 
 class MyApp extends StatefulWidget {

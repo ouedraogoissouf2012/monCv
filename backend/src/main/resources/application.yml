@@ -80,6 +80,15 @@ management:
         readiness:
           include: readinessState,db
 
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:${SPRING_PROFILES_ACTIVE:dev}}
+  send-default-pii: false
+  ignored-exceptions-for-type:
+    - org.springframework.security.authentication.BadCredentialsException
+    - org.springframework.web.bind.MethodArgumentNotValidException
+    - jakarta.validation.ValidationException
+
 # Resilience4j : retry + circuit breaker + timeout pour les appels IA
 resilience4j:
   retry:

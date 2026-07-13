@@ -96,8 +96,12 @@ class CompositeAiClientTest {
 
         assertThatThrownBy(() -> client.complete("prompt", 100)).isSameAs(parseError);
 
-        assertThat(meters.get("ai.calls.total").counters())
-                .anySatisfy(counter -> assertThat(counter.count()).isEqualTo(1.0));
+        assertThat(meters.get("ai.calls.total")
+                .tag("provider", primary.getClass().getSimpleName())
+                .tag("operation", "complete")
+                .tag("status", "error")
+                .counter()
+                .count()).isEqualTo(1.0);
     }
 
     private AiProviderDownException providerDown(String provider) {
