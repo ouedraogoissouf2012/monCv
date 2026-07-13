@@ -159,18 +159,11 @@ public class GlobalExceptionHandler {
     }
 
     // ── Fallback ─────────────────────────────────────────────────
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
-        log.warn("RuntimeException non geree: {}", ex.getMessage(), ex);
-        return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST",
-                ex.getMessage(), null);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Erreur interne non geree", ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
-                "Une erreur inattendue s'est produite", null);
+                "Une erreur s'est produite. Si le problème persiste, contactez le support.", null);
     }
 
     // ── Helper ───────────────────────────────────────────────────
