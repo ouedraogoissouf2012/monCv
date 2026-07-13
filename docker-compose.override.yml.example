@@ -1,0 +1,7 @@
+services:
+  backend:
+    environment:
+      SHOW_SQL: "true"
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - ./backend/uploads:/app/uploads
