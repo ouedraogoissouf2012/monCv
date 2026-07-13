@@ -5,6 +5,7 @@ import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiTimeoutException;
+import com.cvmobile.observability.CorrelationIdFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -22,6 +23,7 @@ class GlobalExceptionHandlerAiTest {
     private final MockMvc mvc = MockMvcBuilders
             .standaloneSetup(new FailingAiController())
             .setControllerAdvice(new GlobalExceptionHandler())
+            .addFilters(new CorrelationIdFilter())
             .build();
 
     @Test
@@ -36,8 +38,10 @@ class GlobalExceptionHandlerAiTest {
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(header().string("Retry-After", matchesPattern("\\d+")))
                 .andExpect(header().string("Retry-After", "75"))
+                .andExpect(header().exists(CorrelationIdFilter.HEADER_NAME))
                 .andExpect(jsonPath("$.status").value(503))
                 .andExpect(jsonPath("$.code").value("AI_QUOTA_EXCEEDED"))
+                .andExpect(jsonPath("$.correlationId").isString())
                 .andExpect(jsonPath("$.message")
                         .value("Limite d'usage IA atteinte. Reessayez plus tard."))
                 .andExpect(jsonPath("$.details.provider").value("deepseek"))
@@ -66,8 +70,10 @@ class GlobalExceptionHandlerAiTest {
             throws Exception {
         mvc.perform(get(path))
                 .andExpect(status().is(httpStatus))
+                .andExpect(header().exists(CorrelationIdFilter.HEADER_NAME))
                 .andExpect(jsonPath("$.status").value(httpStatus))
                 .andExpect(jsonPath("$.code").value(code))
+                .andExpect(jsonPath("$.correlationId").isString())
                 .andExpect(jsonPath("$.message").value(message))
                 .andExpect(jsonPath("$.details.provider").value("deepseek"));
     }

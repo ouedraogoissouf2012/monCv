@@ -5,6 +5,7 @@ import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiTimeoutException;
+import com.cvmobile.observability.CorrelationIdSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,14 +88,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<Map<String, Object>> handleFileStorage(FileStorageException ex) {
-        log.error("Erreur stockage fichier: {}", ex.getMessage(), ex);
+        log.error("Erreur stockage fichier [correlationId={}]: {}",
+                CorrelationIdSupport.current(), ex.getMessage(), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_STORAGE_ERROR",
                 "Erreur lors du traitement du fichier", null);
     }
 
     @ExceptionHandler(PdfGenerationException.class)
     public ResponseEntity<Map<String, Object>> handlePdfGeneration(PdfGenerationException ex) {
-        log.error("Erreur generation PDF: {}", ex.getMessage(), ex);
+        log.error("Erreur generation PDF [correlationId={}]: {}",
+                CorrelationIdSupport.current(), ex.getMessage(), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "PDF_GENERATION_ERROR",
                 "Erreur lors de la generation du document", null);
     }
@@ -117,7 +120,8 @@ public class GlobalExceptionHandler {
     // ── IA (specifiques, doivent precedder le catch RuntimeException) ─────
     @ExceptionHandler(AiKeyInvalidException.class)
     public ResponseEntity<Map<String, Object>> handleAiKeyInvalid(AiKeyInvalidException ex) {
-        log.error("AI key invalid for provider {}: {}", ex.getProviderName(), ex.getMessage());
+        log.error("AI key invalid [correlationId={}] provider={}: {}",
+                CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                 "Le service IA est mal configure. Contactez l'administrateur.",
                 Map.of("provider", ex.getProviderName()));
@@ -126,7 +130,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AiQuotaExceededException.class)
     public ResponseEntity<Map<String, Object>> handleAiQuota(AiQuotaExceededException ex) {
         int retry = ex.getRetryAfterSeconds() != null ? ex.getRetryAfterSeconds() : 60;
-        log.warn("AI quota exceeded for provider {}: retry in {}s", ex.getProviderName(), retry);
+        log.warn("AI quota exceeded [correlationId={}] provider={}: retry in {}s",
+                CorrelationIdSupport.current(), ex.getProviderName(), retry);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .header("Retry-After", String.valueOf(retry))
                 .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
@@ -136,7 +141,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AiTimeoutException.class)
     public ResponseEntity<Map<String, Object>> handleAiTimeout(AiTimeoutException ex) {
-        log.warn("AI timeout for provider {}", ex.getProviderName());
+        log.warn("AI timeout [correlationId={}] provider={}",
+                CorrelationIdSupport.current(), ex.getProviderName());
         return buildResponse(HttpStatus.GATEWAY_TIMEOUT, ex.getErrorCode(),
                 "Le service IA met trop de temps a repondre. Reessayez.",
                 Map.of("provider", ex.getProviderName()));
@@ -144,7 +150,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AiProviderDownException.class)
     public ResponseEntity<Map<String, Object>> handleAiDown(AiProviderDownException ex) {
-        log.warn("AI provider {} down: {}", ex.getProviderName(), ex.getMessage());
+        log.warn("AI provider down [correlationId={}] provider={}: {}",
+                CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                 "Le service IA est temporairement indisponible. Reessayez.",
                 Map.of("provider", ex.getProviderName()));
@@ -152,7 +159,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AiParseException.class)
     public ResponseEntity<Map<String, Object>> handleAiParse(AiParseException ex) {
-        log.error("AI parse error for provider {}: {}", ex.getProviderName(), ex.getMessage());
+        log.error("AI parse error [correlationId={}] provider={}: {}",
+                CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_GATEWAY, ex.getErrorCode(),
                 "Reponse IA invalide. Reessayez.",
                 Map.of("provider", ex.getProviderName()));
@@ -161,7 +169,8 @@ public class GlobalExceptionHandler {
     // ── Fallback ─────────────────────────────────────────────────
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
-        log.error("Erreur interne non geree", ex);
+        log.error("Erreur interne non geree [correlationId={}]",
+                CorrelationIdSupport.current(), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
                 "Une erreur s'est produite. Si le problème persiste, contactez le support.", null);
     }
@@ -179,6 +188,7 @@ public class GlobalExceptionHandler {
         body.put("status", status.value());
         body.put("code", code);
         body.put("message", message);
+        if (CorrelationIdSupport.current() != null) body.put("correlationId", CorrelationIdSupport.current());
         if (details != null) body.put("details", details);
         return body;
     }

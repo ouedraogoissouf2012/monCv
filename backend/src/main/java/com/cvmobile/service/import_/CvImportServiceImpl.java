@@ -2,6 +2,7 @@ package com.cvmobile.service.import_;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.exception.BusinessException;
+import com.cvmobile.service.ai.AiLogSanitizer;
 import com.cvmobile.service.ai.client.IAiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +86,7 @@ public class CvImportServiceImpl implements ICvImportService {
     private CvRequest parseWithAi(String text, String filename) {
         String prompt = buildParsePrompt(text);
         String response = aiClient.complete(prompt, 3000);
-        log.info("IA import response:\n{}", response);
+        log.info("IA import response summary: {}", AiLogSanitizer.summarize(response));
         return parseAiResponse(response, filename);
     }
 
