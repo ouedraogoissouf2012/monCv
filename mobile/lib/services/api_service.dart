@@ -99,10 +99,7 @@ class ApiService {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.authEndpoint}/login'),
       headers: await _getHeaders(withAuth: false),
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (response.statusCode == 200) {
@@ -131,12 +128,13 @@ class ApiService {
   }
 
   Future<void> unregisterDeviceToken(String token) async {
-    final request = http.Request(
-      'DELETE',
-      Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
-    )
-      ..headers.addAll(await _getHeaders())
-      ..body = jsonEncode({'token': token});
+    final request =
+        http.Request(
+            'DELETE',
+            Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
+          )
+          ..headers.addAll(await _getHeaders())
+          ..body = jsonEncode({'token': token});
     final response = await http.Response.fromStream(await request.send());
     if (response.statusCode != 204) {
       _throwTypedError(response, 'Impossible de retirer cet appareil');
@@ -155,7 +153,8 @@ class ApiService {
   }
 
   Future<NotificationPreferences> updateNotificationPreferences(
-      NotificationPreferences value) async {
+    NotificationPreferences value,
+  ) async {
     final response = await http.put(
       Uri.parse('${ApiConstants.baseUrl}/notifications/preferences'),
       headers: await _getHeaders(),
@@ -201,7 +200,8 @@ class ApiService {
   Future<Map<String, dynamic>> exportUserData() async {
     final response = await http.get(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me/export'),
+        '${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me/export',
+      ),
       headers: await _getHeaders(),
     );
 
@@ -320,9 +320,7 @@ class ApiService {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    request.files.add(
-      await http.MultipartFile.fromPath('file', photo.path),
-    );
+    request.files.add(await http.MultipartFile.fromPath('file', photo.path));
 
     final streamed = await request.send();
     final body = await streamed.stream.bytesToString();
@@ -350,8 +348,12 @@ class ApiService {
       request.headers['Authorization'] = 'Bearer $token';
     }
     request.files.add(
-      http.MultipartFile.fromBytes('file', bytes,
-          filename: filename, contentType: MediaType.parse(mimeType)),
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+        contentType: MediaType.parse(mimeType),
+      ),
     );
 
     final streamed = await request.send();
@@ -368,7 +370,8 @@ class ApiService {
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate'),
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/duplicate',
+      ),
       headers: await _getHeaders(),
     );
 
@@ -379,11 +382,15 @@ class ApiService {
     }
   }
 
-  Future<Cv> createVariant(int cvId, String jobDescription,
-      {String? label}) async {
+  Future<Cv> createVariant(
+    int cvId,
+    String jobDescription, {
+    String? label,
+  }) async {
     final response = await http.post(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant'),
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$cvId/variant',
+      ),
       headers: await _getHeaders(),
       body: jsonEncode({
         'jobDescription': jobDescription,
@@ -396,7 +403,8 @@ class ApiService {
     } else {
       final error = jsonDecode(response.body);
       throw Exception(
-          error['message'] ?? 'Erreur lors de la creation de la variante');
+        error['message'] ?? 'Erreur lors de la creation de la variante',
+      );
     }
   }
 
@@ -453,7 +461,8 @@ class ApiService {
 
   Future<List<int>> downloadCvDocx(int id) async {
     final uri = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx');
+      '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx',
+    );
     final response = await http.get(uri, headers: await _getHeaders());
     if (response.statusCode == 200) {
       return response.bodyBytes;
@@ -463,10 +472,14 @@ class ApiService {
   }
 
   Future<String> generateResume(
-      String? titrePoste, String? competences, String? experience) async {
+    String? titrePoste,
+    String? competences,
+    String? experience,
+  ) async {
     final response = await http.post(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume'),
+        '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/generate-resume',
+      ),
       headers: await _getHeaders(),
       body: jsonEncode({
         'titrePoste': titrePoste ?? '',
@@ -496,6 +509,29 @@ class ApiService {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
     _throwTypedError(response, 'Erreur lors de l\'analyse IA');
+  }
+
+  Future<Map<String, dynamic>> generateApplicationMessages(
+    int cvId,
+    String jobDescription,
+    String tone,
+  ) async {
+    final response = await http.post(
+      Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/application-messages',
+      ),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'cvId': cvId,
+        'jobDescription': jobDescription,
+        'tone': tone,
+        'aiConsentAccepted': true,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    _throwTypedError(response, 'Erreur lors de la generation des messages');
   }
 
   /// GET /api/ai/status - etat du sous-systeme IA.
@@ -538,14 +574,18 @@ class ApiService {
     final lower = filename.toLowerCase();
     final contentType = lower.endsWith('.pdf')
         ? MediaType('application', 'pdf')
-        : MediaType('application',
-            'vnd.openxmlformats-officedocument.wordprocessingml.document');
-    request.files.add(http.MultipartFile.fromBytes(
-      'file',
-      bytes,
-      filename: filename,
-      contentType: contentType,
-    ));
+        : MediaType(
+            'application',
+            'vnd.openxmlformats-officedocument.wordprocessingml.document',
+          );
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+        contentType: contentType,
+      ),
+    );
 
     final streamed = await request.send();
     final body = await streamed.stream.bytesToString();

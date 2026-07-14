@@ -8,6 +8,7 @@ import '../providers/cv_provider.dart';
 import '../services/ai_service.dart';
 import '../utils/error_helper.dart';
 import 'ai_button.dart';
+import 'application_messages_sheet.dart';
 
 /// Bottom sheet pour analyser la correspondance CV / offre d'emploi.
 /// Permet aussi de creer une variante du CV adaptee a l'offre.
@@ -36,9 +37,9 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
     final navigator = Navigator.of(context);
     try {
       final variant = await context.read<CvProvider>().createVariant(
-            widget.cvId,
-            _controller.text.trim(),
-          );
+        widget.cvId,
+        _controller.text.trim(),
+      );
       if (!mounted) return;
       if (variant != null) {
         navigator.pop();
@@ -206,8 +207,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 Text(
                   l.adaptToJob,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -215,8 +216,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
             Text(
               l.adaptToJobDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.55),
-                  ),
+                color: colorScheme.onSurface.withValues(alpha: 0.55),
+              ),
             ),
             const SizedBox(height: 16),
             if (_result == null) ...[
@@ -342,9 +343,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                     crossAxisSpacing: 10,
                     childAspectRatio: 1.05,
                   ),
-                  itemBuilder: (context, index) => _CategoryCard(
-                    category: categories[index],
-                  ),
+                  itemBuilder: (context, index) =>
+                      _CategoryCard(category: categories[index]),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -406,6 +406,27 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    builder: (_) => ApplicationMessagesSheet(
+                      cvId: widget.cvId,
+                      jobDescription: _controller.text.trim(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.send_rounded),
+                  label: Text(l.prepareApplicationMessages),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
                   onPressed: _creatingVariant ? null : _createVariant,
                   icon: _creatingVariant
                       ? const SizedBox(
@@ -453,13 +474,13 @@ class _ScoreCard extends StatelessWidget {
     final color = score >= 70
         ? const Color(0xFF10B981)
         : score >= 40
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFEF4444);
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFFEF4444);
     final label = score >= 70
         ? l.goodMatch
         : score >= 40
-            ? l.averageMatch
-            : l.lowMatch;
+        ? l.averageMatch
+        : l.lowMatch;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -533,9 +554,9 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }
@@ -557,8 +578,8 @@ class _CategoryCard extends StatelessWidget {
     final color = score >= 70
         ? const Color(0xFF10B981)
         : score >= 40
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFEF4444);
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFFEF4444);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -585,10 +606,7 @@ class _CategoryCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(999),
@@ -613,10 +631,9 @@ class _CategoryCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 height: 1.35,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.72),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.72),
               ),
             ),
           ),
@@ -776,10 +793,7 @@ class _FormatChecksCard extends StatelessWidget {
             color: const Color(0xFF10B981).withValues(alpha: 0.18),
           ),
         ),
-        child: Text(
-          l.atsNoFormatRisk,
-          style: const TextStyle(fontSize: 12),
-        ),
+        child: Text(l.atsNoFormatRisk, style: const TextStyle(fontSize: 12)),
       );
     }
 
@@ -788,17 +802,17 @@ class _FormatChecksCard extends StatelessWidget {
         final severity = item['severity']?.toString() ?? 'info';
         final config = switch (severity) {
           'critical' => (
-              color: const Color(0xFFEF4444),
-              icon: Icons.error_outline_rounded,
-            ),
+            color: const Color(0xFFEF4444),
+            icon: Icons.error_outline_rounded,
+          ),
           'warning' => (
-              color: const Color(0xFFF59E0B),
-              icon: Icons.warning_amber_rounded,
-            ),
+            color: const Color(0xFFF59E0B),
+            icon: Icons.warning_amber_rounded,
+          ),
           _ => (
-              color: const Color(0xFF2563EB),
-              icon: Icons.info_outline_rounded,
-            ),
+            color: const Color(0xFF2563EB),
+            icon: Icons.info_outline_rounded,
+          ),
         };
         return Container(
           width: double.infinity,

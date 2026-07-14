@@ -2,6 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.*;
 import com.cvmobile.service.ai.AiStatusService;
+import com.cvmobile.service.ai.IApplicationMessageService;
 import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.ai.IJobMatchService;
 import com.cvmobile.service.ai.IResumeGeneratorService;
@@ -25,6 +26,7 @@ public class AiController {
     private final IResumeGeneratorService resumeGeneratorService;
     private final IEnhancementService enhancementService;
     private final IJobMatchService jobMatchService;
+    private final IApplicationMessageService applicationMessageService;
     private final AiStatusService aiStatusService;
 
     @GetMapping("/status")
@@ -67,5 +69,13 @@ public class AiController {
     public ResponseEntity<JobMatchResponse> matchJob(@Valid @RequestBody JobMatchRequest request) {
         JobMatchResponse response = jobMatchService.matchJob(request.getCvId(), request.getJobDescription());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/application-messages")
+    @Operation(summary = "Generer les textes de candidature adaptes au CV et a l'offre")
+    public ResponseEntity<ApplicationMessagesResponse> generateApplicationMessages(
+            @Valid @RequestBody ApplicationMessagesRequest request) {
+        return ResponseEntity.ok(applicationMessageService.generate(
+                request.getCvId(), request.getJobDescription(), request.getTone()));
     }
 }

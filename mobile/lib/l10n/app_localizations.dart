@@ -1022,6 +1022,108 @@ abstract class AppLocalizations {
   /// **'Score de correspondance avec l\'offre'**
   String get jobMatchScore;
 
+  /// No description provided for @prepareApplicationMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preparer ma candidature'**
+  String get prepareApplicationMessages;
+
+  /// No description provided for @applicationMessagesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages de candidature'**
+  String get applicationMessagesTitle;
+
+  /// No description provided for @applicationMessagesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des textes adaptes a votre CV et a cette offre'**
+  String get applicationMessagesSubtitle;
+
+  /// No description provided for @chooseTone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton'**
+  String get chooseTone;
+
+  /// No description provided for @toneSimple.
+  ///
+  /// In fr, this message translates to:
+  /// **'Simple'**
+  String get toneSimple;
+
+  /// No description provided for @toneProfessional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Professionnel'**
+  String get toneProfessional;
+
+  /// No description provided for @toneDirect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Direct'**
+  String get toneDirect;
+
+  /// No description provided for @toneJunior.
+  ///
+  /// In fr, this message translates to:
+  /// **'Junior'**
+  String get toneJunior;
+
+  /// No description provided for @toneSenior.
+  ///
+  /// In fr, this message translates to:
+  /// **'Senior'**
+  String get toneSenior;
+
+  /// No description provided for @generateApplicationMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Generer les 4 textes'**
+  String get generateApplicationMessages;
+
+  /// No description provided for @generatingApplicationMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Generation en cours...'**
+  String get generatingApplicationMessages;
+
+  /// No description provided for @coverLetter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lettre de motivation'**
+  String get coverLetter;
+
+  /// No description provided for @applicationEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email de candidature'**
+  String get applicationEmail;
+
+  /// No description provided for @linkedInMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message LinkedIn'**
+  String get linkedInMessage;
+
+  /// No description provided for @whatsAppMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message WhatsApp'**
+  String get whatsAppMessage;
+
+  /// No description provided for @applicationMessageCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texte copie dans le presse-papier'**
+  String get applicationMessageCopied;
+
+  /// No description provided for @applicationMessagesFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode de secours utilise : verifiez et personnalisez les textes avant envoi.'**
+  String get applicationMessagesFallback;
+
   /// No description provided for @generateWithAi.
   ///
   /// In fr, this message translates to:

@@ -34,4 +34,18 @@ class AiConsentValidationTest {
 
         assertThat(violations).isEmpty();
     }
+
+    @Test
+    void applicationMessages_exigeOffreTonValideEtConsentement() {
+        ApplicationMessagesRequest request = new ApplicationMessagesRequest();
+        request.setCvId(42L);
+        request.setJobDescription("court");
+        request.setTone("FANTAISISTE");
+        request.setAiConsentAccepted(false);
+
+        var violations = validator.validate(request);
+
+        assertThat(violations).extracting(v -> v.getPropertyPath().toString())
+                .contains("jobDescription", "tone", "aiConsentAccepted");
+    }
 }
