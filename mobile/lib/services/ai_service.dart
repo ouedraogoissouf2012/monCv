@@ -14,8 +14,7 @@ class AiCvService {
     String? titrePoste,
     String? competences,
     String? experience,
-  }) =>
-      _api.generateResume(titrePoste, competences, experience);
+  }) => _api.generateResume(titrePoste, competences, experience);
 
   /// Ameliore un CV complet (LITE / MEDIUM / MAX).
   Future<Map<String, dynamic>> enhanceCv(int cvId, String level) =>
@@ -30,13 +29,11 @@ class AiCvService {
     int cvId,
     String jobDescription,
     String tone,
-  ) =>
-      _api.generateApplicationMessages(cvId, jobDescription, tone);
+  ) => _api.generateApplicationMessages(cvId, jobDescription, tone);
 
   /// Genere des suggestions de bullet points pour une experience.
   Future<List<String>> getSuggestions({
     required String poste,
     String? entreprise,
-  }) =>
-      _api.getAiSuggestions(poste: poste, entreprise: entreprise);
+  }) => _api.getAiSuggestions(poste: poste, entreprise: entreprise);
 }

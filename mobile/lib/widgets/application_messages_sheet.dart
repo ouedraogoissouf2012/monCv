@@ -129,24 +129,21 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                       children: [
                         Text(
                           l.applicationMessagesTitle,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
                           l.applicationMessagesSubtitle,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    tooltip:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -163,8 +160,8 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                     Text(
                       l.chooseTone,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     SingleChildScrollView(
@@ -183,9 +180,9 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                         onSelectionChanged: _loading
                             ? null
                             : (selection) => setState(() {
-                                  _tone = selection.first;
-                                  _messages = null;
-                                }),
+                                _tone = selection.first;
+                                _messages = null;
+                              }),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -202,10 +199,7 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 10),
-                      Text(
-                        _error!,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
+                      Text(_error!, style: TextStyle(color: colorScheme.error)),
                     ],
                     if (_messages != null) ...[
                       if (_messages!['fallback'] == true) ...[
