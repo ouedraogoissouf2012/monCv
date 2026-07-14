@@ -22,7 +22,7 @@ cors:
 
 # JWT — valeur locale uniquement, interdite en production
 jwt:
-  secret: ${JWT_SECRET:moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6n}
+  secret: ${JWT_SECRET:moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6nZ}
 
 # AI — DeepSeek optionnel en dev (mode degrade accepte)
 ai:

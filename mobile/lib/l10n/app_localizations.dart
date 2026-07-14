@@ -920,6 +920,48 @@ abstract class AppLocalizations {
   /// **'Suggestions'**
   String get suggestions;
 
+  /// No description provided for @atsCategoryBreakdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Detail du score ATS'**
+  String get atsCategoryBreakdown;
+
+  /// No description provided for @atsActionPlan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrections prioritaires'**
+  String get atsActionPlan;
+
+  /// No description provided for @atsFormatChecks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Controle format ATS'**
+  String get atsFormatChecks;
+
+  /// No description provided for @atsNoFormatRisk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun risque ATS majeur detecte sur le format actuel.'**
+  String get atsNoFormatRisk;
+
+  /// No description provided for @atsScoreHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Evolution du score'**
+  String get atsScoreHistory;
+
+  /// No description provided for @atsCurrentRun.
+  ///
+  /// In fr, this message translates to:
+  /// **'Score actuel'**
+  String get atsCurrentRun;
+
+  /// No description provided for @atsRerunLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle analyse'**
+  String get atsRerunLabel;
+
   /// No description provided for @creatingVariant.
   ///
   /// In fr, this message translates to:
@@ -931,6 +973,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Creer une variante adaptee'**
   String get createAdaptedVariant;
+
+  /// No description provided for @createOptimizedVariant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creer une variante optimisee'**
+  String get createOptimizedVariant;
 
   /// No description provided for @variantCreated.
   ///

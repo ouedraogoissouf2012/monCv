@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../core/error/result.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
@@ -20,6 +21,8 @@ class JobMatchSheet extends StatefulWidget {
 
 class _JobMatchSheetState extends State<JobMatchSheet> {
   final _controller = TextEditingController();
+  final List<_ScoreSnapshot> _history = [];
+
   bool _loading = false;
   bool _creatingVariant = false;
   bool _aiConsentAccepted = false;
@@ -86,18 +89,28 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
         _controller.text.trim(),
       );
       if (!mounted) return;
+      final score = result['score'] as int? ?? 0;
       setState(() {
         _result = result;
         _loading = false;
+        _history.insert(
+          0,
+          _ScoreSnapshot(
+            score: score,
+            createdAt: DateTime.now(),
+            label: _history.isEmpty ? l.atsCurrentRun : l.atsRerunLabel,
+          ),
+        );
+        if (_history.length > 4) {
+          _history.removeRange(4, _history.length);
+        }
       });
     } on AiException catch (e) {
-      // Erreur IA typee : message precis au lieu de "mode hors ligne"
       if (!mounted) return;
       setState(() {
         _error = e.message;
         _loading = false;
       });
-      if (!mounted) return;
       final status = context.read<AiStatusProvider>();
       status.recordError(e);
       status.refresh();
@@ -112,6 +125,24 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
     }
   }
 
+  List<Map<String, dynamic>> _mapList(String key) {
+    final raw = _result?[key];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  List<String> _stringList(String key) {
+    final raw = _result?[key];
+    if (raw is! List) return const [];
+    return raw
+        .map((item) => item.toString())
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -122,6 +153,13 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l = AppLocalizations.of(context)!;
+    final categories = _mapList('categories');
+    final recommendations = _mapList('prioritizedRecommendations');
+    final formatChecks = _mapList('formatChecks');
+    final matchedKeywords = _stringList('matchedKeywords');
+    final missingKeywords = _stringList('missingKeywords');
+    final suggestions = _stringList('suggestions');
+    final fallback = _result?['fallback'] == true;
 
     return Container(
       decoration: BoxDecoration(
@@ -150,8 +188,6 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Header
             Row(
               children: [
                 Container(
@@ -183,9 +219,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   ),
             ),
             const SizedBox(height: 16),
-
             if (_result == null) ...[
-              // Input
               TextFormField(
                 controller: _controller,
                 maxLines: 6,
@@ -256,56 +290,110 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 ),
               ],
             ] else ...[
-              // Score
+              if (fallback) ...[
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 18,
+                        color: Color(0xFFF59E0B),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l.fallbackResult,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               _ScoreCard(score: _result!['score'] as int? ?? 0),
               const SizedBox(height: 16),
-
-              // Mots-cles presents
-              if (_result!['matchedKeywords'] != null &&
-                  (_result!['matchedKeywords'] as List).isNotEmpty) ...[
+              if (_history.isNotEmpty) ...[
+                _SectionTitle(title: l.atsScoreHistory),
+                const SizedBox(height: 8),
+                _HistoryCard(history: _history),
+                const SizedBox(height: 16),
+              ],
+              if (categories.isNotEmpty) ...[
+                _SectionTitle(title: l.atsCategoryBreakdown),
+                const SizedBox(height: 8),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: categories.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.05,
+                  ),
+                  itemBuilder: (context, index) => _CategoryCard(
+                    category: categories[index],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (recommendations.isNotEmpty) ...[
+                _SectionTitle(title: l.atsActionPlan),
+                const SizedBox(height: 8),
+                _RecommendationCard(recommendations: recommendations),
+                const SizedBox(height: 16),
+              ],
+              _SectionTitle(title: l.atsFormatChecks),
+              const SizedBox(height: 8),
+              _FormatChecksCard(formatChecks: formatChecks),
+              const SizedBox(height: 16),
+              if (matchedKeywords.isNotEmpty) ...[
                 _KeywordSection(
                   title: l.matchedKeywords,
                   icon: Icons.check_circle_rounded,
                   color: const Color(0xFF10B981),
-                  keywords: List<String>.from(_result!['matchedKeywords']),
+                  keywords: matchedKeywords,
                 ),
                 const SizedBox(height: 12),
               ],
-
-              // Mots-cles manquants
-              if (_result!['missingKeywords'] != null &&
-                  (_result!['missingKeywords'] as List).isNotEmpty) ...[
+              if (missingKeywords.isNotEmpty) ...[
                 _KeywordSection(
                   title: l.missingKeywords,
                   icon: Icons.error_outline_rounded,
                   color: const Color(0xFFEF4444),
-                  keywords: List<String>.from(_result!['missingKeywords']),
+                  keywords: missingKeywords,
                 ),
                 const SizedBox(height: 12),
               ],
-
-              // Suggestions
-              if (_result!['suggestions'] != null &&
-                  (_result!['suggestions'] as List).isNotEmpty) ...[
-                Text(
-                  l.suggestions,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
+              if (suggestions.isNotEmpty) ...[
+                _SectionTitle(title: l.suggestions),
                 const SizedBox(height: 6),
-                ...List<String>.from(_result!['suggestions']).map(
+                ...suggestions.map(
                   (s) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '  →  ',
-                          style: TextStyle(color: Color(0xFF2563EB)),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: Icon(
+                            Icons.arrow_right_alt_rounded,
+                            size: 18,
+                            color: Color(0xFF2563EB),
+                          ),
                         ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(s, style: const TextStyle(fontSize: 12)),
                         ),
@@ -315,8 +403,6 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 ),
                 const SizedBox(height: 12),
               ],
-
-              // Bouton creer variante
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -334,7 +420,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   label: Text(
                     _creatingVariant
                         ? l.creatingVariant
-                        : l.createAdaptedVariant,
+                        : l.createOptimizedVariant,
                   ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
@@ -342,8 +428,6 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Bouton re-analyser
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -387,8 +471,8 @@ class _ScoreCard extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 60,
-            height: 60,
+            width: 64,
+            height: 64,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -409,7 +493,7 @@ class _ScoreCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 18),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,6 +522,408 @@ class _ScoreCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  final Map<String, dynamic> category;
+  const _CategoryCard({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    final score = category['score'] as int? ?? 0;
+    final label = category['label']?.toString() ?? '';
+    final summary = category['summary']?.toString() ?? '';
+    final evidence = (category['evidence'] as List<dynamic>? ?? const [])
+        .map((item) => item.toString())
+        .where((item) => item.isNotEmpty)
+        .take(2)
+        .toList();
+    final color = score >= 70
+        ? const Color(0xFF10B981)
+        : score >= 40
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '$score%',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: Text(
+              summary,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.35,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.72),
+              ),
+            ),
+          ),
+          if (evidence.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: evidence
+                  .map(
+                    (item) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        item,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RecommendationCard extends StatelessWidget {
+  final List<Map<String, dynamic>> recommendations;
+  const _RecommendationCard({required this.recommendations});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.38),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: recommendations.map((recommendation) {
+          final keywords =
+              (recommendation['keywords'] as List<dynamic>? ?? const [])
+                  .map((item) => item.toString())
+                  .where((item) => item.isNotEmpty)
+                  .toList();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${recommendation['priority'] ?? ''}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recommendation['title']?.toString() ?? '',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        recommendation['description']?.toString() ?? '',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.35,
+                          color: colorScheme.onSurface.withValues(alpha: 0.75),
+                        ),
+                      ),
+                      if (keywords.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: keywords
+                              .map(
+                                (keyword) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    keyword,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _FormatChecksCard extends StatelessWidget {
+  final List<Map<String, dynamic>> formatChecks;
+  const _FormatChecksCard({required this.formatChecks});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    if (formatChecks.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10B981).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF10B981).withValues(alpha: 0.18),
+          ),
+        ),
+        child: Text(
+          l.atsNoFormatRisk,
+          style: const TextStyle(fontSize: 12),
+        ),
+      );
+    }
+
+    return Column(
+      children: formatChecks.map((item) {
+        final severity = item['severity']?.toString() ?? 'info';
+        final config = switch (severity) {
+          'critical' => (
+              color: const Color(0xFFEF4444),
+              icon: Icons.error_outline_rounded,
+            ),
+          'warning' => (
+              color: const Color(0xFFF59E0B),
+              icon: Icons.warning_amber_rounded,
+            ),
+          _ => (
+              color: const Color(0xFF2563EB),
+              icon: Icons.info_outline_rounded,
+            ),
+        };
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: config.color.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: config.color.withValues(alpha: 0.16)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(config.icon, size: 18, color: config.color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item['label']?.toString() ?? '',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: config.color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item['detail']?.toString() ?? '',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        color: colorScheme.onSurface.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _HistoryCard extends StatelessWidget {
+  final List<_ScoreSnapshot> history;
+  const _HistoryCard({required this.history});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: history.asMap().entries.map((entry) {
+          final item = entry.value;
+          final diff = entry.key == history.length - 1
+              ? null
+              : item.score - history[entry.key + 1].score;
+          final diffColor = (diff ?? 0) >= 0
+              ? const Color(0xFF10B981)
+              : const Color(0xFFEF4444);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.label,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        _formatTime(item.createdAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.onSurface.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${item.score}%',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (diff != null) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    diff >= 0 ? '+$diff' : '$diff',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: diffColor,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
   }
 }
 
@@ -503,4 +989,16 @@ class _KeywordSection extends StatelessWidget {
       ],
     );
   }
+}
+
+class _ScoreSnapshot {
+  final int score;
+  final DateTime createdAt;
+  final String label;
+
+  const _ScoreSnapshot({
+    required this.score,
+    required this.createdAt,
+    required this.label,
+  });
 }
