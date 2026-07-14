@@ -493,6 +493,59 @@ class AppLocalizationsFr extends AppLocalizations {
   String get jobMatchScore => 'Score de correspondance avec l\'offre';
 
   @override
+  String get prepareApplicationMessages => 'Preparer ma candidature';
+
+  @override
+  String get applicationMessagesTitle => 'Messages de candidature';
+
+  @override
+  String get applicationMessagesSubtitle =>
+      'Des textes adaptes a votre CV et a cette offre';
+
+  @override
+  String get chooseTone => 'Ton';
+
+  @override
+  String get toneSimple => 'Simple';
+
+  @override
+  String get toneProfessional => 'Professionnel';
+
+  @override
+  String get toneDirect => 'Direct';
+
+  @override
+  String get toneJunior => 'Junior';
+
+  @override
+  String get toneSenior => 'Senior';
+
+  @override
+  String get generateApplicationMessages => 'Generer les 4 textes';
+
+  @override
+  String get generatingApplicationMessages => 'Generation en cours...';
+
+  @override
+  String get coverLetter => 'Lettre de motivation';
+
+  @override
+  String get applicationEmail => 'Email de candidature';
+
+  @override
+  String get linkedInMessage => 'Message LinkedIn';
+
+  @override
+  String get whatsAppMessage => 'Message WhatsApp';
+
+  @override
+  String get applicationMessageCopied => 'Texte copie dans le presse-papier';
+
+  @override
+  String get applicationMessagesFallback =>
+      'Mode de secours utilise : verifiez et personnalisez les textes avant envoi.';
+
+  @override
   String get generateWithAi => 'Generer avec l\'IA';
 
   @override

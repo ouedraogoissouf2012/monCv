@@ -492,6 +492,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobMatchScore => 'Match score with the job posting';
 
   @override
+  String get prepareApplicationMessages => 'Prepare my application';
+
+  @override
+  String get applicationMessagesTitle => 'Application messages';
+
+  @override
+  String get applicationMessagesSubtitle =>
+      'Texts tailored to your CV and this job posting';
+
+  @override
+  String get chooseTone => 'Tone';
+
+  @override
+  String get toneSimple => 'Simple';
+
+  @override
+  String get toneProfessional => 'Professional';
+
+  @override
+  String get toneDirect => 'Direct';
+
+  @override
+  String get toneJunior => 'Junior';
+
+  @override
+  String get toneSenior => 'Senior';
+
+  @override
+  String get generateApplicationMessages => 'Generate all 4 texts';
+
+  @override
+  String get generatingApplicationMessages => 'Generating...';
+
+  @override
+  String get coverLetter => 'Cover letter';
+
+  @override
+  String get applicationEmail => 'Application email';
+
+  @override
+  String get linkedInMessage => 'LinkedIn message';
+
+  @override
+  String get whatsAppMessage => 'WhatsApp message';
+
+  @override
+  String get applicationMessageCopied => 'Text copied to clipboard';
+
+  @override
+  String get applicationMessagesFallback =>
+      'Fallback mode was used. Review and personalize the texts before sending.';
+
+  @override
   String get generateWithAi => 'Generate with AI';
 
   @override

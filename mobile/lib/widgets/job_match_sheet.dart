@@ -7,6 +7,7 @@ import '../providers/cv_provider.dart';
 import '../services/ai_service.dart';
 import '../utils/error_helper.dart';
 import 'ai_button.dart';
+import 'application_messages_sheet.dart';
 
 /// Bottom sheet pour analyser la correspondance CV / offre d'emploi.
 /// Permet aussi de creer une variante du CV adaptee a l'offre.
@@ -315,6 +316,28 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 ),
                 const SizedBox(height: 12),
               ],
+
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    builder: (_) => ApplicationMessagesSheet(
+                      cvId: widget.cvId,
+                      jobDescription: _controller.text.trim(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.send_rounded),
+                  label: Text(l.prepareApplicationMessages),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Bouton creer variante
               SizedBox(
