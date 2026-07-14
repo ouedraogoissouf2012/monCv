@@ -90,6 +90,22 @@ public class Cv {
     private String publicToken;
 
     @Builder.Default
+    @Column(name = "public_downloads_enabled", nullable = false)
+    private boolean publicDownloadsEnabled = false;
+
+    @Builder.Default
+    @Column(name = "public_contact_enabled", nullable = false)
+    private boolean publicContactEnabled = false;
+
+    @Builder.Default
+    @Column(name = "download_count", nullable = false)
+    private int downloadCount = 0;
+
+    @Builder.Default
+    @Column(name = "share_count", nullable = false)
+    private int shareCount = 0;
+
+    @Builder.Default
     @Column(name = "style_template_id", nullable = false, length = 50)
     private String styleTemplateId = "moderne";
 

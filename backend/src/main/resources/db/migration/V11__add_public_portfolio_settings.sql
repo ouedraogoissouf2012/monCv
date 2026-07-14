@@ -1,0 +1,6 @@
+ALTER TABLE cvs
+    ADD COLUMN public_downloads_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN public_contact_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN download_count INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN share_count INTEGER NOT NULL DEFAULT 0;
+

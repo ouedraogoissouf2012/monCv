@@ -16,10 +16,16 @@ class ShareService {
       final cv = await ApiService().generateShareLink(cvId);
       final token = cv.shareToken;
       if (token == null) return null;
-      return '${ApiConstants.baseUrl}/cvs/public/$token';
+      return buildPublicPortfolioUrl(token);
     } catch (_) {
       return null;
     }
+  }
+
+  String buildPublicPortfolioUrl(String token, {String? baseUrl}) {
+    final base = (baseUrl ?? PublicAppConstants.baseUrl)
+        .replaceFirst(RegExp(r'/+$'), '');
+    return '$base/#/public/cv/$token';
   }
 
   /// Copie un texte dans le presse-papier.
@@ -41,6 +47,18 @@ class ShareService {
   Future<bool> shareToWhatsApp(String url, {String? title}) async {
     final message = buildRecruiterMessage(url, title: title);
     final uri = buildWhatsAppUri(message);
+    if (!await canLaunchUrl(uri)) return false;
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Uri buildLinkedInUri(String url) => Uri.https(
+        'www.linkedin.com',
+        '/sharing/share-offsite/',
+        {'url': url},
+      );
+
+  Future<bool> shareToLinkedIn(String url) async {
+    final uri = buildLinkedInUri(url);
     if (!await canLaunchUrl(uri)) return false;
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }

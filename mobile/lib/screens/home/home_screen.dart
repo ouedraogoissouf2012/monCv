@@ -10,7 +10,7 @@ import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
 import '../../services/pdf_service.dart';
-import '../../services/share_service.dart';
+import '../share/share_portfolio_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -171,114 +171,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _shareLink(BuildContext context, Cv cv) async {
-    final l = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-
-    try {
-      final url = await ShareService().generateShareLink(cv.id!);
-      if (!context.mounted || url == null) return;
-
-      await showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l.shareLinkTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l.shareLinkDescription,
-                  style: const TextStyle(fontSize: 13)),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF25D366).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFF25D366).withValues(alpha: 0.18),
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.chat_outlined,
-                        color: Color(0xFF128C7E), size: 18),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'WhatsApp est idéal pour envoyer votre CV à un recruteur, une PME ou un contact RH.',
-                        style: TextStyle(fontSize: 12, height: 1.35),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SelectableText(
-                  url,
-                  style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(l.close),
-            ),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final opened =
-                    await ShareService().shareToWhatsApp(url, title: cv.titre);
-                if (!ctx.mounted) return;
-                if (opened) {
-                  Navigator.pop(ctx);
-                  return;
-                }
-                await ShareService().copyToClipboard(
-                  ShareService().buildRecruiterMessage(url, title: cv.titre),
-                );
-                if (!ctx.mounted) return;
-                Navigator.pop(ctx);
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                        'WhatsApp indisponible, message copié dans le presse-papier'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Color(0xFFF59E0B),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.chat_outlined, size: 16),
-              label: Text(l.whatsApp),
-            ),
-            FilledButton.icon(
-              onPressed: () {
-                ShareService().copyToClipboard(url);
-                Navigator.pop(ctx);
-                messenger.showSnackBar(SnackBar(
-                  content: Text(l.linkCopied),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: const Color(0xFF10B981),
-                ));
-              },
-              icon: const Icon(Icons.copy_rounded, size: 16),
-              label: Text(l.copy),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(
-        content: Text(l.errorWithDetails(e.toString())),
-        behavior: SnackBarBehavior.floating,
-      ));
+    final changed = await showDialog<bool>(
+      context: context,
+      builder: (context) => SharePortfolioDialog(cv: cv),
+    );
+    if (changed == true && context.mounted) {
+      await context.read<CvProvider>().loadCvs();
     }
   }
 

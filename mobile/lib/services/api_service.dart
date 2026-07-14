@@ -499,6 +499,70 @@ class ApiService {
     }
   }
 
+  Future<Cv> regenerateShareLink(int id) async {
+    final response = await http.post(
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/regenerate'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Cv.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Erreur lors de la regeneration du lien');
+  }
+
+  Future<Cv> deactivateShareLink(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Cv.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Erreur lors de la desactivation du lien');
+  }
+
+  Future<Cv> updateShareSettings(
+    int id, {
+    required bool contactEnabled,
+    required bool downloadsEnabled,
+  }) async {
+    final response = await http.put(
+      Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/settings'),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'contactEnabled': contactEnabled,
+        'downloadsEnabled': downloadsEnabled,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return Cv.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Erreur lors de la configuration du partage');
+  }
+
+  Future<Cv> getPublicCv(String token) async {
+    final response = await http.get(Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token'));
+    if (response.statusCode == 200) {
+      return Cv.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Ce portfolio est indisponible');
+  }
+
+  Future<List<int>> downloadPublicCv(String token, String format) async {
+    final response = await http.get(Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/$format'));
+    if (response.statusCode == 200) return response.bodyBytes;
+    _throwTypedError(response, 'Telechargement public indisponible');
+  }
+
+  Future<void> trackPublicShare(String token) async {
+    await http.post(Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/share'));
+  }
+
   Future<Map<String, dynamic>> enhanceCv(int cvId, String level) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/enhance-cv'),

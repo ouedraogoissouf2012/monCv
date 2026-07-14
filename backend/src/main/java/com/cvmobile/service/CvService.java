@@ -3,6 +3,7 @@ package com.cvmobile.service;
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.EnhanceCvResponse;
+import com.cvmobile.dto.PublicShareSettingsRequest;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
@@ -84,9 +85,7 @@ public class CvService implements ICvService {
 
     @Transactional(readOnly = true)
     public CvResponse getCvByPublicToken(String token) {
-        Cv cv = cvRepository.findByPublicToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("Lien de partage invalide ou expire"));
-        return cvMapper.toResponse(cv);
+        return toPublicResponse(findPublicCv(token));
     }
 
     // ── Creation ─────────────────────────────────────────────────
@@ -300,11 +299,35 @@ public class CvService implements ICvService {
     public CvResponse generateShareToken(Long cvId, Long userId) {
         Cv cv = findCvOrThrow(cvId, userId);
         if (cv.getPublicToken() == null) {
-            cv.setPublicToken(UUID.randomUUID().toString().replace("-", ""));
+            cv.setPublicToken(newPublicToken());
             cv = cvRepository.save(cv);
             log.info("Token de partage genere pour CV id={}", cvId);
         }
         return cvMapper.toResponse(cv);
+    }
+
+    @Transactional
+    public CvResponse regenerateShareToken(Long cvId, Long userId) {
+        Cv cv = findCvOrThrow(cvId, userId);
+        cv.setPublicToken(newPublicToken());
+        return cvMapper.toResponse(cvRepository.save(cv));
+    }
+
+    @Transactional
+    public CvResponse deactivateShare(Long cvId, Long userId) {
+        Cv cv = findCvOrThrow(cvId, userId);
+        cv.setPublicToken(null);
+        return cvMapper.toResponse(cvRepository.save(cv));
+    }
+
+    @Transactional
+    public CvResponse updateShareSettings(
+            Long cvId, PublicShareSettingsRequest request, Long userId) {
+        Cv cv = findCvOrThrow(cvId, userId);
+        cv.setPublicContactEnabled(request.isContactEnabled());
+        cv.setPublicDownloadsEnabled(
+                request.isDownloadsEnabled() && request.isContactEnabled());
+        return cvMapper.toResponse(cvRepository.save(cv));
     }
 
     // ── Analytics ────────────────────────────────────────────────
@@ -316,8 +339,7 @@ public class CvService implements ICvService {
      */
     @Transactional
     public void trackView(String publicToken, String ipAddress) {
-        Cv cv = cvRepository.findByPublicToken(publicToken)
-                .orElseThrow(() -> new ResourceNotFoundException("Lien de partage invalide ou expire"));
+        Cv cv = findPublicCv(publicToken);
 
         String ipHash = hashIp(ipAddress);
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
@@ -338,6 +360,57 @@ public class CvService implements ICvService {
         }
     }
 
+    @Transactional
+    public void trackPublicDownload(String publicToken) {
+        Cv cv = findPublicCv(publicToken);
+        ensureDownloadsEnabled(cv);
+        cv.setDownloadCount(cv.getDownloadCount() + 1);
+        cvRepository.save(cv);
+    }
+
+    @Transactional
+    public void trackPublicShare(String publicToken) {
+        Cv cv = findPublicCv(publicToken);
+        cv.setShareCount(cv.getShareCount() + 1);
+        cvRepository.save(cv);
+    }
+
+    @Transactional(readOnly = true)
+    public Cv getPublicCvEntityForDownload(String publicToken) {
+        Cv cv = findPublicCv(publicToken);
+        ensureDownloadsEnabled(cv);
+
+        PersonalInfo publicInfo = cv.getPersonalInfo() == null
+                ? null
+                : cvMapper.clonePersonalInfo(cv.getPersonalInfo());
+        if (publicInfo != null) {
+            publicInfo.setAdresse(null);
+            publicInfo.setCodePostal(null);
+        }
+
+        return Cv.builder()
+                .id(cv.getId())
+                .titre(cv.getTitre())
+                .personalInfo(publicInfo)
+                .educations(List.copyOf(cv.getEducations()))
+                .experiences(List.copyOf(cv.getExperiences()))
+                .skills(List.copyOf(cv.getSkills()))
+                .languages(List.copyOf(cv.getLanguages()))
+                .certifications(List.copyOf(cv.getCertifications()))
+                .projects(List.copyOf(cv.getProjects()))
+                .styleTemplateId(cv.getStyleTemplateId())
+                .stylePrimaryColor(cv.getStylePrimaryColor())
+                .styleFontFamily(cv.getStyleFontFamily())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public CvResponse getPublicCvForDownload(String publicToken) {
+        Cv cv = findPublicCv(publicToken);
+        ensureDownloadsEnabled(cv);
+        return toPublicResponse(cv);
+    }
+
     static String hashIp(String ip) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -348,6 +421,39 @@ public class CvService implements ICvService {
         } catch (Exception e) {
             return "0000000000000000";
         }
+    }
+
+    private Cv findPublicCv(String token) {
+        return cvRepository.findByPublicToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Lien de partage invalide ou expire"));
+    }
+
+    private CvResponse toPublicResponse(Cv cv) {
+        CvResponse response = cvMapper.toResponse(cv);
+        CvResponse.PersonalInfoDto info = response.getPersonalInfo();
+        if (info != null) {
+            info.setAdresse(null);
+            info.setCodePostal(null);
+            if (!cv.isPublicContactEnabled()) {
+                info.setEmail(null);
+                info.setTelephone(null);
+            }
+        }
+        response.setPublicToken(null);
+        response.setDownloadCount(0);
+        response.setShareCount(0);
+        return response;
+    }
+
+    private void ensureDownloadsEnabled(Cv cv) {
+        if (!cv.isPublicDownloadsEnabled()) {
+            throw new ResourceNotFoundException("Telechargement public desactive");
+        }
+    }
+
+    private String newPublicToken() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     // ── Suppression ──────────────────────────────────────────────

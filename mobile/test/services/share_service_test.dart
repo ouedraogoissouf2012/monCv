@@ -19,4 +19,22 @@ void main() {
     expect(uri.host, 'wa.me');
     expect(uri.queryParameters['text'], 'Bonjour CV');
   });
+
+  test('buildPublicPortfolioUrl pointe vers la route Flutter publique', () {
+    final url = ShareService().buildPublicPortfolioUrl(
+      'abc123',
+      baseUrl: 'https://moncv.example/',
+    );
+
+    expect(url, 'https://moncv.example/#/public/cv/abc123');
+  });
+
+  test('buildLinkedInUri encode le lien du portfolio', () {
+    final uri = ShareService()
+        .buildLinkedInUri('https://moncv.example/#/public/cv/abc123');
+
+    expect(uri.host, 'www.linkedin.com');
+    expect(
+        uri.queryParameters['url'], 'https://moncv.example/#/public/cv/abc123');
+  });
 }

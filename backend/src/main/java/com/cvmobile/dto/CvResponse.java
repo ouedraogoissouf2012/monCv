@@ -31,6 +31,11 @@ public class CvResponse {
     private Integer variantCount;
     private StyleDto style;
     private String publicToken;
+    private boolean publicEnabled;
+    private boolean publicDownloadsEnabled;
+    private boolean publicContactEnabled;
+    private int downloadCount;
+    private int shareCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
