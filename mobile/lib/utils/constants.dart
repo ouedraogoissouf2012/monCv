@@ -51,6 +51,21 @@ class ApiConstants {
   static const String aiEndpoint = '/ai';
 }
 
+class PublicAppConstants {
+  static const String _envUrl = String.fromEnvironment('PUBLIC_APP_URL');
+
+  static String get baseUrl {
+    if (kIsWeb) return Uri.base.origin;
+    if (_envUrl.isNotEmpty) {
+      return _envUrl.trim().replaceFirst(RegExp(r'/+$'), '');
+    }
+    if (AppEnvironment.isProduction) {
+      throw StateError('PUBLIC_APP_URL is required in production.');
+    }
+    return 'http://localhost:3002';
+  }
+}
+
 class AppColors {
   static const Color primary = Color(0xFF2563EB);
   static const Color secondary = Color(0xFF3B82F6);

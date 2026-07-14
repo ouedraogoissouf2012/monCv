@@ -15,6 +15,11 @@ class Cv {
   final String? varianteLabel;
   final int? variantCount;
   final String? shareToken;
+  final bool publicEnabled;
+  final bool publicDownloadsEnabled;
+  final bool publicContactEnabled;
+  final int downloadCount;
+  final int shareCount;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final CvStyle style;
@@ -37,6 +42,11 @@ class Cv {
     this.varianteLabel,
     this.variantCount,
     this.shareToken,
+    this.publicEnabled = false,
+    this.publicDownloadsEnabled = false,
+    this.publicContactEnabled = false,
+    this.downloadCount = 0,
+    this.shareCount = 0,
     this.createdAt,
     this.updatedAt,
     this.style = CvStyle.defaultStyle,
@@ -78,6 +88,12 @@ class Cv {
       varianteLabel: json['varianteLabel'],
       variantCount: json['variantCount'],
       shareToken: json['publicToken'],
+      publicEnabled:
+          json['publicEnabled'] as bool? ?? json['publicToken'] != null,
+      publicDownloadsEnabled: json['publicDownloadsEnabled'] as bool? ?? false,
+      publicContactEnabled: json['publicContactEnabled'] as bool? ?? false,
+      downloadCount: json['downloadCount'] as int? ?? 0,
+      shareCount: json['shareCount'] as int? ?? 0,
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt:
@@ -176,6 +192,11 @@ class Cv {
     String? varianteLabel,
     int? variantCount,
     String? shareToken,
+    bool? publicEnabled,
+    bool? publicDownloadsEnabled,
+    bool? publicContactEnabled,
+    int? downloadCount,
+    int? shareCount,
     CvStyle? style,
   }) {
     return Cv(
@@ -193,6 +214,12 @@ class Cv {
       varianteLabel: varianteLabel ?? this.varianteLabel,
       variantCount: variantCount ?? this.variantCount,
       shareToken: shareToken ?? this.shareToken,
+      publicEnabled: publicEnabled ?? this.publicEnabled,
+      publicDownloadsEnabled:
+          publicDownloadsEnabled ?? this.publicDownloadsEnabled,
+      publicContactEnabled: publicContactEnabled ?? this.publicContactEnabled,
+      downloadCount: downloadCount ?? this.downloadCount,
+      shareCount: shareCount ?? this.shareCount,
       createdAt: createdAt,
       updatedAt: updatedAt,
       style: style ?? this.style,

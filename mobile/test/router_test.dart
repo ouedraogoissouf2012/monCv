@@ -37,5 +37,27 @@ void main() {
 
       expect(redirect, '/home');
     });
+
+    test('laisse le portfolio public accessible sans session', () {
+      final redirect = AppRouter.resolveAuthRedirect(
+        isCheckingAuth: false,
+        isAuthenticated: false,
+        location: '/public/cv/abc123',
+        isWeb: true,
+      );
+
+      expect(redirect, null);
+    });
+
+    test('laisse le portfolio public accessible avec une session', () {
+      final redirect = AppRouter.resolveAuthRedirect(
+        isCheckingAuth: false,
+        isAuthenticated: true,
+        location: '/public/cv/abc123',
+        isWeb: true,
+      );
+
+      expect(redirect, null);
+    });
   });
 }

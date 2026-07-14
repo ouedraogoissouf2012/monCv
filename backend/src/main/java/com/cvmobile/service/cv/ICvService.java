@@ -2,6 +2,8 @@ package com.cvmobile.service.cv;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.PublicShareSettingsRequest;
+import com.cvmobile.model.Cv;
 
 import java.util.List;
 
@@ -27,9 +29,23 @@ public interface ICvService {
 
     CvResponse generateShareToken(Long cvId, Long userId);
 
+    CvResponse regenerateShareToken(Long cvId, Long userId);
+
+    CvResponse deactivateShare(Long cvId, Long userId);
+
+    CvResponse updateShareSettings(Long cvId, PublicShareSettingsRequest request, Long userId);
+
     void deleteCv(Long cvId, Long userId);
 
     void trackView(String publicToken, String ipAddress);
+
+    void trackPublicDownload(String publicToken);
+
+    void trackPublicShare(String publicToken);
+
+    Cv getPublicCvEntityForDownload(String publicToken);
+
+    CvResponse getPublicCvForDownload(String publicToken);
 
     CvResponse createVariant(Long parentCvId, String jobDescription, String label, Long userId);
 

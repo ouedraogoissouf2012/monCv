@@ -3,7 +3,15 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 
 Future<void> savePdfBytes(List<int> bytes, String filename) async {
-  final blob = html.Blob([Uint8List.fromList(bytes)], 'application/pdf');
+  await saveBytes(bytes, filename, 'application/pdf');
+}
+
+Future<void> saveBytes(
+  List<int> bytes,
+  String filename,
+  String mimeType,
+) async {
+  final blob = html.Blob([Uint8List.fromList(bytes)], mimeType);
   final url = html.Url.createObjectUrlFromBlob(blob);
   html.AnchorElement(href: url)
     ..setAttribute('download', filename)

@@ -52,6 +52,19 @@ public class PdfGenerationService {
         return start + " — " + end;
     }
 
+    static String buildCertificationPeriod(CvResponse.CertificationDto certification) {
+        if (certification.getDateObtention() == null && certification.getDateExpiration() == null) return "";
+        StringBuilder period = new StringBuilder();
+        if (certification.getDateObtention() != null) {
+            period.append("Obtenue en ").append(certification.getDateObtention().format(DATE_FMT));
+        }
+        if (certification.getDateExpiration() != null) {
+            if (!period.isEmpty()) period.append("  •  ");
+            period.append("Expiration : ").append(certification.getDateExpiration().format(DATE_FMT));
+        }
+        return period.toString();
+    }
+
     static void appendContact(Paragraph p, String value, Font font) {
         if (value == null || value.isBlank()) return;
         if (!p.isEmpty()) p.add(new Chunk("   |   ", font));
@@ -88,6 +101,8 @@ public class PdfGenerationService {
                 addEducations(doc, cv);
                 addSkills(doc, cv);
                 addLanguages(doc, cv);
+                addCertifications(doc, cv);
+                addProjects(doc, cv);
 
                 doc.close();
                 return out.toByteArray();
@@ -242,6 +257,48 @@ public class PdfGenerationService {
             doc.add(table);
         }
 
+        private void addCertifications(Document doc, CvResponse cv) throws DocumentException {
+            List<CvResponse.CertificationDto> list = cv.getCertifications();
+            if (list == null || list.isEmpty()) return;
+            sectionTitle(doc, "CERTIFICATIONS");
+            for (CvResponse.CertificationDto certification : list) {
+                Paragraph line = new Paragraph();
+                if (certification.getNom() != null) line.add(new Chunk(certification.getNom(), F_ITEM));
+                if (certification.getOrganisme() != null)
+                    line.add(new Chunk("  •  " + certification.getOrganisme(), F_BODY));
+                doc.add(line);
+
+                String period = buildCertificationPeriod(certification);
+                Paragraph details = new Paragraph();
+                appendContact(details, period, F_SUB);
+                appendContact(details, certification.getCredentialUrl(), F_SUB);
+                details.setSpacingAfter(8);
+                doc.add(details);
+            }
+        }
+
+        private void addProjects(Document doc, CvResponse cv) throws DocumentException {
+            List<CvResponse.ProjectDto> list = cv.getProjects();
+            if (list == null || list.isEmpty()) return;
+            sectionTitle(doc, "PROJETS");
+            for (CvResponse.ProjectDto project : list) {
+                Paragraph line = new Paragraph();
+                if (project.getNom() != null) line.add(new Chunk(project.getNom(), F_ITEM));
+                String period = buildPeriod(
+                        project.getDateDebut() != null ? project.getDateDebut().format(DATE_FMT) : null,
+                        project.getDateFin() != null ? project.getDateFin().format(DATE_FMT) : null);
+                if (!period.isBlank()) line.add(new Chunk("  •  " + period, F_SUB));
+                doc.add(line);
+                if (project.getDescription() != null && !project.getDescription().isBlank())
+                    doc.add(new Paragraph(project.getDescription(), F_BODY));
+                Paragraph details = new Paragraph();
+                appendContact(details, project.getTechnologies(), F_SUB);
+                appendContact(details, project.getLien(), F_SUB);
+                details.setSpacingAfter(8);
+                doc.add(details);
+            }
+        }
+
         private void sectionTitle(Document doc, String title) throws DocumentException {
             PdfPTable t = new PdfPTable(1);
             t.setWidthPercentage(100);
@@ -287,6 +344,8 @@ public class PdfGenerationService {
                 addEducations(doc, cv);
                 addSkills(doc, cv);
                 addLanguages(doc, cv);
+                addCertifications(doc, cv);
+                addProjects(doc, cv);
 
                 doc.close();
                 return out.toByteArray();
@@ -465,6 +524,62 @@ public class PdfGenerationService {
             }
             p.setSpacingAfter(12);
             doc.add(p);
+        }
+
+        private void addCertifications(Document doc, CvResponse cv) throws DocumentException {
+            List<CvResponse.CertificationDto> list = cv.getCertifications();
+            if (list == null || list.isEmpty()) return;
+            sectionTitle(doc, "CERTIFICATIONS");
+            for (CvResponse.CertificationDto certification : list) {
+                PdfPTable row = new PdfPTable(new float[]{7, 3});
+                row.setWidthPercentage(100);
+                PdfPCell left = borderlessCell();
+                Paragraph name = new Paragraph();
+                if (certification.getNom() != null) name.add(new Chunk(certification.getNom(), F_ITEM));
+                if (certification.getOrganisme() != null)
+                    name.add(new Chunk("  —  " + certification.getOrganisme(), F_BODY));
+                left.addElement(name);
+                row.addCell(left);
+                PdfPCell right = borderlessCell();
+                right.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                String period = buildCertificationPeriod(certification);
+                right.addElement(new Paragraph(period, F_SUB));
+                row.addCell(right);
+                doc.add(row);
+                if (certification.getCredentialUrl() != null) {
+                    Paragraph credential = new Paragraph(certification.getCredentialUrl(), F_SUB);
+                    credential.setSpacingAfter(8);
+                    doc.add(credential);
+                }
+            }
+        }
+
+        private void addProjects(Document doc, CvResponse cv) throws DocumentException {
+            List<CvResponse.ProjectDto> list = cv.getProjects();
+            if (list == null || list.isEmpty()) return;
+            sectionTitle(doc, "PROJETS");
+            for (CvResponse.ProjectDto project : list) {
+                Paragraph title = new Paragraph();
+                if (project.getNom() != null) title.add(new Chunk(project.getNom(), F_ITEM));
+                String period = buildPeriod(
+                        project.getDateDebut() != null ? project.getDateDebut().format(DATE_FMT) : null,
+                        project.getDateFin() != null ? project.getDateFin().format(DATE_FMT) : null);
+                if (!period.isBlank()) title.add(new Chunk("  —  " + period, F_SUB));
+                doc.add(title);
+                if (project.getDescription() != null && !project.getDescription().isBlank())
+                    doc.add(new Paragraph(project.getDescription(), F_BODY));
+                Paragraph details = new Paragraph();
+                appendContact(details, project.getTechnologies(), F_SUB);
+                appendContact(details, project.getLien(), F_SUB);
+                details.setSpacingAfter(8);
+                doc.add(details);
+            }
+        }
+
+        private PdfPCell borderlessCell() {
+            PdfPCell cell = new PdfPCell();
+            cell.setBorder(Rectangle.NO_BORDER);
+            return cell;
         }
 
         private void sectionTitle(Document doc, String title) throws DocumentException {
@@ -686,6 +801,46 @@ public class PdfGenerationService {
                         desc.setSpacingAfter(10);
                         main.addElement(desc);
                     }
+                }
+            }
+
+            List<CvResponse.CertificationDto> certifications = cv.getCertifications();
+            if (certifications != null && !certifications.isEmpty()) {
+                mainSection(main, "CERTIFICATIONS");
+                for (CvResponse.CertificationDto certification : certifications) {
+                    Paragraph line = new Paragraph();
+                    if (certification.getNom() != null) line.add(new Chunk(certification.getNom(), F_ITEM));
+                    main.addElement(line);
+                    String sub = certification.getOrganisme() != null ? certification.getOrganisme() : "";
+                    String period = buildCertificationPeriod(certification);
+                    if (!period.isBlank()) sub += (sub.isEmpty() ? "" : "  •  ") + period;
+                    if (certification.getCredentialUrl() != null)
+                        sub += (sub.isEmpty() ? "" : "  •  ") + certification.getCredentialUrl();
+                    Paragraph details = new Paragraph(sub, F_SUB);
+                    details.setSpacingAfter(8);
+                    main.addElement(details);
+                }
+            }
+
+            List<CvResponse.ProjectDto> projects = cv.getProjects();
+            if (projects != null && !projects.isEmpty()) {
+                mainSection(main, "PROJETS");
+                for (CvResponse.ProjectDto project : projects) {
+                    Paragraph title = new Paragraph();
+                    if (project.getNom() != null) title.add(new Chunk(project.getNom(), F_ITEM));
+                    main.addElement(title);
+                    if (project.getDescription() != null && !project.getDescription().isBlank())
+                        main.addElement(new Paragraph(project.getDescription(), F_BODY));
+                    String details = project.getTechnologies() != null ? project.getTechnologies() : "";
+                    String period = buildPeriod(
+                            project.getDateDebut() != null ? project.getDateDebut().format(DATE_FMT) : null,
+                            project.getDateFin() != null ? project.getDateFin().format(DATE_FMT) : null);
+                    if (!period.isBlank()) details += (details.isEmpty() ? "" : "  •  ") + period;
+                    if (project.getLien() != null)
+                        details += (details.isEmpty() ? "" : "  •  ") + project.getLien();
+                    Paragraph sub = new Paragraph(details, F_SUB);
+                    sub.setSpacingAfter(8);
+                    main.addElement(sub);
                 }
             }
 

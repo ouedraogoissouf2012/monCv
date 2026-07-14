@@ -12,6 +12,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/share/public_portfolio_screen.dart';
 
 class AppRouter {
   @visibleForTesting
@@ -23,15 +24,17 @@ class AppRouter {
   }) {
     if (isCheckingAuth) return null;
 
+    final isPublicPortfolio = location.startsWith('/public/cv/');
     final isPublic = location == '/login' ||
         location == '/register' ||
         location == '/privacy' ||
-        location == '/landing';
+        location == '/landing' ||
+        isPublicPortfolio;
 
     if (!isAuthenticated && !isPublic) {
       return isWeb ? '/landing' : '/login';
     }
-    if (isAuthenticated && isPublic) return '/home';
+    if (isAuthenticated && isPublic && !isPublicPortfolio) return '/home';
     return null;
   }
 
@@ -63,6 +66,12 @@ class AppRouter {
         GoRoute(
           path: '/privacy',
           builder: (context, state) => const PrivacyScreen(),
+        ),
+        GoRoute(
+          path: '/public/cv/:token',
+          builder: (context, state) => PublicPortfolioScreen(
+            token: state.pathParameters['token']!,
+          ),
         ),
         GoRoute(
           path: '/home',
