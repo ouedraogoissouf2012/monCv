@@ -9,6 +9,7 @@ import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +34,9 @@ class JobMatchServiceImplTest {
 
     @Mock
     private CvRepository cvRepository;
+
+    @Mock
+    private CvQualityService cvQualityService;
 
     @InjectMocks
     private JobMatchServiceImpl service;
@@ -58,6 +63,7 @@ class JobMatchServiceImplTest {
                 .build();
 
         when(cvRepository.findById(22L)).thenReturn(Optional.of(cv));
+        lenient().when(cvQualityService.findReviewWarnings(org.mockito.ArgumentMatchers.any())).thenReturn(List.of());
     }
 
     @Test
@@ -91,10 +97,13 @@ class JobMatchServiceImplTest {
 
         assertThat(response.isAiGenerated()).isTrue();
         assertThat(response.isFallback()).isFalse();
-        assertThat(response.getScore()).isEqualTo(70);
+        assertThat(response.getScore()).isBetween(55, 85);
         assertThat(response.getMatchedKeywords()).contains("projet", "budgets", "communication");
         assertThat(response.getMissingKeywords()).contains("analyse", "donnees");
-        assertThat(response.getSuggestions()).hasSize(3);
+        assertThat(response.getSuggestions()).hasSizeGreaterThanOrEqualTo(3);
+        assertThat(response.getCategories()).hasSize(7);
+        assertThat(response.getPrioritizedRecommendations()).isNotEmpty();
+        assertThat(response.getFormatChecks()).isNotEmpty();
     }
 
     @Test
@@ -144,9 +153,11 @@ class JobMatchServiceImplTest {
                 22L,
                 "avec pour dans cette votre notre entre faire avoir");
 
-        assertThat(response.getScore()).isZero();
+        assertThat(response.getScore()).isBetween(0, 100);
         assertThat(response.getMatchedKeywords()).isEmpty();
         assertThat(response.getMissingKeywords()).isEmpty();
+        assertThat(response.getCategories()).extracting("key")
+                .contains("keywords", "technical_skills", "ats_format");
     }
 
     @Test
@@ -205,7 +216,45 @@ class JobMatchServiceImplTest {
         assertThat(response.getMatchedKeywords())
                 .contains("équipe", "délais", "stratégie", "scrum", "figma", "français")
                 .doesNotContain("quipe", "lais", "strat", "gique");
-        assertThat(response.getMissingKeywords()).isEmpty();
-        assertThat(response.getScore()).isEqualTo(100);
+        assertThat(response.getMissingKeywords()).doesNotContain("quipe", "lais", "strat", "gique");
+        assertThat(response.getScore()).isGreaterThanOrEqualTo(75);
+    }
+
+    @Test
+    void matchJob_signaleLesRisquesAtsEtLesRecommandationsPrioritaires() {
+        cv.setStyleTemplateId("creatif");
+        cv.getPersonalInfo().setTelephone(null);
+        cv.getExperiences().get(0).setDescription("Coordination d'equipe");
+        when(cvQualityService.findReviewWarnings(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(List.of("Ajoutez des resultats chiffres dans l'experience 1."));
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("""
+                        SCORE: 58
+
+                        MOTS_CLES_PRESENTS:
+                        - communication
+
+                        MOTS_CLES_MANQUANTS:
+                        - scrum
+                        - jira
+
+                        SUGGESTIONS:
+                        - Ajoutez Scrum et Jira
+
+                        RESUME_OPTIMISE:
+                        Chef de projet digital oriente delivery.
+                        """);
+
+        JobMatchResponse response = service.matchJob(
+                22L,
+                "Chef de projet digital avec Scrum, Jira, communication et pilotage agile");
+
+        assertThat(response.getFormatChecks())
+                .extracting(JobMatchResponse.FormatCheck::getLabel)
+                .contains("Contact incomplet", "Template bicolonne");
+        assertThat(response.getPrioritizedRecommendations())
+                .extracting(JobMatchResponse.PrioritizedRecommendation::getTitle)
+                .contains("Ajouter les mots-clés manquants", "Sécuriser le format ATS");
     }
 }

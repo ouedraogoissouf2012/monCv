@@ -461,10 +461,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get suggestions => 'Suggestions';
 
   @override
+  String get atsCategoryBreakdown => 'Detail du score ATS';
+
+  @override
+  String get atsActionPlan => 'Corrections prioritaires';
+
+  @override
+  String get atsFormatChecks => 'Controle format ATS';
+
+  @override
+  String get atsNoFormatRisk =>
+      'Aucun risque ATS majeur detecte sur le format actuel.';
+
+  @override
+  String get atsScoreHistory => 'Evolution du score';
+
+  @override
+  String get atsCurrentRun => 'Score actuel';
+
+  @override
+  String get atsRerunLabel => 'Nouvelle analyse';
+
+  @override
   String get creatingVariant => 'Creation en cours...';
 
   @override
   String get createAdaptedVariant => 'Creer une variante adaptee';
+
+  @override
+  String get createOptimizedVariant => 'Creer une variante optimisee';
 
   @override
   String variantCreated(String label) {
