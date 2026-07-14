@@ -26,6 +26,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/job_application_provider.dart';
 import '../../services/push_notification_service.dart';
 
 /// Instance globale du service locator.
@@ -104,4 +105,6 @@ Future<void> initDependencies() async {
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
   sl.registerFactory<NotificationProvider>(
       () => NotificationProvider(sl<ApiService>()));
+  sl.registerFactory<JobApplicationProvider>(
+      () => JobApplicationProvider(sl<ApiService>()));
 }

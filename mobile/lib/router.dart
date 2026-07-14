@@ -13,6 +13,7 @@ import 'screens/landing/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/share/public_portfolio_screen.dart';
+import 'screens/applications/applications_screen.dart';
 
 class AppRouter {
   @visibleForTesting
@@ -98,6 +99,9 @@ class AppRouter {
         GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen()),
+        GoRoute(
+            path: '/applications',
+            builder: (context, state) => const ApplicationsScreen()),
       ],
       errorBuilder: (context, state) => Scaffold(
         appBar: AppBar(title: const Text('Page introuvable')),

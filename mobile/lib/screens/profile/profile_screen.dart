@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
     final cvCount = cvProvider.cvs.length;
 
     return AppScaffold(
-      currentIndex: 2,
+        currentIndex: 3,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

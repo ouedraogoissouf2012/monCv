@@ -461,10 +461,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get suggestions => 'Suggestions';
 
   @override
+  String get atsCategoryBreakdown => 'Detail du score ATS';
+
+  @override
+  String get atsActionPlan => 'Corrections prioritaires';
+
+  @override
+  String get atsFormatChecks => 'Controle format ATS';
+
+  @override
+  String get atsNoFormatRisk =>
+      'Aucun risque ATS majeur detecte sur le format actuel.';
+
+  @override
+  String get atsScoreHistory => 'Evolution du score';
+
+  @override
+  String get atsCurrentRun => 'Score actuel';
+
+  @override
+  String get atsRerunLabel => 'Nouvelle analyse';
+
+  @override
   String get creatingVariant => 'Creation en cours...';
 
   @override
   String get createAdaptedVariant => 'Creer une variante adaptee';
+
+  @override
+  String get createOptimizedVariant => 'Creer une variante optimisee';
 
   @override
   String variantCreated(String label) {
@@ -491,6 +516,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get jobMatchScore => 'Score de correspondance avec l\'offre';
+
+  @override
+  String get prepareApplicationMessages => 'Preparer ma candidature';
+
+  @override
+  String get applicationMessagesTitle => 'Messages de candidature';
+
+  @override
+  String get applicationMessagesSubtitle =>
+      'Des textes adaptes a votre CV et a cette offre';
+
+  @override
+  String get chooseTone => 'Ton';
+
+  @override
+  String get toneSimple => 'Simple';
+
+  @override
+  String get toneProfessional => 'Professionnel';
+
+  @override
+  String get toneDirect => 'Direct';
+
+  @override
+  String get toneJunior => 'Junior';
+
+  @override
+  String get toneSenior => 'Senior';
+
+  @override
+  String get generateApplicationMessages => 'Generer les 4 textes';
+
+  @override
+  String get generatingApplicationMessages => 'Generation en cours...';
+
+  @override
+  String get coverLetter => 'Lettre de motivation';
+
+  @override
+  String get applicationEmail => 'Email de candidature';
+
+  @override
+  String get linkedInMessage => 'Message LinkedIn';
+
+  @override
+  String get whatsAppMessage => 'Message WhatsApp';
+
+  @override
+  String get applicationMessageCopied => 'Texte copie dans le presse-papier';
+
+  @override
+  String get applicationMessagesFallback =>
+      'Mode de secours utilise : verifiez et personnalisez les textes avant envoi.';
 
   @override
   String get generateWithAi => 'Generer avec l\'IA';
@@ -1358,4 +1436,93 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aiTipNotificationsSubtitle =>
       'Recevoir des pistes pour renforcer mon CV';
+
+  @override
+  String get applications => 'Candidatures';
+
+  @override
+  String get addApplication => 'Ajouter une candidature';
+
+  @override
+  String get editApplication => 'Modifier la candidature';
+
+  @override
+  String get deleteApplication => 'Supprimer la candidature';
+
+  @override
+  String deleteApplicationConfirm(String company) {
+    return 'Supprimer la candidature chez $company ?';
+  }
+
+  @override
+  String get all => 'Toutes';
+
+  @override
+  String get noApplications => 'Aucune candidature';
+
+  @override
+  String get noApplicationsDescription =>
+      'Ajoutez vos candidatures pour suivre les relances et les prochaines actions.';
+
+  @override
+  String followUpsDue(int count) {
+    return '$count relance(s) a effectuer aujourd\'hui';
+  }
+
+  @override
+  String get nextFollowUp => 'Prochaine relance';
+
+  @override
+  String get variant => 'Variante';
+
+  @override
+  String get openOffer => 'Ouvrir l\'offre';
+
+  @override
+  String get company => 'Entreprise';
+
+  @override
+  String get position => 'Poste';
+
+  @override
+  String get status => 'Statut';
+
+  @override
+  String get linkedCv => 'CV utilise';
+
+  @override
+  String get noLinkedCv => 'Aucun CV lie';
+
+  @override
+  String get offerLink => 'Lien de l\'offre';
+
+  @override
+  String get sentDate => 'Date d\'envoi';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get requiredField => 'Champ obligatoire';
+
+  @override
+  String get applicationDraft => 'Brouillon';
+
+  @override
+  String get applicationSent => 'Envoyee';
+
+  @override
+  String get applicationInterview => 'Entretien';
+
+  @override
+  String get applicationTechnicalTest => 'Test technique';
+
+  @override
+  String get applicationOffer => 'Offre recue';
+
+  @override
+  String get applicationRejected => 'Refusee';
+
+  @override
+  String get applicationArchived => 'Archivee';
 }

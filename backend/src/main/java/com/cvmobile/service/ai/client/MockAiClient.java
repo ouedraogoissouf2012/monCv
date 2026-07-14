@@ -28,6 +28,9 @@ public class MockAiClient implements IAiClient {
     @Override
     public String complete(String prompt, int maxTokens) {
         // Detection du type d'operation par les markers du prompt
+        if (prompt.contains("LETTRE_MOTIVATION:") && prompt.contains("MESSAGE_WHATSAPP:")) {
+            return mockApplicationMessagesResponse();
+        }
         if (prompt.contains("SCORE:") || prompt.contains("MOTS_CLES_PRESENTS:")) {
             return mockJobMatchResponse();
         }
@@ -38,6 +41,34 @@ public class MockAiClient implements IAiClient {
             return mockSuggestionsResponse();
         }
         return mockResumeResponse();
+    }
+
+    private String mockApplicationMessagesResponse() {
+        return """
+                LETTRE_MOTIVATION:
+                Madame, Monsieur,
+
+                Mon parcours correspond aux besoins presentes dans votre offre. Mes experiences et competences me permettront de contribuer rapidement aux missions confiees.
+
+                Je serais heureux d'echanger avec vous sur cette candidature.
+
+                Cordialement
+
+                EMAIL_CANDIDATURE:
+                Objet : Candidature au poste propose
+
+                Madame, Monsieur,
+
+                Je vous transmets ma candidature pour le poste presente dans votre offre. Mon CV joint detaille les experiences et competences directement utiles a vos besoins.
+
+                Cordialement
+
+                MESSAGE_LINKEDIN:
+                Bonjour, je souhaite vous proposer ma candidature pour le poste publie. Mon parcours correspond aux principales missions de l'offre. Seriez-vous disponible pour un court echange ?
+
+                MESSAGE_WHATSAPP:
+                Bonjour, je vous contacte au sujet du poste publie. Je souhaite vous transmettre ma candidature et mon CV. Je reste disponible pour echanger selon vos disponibilites. Merci.
+                """;
     }
 
     private String mockEnhanceResponse(String prompt) {

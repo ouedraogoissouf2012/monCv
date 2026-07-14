@@ -14,6 +14,7 @@ import 'providers/cv_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/job_application_provider.dart';
 import 'services/push_notification_service.dart';
 import 'router.dart';
 import 'utils/app_theme.dart';
@@ -74,6 +75,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AiStatusProvider()..refresh()),
         ChangeNotifierProvider(create: (_) => sl<NotificationProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<JobApplicationProvider>()),
       ],
       child: Consumer3<ThemeProvider, LocaleProvider, AuthProvider>(
         builder: (context, themeProvider, localeProvider, authProvider, _) {

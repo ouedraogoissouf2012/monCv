@@ -461,10 +461,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get suggestions => 'Suggestions';
 
   @override
+  String get atsCategoryBreakdown => 'ATS score breakdown';
+
+  @override
+  String get atsActionPlan => 'Priority fixes';
+
+  @override
+  String get atsFormatChecks => 'ATS format checks';
+
+  @override
+  String get atsNoFormatRisk =>
+      'No major ATS format risk detected for the current CV.';
+
+  @override
+  String get atsScoreHistory => 'Score history';
+
+  @override
+  String get atsCurrentRun => 'Current score';
+
+  @override
+  String get atsRerunLabel => 'New analysis';
+
+  @override
   String get creatingVariant => 'Creating...';
 
   @override
   String get createAdaptedVariant => 'Create an adapted variant';
+
+  @override
+  String get createOptimizedVariant => 'Create an optimized variant';
 
   @override
   String variantCreated(String label) {
@@ -490,6 +515,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jobMatchScore => 'Match score with the job posting';
+
+  @override
+  String get prepareApplicationMessages => 'Prepare my application';
+
+  @override
+  String get applicationMessagesTitle => 'Application messages';
+
+  @override
+  String get applicationMessagesSubtitle =>
+      'Texts tailored to your CV and this job posting';
+
+  @override
+  String get chooseTone => 'Tone';
+
+  @override
+  String get toneSimple => 'Simple';
+
+  @override
+  String get toneProfessional => 'Professional';
+
+  @override
+  String get toneDirect => 'Direct';
+
+  @override
+  String get toneJunior => 'Junior';
+
+  @override
+  String get toneSenior => 'Senior';
+
+  @override
+  String get generateApplicationMessages => 'Generate all 4 texts';
+
+  @override
+  String get generatingApplicationMessages => 'Generating...';
+
+  @override
+  String get coverLetter => 'Cover letter';
+
+  @override
+  String get applicationEmail => 'Application email';
+
+  @override
+  String get linkedInMessage => 'LinkedIn message';
+
+  @override
+  String get whatsAppMessage => 'WhatsApp message';
+
+  @override
+  String get applicationMessageCopied => 'Text copied to clipboard';
+
+  @override
+  String get applicationMessagesFallback =>
+      'Fallback mode was used. Review and personalize the texts before sending.';
 
   @override
   String get generateWithAi => 'Generate with AI';
@@ -1343,4 +1421,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiTipNotificationsSubtitle => 'Receive ideas to strengthen my CV';
+
+  @override
+  String get applications => 'Applications';
+
+  @override
+  String get addApplication => 'Add application';
+
+  @override
+  String get editApplication => 'Edit application';
+
+  @override
+  String get deleteApplication => 'Delete application';
+
+  @override
+  String deleteApplicationConfirm(String company) {
+    return 'Delete the application at $company?';
+  }
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get noApplications => 'No applications';
+
+  @override
+  String get noApplicationsDescription =>
+      'Add your applications to track follow-ups and next actions.';
+
+  @override
+  String followUpsDue(int count) {
+    return '$count follow-up(s) due today';
+  }
+
+  @override
+  String get nextFollowUp => 'Next follow-up';
+
+  @override
+  String get variant => 'Variant';
+
+  @override
+  String get openOffer => 'Open job offer';
+
+  @override
+  String get company => 'Company';
+
+  @override
+  String get position => 'Position';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get linkedCv => 'CV used';
+
+  @override
+  String get noLinkedCv => 'No linked CV';
+
+  @override
+  String get offerLink => 'Job offer link';
+
+  @override
+  String get sentDate => 'Sent date';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get requiredField => 'Required field';
+
+  @override
+  String get applicationDraft => 'Draft';
+
+  @override
+  String get applicationSent => 'Sent';
+
+  @override
+  String get applicationInterview => 'Interview';
+
+  @override
+  String get applicationTechnicalTest => 'Technical test';
+
+  @override
+  String get applicationOffer => 'Offer';
+
+  @override
+  String get applicationRejected => 'Rejected';
+
+  @override
+  String get applicationArchived => 'Archived';
 }

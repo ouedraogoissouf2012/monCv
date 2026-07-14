@@ -31,6 +31,9 @@ class AppScaffold extends StatelessWidget {
         context.push('/cvs/create');
         break;
       case 2:
+        context.go('/applications');
+        break;
+      case 3:
         context.go('/profile');
         break;
     }
@@ -101,6 +104,7 @@ class _Sidebar extends StatelessWidget {
     final items = [
       (Icons.description_outlined, Icons.description, l.myCvs),
       (Icons.add_circle_outline, Icons.add_circle, l.newCv),
+      (Icons.work_outline, Icons.work, l.applications),
       (Icons.person_outline, Icons.person, l.profile),
     ];
 
@@ -230,6 +234,11 @@ class _BottomNav extends StatelessWidget {
           icon: const Icon(Icons.add_circle_outline),
           selectedIcon: const Icon(Icons.add_circle),
           label: l.newCv,
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.work_outline),
+          selectedIcon: const Icon(Icons.work),
+          label: l.applications,
         ),
         NavigationDestination(
           icon: const Icon(Icons.person_outline),

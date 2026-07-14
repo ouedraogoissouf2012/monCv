@@ -17,6 +17,7 @@ public class NotificationService {
     private final NotificationPreferenceRepository preferences;
     private final NotificationDeliveryRepository deliveries;
     private final CvRepository cvs;
+    private final JobApplicationRepository applications;
     private final PushGateway gateway;
 
     @Value("${notifications.stale-cv-days:30}") private int staleCvDays;
@@ -64,6 +65,23 @@ public class NotificationService {
         }
     }
 
+    @Scheduled(cron = "${notifications.application-reminder-cron:0 15 9 * * *}")
+    @Transactional
+    public void sendApplicationFollowUpReminders() {
+        var terminalStatuses = java.util.List.of(
+            JobApplicationStatus.OFFER,
+            JobApplicationStatus.REJECTED,
+            JobApplicationStatus.ARCHIVED);
+        for (JobApplication application : applications
+                .findByNextFollowUpLessThanEqualAndStatusNotIn(LocalDate.now(), terminalStatuses)) {
+            String key = "application-follow-up:" + application.getId() + ":" + application.getNextFollowUp();
+            sendOnce(application.getUser(), application.getCv(), "APPLICATION_FOLLOW_UP", key,
+                "Relance de candidature",
+                "Pensez a relancer " + application.getCompany() + " pour le poste " + application.getPosition(),
+                "/applications");
+        }
+    }
+
     @Transactional
     public void notifyViewMilestone(Cv cv) {
         if (cv.getViewCount() < 10 || cv.getViewCount() % 10 != 0) return;
@@ -82,14 +100,19 @@ public class NotificationService {
     }
 
     private void sendOnce(Cv cv, String type, String key, String title, String body) {
+        sendOnce(cv.getUser(), cv, type, key, title, body, "/cvs/" + cv.getId());
+    }
+
+    private void sendOnce(User user, Cv cv, String type, String key, String title, String body, String route) {
         if (deliveries.existsByDeduplicationKey(key)) return;
         boolean sent = false;
-        Map<String, String> data = Map.of("type", type, "cvId", cv.getId().toString(),
-            "route", "/cvs/" + cv.getId());
-        for (DeviceToken token : tokens.findByUserId(cv.getUser().getId())) {
+        Map<String, String> data = cv == null
+            ? Map.of("type", type, "route", route)
+            : Map.of("type", type, "cvId", cv.getId().toString(), "route", route);
+        for (DeviceToken token : tokens.findByUserId(user.getId())) {
             sent |= gateway.send(token.getToken(), title, body, data);
         }
-        if (sent) deliveries.save(NotificationDelivery.builder().user(cv.getUser()).cv(cv)
+        if (sent) deliveries.save(NotificationDelivery.builder().user(user).cv(cv)
             .notificationType(type).deduplicationKey(key).build());
     }
 
