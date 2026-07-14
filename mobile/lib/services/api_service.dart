@@ -9,6 +9,7 @@ import '../models/user.dart';
 import '../models/cv.dart';
 import '../models/notification_preferences.dart';
 import '../models/ai_status.dart';
+import '../models/job_application.dart';
 import 'token_storage.dart';
 
 class ApiService {
@@ -165,6 +166,61 @@ class ApiService {
       return NotificationPreferences.fromJson(jsonDecode(response.body));
     }
     _throwTypedError(response, 'Impossible d\'enregistrer les preferences');
+  }
+
+  Future<List<JobApplication>> getJobApplications({
+    JobApplicationStatus? status,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final query = <String, String>{
+      if (status != null) 'status': status.apiValue,
+      if (from != null) 'from': JobApplication.formatDate(from)!,
+      if (to != null) 'to': JobApplication.formatDate(to)!,
+    };
+    final uri = Uri.parse('${ApiConstants.baseUrl}/applications')
+        .replace(queryParameters: query.isEmpty ? null : query);
+    final response = await http.get(uri, headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List)
+          .map((item) => JobApplication.fromJson(item as Map<String, dynamic>))
+          .toList();
+    }
+    _throwTypedError(response, 'Impossible de charger les candidatures');
+  }
+
+  Future<JobApplication> createJobApplication(JobApplication value) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/applications'),
+      headers: await _getHeaders(),
+      body: jsonEncode(value.toJson()),
+    );
+    if (response.statusCode == 201) {
+      return JobApplication.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Impossible de creer la candidature');
+  }
+
+  Future<JobApplication> updateJobApplication(JobApplication value) async {
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/applications/${value.id}'),
+      headers: await _getHeaders(),
+      body: jsonEncode(value.toJson()),
+    );
+    if (response.statusCode == 200) {
+      return JobApplication.fromJson(jsonDecode(response.body));
+    }
+    _throwTypedError(response, 'Impossible de modifier la candidature');
+  }
+
+  Future<void> deleteJobApplication(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}/applications/$id'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode != 204) {
+      _throwTypedError(response, 'Impossible de supprimer la candidature');
+    }
   }
 
   // User endpoints

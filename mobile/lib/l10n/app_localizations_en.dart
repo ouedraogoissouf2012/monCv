@@ -1343,4 +1343,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiTipNotificationsSubtitle => 'Receive ideas to strengthen my CV';
+
+  @override
+  String get applications => 'Applications';
+
+  @override
+  String get addApplication => 'Add application';
+
+  @override
+  String get editApplication => 'Edit application';
+
+  @override
+  String get deleteApplication => 'Delete application';
+
+  @override
+  String deleteApplicationConfirm(String company) {
+    return 'Delete the application at $company?';
+  }
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get noApplications => 'No applications';
+
+  @override
+  String get noApplicationsDescription =>
+      'Add your applications to track follow-ups and next actions.';
+
+  @override
+  String followUpsDue(int count) {
+    return '$count follow-up(s) due today';
+  }
+
+  @override
+  String get nextFollowUp => 'Next follow-up';
+
+  @override
+  String get variant => 'Variant';
+
+  @override
+  String get openOffer => 'Open job offer';
+
+  @override
+  String get company => 'Company';
+
+  @override
+  String get position => 'Position';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get linkedCv => 'CV used';
+
+  @override
+  String get noLinkedCv => 'No linked CV';
+
+  @override
+  String get offerLink => 'Job offer link';
+
+  @override
+  String get sentDate => 'Sent date';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get requiredField => 'Required field';
+
+  @override
+  String get applicationDraft => 'Draft';
+
+  @override
+  String get applicationSent => 'Sent';
+
+  @override
+  String get applicationInterview => 'Interview';
+
+  @override
+  String get applicationTechnicalTest => 'Technical test';
+
+  @override
+  String get applicationOffer => 'Offer';
+
+  @override
+  String get applicationRejected => 'Rejected';
+
+  @override
+  String get applicationArchived => 'Archived';
 }

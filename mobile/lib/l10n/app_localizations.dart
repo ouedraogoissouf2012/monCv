@@ -2557,6 +2557,174 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Recevoir des pistes pour renforcer mon CV'**
   String get aiTipNotificationsSubtitle;
+
+  /// No description provided for @applications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Candidatures'**
+  String get applications;
+
+  /// No description provided for @addApplication.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une candidature'**
+  String get addApplication;
+
+  /// No description provided for @editApplication.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la candidature'**
+  String get editApplication;
+
+  /// No description provided for @deleteApplication.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la candidature'**
+  String get deleteApplication;
+
+  /// No description provided for @deleteApplicationConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la candidature chez {company} ?'**
+  String deleteApplicationConfirm(String company);
+
+  /// No description provided for @all.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get all;
+
+  /// No description provided for @noApplications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune candidature'**
+  String get noApplications;
+
+  /// No description provided for @noApplicationsDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos candidatures pour suivre les relances et les prochaines actions.'**
+  String get noApplicationsDescription;
+
+  /// No description provided for @followUpsDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} relance(s) a effectuer aujourd\'hui'**
+  String followUpsDue(int count);
+
+  /// No description provided for @nextFollowUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine relance'**
+  String get nextFollowUp;
+
+  /// No description provided for @variant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variante'**
+  String get variant;
+
+  /// No description provided for @openOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir l\'offre'**
+  String get openOffer;
+
+  /// No description provided for @company.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprise'**
+  String get company;
+
+  /// No description provided for @position.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poste'**
+  String get position;
+
+  /// No description provided for @status.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut'**
+  String get status;
+
+  /// No description provided for @linkedCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV utilise'**
+  String get linkedCv;
+
+  /// No description provided for @noLinkedCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun CV lie'**
+  String get noLinkedCv;
+
+  /// No description provided for @offerLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien de l\'offre'**
+  String get offerLink;
+
+  /// No description provided for @sentDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'envoi'**
+  String get sentDate;
+
+  /// No description provided for @notes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Champ obligatoire'**
+  String get requiredField;
+
+  /// No description provided for @applicationDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get applicationDraft;
+
+  /// No description provided for @applicationSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyee'**
+  String get applicationSent;
+
+  /// No description provided for @applicationInterview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entretien'**
+  String get applicationInterview;
+
+  /// No description provided for @applicationTechnicalTest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Test technique'**
+  String get applicationTechnicalTest;
+
+  /// No description provided for @applicationOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offre recue'**
+  String get applicationOffer;
+
+  /// No description provided for @applicationRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusee'**
+  String get applicationRejected;
+
+  /// No description provided for @applicationArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archivee'**
+  String get applicationArchived;
 }
 
 class _AppLocalizationsDelegate

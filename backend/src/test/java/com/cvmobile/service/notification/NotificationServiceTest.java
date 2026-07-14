@@ -19,6 +19,7 @@ class NotificationServiceTest {
     @Mock NotificationPreferenceRepository preferences;
     @Mock NotificationDeliveryRepository deliveries;
     @Mock CvRepository cvs;
+    @Mock JobApplicationRepository applications;
     @Mock PushGateway gateway;
     @InjectMocks NotificationService service;
 
@@ -76,5 +77,21 @@ class NotificationServiceTest {
         Assertions.assertFalse(result.staleCvEnabled());
         Assertions.assertTrue(result.cvViewsEnabled());
         Assertions.assertFalse(result.aiTipsEnabled());
+    }
+
+    @Test void rappelleUneCandidatureArriveeAEcheance() {
+        JobApplication application = JobApplication.builder()
+            .id(12L).user(user).cv(cv).company("Acme").position("Product Manager")
+            .status(JobApplicationStatus.SENT).nextFollowUp(java.time.LocalDate.now()).build();
+        when(applications.findByNextFollowUpLessThanEqualAndStatusNotIn(any(), anyList()))
+            .thenReturn(List.of(application));
+        when(tokens.findByUserId(1L)).thenReturn(List.of(DeviceToken.builder().token("token").user(user).build()));
+        when(gateway.send(anyString(), anyString(), anyString(), anyMap())).thenReturn(true);
+
+        service.sendApplicationFollowUpReminders();
+
+        verify(gateway).send(eq("token"), contains("Relance"), contains("Acme"),
+            argThat(data -> data.get("route").equals("/applications")));
+        verify(deliveries).save(argThat(d -> d.getNotificationType().equals("APPLICATION_FOLLOW_UP")));
     }
 }

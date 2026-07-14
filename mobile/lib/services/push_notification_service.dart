@@ -49,7 +49,8 @@ class PushNotificationService {
   void _open(GoRouter router, RemoteMessage message) {
     final route = message.data['route'];
     final cvId = message.data['cvId'];
-    if (route is String && route.startsWith('/cvs/')) {
+    if (route is String &&
+        (route.startsWith('/cvs/') || route == '/applications')) {
       router.go(route);
     } else if (cvId != null) {
       router.go('/cvs/$cvId');
