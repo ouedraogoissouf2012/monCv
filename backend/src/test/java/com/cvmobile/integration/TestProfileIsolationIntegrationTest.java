@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class TestProfileIsolationIntegrationTest {
+class TestProfileIsolationIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private ApplicationContext applicationContext;

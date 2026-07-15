@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test d'integration complet du flow CV :
  * Register → Login → Create CV → Get CV → Enhance IA → Share → Duplicate → Delete
  *
- * Utilise H2 en memoire (profil test), pas besoin de PostgreSQL.
+ * Utilise le PostgreSQL 17 Testcontainers partage par les tests d'integration.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties =
         "jwt.secret=IntegrationTest-B8yR4nM7qW2xK9pL5vT1sD6fH3jU0eA7zC4gN8mQ2rX6kP9wV5b")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class CvFlowIntegrationTest {
+class CvFlowIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper mapper;

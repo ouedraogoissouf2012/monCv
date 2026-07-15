@@ -82,7 +82,7 @@ Variables attendues :
 
 ## Regles d'exploitation
 
-- profil `test` : H2, mocks et secrets non productifs ;
+- profil `test` : PostgreSQL 17 Testcontainers, mocks et secrets non productifs ;
 - profil `prod` : pas de fallback silencieux sur les secrets critiques ;
 - toute nouvelle variable doit etre ajoutee dans :
   - `backend/.env.example` ou `.env.example`
