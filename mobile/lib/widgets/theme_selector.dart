@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../utils/app_colors.dart';
 
 class ThemeSelector extends StatelessWidget {
   const ThemeSelector({super.key});
@@ -13,22 +14,22 @@ class ThemeSelector extends StatelessWidget {
       (
         AppThemeMode.minimal,
         'Minimal',
-        const Color(0xFF2563EB),
-        const Color(0xFFF8FAFC),
+        AppColors.primary,
+        AppColors.coolBackground,
         Icons.wb_sunny_outlined,
       ),
       (
         AppThemeMode.vibrant,
         'Vibrant',
-        const Color(0xFF667EEA),
-        const Color(0xFFF5F0FF),
+        AppColors.vibrantPrimary,
+        AppColors.violetSurface,
         Icons.palette_outlined,
       ),
       (
         AppThemeMode.premium,
         'Premium',
-        const Color(0xFFFFD700),
-        const Color(0xFF0F1117),
+        AppColors.premiumPrimary,
+        AppColors.premiumBackground,
         Icons.stars_outlined,
       ),
     ];
@@ -102,7 +103,10 @@ class _ThemeCard extends StatelessWidget {
             width: 2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 8)]
+              ? [
+                  BoxShadow(
+                      color: primary.withValues(alpha: 0.3), blurRadius: 8)
+                ]
               : [],
         ),
         child: Column(
@@ -113,13 +117,11 @@ class _ThemeCard extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                 color: primary,
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: primary, size: 14),
+            if (isSelected) Icon(Icons.check_circle, color: primary, size: 14),
           ],
         ),
       ),

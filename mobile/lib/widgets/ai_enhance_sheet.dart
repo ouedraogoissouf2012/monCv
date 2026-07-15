@@ -5,6 +5,7 @@ import '../core/error/result.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../services/i_api_client.dart';
+import '../utils/app_colors.dart';
 import 'ai_button.dart';
 
 /// Bottom sheet d'amelioration IA — 3 niveaux : Lite / Medium / Max
@@ -40,21 +41,21 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
         label: l.lite,
         description: l.liteLevelDescription,
         icon: Icons.spellcheck_rounded,
-        color: const Color(0xFF10B981),
+        color: AppColors.success,
       ),
       _LevelInfo(
         id: 'MEDIUM',
         label: l.medium,
         description: l.mediumLevelDescription,
         icon: Icons.auto_fix_normal_rounded,
-        color: const Color(0xFF2563EB),
+        color: AppColors.primary,
       ),
       _LevelInfo(
         id: 'MAX',
         label: l.maximum,
         description: l.maxLevelDescription,
         icon: Icons.rocket_launch_rounded,
-        color: const Color(0xFF8B5CF6),
+        color: AppColors.violet,
       ),
     ];
   }
@@ -143,7 +144,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                    color: AppColors.violet.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -151,8 +152,8 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                         ? Icons.spellcheck_rounded
                         : Icons.auto_awesome_rounded,
                     color: widget.proofreadOnly
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFF8B5CF6),
+                        ? AppColors.success
+                        : AppColors.violet,
                     size: 20,
                   ),
                 ),
@@ -183,7 +184,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.08),
+                    color: AppColors.success.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -224,7 +225,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                           ? l.proofreadCv
                           : l.improve,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
+                    backgroundColor: AppColors.violet,
                   ),
                 ),
               ),
@@ -283,7 +284,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                       icon: const Icon(Icons.check_rounded),
                       label: Text(l.apply),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.success,
                       ),
                     ),
                   ),
@@ -460,7 +461,7 @@ class _ResultSection extends StatelessWidget {
                   ? Icons.auto_awesome_rounded
                   : Icons.warning_amber_rounded,
               size: 16,
-              color: aiGenerated ? const Color(0xFF10B981) : colorScheme.error,
+              color: aiGenerated ? AppColors.success : colorScheme.error,
             ),
             const SizedBox(width: 6),
             Text(
@@ -468,9 +469,7 @@ class _ResultSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: aiGenerated
-                    ? const Color(0xFF10B981)
-                    : const Color(0xFFF59E0B),
+                color: aiGenerated ? AppColors.success : AppColors.warning,
               ),
             ),
           ],
@@ -704,14 +703,14 @@ class _ProofreadingResult extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF10B981).withValues(alpha: 0.08),
+            color: AppColors.success.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
               const Icon(
                 Icons.spellcheck_rounded,
-                color: Color(0xFF10B981),
+                color: AppColors.success,
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -773,7 +772,7 @@ class _ProofreadingResult extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+              color: AppColors.warning.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -787,7 +786,7 @@ class _ProofreadingResult extends StatelessWidget {
                           const Icon(
                             Icons.info_outline_rounded,
                             size: 16,
-                            color: Color(0xFFD97706),
+                            color: AppColors.amberStrong,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -891,7 +890,7 @@ class _BeforeAfter extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF10B981),
+                    color: AppColors.success,
                   ),
                 ),
                 const SizedBox(height: 2),
