@@ -11,13 +11,12 @@ import '../models/notification_preferences.dart';
 import '../models/ai_status.dart';
 import '../models/job_application.dart';
 import 'token_storage.dart';
+import 'i_api_client.dart';
 
-class ApiService {
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
-  ApiService._internal();
+class ApiService implements IApiClient {
+  ApiService({TokenStorage? storage}) : _storage = storage ?? TokenStorage();
 
-  final TokenStorage _storage = TokenStorage();
+  final TokenStorage _storage;
   String? _accessToken;
 
   /// Extrait l'erreur typee du body de la reponse HTTP et la lance.
@@ -32,17 +31,20 @@ class ApiService {
     throw ErrorMapper.fromHttpResponse(response.statusCode, body);
   }
 
+  @override
   Future<String?> get accessToken async {
     _accessToken ??= await _storage.read('access_token');
     return _accessToken;
   }
 
+  @override
   Future<void> setTokens(String accessToken, String refreshToken) async {
     _accessToken = accessToken;
     await _storage.write('access_token', accessToken);
     await _storage.write('refresh_token', refreshToken);
   }
 
+  @override
   Future<void> clearTokens() async {
     _accessToken = null;
     await _storage.delete('access_token');
@@ -66,6 +68,7 @@ class ApiService {
   }
 
   // Auth endpoints
+  @override
   Future<AuthResponse> register({
     required String email,
     required String password,
@@ -93,6 +96,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<AuthResponse> login({
     required String email,
     required String password,
@@ -113,10 +117,12 @@ class ApiService {
     }
   }
 
+  @override
   Future<void> logout() async {
     await clearTokens();
   }
 
+  @override
   Future<void> registerDeviceToken(String token, String platform) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
@@ -128,20 +134,21 @@ class ApiService {
     }
   }
 
+  @override
   Future<void> unregisterDeviceToken(String token) async {
-    final request =
-        http.Request(
-            'DELETE',
-            Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
-          )
-          ..headers.addAll(await _getHeaders())
-          ..body = jsonEncode({'token': token});
+    final request = http.Request(
+      'DELETE',
+      Uri.parse('${ApiConstants.baseUrl}/notifications/devices'),
+    )
+      ..headers.addAll(await _getHeaders())
+      ..body = jsonEncode({'token': token});
     final response = await http.Response.fromStream(await request.send());
     if (response.statusCode != 204) {
       _throwTypedError(response, 'Impossible de retirer cet appareil');
     }
   }
 
+  @override
   Future<NotificationPreferences> getNotificationPreferences() async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/notifications/preferences'),
@@ -153,6 +160,7 @@ class ApiService {
     _throwTypedError(response, 'Impossible de charger les preferences');
   }
 
+  @override
   Future<NotificationPreferences> updateNotificationPreferences(
     NotificationPreferences value,
   ) async {
@@ -167,6 +175,7 @@ class ApiService {
     _throwTypedError(response, 'Impossible d\'enregistrer les preferences');
   }
 
+  @override
   Future<List<JobApplication>> getJobApplications({
     JobApplicationStatus? status,
     DateTime? from,
@@ -188,6 +197,7 @@ class ApiService {
     _throwTypedError(response, 'Impossible de charger les candidatures');
   }
 
+  @override
   Future<JobApplication> createJobApplication(JobApplication value) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/applications'),
@@ -200,6 +210,7 @@ class ApiService {
     _throwTypedError(response, 'Impossible de creer la candidature');
   }
 
+  @override
   Future<JobApplication> updateJobApplication(JobApplication value) async {
     final response = await http.put(
       Uri.parse('${ApiConstants.baseUrl}/applications/${value.id}'),
@@ -212,6 +223,7 @@ class ApiService {
     _throwTypedError(response, 'Impossible de modifier la candidature');
   }
 
+  @override
   Future<void> deleteJobApplication(int id) async {
     final response = await http.delete(
       Uri.parse('${ApiConstants.baseUrl}/applications/$id'),
@@ -223,6 +235,7 @@ class ApiService {
   }
 
   // User endpoints
+  @override
   Future<User> getCurrentUser() async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me'),
@@ -236,6 +249,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<User> updateProfile({String? nom, String? prenom}) async {
     final response = await http.put(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me'),
@@ -253,6 +267,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> exportUserData() async {
     final response = await http.get(
       Uri.parse(
@@ -268,6 +283,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<void> deleteAccount() async {
     final response = await http.delete(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.usersEndpoint}/me'),
@@ -282,6 +298,7 @@ class ApiService {
   }
 
   // CV endpoints
+  @override
   Future<List<Cv>> getAllCvs() async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}'),
@@ -296,6 +313,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> getCvById(int id) async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id'),
@@ -309,6 +327,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> createCv(Cv cv) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}'),
@@ -323,6 +342,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> updateCv(int id, Cv cv) async {
     final response = await http.put(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id'),
@@ -354,6 +374,7 @@ class ApiService {
     throw Exception(fallbackMessage);
   }
 
+  @override
   Future<void> deleteCv(int id) async {
     final response = await http.delete(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id'),
@@ -367,6 +388,7 @@ class ApiService {
 
   /// Upload une photo de profil et retourne son URL relative.
   /// L'URL complète s'obtient avec [ApiConstants.baseUrl] + url.
+  @override
   Future<String> uploadPhoto(XFile photo) async {
     final token = await accessToken;
     final request = http.MultipartRequest(
@@ -390,6 +412,7 @@ class ApiService {
   }
 
   /// Upload une photo à partir de bytes (pour le web).
+  @override
   Future<String> uploadPhotoBytes(
     Uint8List bytes,
     String filename,
@@ -423,6 +446,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
       Uri.parse(
@@ -438,6 +462,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> createVariant(
     int cvId,
     String jobDescription, {
@@ -464,6 +489,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<List<String>> getAiSuggestions({
     required String poste,
     String? entreprise,
@@ -486,6 +512,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la generation des suggestions');
   }
 
+  @override
   Future<Cv> generateShareLink(int id) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share'),
@@ -499,6 +526,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> regenerateShareLink(int id) async {
     final response = await http.post(
       Uri.parse(
@@ -511,6 +539,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la regeneration du lien');
   }
 
+  @override
   Future<Cv> deactivateShareLink(int id) async {
     final response = await http.delete(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share'),
@@ -522,6 +551,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la desactivation du lien');
   }
 
+  @override
   Future<Cv> updateShareSettings(
     int id, {
     required bool contactEnabled,
@@ -542,6 +572,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la configuration du partage');
   }
 
+  @override
   Future<Cv> getPublicCv(String token) async {
     final response = await http.get(Uri.parse(
         '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token'));
@@ -551,6 +582,7 @@ class ApiService {
     _throwTypedError(response, 'Ce portfolio est indisponible');
   }
 
+  @override
   Future<List<int>> downloadPublicCv(String token, String format) async {
     final response = await http.get(Uri.parse(
         '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/$format'));
@@ -558,11 +590,13 @@ class ApiService {
     _throwTypedError(response, 'Telechargement public indisponible');
   }
 
+  @override
   Future<void> trackPublicShare(String token) async {
     await http.post(Uri.parse(
         '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/share'));
   }
 
+  @override
   Future<Map<String, dynamic>> enhanceCv(int cvId, String level) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/enhance-cv'),
@@ -579,6 +613,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de l\'amelioration IA');
   }
 
+  @override
   Future<List<int>> downloadCvDocx(int id) async {
     final uri = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/docx',
@@ -591,6 +626,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<String> generateResume(
     String? titrePoste,
     String? competences,
@@ -615,6 +651,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la generation');
   }
 
+  @override
   Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
@@ -631,6 +668,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de l\'analyse IA');
   }
 
+  @override
   Future<Map<String, dynamic>> generateApplicationMessages(
     int cvId,
     String jobDescription,
@@ -656,6 +694,7 @@ class ApiService {
 
   /// GET /api/ai/status - etat du sous-systeme IA.
   /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
+  @override
   Future<AiStatus> getAiStatus() async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/status'),
@@ -669,6 +708,7 @@ class ApiService {
     _throwTypedError(response, 'Erreur lors de la recuperation du status IA');
   }
 
+  @override
   Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'}) async {
     final uri = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/pdf?template=$template',
@@ -682,6 +722,7 @@ class ApiService {
     }
   }
 
+  @override
   Future<Cv> importCv(Uint8List bytes, String filename) async {
     final token = await accessToken;
     final request = http.MultipartRequest(

@@ -37,9 +37,9 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
     final navigator = Navigator.of(context);
     try {
       final variant = await context.read<CvProvider>().createVariant(
-        widget.cvId,
-        _controller.text.trim(),
-      );
+            widget.cvId,
+            _controller.text.trim(),
+          );
       if (!mounted) return;
       if (variant != null) {
         navigator.pop();
@@ -85,10 +85,10 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       _result = null;
     });
     try {
-      final result = await AiCvService().matchJob(
-        widget.cvId,
-        _controller.text.trim(),
-      );
+      final result = await context.read<AiCvService>().matchJob(
+            widget.cvId,
+            _controller.text.trim(),
+          );
       if (!mounted) return;
       final score = result['score'] as int? ?? 0;
       setState(() {
@@ -207,8 +207,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 Text(
                   l.adaptToJob,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ],
             ),
@@ -216,8 +216,8 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
             Text(
               l.adaptToJobDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.55),
-              ),
+                    color: colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
             ),
             const SizedBox(height: 16),
             if (_result == null) ...[
@@ -474,13 +474,13 @@ class _ScoreCard extends StatelessWidget {
     final color = score >= 70
         ? const Color(0xFF10B981)
         : score >= 40
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFFEF4444);
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
     final label = score >= 70
         ? l.goodMatch
         : score >= 40
-        ? l.averageMatch
-        : l.lowMatch;
+            ? l.averageMatch
+            : l.lowMatch;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -578,8 +578,8 @@ class _CategoryCard extends StatelessWidget {
     final color = score >= 70
         ? const Color(0xFF10B981)
         : score >= 40
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFFEF4444);
+            ? const Color(0xFFF59E0B)
+            : const Color(0xFFEF4444);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -802,17 +802,17 @@ class _FormatChecksCard extends StatelessWidget {
         final severity = item['severity']?.toString() ?? 'info';
         final config = switch (severity) {
           'critical' => (
-            color: const Color(0xFFEF4444),
-            icon: Icons.error_outline_rounded,
-          ),
+              color: const Color(0xFFEF4444),
+              icon: Icons.error_outline_rounded,
+            ),
           'warning' => (
-            color: const Color(0xFFF59E0B),
-            icon: Icons.warning_amber_rounded,
-          ),
+              color: const Color(0xFFF59E0B),
+              icon: Icons.warning_amber_rounded,
+            ),
           _ => (
-            color: const Color(0xFF2563EB),
-            icon: Icons.info_outline_rounded,
-          ),
+              color: const Color(0xFF2563EB),
+              icon: Icons.info_outline_rounded,
+            ),
         };
         return Container(
           width: double.infinity,

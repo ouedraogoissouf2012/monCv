@@ -1,10 +1,11 @@
 import '../core/error/result.dart';
 import '../core/error/safe_call.dart';
 import '../models/user.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 
 abstract class AuthRepository {
-  Future<Result<AuthResponse>> login({required String email, required String password});
+  Future<Result<AuthResponse>> login(
+      {required String email, required String password});
   Future<Result<AuthResponse>> register({
     required String email,
     required String password,
@@ -18,12 +19,13 @@ abstract class AuthRepository {
 }
 
 class HttpAuthRepository implements AuthRepository {
-  final ApiService _api;
+  final IApiClient _api;
 
-  HttpAuthRepository({ApiService? api}) : _api = api ?? ApiService();
+  HttpAuthRepository({required IApiClient api}) : _api = api;
 
   @override
-  Future<Result<AuthResponse>> login({required String email, required String password}) =>
+  Future<Result<AuthResponse>> login(
+          {required String email, required String password}) =>
       safeCall(() => _api.login(email: email, password: password));
 
   @override
@@ -33,13 +35,15 @@ class HttpAuthRepository implements AuthRepository {
     String? nom,
     String? prenom,
   }) =>
-      safeCall(() => _api.register(email: email, password: password, nom: nom, prenom: prenom));
+      safeCall(() => _api.register(
+          email: email, password: password, nom: nom, prenom: prenom));
 
   @override
   Future<Result<void>> logout() => safeCall(() => _api.logout());
 
   @override
-  Future<Result<User>> getCurrentUser() => safeCall(() => _api.getCurrentUser());
+  Future<Result<User>> getCurrentUser() =>
+      safeCall(() => _api.getCurrentUser());
 
   @override
   Future<Result<void>> clearTokens() => safeCall(() => _api.clearTokens());

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/cv.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
 import '../../utils/pdf_saver.dart';
 import '../../widgets/cv_preview.dart';
@@ -23,7 +24,8 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   bool _loading = true;
   String? _downloading;
 
-  String get _publicUrl => ShareService().buildPublicPortfolioUrl(widget.token);
+  String get _publicUrl =>
+      context.read<ShareService>().buildPublicPortfolioUrl(widget.token);
 
   @override
   void initState() {
@@ -33,7 +35,7 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
 
   Future<void> _load() async {
     try {
-      final cv = await ApiService().getPublicCv(widget.token);
+      final cv = await context.read<IApiClient>().getPublicCv(widget.token);
       if (mounted) setState(() => _cv = cv);
     } catch (_) {
       if (mounted) {
@@ -48,7 +50,9 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   Future<void> _download(String format) async {
     setState(() => _downloading = format);
     try {
-      final bytes = await ApiService().downloadPublicCv(widget.token, format);
+      final bytes = await context
+          .read<IApiClient>()
+          .downloadPublicCv(widget.token, format);
       await saveBytes(
         bytes,
         'moncv.$format',
@@ -68,8 +72,11 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   }
 
   Future<void> _shareWhatsApp() async {
-    await ApiService().trackPublicShare(widget.token);
-    await ShareService().shareToWhatsApp(_publicUrl, title: _cv?.titre);
+    await context.read<IApiClient>().trackPublicShare(widget.token);
+    await context.read<ShareService>().shareToWhatsApp(
+          _publicUrl,
+          title: _cv?.titre,
+        );
   }
 
   void _showQr() {

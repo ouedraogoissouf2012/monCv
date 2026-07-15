@@ -4,10 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'api_service.dart';
+import 'i_api_client.dart';
 
 class PushNotificationService {
-  final ApiService api;
+  final IApiClient api;
   StreamSubscription<String>? _tokenSubscription;
   StreamSubscription<RemoteMessage>? _openSubscription;
   bool _initialized = false;

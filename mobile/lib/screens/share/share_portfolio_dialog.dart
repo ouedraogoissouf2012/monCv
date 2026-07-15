@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/cv.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
 import '../../widgets/public_qr_code.dart';
 
@@ -22,7 +23,9 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
 
   String? get _url {
     final token = _cv?.shareToken;
-    return token == null ? null : ShareService().buildPublicPortfolioUrl(token);
+    return token == null
+        ? null
+        : context.read<ShareService>().buildPublicPortfolioUrl(token);
   }
 
   @override
@@ -33,7 +36,8 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
 
   Future<void> _activate() async {
     try {
-      final cv = await ApiService().generateShareLink(widget.cv.id!);
+      final cv =
+          await context.read<IApiClient>().generateShareLink(widget.cv.id!);
       if (mounted) setState(() => _cv = cv);
     } catch (_) {
       if (mounted) {
@@ -51,11 +55,11 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
     final downloadsEnabled = downloads ?? current.publicDownloadsEnabled;
     setState(() => _saving = true);
     try {
-      final cv = await ApiService().updateShareSettings(
-        current.id!,
-        contactEnabled: contactEnabled,
-        downloadsEnabled: downloadsEnabled,
-      );
+      final cv = await context.read<IApiClient>().updateShareSettings(
+            current.id!,
+            contactEnabled: contactEnabled,
+            downloadsEnabled: downloadsEnabled,
+          );
       if (mounted) setState(() => _cv = cv);
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -66,7 +70,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
     if (_cv == null || _saving) return;
     setState(() => _saving = true);
     try {
-      final cv = await ApiService().regenerateShareLink(_cv!.id!);
+      final cv = await context.read<IApiClient>().regenerateShareLink(_cv!.id!);
       if (mounted) setState(() => _cv = cv);
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -76,22 +80,22 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
   Future<void> _deactivate() async {
     if (_cv == null || _saving) return;
     setState(() => _saving = true);
-    await ApiService().deactivateShareLink(_cv!.id!);
+    await context.read<IApiClient>().deactivateShareLink(_cv!.id!);
     if (mounted) Navigator.pop(context, true);
   }
 
   Future<void> _shareWhatsApp() async {
     final url = _url;
     if (url == null) return;
-    await ApiService().trackPublicShare(_cv!.shareToken!);
-    await ShareService().shareToWhatsApp(url, title: _cv!.titre);
+    await context.read<IApiClient>().trackPublicShare(_cv!.shareToken!);
+    await context.read<ShareService>().shareToWhatsApp(url, title: _cv!.titre);
   }
 
   Future<void> _shareLinkedIn() async {
     final url = _url;
     if (url == null) return;
-    await ApiService().trackPublicShare(_cv!.shareToken!);
-    await ShareService().shareToLinkedIn(url);
+    await context.read<IApiClient>().trackPublicShare(_cv!.shareToken!);
+    await context.read<ShareService>().shareToLinkedIn(url);
   }
 
   @override
@@ -170,7 +174,8 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
           runSpacing: 8,
           children: [
             FilledButton.icon(
-              onPressed: () => ShareService().copyToClipboard(url),
+              onPressed: () =>
+                  context.read<ShareService>().copyToClipboard(url),
               icon: const Icon(Icons.copy_rounded, size: 18),
               label: const Text('Copier'),
             ),

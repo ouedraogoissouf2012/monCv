@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/notification_preferences.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  final ApiService api;
+  final IApiClient api;
   NotificationProvider(this.api);
 
   NotificationPreferences value = const NotificationPreferences();

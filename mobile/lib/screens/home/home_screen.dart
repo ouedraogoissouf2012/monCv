@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
       duration: const Duration(seconds: 2),
     ));
     try {
-      await PdfService().downloadPdf(cv);
+      await context.read<PdfService>().downloadPdf(cv);
       messenger.showSnackBar(SnackBar(
         content: Text(l.pdfDownloaded),
         behavior: SnackBarBehavior.floating,
@@ -225,7 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
 
     try {
-      final cv = await ApiService().importCv(file.bytes!, file.name);
+      final cv =
+          await context.read<IApiClient>().importCv(file.bytes!, file.name);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(SnackBar(
         content: Text(l.importSuccess(cv.titre)),
@@ -252,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
       duration: const Duration(seconds: 2),
     ));
     try {
-      await PdfService().downloadDocx(cvId);
+      await context.read<PdfService>().downloadDocx(cvId);
       messenger.showSnackBar(SnackBar(
         content: Text(l.docxDownloaded),
         behavior: SnackBarBehavior.floating,

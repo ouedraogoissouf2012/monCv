@@ -5,6 +5,10 @@ import '../../repositories/auth_repository.dart';
 import '../../repositories/cv_repository.dart';
 import '../../repositories/cached_cv_repository.dart';
 import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
+import '../../services/ai_service.dart';
+import '../../services/pdf_service.dart';
+import '../../services/share_service.dart';
 import '../../services/connectivity_service.dart';
 import '../../usecases/auth/login_usecase.dart';
 import '../../usecases/auth/register_usecase.dart';
@@ -27,6 +31,7 @@ import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/job_application_provider.dart';
+import '../../providers/ai_status_provider.dart';
 import '../../services/push_notification_service.dart';
 
 /// Instance globale du service locator.
@@ -40,18 +45,21 @@ Future<void> initDependencies() async {
   sl.registerSingleton<SharedPreferences>(prefs);
 
   // ── Services ──────────────────────────────────────────────────
-  sl.registerLazySingleton<ApiService>(() => ApiService());
+  sl.registerLazySingleton<IApiClient>(() => ApiService());
+  sl.registerLazySingleton<AiCvService>(() => AiCvService(sl<IApiClient>()));
+  sl.registerLazySingleton<PdfService>(() => PdfService(sl<IApiClient>()));
+  sl.registerLazySingleton<ShareService>(() => ShareService(sl<IApiClient>()));
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
   sl.registerLazySingleton<PushNotificationService>(
-      () => PushNotificationService(sl<ApiService>()));
+      () => PushNotificationService(sl<IApiClient>()));
 
   // ── Repositories ──────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(
-    () => HttpAuthRepository(api: sl<ApiService>()),
+    () => HttpAuthRepository(api: sl<IApiClient>()),
   );
   sl.registerLazySingleton<CvRepository>(
     () => CachedCvRepository(
-      remote: HttpCvRepository(api: sl<ApiService>()),
+      remote: HttpCvRepository(api: sl<IApiClient>()),
       prefs: sl<SharedPreferences>(),
     ),
   );
@@ -73,10 +81,10 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => CreateVariantUseCase(sl<CvRepository>()));
 
   // ── Use Cases: AI ─────────────────────────────────────────────
-  sl.registerFactory(() => EnhanceCvUseCase(sl<ApiService>()));
-  sl.registerFactory(() => MatchJobUseCase(sl<ApiService>()));
-  sl.registerFactory(() => GenerateResumeUseCase(sl<ApiService>()));
-  sl.registerFactory(() => SuggestBulletsUseCase(sl<ApiService>()));
+  sl.registerFactory(() => EnhanceCvUseCase(sl<IApiClient>()));
+  sl.registerFactory(() => MatchJobUseCase(sl<IApiClient>()));
+  sl.registerFactory(() => GenerateResumeUseCase(sl<IApiClient>()));
+  sl.registerFactory(() => SuggestBulletsUseCase(sl<IApiClient>()));
 
   // ── Providers ─────────────────────────────────────────────────
   sl.registerLazySingleton<AuthProvider>(
@@ -103,8 +111,10 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
+  sl.registerFactory<AiStatusProvider>(
+      () => AiStatusProvider(api: sl<IApiClient>()));
   sl.registerFactory<NotificationProvider>(
-      () => NotificationProvider(sl<ApiService>()));
+      () => NotificationProvider(sl<IApiClient>()));
   sl.registerFactory<JobApplicationProvider>(
-      () => JobApplicationProvider(sl<ApiService>()));
+      () => JobApplicationProvider(sl<IApiClient>()));
 }

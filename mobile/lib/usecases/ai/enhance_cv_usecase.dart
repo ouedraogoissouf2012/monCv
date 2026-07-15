@@ -1,7 +1,7 @@
 import '../../core/error/result.dart';
 import '../../core/error/safe_call.dart';
 import '../../core/usecase/usecase.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 
 class EnhanceCvParams {
   final int cvId;
@@ -9,8 +9,9 @@ class EnhanceCvParams {
   const EnhanceCvParams({required this.cvId, required this.level});
 }
 
-class EnhanceCvUseCase implements UseCase<Map<String, dynamic>, EnhanceCvParams> {
-  final ApiService _api;
+class EnhanceCvUseCase
+    implements UseCase<Map<String, dynamic>, EnhanceCvParams> {
+  final IApiClient _api;
   const EnhanceCvUseCase(this._api);
 
   @override

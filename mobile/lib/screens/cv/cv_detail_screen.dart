@@ -38,7 +38,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     setState(() => _isDownloadingPdf = true);
     try {
-      await PdfService().downloadPdf(cv);
+      await context.read<PdfService>().downloadPdf(cv);
       if (mounted) {
         messenger.showSnackBar(SnackBar(
           content: Text(l.pdfDownloaded),
@@ -66,7 +66,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     setState(() => _isDownloadingDocx = true);
     try {
-      await PdfService().downloadDocx(cv.id!);
+      await context.read<PdfService>().downloadDocx(cv.id!);
       if (mounted) {
         messenger.showSnackBar(SnackBar(
           content: Text(l.docxDownloaded),
@@ -198,8 +198,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                             newCv.id!, adapted);
                       }
                       if (mounted) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(l.adaptedVariantCreated),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: Color(0xFF10B981),
@@ -300,9 +299,7 @@ class _CvStylePageState extends State<_CvStylePage> {
 
     setState(() {
       _savingStyle = false;
-      _styleError = saved
-          ? null
-          : AppLocalizations.of(context)!.styleNotSaved;
+      _styleError = saved ? null : AppLocalizations.of(context)!.styleNotSaved;
     });
   }
 
@@ -312,7 +309,7 @@ class _CvStylePageState extends State<_CvStylePage> {
     final l = AppLocalizations.of(context)!;
     setState(() => _downloading = true);
     try {
-      await PdfService().downloadPdf(_styledCv);
+      await context.read<PdfService>().downloadPdf(_styledCv);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(l.pdfDownloaded),
@@ -345,8 +342,8 @@ class _CvStylePageState extends State<_CvStylePage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(l.customizeCv,
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        title:
+            Text(l.customizeCv, style: TextStyle(fontWeight: FontWeight.w700)),
         actions: [
           if (!isWide)
             TextButton.icon(

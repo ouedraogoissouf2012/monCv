@@ -15,6 +15,10 @@ import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/job_application_provider.dart';
+import 'services/i_api_client.dart';
+import 'services/ai_service.dart';
+import 'services/pdf_service.dart';
+import 'services/share_service.dart';
 import 'services/push_notification_service.dart';
 import 'router.dart';
 import 'utils/app_theme.dart';
@@ -69,11 +73,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<IApiClient>.value(value: sl<IApiClient>()),
+        Provider<AiCvService>.value(value: sl<AiCvService>()),
+        Provider<PdfService>.value(value: sl<PdfService>()),
+        Provider<ShareService>.value(value: sl<ShareService>()),
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => sl<CvProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ThemeProvider>()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => AiStatusProvider()..refresh()),
+        ChangeNotifierProvider(
+            create: (_) => sl<AiStatusProvider>()..refresh()),
         ChangeNotifierProvider(create: (_) => sl<NotificationProvider>()),
         ChangeNotifierProvider(create: (_) => sl<JobApplicationProvider>()),
       ],

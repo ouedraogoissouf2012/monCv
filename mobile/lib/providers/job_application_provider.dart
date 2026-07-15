@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/job_application.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 
 class JobApplicationProvider extends ChangeNotifier {
-  final ApiService api;
+  final IApiClient api;
   JobApplicationProvider(this.api);
 
   List<JobApplication> items = [];
@@ -11,7 +11,8 @@ class JobApplicationProvider extends ChangeNotifier {
   bool loading = false;
   String? error;
 
-  List<JobApplication> get dueItems => items.where((item) => item.followUpDue).toList();
+  List<JobApplication> get dueItems =>
+      items.where((item) => item.followUpDue).toList();
 
   Future<void> load({JobApplicationStatus? status}) async {
     loading = true;
