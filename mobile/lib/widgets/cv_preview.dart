@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/cv.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/app_colors.dart';
 import '../utils/cv_levels.dart';
 
 /// Preview du CV — reproduit exactement le layout de chaque template PDF.
@@ -125,8 +126,8 @@ Widget _sectionTitle(String title, Color accent) => Padding(
 
 // ── Experience entry ──
 Widget _expEntry(Experience e, Color accent, AppLocalizations l) {
-  final date = _dateRange(e.dateDebut, e.dateFin, l.inProgress,
-      actuel: e.actuel);
+  final date =
+      _dateRange(e.dateDebut, e.dateFin, l.inProgress, actuel: e.actuel);
   return Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: Column(
@@ -140,7 +141,7 @@ Widget _expEntry(Experience e, Color accent, AppLocalizations l) {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1a1a1a),
+                      color: AppColors.neutral900,
                     ))),
             if (date.isNotEmpty)
               Text(date,
@@ -153,7 +154,8 @@ Widget _expEntry(Experience e, Color accent, AppLocalizations l) {
               [e.entreprise, e.lieu]
                   .where((s) => s?.isNotEmpty == true)
                   .join(' - '),
-              style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.neutral450)),
         if (e.description?.isNotEmpty == true) ...[
           const SizedBox(height: 4),
           ..._buildDescLines(e.description!, accent),
@@ -169,7 +171,7 @@ List<Widget> _buildDescLines(String desc, Color accent) {
     return [
       Text(desc,
           style: const TextStyle(
-              fontSize: 10, color: Color(0xFF374151), height: 1.4))
+              fontSize: 10, color: AppColors.neutral700, height: 1.4))
     ];
   }
   return lines.map((line) {
@@ -189,13 +191,13 @@ List<Widget> _buildDescLines(String desc, Color accent) {
           Expanded(
               child: Text(text,
                   style: const TextStyle(
-                      fontSize: 10, color: Color(0xFF374151), height: 1.4))),
+                      fontSize: 10, color: AppColors.neutral700, height: 1.4))),
         ]),
       );
     }
     return Text(text,
         style: const TextStyle(
-            fontSize: 10, color: Color(0xFF374151), height: 1.4));
+            fontSize: 10, color: AppColors.neutral700, height: 1.4));
   }).toList();
 }
 
@@ -213,7 +215,7 @@ Widget _eduEntry(Education e, Color accent, AppLocalizations l) {
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1a1a1a)))),
+                      color: AppColors.neutral900))),
           if (date.isNotEmpty)
             Text(date,
                 style: TextStyle(
@@ -221,18 +223,19 @@ Widget _eduEntry(Education e, Color accent, AppLocalizations l) {
         ]),
         if (e.etablissement?.isNotEmpty == true)
           Text(e.etablissement!,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF6B7280))),
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.neutral450)),
         if (e.description?.isNotEmpty == true)
           Text(e.description!,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       ],
     ),
   );
 }
 
 // ── Competences avec barres et vrai niveau ──
-Widget _skillsBars(
-    List<Skill> skills, Color accent, AppLocalizations l) {
+Widget _skillsBars(List<Skill> skills, Color accent, AppLocalizations l) {
   final data = _splitSkillsWithLevel(skills);
   return Column(
       children: data
@@ -268,8 +271,7 @@ Widget _skillsBars(
 }
 
 // ── Langues avec barres ──
-Widget _langBars(
-        List<Language> langs, Color accent, AppLocalizations l) =>
+Widget _langBars(List<Language> langs, Color accent, AppLocalizations l) =>
     Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: langs
@@ -331,10 +333,11 @@ Widget _projEntry(Project p, Color accent) => Padding(
             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
         if (p.technologies?.isNotEmpty == true)
           Text(p.technologies!,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+              style: const TextStyle(fontSize: 9, color: AppColors.neutral450)),
         if (p.description?.isNotEmpty == true)
           Text(p.description!,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       ]),
     );
 
@@ -346,7 +349,7 @@ Widget _bodySections(Cv cv, Color accent, AppLocalizations l) => Column(
           _sectionTitle(l.profile, accent),
           Text(cv.personalInfo!.resumeProfessionnel!,
               style: const TextStyle(
-                  fontSize: 10, height: 1.5, color: Color(0xFF374151))),
+                  fontSize: 10, height: 1.5, color: AppColors.neutral700)),
         ],
         if (cv.skills.isNotEmpty || cv.languages.isNotEmpty)
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -425,7 +428,7 @@ class _ModerneTemplate extends StatelessWidget {
 
     return DefaultTextStyle(
       style: _font(cv.style.fontFamily,
-          const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+          const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         // Header
         Container(
@@ -508,7 +511,7 @@ class _ClassiqueTemplate extends StatelessWidget {
 
     return DefaultTextStyle(
       style: _font(cv.style.fontFamily,
-          const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+          const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(32, 28, 32, 24),
         child:
@@ -529,8 +532,8 @@ class _ClassiqueTemplate extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
               child: Text(contact,
-                  style:
-                      const TextStyle(fontSize: 9, color: Color(0xFF6B7280)))),
+                  style: const TextStyle(
+                      fontSize: 9, color: AppColors.neutral450))),
           const SizedBox(height: 10),
           Container(height: 2.5, color: accent),
           const SizedBox(height: 1),
@@ -563,7 +566,7 @@ class _MinimalisteTemplate extends StatelessWidget {
 
     return DefaultTextStyle(
       style: _font(cv.style.fontFamily,
-          const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+          const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(36, 32, 36, 24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -572,12 +575,13 @@ class _MinimalisteTemplate extends StatelessWidget {
                   const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
           if (info?.titrePoste?.isNotEmpty == true)
             Text(info!.titrePoste!,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.neutral300)),
           const SizedBox(height: 8),
           Text(contact,
-              style: const TextStyle(fontSize: 9, color: Color(0xFF9CA3AF))),
+              style: const TextStyle(fontSize: 9, color: AppColors.neutral300)),
           const SizedBox(height: 14),
-          Container(height: 0.8, color: const Color(0xFFE5E7EB)),
+          Container(height: 0.8, color: AppColors.neutral100),
           _bodySections(cv, accent, l),
         ]),
       ),
@@ -602,7 +606,7 @@ class _CreatifTemplate extends StatelessWidget {
 
     return DefaultTextStyle(
       style: _font(cv.style.fontFamily,
-          const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+          const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: IntrinsicHeight(
         child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           // ── Sidebar ──
@@ -658,7 +662,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Competences
               if (splitSkills.isNotEmpty) ...[
                 const SizedBox(height: 16),
-              _sideLabel(l.skills.toUpperCase()),
+                _sideLabel(l.skills.toUpperCase()),
                 ...splitSkills.take(10).map((skill) => Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Column(
@@ -703,7 +707,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Langues
               if (cv.languages.isNotEmpty) ...[
                 const SizedBox(height: 16),
-              _sideLabel(l.languages.toUpperCase()),
+                _sideLabel(l.languages.toUpperCase()),
                 ...cv.languages.map((lang) => Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Row(
@@ -723,7 +727,7 @@ class _CreatifTemplate extends StatelessWidget {
               // Certifications
               if (cv.certifications.isNotEmpty) ...[
                 const SizedBox(height: 16),
-              _sideLabel(l.certifications.toUpperCase()),
+                _sideLabel(l.certifications.toUpperCase()),
                 ...cv.certifications.map((c) => Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Text(c.nom ?? '',
@@ -746,7 +750,7 @@ class _CreatifTemplate extends StatelessWidget {
                           style: const TextStyle(
                               fontSize: 10,
                               height: 1.4,
-                              color: Color(0xFF374151))),
+                              color: AppColors.neutral700)),
                     ],
                     if (cv.experiences.isNotEmpty) ...[
                       _sectionTitle(l.experiences, accent),
@@ -805,7 +809,7 @@ class _ExecutiveTemplate extends StatelessWidget {
 
     return DefaultTextStyle(
       style: _font(cv.style.fontFamily,
-          const TextStyle(fontSize: 10, color: Color(0xFF374151))),
+          const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(32, 28, 32, 24),
         child:
@@ -828,17 +832,17 @@ class _ExecutiveTemplate extends StatelessWidget {
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               if (info?.email?.isNotEmpty == true)
                 Text(info!.email!,
-                    style:
-                        const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+                    style: const TextStyle(
+                        fontSize: 9, color: AppColors.neutral450)),
               if (info?.telephone?.isNotEmpty == true)
                 Text(info!.telephone!,
-                    style:
-                        const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+                    style: const TextStyle(
+                        fontSize: 9, color: AppColors.neutral450)),
               if (info?.ville?.isNotEmpty == true)
                 Text(
                     '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
-                    style:
-                        const TextStyle(fontSize: 9, color: Color(0xFF6B7280))),
+                    style: const TextStyle(
+                        fontSize: 9, color: AppColors.neutral450)),
             ]),
           ]),
           const SizedBox(height: 8),
@@ -864,8 +868,8 @@ class _AtsTemplate extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final info = cv.personalInfo;
-    const black = Color(0xFF111827);
-    const grey = Color(0xFF6B7280);
+    const black = AppColors.neutral900;
+    const grey = AppColors.neutral450;
     final splitSkills = _splitSkillsWithLevel(cv.skills);
     final contact = [
       if (info?.email?.isNotEmpty == true) info!.email!,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../utils/app_colors.dart';
 import '../utils/pdf_saver.dart';
 
 class PublicQrCode extends StatefulWidget {
@@ -63,11 +64,11 @@ class _PublicQrCodeState extends State<PublicQrCode> {
                 size: widget.size,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
-                  color: Color(0xFF111827),
+                  color: AppColors.neutral900,
                 ),
                 dataModuleStyle: const QrDataModuleStyle(
                   dataModuleShape: QrDataModuleShape.square,
-                  color: Color(0xFF111827),
+                  color: AppColors.neutral900,
                 ),
               ),
             ),

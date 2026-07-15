@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../providers/cv_provider.dart';
 import '../services/ai_service.dart';
+import '../utils/app_colors.dart';
 import '../utils/error_helper.dart';
 import 'ai_button.dart';
 import 'application_messages_sheet.dart';
@@ -47,7 +48,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
           SnackBar(
             content: Text(l.variantCreated(variant.varianteLabel ?? '')),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
           ),
         );
       } else {
@@ -194,12 +195,12 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.work_outline_rounded,
-                    color: Color(0xFF2563EB),
+                    color: AppColors.primary,
                     size: 20,
                   ),
                 ),
@@ -279,7 +280,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   icon: const Icon(Icons.analytics_outlined),
                   label: _loading ? l.analyzing : l.analyzeMatch,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppColors.primary,
                   ),
                 ),
               ),
@@ -297,10 +298,10 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                    color: AppColors.warning.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.28),
+                      color: AppColors.warning.withValues(alpha: 0.28),
                     ),
                   ),
                   child: Row(
@@ -309,7 +310,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                       const Icon(
                         Icons.info_outline_rounded,
                         size: 18,
-                        color: Color(0xFFF59E0B),
+                        color: AppColors.warning,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -362,7 +363,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 _KeywordSection(
                   title: l.matchedKeywords,
                   icon: Icons.check_circle_rounded,
-                  color: const Color(0xFF10B981),
+                  color: AppColors.success,
                   keywords: matchedKeywords,
                 ),
                 const SizedBox(height: 12),
@@ -371,7 +372,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                 _KeywordSection(
                   title: l.missingKeywords,
                   icon: Icons.error_outline_rounded,
-                  color: const Color(0xFFEF4444),
+                  color: AppColors.error,
                   keywords: missingKeywords,
                 ),
                 const SizedBox(height: 12),
@@ -390,7 +391,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                           child: Icon(
                             Icons.arrow_right_alt_rounded,
                             size: 18,
-                            color: Color(0xFF2563EB),
+                            color: AppColors.primary,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -419,7 +420,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                   icon: const Icon(Icons.send_rounded),
                   label: Text(l.prepareApplicationMessages),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F766E),
+                    backgroundColor: AppColors.teal,
                   ),
                 ),
               ),
@@ -444,7 +445,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
                         : l.createOptimizedVariant,
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppColors.primary,
                   ),
                 ),
               ),
@@ -472,10 +473,10 @@ class _ScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final color = score >= 70
-        ? const Color(0xFF10B981)
+        ? AppColors.success
         : score >= 40
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFEF4444);
+            ? AppColors.warning
+            : AppColors.error;
     final label = score >= 70
         ? l.goodMatch
         : score >= 40
@@ -576,10 +577,10 @@ class _CategoryCard extends StatelessWidget {
         .take(2)
         .toList();
     final color = score >= 70
-        ? const Color(0xFF10B981)
+        ? AppColors.success
         : score >= 40
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFEF4444);
+            ? AppColors.warning
+            : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -701,7 +702,7 @@ class _RecommendationCard extends StatelessWidget {
                   height: 26,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -709,7 +710,7 @@ class _RecommendationCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF2563EB),
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -787,10 +788,10 @@ class _FormatChecksCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF10B981).withValues(alpha: 0.08),
+          color: AppColors.success.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFF10B981).withValues(alpha: 0.18),
+            color: AppColors.success.withValues(alpha: 0.18),
           ),
         ),
         child: Text(l.atsNoFormatRisk, style: const TextStyle(fontSize: 12)),
@@ -802,15 +803,15 @@ class _FormatChecksCard extends StatelessWidget {
         final severity = item['severity']?.toString() ?? 'info';
         final config = switch (severity) {
           'critical' => (
-              color: const Color(0xFFEF4444),
+              color: AppColors.error,
               icon: Icons.error_outline_rounded,
             ),
           'warning' => (
-              color: const Color(0xFFF59E0B),
+              color: AppColors.warning,
               icon: Icons.warning_amber_rounded,
             ),
           _ => (
-              color: const Color(0xFF2563EB),
+              color: AppColors.primary,
               icon: Icons.info_outline_rounded,
             ),
         };
@@ -880,9 +881,8 @@ class _HistoryCard extends StatelessWidget {
           final diff = entry.key == history.length - 1
               ? null
               : item.score - history[entry.key + 1].score;
-          final diffColor = (diff ?? 0) >= 0
-              ? const Color(0xFF10B981)
-              : const Color(0xFFEF4444);
+          final diffColor =
+              (diff ?? 0) >= 0 ? AppColors.success : AppColors.error;
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(

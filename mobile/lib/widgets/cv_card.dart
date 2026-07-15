@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/cv.dart';
+import '../utils/app_colors.dart';
 import 'stats_badge.dart';
 
 class CvCard extends StatelessWidget {
@@ -36,9 +37,9 @@ class CvCard extends StatelessWidget {
   }
 
   Color _scoreColor(int score) {
-    if (score >= 80) return const Color(0xFF10B981);
-    if (score >= 50) return const Color(0xFFF59E0B);
-    return const Color(0xFFEF4444);
+    if (score >= 80) return AppColors.success;
+    if (score >= 50) return AppColors.warning;
+    return AppColors.error;
   }
 
   String _scoreLabel(int score, AppLocalizations l) {
@@ -69,24 +70,24 @@ class CvCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                      color: AppColors.primary.withValues(alpha: 0.25),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.tune_rounded,
-                          size: 12, color: Color(0xFF2563EB)),
+                          size: 12, color: AppColors.primary),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           'Variante — ${cv.varianteLabel}',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF2563EB),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
@@ -106,24 +107,24 @@ class CvCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      color: AppColors.warning.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                        color: AppColors.warning.withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.cloud_off_rounded,
-                            size: 12, color: Color(0xFFF59E0B)),
+                            size: 12, color: AppColors.warning),
                         SizedBox(width: 4),
                         Text(
                           'En attente de sync',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFF59E0B),
+                            color: AppColors.warning,
                           ),
                         ),
                       ],
@@ -238,7 +239,7 @@ class CvCard extends StatelessWidget {
                     Text(
                       '${cv.variantCount} variante${cv.variantCount! > 1 ? 's' : ''}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: const Color(0xFF2563EB),
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                           ),
                     ),
@@ -295,14 +296,14 @@ class CvCard extends StatelessWidget {
                     child: StatsBadge(
                       count: cv.educations.length,
                       label: l.education,
-                      color: const Color(0xFF10B981),
+                      color: AppColors.success,
                     ),
                   ),
                   if (cv.shareToken != null)
                     StatsBadge(
                       count: cv.viewCount,
                       label: l.views,
-                      color: const Color(0xFF6366F1),
+                      color: AppColors.indigo,
                     ),
                 ],
               ),
