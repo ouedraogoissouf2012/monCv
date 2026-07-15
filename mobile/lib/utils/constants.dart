@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+
+export 'app_colors.dart';
 
 class AppEnvironment {
   static const String value = String.fromEnvironment(
@@ -64,19 +65,6 @@ class PublicAppConstants {
     }
     return 'http://localhost:3002';
   }
-}
-
-class AppColors {
-  static const Color primary = Color(0xFF2563EB);
-  static const Color secondary = Color(0xFF3B82F6);
-  static const Color accent = Color(0xFF60A5FA);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFEF4444);
-  static const Color background = Color(0xFFF8FAFC);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
 }
 
 class AppStrings {
