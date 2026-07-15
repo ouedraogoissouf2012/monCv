@@ -48,6 +48,7 @@ Acces utiles :
 - [Configuration](docs/CONFIGURATION.md)
 - [Runbook](docs/RUNBOOK.md)
 - [Security](docs/SECURITY.md)
+- [Testing](docs/TESTING.md)
 - [Database](docs/DATABASE.md)
 - [API](docs/API.md)
 - [Contributing](CONTRIBUTING.md)

@@ -129,7 +129,7 @@ Chaque PR non-triviale doit cocher l'intégralité de cette liste avant merge :
 - [ ] Tests d'intégration pour tout nouveau endpoint
 - [ ] **Tests utiles** : aucun test `assertNotNull(x)` seul, aucun `expect(x, isA<X>())` seul
 - [ ] Tests **isolés** : pas d'ordre d'exécution implicite
-- [ ] Pas de mock de la base en intégration (Testcontainers ou H2 acceptable, mock interdit)
+- [ ] Pas de mock ni H2 en integration : utiliser PostgreSQL Testcontainers
 
 ### 4.7 Performance
 - [ ] Pas de N+1 query (utiliser `@EntityGraph`, `JOIN FETCH`, ou `findAllById`)

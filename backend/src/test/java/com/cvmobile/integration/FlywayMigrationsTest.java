@@ -4,29 +4,30 @@ import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.output.ValidateResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers(disabledWithoutDocker = true)
-class FlywayMigrationsTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> POSTGRES =
-            new PostgreSQLContainer<>("postgres:16-alpine");
+class FlywayMigrationsTest extends PostgresIntegrationTest {
 
     private static Flyway flyway;
+    private static final String SCHEMA = "flyway_contract";
 
     @BeforeAll
-    static void migrateFreshDatabase() {
+    static void migrateFreshDatabase() throws Exception {
+        try (Connection connection = DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+             var statement = connection.createStatement()) {
+            statement.execute("DROP SCHEMA IF EXISTS " + SCHEMA + " CASCADE");
+        }
+
         flyway = Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .schemas(SCHEMA)
+                .defaultSchema(SCHEMA)
                 .locations("classpath:db/migration")
                 .load();
         flyway.migrate();
@@ -34,14 +35,17 @@ class FlywayMigrationsTest {
 
     @Test
     void appliesAllMigrationsOnFreshPostgresqlDatabase() throws Exception {
-        assertThat(flyway.info().applied()).hasSize(11);
+        long versionedMigrations = Arrays.stream(flyway.info().applied())
+                .filter(info -> info.getVersion() != null)
+                .count();
+        assertThat(versionedMigrations).isEqualTo(11);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
-            assertThat(tableExists(connection, "users")).isTrue();
-            assertThat(tableExists(connection, "cvs")).isTrue();
-            assertThat(tableExists(connection, "certifications")).isTrue();
-            assertThat(tableExists(connection, "job_applications")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "users")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "cvs")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "certifications")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "job_applications")).isTrue();
         }
     }
 
@@ -53,8 +57,8 @@ class FlywayMigrationsTest {
         assertThat(result.invalidMigrations).isEmpty();
     }
 
-    private boolean tableExists(Connection connection, String tableName) throws Exception {
-        try (ResultSet tables = connection.getMetaData().getTables(null, "public", tableName, new String[]{"TABLE"})) {
+    private boolean tableExists(Connection connection, String schema, String tableName) throws Exception {
+        try (ResultSet tables = connection.getMetaData().getTables(null, schema, tableName, new String[]{"TABLE"})) {
             return tables.next();
         }
     }

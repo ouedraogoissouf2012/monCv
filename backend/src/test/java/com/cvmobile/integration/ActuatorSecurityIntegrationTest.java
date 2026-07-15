@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "management.prometheus.allowed-ip-ranges=127.0.0.1/32",
         "management.prometheus.metrics.export.enabled=true"
 })
-class ActuatorSecurityIntegrationTest {
+class ActuatorSecurityIntegrationTest extends PostgresIntegrationTest {
 
     @Autowired
     private MockMvc mvc;
