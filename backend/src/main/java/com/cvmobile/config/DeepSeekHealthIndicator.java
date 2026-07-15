@@ -22,8 +22,7 @@ import java.time.Instant;
  *
  * - UP : cle configuree ET API joignable (200 sur /models)
  * - OUT_OF_SERVICE : cle invalide (401)
- * - DOWN : cle manquante
- * - UNKNOWN : timeout reseau
+ * - DOWN : cle manquante, erreur fournisseur ou panne reseau
  *
  * Cache 60s pour eviter de saturer l'API DeepSeek (actuator peut etre sollicite souvent).
  */
@@ -95,7 +94,7 @@ public class DeepSeekHealthIndicator extends AbstractHealthIndicator {
                     .build();
         } catch (Exception e) {
             log.debug("DeepSeek health probe failed: {}", e.getMessage());
-            return Health.unknown()
+            return Health.down()
                     .withDetail("reason", "probe-failed")
                     .withDetail("error", e.getClass().getSimpleName())
                     .build();
