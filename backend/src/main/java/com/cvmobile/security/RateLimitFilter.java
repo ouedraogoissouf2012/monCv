@@ -1,103 +1,172 @@
 package com.cvmobile.security;
 
 import com.cvmobile.config.RateLimitProperties;
+import com.cvmobile.model.User;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Duration;
 
-/**
- * Rate limiter simple sur les endpoints exposes aux abus publics ou IA.
- * Les compteurs sont en memoire: suffisant pour une premiere protection PWA,
- * a remplacer par Redis/Bucket4j en environnement multi-instance.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitProperties properties;
-    private final Map<String, RateWindow> ipWindows = new ConcurrentHashMap<>();
+    private final RateLimitService rateLimitService;
+    private final MeterRegistry meterRegistry;
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                     @NonNull HttpServletResponse response,
-                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        return !properties.enabled() || ruleForPath(request.getRequestURI()) == null;
+    }
 
-        String path = request.getRequestURI();
-        int limit = limitForPath(path);
-        if (limit <= 0) {
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+        RateLimitRule rule = ruleForPath(request.getRequestURI());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userTier = userTier(authentication);
+
+        if (properties.adminBypass() && "admin".equals(userTier)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String ip = getClientIp(request);
-        String key = ip + ":" + bucketForPath(path);
-        RateWindow window = ipWindows.compute(key, (k, v) -> {
-            long now = System.currentTimeMillis();
-            if (v == null || now - v.startTime > properties.window().toMillis()) {
-                return new RateWindow(now);
-            }
-            return v;
-        });
-
-        int count = window.counter.incrementAndGet();
-        if (count > limit) {
-            log.warn("Rate limit depasse pour IP: {} sur endpoint {}", ip, bucketForPath(path));
-            int retryAfterSeconds = Math.max(1, Math.toIntExact(properties.window().toSeconds()));
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setContentType("application/json");
-            response.setHeader("Retry-After", Integer.toString(retryAfterSeconds));
-            response.getWriter().write(
-                    "{\"status\":" + HttpStatus.TOO_MANY_REQUESTS.value()
-                    + ",\"code\":\"RATE_LIMIT_EXCEEDED\"," +
-                    "\"message\":\"Trop de tentatives. Reessayez dans 1 minute.\"}");
+        String identity = rule.perUser()
+                ? authenticatedUserKey(authentication, request)
+                : ipKey(request);
+        RateLimitResult result;
+        try {
+            result = rateLimitService.consume(
+                    rule.endpoint() + ":" + identity,
+                    rule.capacity(),
+                    rule.window()
+            );
+        } catch (RuntimeException exception) {
+            log.error("Stockage Redis du rate limiting indisponible", exception);
+            writeUnavailable(response);
             return;
         }
 
-        filterChain.doFilter(request, response);
-    }
-
-    private int limitForPath(String path) {
-        if (path.startsWith("/api/auth/")) return properties.authRequests();
-        if (path.startsWith("/api/ai/")) return properties.aiRequests();
-        if (path.startsWith("/api/cvs/public/")) return properties.publicRequests();
-        return 0;
-    }
-
-    private String bucketForPath(String path) {
-        if (path.startsWith("/api/auth/")) return "auth";
-        if (path.startsWith("/api/ai/")) return "ai";
-        if (path.startsWith("/api/cvs/public/")) return "public-cv";
-        return "other";
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String xForwarded = request.getHeader("X-Forwarded-For");
-        if (xForwarded != null && !xForwarded.isEmpty()) {
-            return xForwarded.split(",")[0].trim();
+        response.setHeader("X-RateLimit-Remaining", Long.toString(result.remainingTokens()));
+        if (result.allowed()) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        return request.getRemoteAddr();
+
+        long retryAfterSeconds = retryAfterSeconds(result.retryAfter());
+        incrementRejectedMetric(rule.endpoint(), userTier);
+        log.warn("Rate limit depasse pour {} sur endpoint {}", identity, rule.endpoint());
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        response.setHeader("Retry-After", Long.toString(retryAfterSeconds));
+        response.getWriter().write(
+                "{\"status\":" + HttpStatus.TOO_MANY_REQUESTS.value()
+                        + ",\"code\":\"RATE_LIMIT_EXCEEDED\","
+                        + "\"message\":\"Trop de tentatives. Reessayez dans "
+                        + retryAfterSeconds + " seconde(s).\"}"
+        );
     }
 
-    private static class RateWindow {
-        final long startTime;
-        final AtomicInteger counter;
-
-        RateWindow(long startTime) {
-            this.startTime = startTime;
-            this.counter = new AtomicInteger(0);
+    private RateLimitRule ruleForPath(String path) {
+        if (path.startsWith("/api/auth/")) {
+            return new RateLimitRule("auth", properties.authRequests(), properties.authWindow(), false);
         }
+        if (path.startsWith("/api/ai/")) {
+            return new RateLimitRule("ai", properties.aiRequests(), properties.aiWindow(), true);
+        }
+        if (path.startsWith("/api/cvs/import")) {
+            return new RateLimitRule("cv-import", properties.importRequests(), properties.importWindow(), true);
+        }
+        if (path.startsWith("/api/cvs/public/")) {
+            return new RateLimitRule(
+                    "public-cv",
+                    properties.publicRequests(),
+                    properties.publicWindow(),
+                    false
+            );
+        }
+        return null;
+    }
+
+    private String authenticatedUserKey(Authentication authentication, HttpServletRequest request) {
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof User user
+                && user.getId() != null) {
+            return "user:" + user.getId();
+        }
+        return ipKey(request);
+    }
+
+    private String ipKey(HttpServletRequest request) {
+        return "ip:" + request.getRemoteAddr();
+    }
+
+    private String userTier(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "anonymous";
+        }
+        if (hasRole(authentication, "ROLE_ADMIN")) {
+            return "admin";
+        }
+        if (hasRole(authentication, "ROLE_PREMIUM")) {
+            return "premium";
+        }
+        return "user";
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> role.equals(authority.getAuthority()));
+    }
+
+    private long retryAfterSeconds(Duration retryAfter) {
+        long millis = Math.max(1, retryAfter.toMillis());
+        return Math.max(1, (millis + 999) / 1000);
+    }
+
+    private void incrementRejectedMetric(String endpoint, String userTier) {
+        Counter.builder("rate_limit_hits")
+                .description("Nombre de requetes refusees par le rate limiter")
+                .tag("endpoint", endpoint)
+                .tag("user_tier", userTier)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    private void writeUnavailable(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
+        response.setContentType("application/json");
+        response.getWriter().write(
+                "{\"status\":" + HttpStatus.SERVICE_UNAVAILABLE.value()
+                        + ",\"code\":\"RATE_LIMIT_UNAVAILABLE\","
+                        + "\"message\":\"Protection anti-abus temporairement indisponible.\"}"
+        );
+    }
+
+    private record RateLimitRule(
+            String endpoint,
+            long capacity,
+            Duration window,
+            boolean perUser
+    ) {
     }
 }

@@ -81,13 +81,21 @@ cv:
     minimum-experience-description-length: ${CV_QUALITY_MINIMUM_EXPERIENCE_DESCRIPTION_LENGTH:80}
     max-skills-displayed: ${CV_QUALITY_MAX_SKILLS_DISPLAYED:10}
 
-# Protection locale simple; #165 remplacera ce stockage memoire par Bucket4j/Redis.
+# Quotas anti-abus distribues entre les instances via Bucket4j et Redis.
 security:
   rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    admin-bypass: ${RATE_LIMIT_ADMIN_BYPASS:true}
     auth-requests: ${RATE_LIMIT_AUTH_REQUESTS:10}
+    auth-window: ${RATE_LIMIT_AUTH_WINDOW:1m}
     ai-requests: ${RATE_LIMIT_AI_REQUESTS:20}
+    ai-window: ${RATE_LIMIT_AI_WINDOW:1h}
+    import-requests: ${RATE_LIMIT_IMPORT_REQUESTS:5}
+    import-window: ${RATE_LIMIT_IMPORT_WINDOW:1h}
     public-requests: ${RATE_LIMIT_PUBLIC_REQUESTS:60}
-    window: ${RATE_LIMIT_WINDOW:1m}
+    public-window: ${RATE_LIMIT_PUBLIC_WINDOW:1m}
+    redis-url: ${RATE_LIMIT_REDIS_URL:redis://localhost:6379}
+    key-prefix: ${RATE_LIMIT_KEY_PREFIX:moncv:rate-limit:}
 
 notifications:
   firebase:

@@ -9,6 +9,10 @@ services:
     # Pas de ports exposes en prod (DB interne)
     ports: []
 
+  redis:
+    # Redis reste strictement interne au reseau Docker en production.
+    ports: []
+
   backend:
     # Utilise l'image GHCR au lieu de builder localement
     build: !reset null
