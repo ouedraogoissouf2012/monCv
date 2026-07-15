@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
 import '../models/ai_status.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 
 export '../models/ai_status.dart';
 
@@ -9,12 +9,12 @@ export '../models/ai_status.dart';
 /// adapter l'UI (boutons desactives + tooltip si indisponible).
 class AiStatusProvider extends ChangeNotifier {
   AiStatus _status;
-  final ApiService _api;
+  final IApiClient _api;
   String? _lastFailureReason;
   DateTime? _retryAfter;
 
-  AiStatusProvider({ApiService? api, AiStatus? initialStatus})
-      : _api = api ?? ApiService(),
+  AiStatusProvider({required IApiClient api, AiStatus? initialStatus})
+      : _api = api,
         _status = initialStatus ?? const AiStatus.unknown();
 
   AiStatus get status => _status;

@@ -36,11 +36,12 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
       _error = null;
     });
     try {
-      final result = await AiCvService().generateApplicationMessages(
-        widget.cvId,
-        widget.jobDescription,
-        _tone,
-      );
+      final result =
+          await context.read<AiCvService>().generateApplicationMessages(
+                widget.cvId,
+                widget.jobDescription,
+                _tone,
+              );
       if (!mounted) return;
       setState(() {
         _messages = result;
@@ -129,12 +130,16 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                       children: [
                         Text(
                           l.applicationMessagesTitle,
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
                           l.applicationMessagesSubtitle,
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -160,8 +165,8 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                     Text(
                       l.chooseTone,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     SingleChildScrollView(
@@ -180,9 +185,9 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
                         onSelectionChanged: _loading
                             ? null
                             : (selection) => setState(() {
-                                _tone = selection.first;
-                                _messages = null;
-                              }),
+                                  _tone = selection.first;
+                                  _messages = null;
+                                }),
                       ),
                     ),
                     const SizedBox(height: 14),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import '../../../services/api_service.dart';
+import '../../../services/i_api_client.dart';
 import 'form_sheet.dart';
 
 Future<void> showSuggestionsSheet(
@@ -42,7 +43,8 @@ Future<void> showSuggestionsSheet(
                 const SizedBox(width: 8),
                 Text(
                   l.aiSuggestions,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -174,7 +176,7 @@ class ExperienceSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-              label: l.startRequired,
+                  label: l.startRequired,
                   date: debut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -191,7 +193,7 @@ class ExperienceSection extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: SectionDateButton(
-              label: l.end,
+                    label: l.end,
                     date: fin,
                     onTap: () async {
                       final d = await showDatePicker(
@@ -223,10 +225,11 @@ class ExperienceSection extends StatelessWidget {
             onPressed: () async {
               setState(() => isLoadingAi = true);
               try {
-                final suggestions = await ApiService().getAiSuggestions(
-                  poste: posteCtrl.text,
-                  entreprise: entrepriseCtrl.text,
-                );
+                final suggestions =
+                    await ctx.read<IApiClient>().getAiSuggestions(
+                          poste: posteCtrl.text,
+                          entreprise: entrepriseCtrl.text,
+                        );
                 if (!ctx.mounted) return;
                 await showSuggestionsSheet(ctx, suggestions, descCtrl);
               } catch (e) {
@@ -241,7 +244,7 @@ class ExperienceSection extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                     action: SnackBarAction(
-                  label: l.close,
+                      label: l.close,
                       onPressed: () {},
                     ),
                   ),
@@ -286,8 +289,7 @@ class ExperienceSection extends StatelessWidget {
             itemBuilder: (ctx, i) {
               final exp = experiences[i];
               return SectionItemTile(
-                title:
-                    exp.poste?.isNotEmpty == true ? exp.poste! : l.untitled,
+                title: exp.poste?.isNotEmpty == true ? exp.poste! : l.untitled,
                 subtitle: exp.entreprise ?? '',
                 badge: exp.actuel ? l.currentPosition : null,
                 badgeColor: Colors.green,

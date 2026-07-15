@@ -1,19 +1,19 @@
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 import '../utils/constants.dart';
 
 /// Service encapsulant la logique de partage de CV.
 class ShareService {
-  static final ShareService _instance = ShareService._();
-  ShareService._();
-  factory ShareService() => _instance;
+  ShareService(this._api);
+
+  final IApiClient _api;
 
   /// Genere un lien de partage public pour un CV.
   /// Retourne l'URL complete ou null si erreur.
   Future<String?> generateShareLink(int cvId) async {
     try {
-      final cv = await ApiService().generateShareLink(cvId);
+      final cv = await _api.generateShareLink(cvId);
       final token = cv.shareToken;
       if (token == null) return null;
       return buildPublicPortfolioUrl(token);

@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import '../../../data/city_suggestions.dart';
 import '../../../models/cv.dart';
-import '../../../services/api_service.dart';
-import '../../../services/ai_service.dart';
+import '../../../services/i_api_client.dart';
 import '../../../utils/constants.dart';
 
 class PersonalInfoSection extends StatefulWidget {
@@ -231,13 +231,13 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
       try {
         String url;
         if (kIsWeb) {
-          url = await ApiService().uploadPhotoBytes(
-            bytes,
-            picked.name,
-            picked.mimeType ?? 'image/jpeg',
-          );
+          url = await context.read<IApiClient>().uploadPhotoBytes(
+                bytes,
+                picked.name,
+                picked.mimeType ?? 'image/jpeg',
+              );
         } else {
-          url = await ApiService().uploadPhoto(picked);
+          url = await context.read<IApiClient>().uploadPhoto(picked);
         }
         if (!mounted) return;
         setState(() {
@@ -428,7 +428,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 4),
           Center(
             child: Text(
-                    l.profilePhotoOptional,
+              l.profilePhotoOptional,
               style: TextStyle(
                 fontSize: 11,
                 color: colorScheme.onSurface.withValues(alpha: 0.45),
@@ -445,13 +445,14 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                 child: TextFormField(
                   controller: _prenomCtrl,
                   decoration: InputDecoration(
-              labelText: l.firstNameRequired,
+                    labelText: l.firstNameRequired,
                     helperText: l.firstNameExample,
                   ),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _notify(),
-                  validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l.firstNameMissing : null,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? l.firstNameMissing
+                      : null,
                 ),
               ),
               const SizedBox(width: 12),
@@ -459,13 +460,14 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                 child: TextFormField(
                   controller: _nomCtrl,
                   decoration: InputDecoration(
-              labelText: l.lastNameRequired,
+                    labelText: l.lastNameRequired,
                     helperText: l.lastNameExample,
                   ),
                   textCapitalization: TextCapitalization.words,
                   onChanged: (_) => _notify(),
-                  validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l.lastNameMissing : null,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? l.lastNameMissing
+                      : null,
                 ),
               ),
             ],
@@ -498,7 +500,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
               if (v == null || v.trim().isEmpty) return l.emailMissing;
               if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$')
                   .hasMatch(v.trim())) {
-              return l.invalidEmail;
+                return l.invalidEmail;
               }
               return null;
             },
@@ -561,7 +563,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-            l.professionalLinksHelper,
+                l.professionalLinksHelper,
                 style: TextStyle(
                   fontSize: 11,
                   color: colorScheme.onSurface.withValues(alpha: 0.45),
@@ -616,10 +618,10 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                   'Ex : Developpeur Full Stack avec 3 ans d\'experience...',
               alignLabelWithHint: true,
               helperText: _resumeCtrl.text.isEmpty
-                    ? l.generateSummaryHelper
+                  ? l.generateSummaryHelper
                   : _resumeCtrl.text.length < 100
-                    ? l.resumeTooShort
-                    : '${l.goodResume} (${_resumeCtrl.text.length} ${l.characters})',
+                      ? l.resumeTooShort
+                      : '${l.goodResume} (${_resumeCtrl.text.length} ${l.characters})',
               helperStyle: TextStyle(
                 color: _resumeCtrl.text.isEmpty
                     ? null
@@ -688,9 +690,11 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
     final l = AppLocalizations.of(context)!;
     setState(() => _loading = true);
     try {
-      final resume = await AiCvService().generateResume(
-        titrePoste: widget.titrePoste,
-      );
+      final resume = await context.read<IApiClient>().generateResume(
+            widget.titrePoste,
+            null,
+            null,
+          );
       if (!mounted) return;
       widget.onGenerated(resume);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

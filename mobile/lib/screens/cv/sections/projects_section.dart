@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import '../../../services/api_service.dart';
+import '../../../services/i_api_client.dart';
 import 'experience_section.dart' show showSuggestionsSheet;
 import 'form_sheet.dart';
 
@@ -84,7 +85,7 @@ class ProjectsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-              label: l.start,
+                  label: l.start,
                   date: dateDebut,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -100,7 +101,7 @@ class ProjectsSection extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: SectionDateButton(
-              label: l.end,
+                  label: l.end,
                   date: dateFin,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -131,10 +132,12 @@ class ProjectsSection extends StatelessWidget {
             onPressed: () async {
               setState(() => isLoadingAi = true);
               try {
-                final suggestions = await ApiService().getAiSuggestions(
-                  poste: nomCtrl.text,
-                  entreprise: techCtrl.text.isNotEmpty ? techCtrl.text : null,
-                );
+                final suggestions =
+                    await ctx.read<IApiClient>().getAiSuggestions(
+                          poste: nomCtrl.text,
+                          entreprise:
+                              techCtrl.text.isNotEmpty ? techCtrl.text : null,
+                        );
                 if (!ctx.mounted) return;
                 await showSuggestionsSheet(ctx, suggestions, descCtrl);
               } catch (_) {

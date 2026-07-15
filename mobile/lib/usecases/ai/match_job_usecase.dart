@@ -1,7 +1,7 @@
 import '../../core/error/result.dart';
 import '../../core/error/safe_call.dart';
 import '../../core/usecase/usecase.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 
 class MatchJobParams {
   final int cvId;
@@ -10,7 +10,7 @@ class MatchJobParams {
 }
 
 class MatchJobUseCase implements UseCase<Map<String, dynamic>, MatchJobParams> {
-  final ApiService _api;
+  final IApiClient _api;
   const MatchJobUseCase(this._api);
 
   @override

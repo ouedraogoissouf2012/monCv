@@ -1,14 +1,19 @@
 import 'package:cv_mobile/providers/ai_status_provider.dart';
+import 'package:cv_mobile/services/i_api_client.dart';
 import 'package:cv_mobile/widgets/ai_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockApiClient extends Mock implements IApiClient {}
 
 void main() {
   testWidgets('bouton desactive avec tooltip si IA indisponible', (
     tester,
   ) async {
     final provider = AiStatusProvider(
+      api: MockApiClient(),
       initialStatus: const AiStatus(
         available: false,
         primaryStatus: 'KEY_INVALID',

@@ -4,20 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/providers/ai_status_provider.dart';
+import 'package:cv_mobile/services/i_api_client.dart';
 import 'package:provider/provider.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockApiClient extends Mock implements IApiClient {}
 
 void main() {
   final cv = Cv(id: 42, titre: 'Community manager');
 
-  Widget testApp(Widget child) => ChangeNotifierProvider(
-        create: (_) => AiStatusProvider(),
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('fr'),
-          home: Scaffold(body: child),
-        ),
-      );
+  Widget testApp(Widget child) {
+    final api = MockApiClient();
+    return MultiProvider(
+      providers: [
+        Provider<IApiClient>.value(value: api),
+        ChangeNotifierProvider(create: (_) => AiStatusProvider(api: api)),
+      ],
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: Scaffold(body: child),
+      ),
+    );
+  }
 
   testWidgets('le mode relecture affiche une action orthographique dédiée', (
     tester,

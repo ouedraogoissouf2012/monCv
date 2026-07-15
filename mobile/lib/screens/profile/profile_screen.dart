@@ -9,7 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../services/api_service.dart';
+import '../../services/i_api_client.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
 
@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
     final cvCount = cvProvider.cvs.length;
 
     return AppScaffold(
-        currentIndex: 3,
+      currentIndex: 3,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -283,7 +283,7 @@ class ProfileScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final data = await ApiService().exportUserData();
+      final data = await context.read<IApiClient>().exportUserData();
       const encoder = JsonEncoder.withIndent('  ');
       await Clipboard.setData(ClipboardData(text: encoder.convert(data)));
       if (!context.mounted) return;
@@ -318,7 +318,7 @@ class ProfileScreen extends StatelessWidget {
               final rootContext = context;
               Navigator.pop(ctx);
               try {
-                await ApiService().deleteAccount();
+                await context.read<IApiClient>().deleteAccount();
                 if (!rootContext.mounted) return;
                 rootContext.read<AuthProvider>().logout();
                 rootContext.go('/landing');

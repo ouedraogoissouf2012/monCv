@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/error/result.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
-import '../services/api_service.dart';
+import '../services/i_api_client.dart';
 import 'ai_button.dart';
 
 /// Bottom sheet d'amelioration IA — 3 niveaux : Lite / Medium / Max
@@ -73,10 +73,10 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
       _result = null;
     });
     try {
-      final result = await ApiService().enhanceCv(
-        widget.cv.id!,
-        _selectedLevel,
-      );
+      final result = await context.read<IApiClient>().enhanceCv(
+            widget.cv.id!,
+            _selectedLevel,
+          );
       if (!mounted) return;
       setState(() {
         _result = result;
