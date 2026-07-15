@@ -6,8 +6,9 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF1847D6),
+      backgroundColor: colors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -17,30 +18,31 @@ class SplashScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colors.onPrimary,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: colors.shadow.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.description_outlined,
                 size: 44,
-                color: Color(0xFF1847D6),
+                color: colors.primary,
+                semanticLabel: 'MonCV',
               ),
             ),
             const SizedBox(height: 24),
             // Nom
-            const Text(
+            Text(
               'MonCV',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w800,
-                color: Colors.white,
+                color: colors.onPrimary,
                 letterSpacing: 2,
               ),
             ),
@@ -49,7 +51,7 @@ class SplashScreen extends StatelessWidget {
               'Creez votre CV professionnel',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.7),
+                color: colors.onPrimary.withValues(alpha: 0.9),
               ),
             ),
             const SizedBox(height: 48),
@@ -60,7 +62,7 @@ class SplashScreen extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
                 valueColor: AlwaysStoppedAnimation(
-                  Colors.white.withValues(alpha: 0.8),
+                  colors.onPrimary.withValues(alpha: 0.9),
                 ),
               ),
             ),
