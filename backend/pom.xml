@@ -23,6 +23,7 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <flyway.version>11.7.2</flyway.version>
         <bucket4j.version>8.19.0</bucket4j.version>
         <argLine></argLine>
@@ -231,6 +232,12 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>${okhttp.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -361,6 +368,20 @@
                                         <exclude>com.cvmobile.service.notification.NotificationService</exclude>
                                         <exclude>com.cvmobile.service.pdf.template.AbstractPdfTemplate</exclude>
                                     </excludes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>80%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>com.cvmobile.config.AppStartupValidator</include>
+                                        <include>com.cvmobile.config.DeepSeekHealthIndicator</include>
+                                    </includes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>

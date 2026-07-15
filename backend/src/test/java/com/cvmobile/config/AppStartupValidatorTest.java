@@ -4,12 +4,18 @@ import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.service.ai.client.DeepSeekClient;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -19,7 +25,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(OutputCaptureExtension.class)
 class AppStartupValidatorTest {
+
+    private static final Map<String, Object> PRODUCTION_SECRETS = Map.of(
+            "DEEPSEEK_API_KEY", "deepseek-secret-value",
+            "JWT_SECRET", "jwt-secret-value-with-enough-length",
+            "DB_PASSWORD", "database-secret-value",
+            "ALLOWED_ORIGINS", "https://app.example.com");
 
     @Test
     void applicationContextFailsWithoutDatabasePassword() {
@@ -48,6 +61,32 @@ class AppStartupValidatorTest {
     }
 
     @Test
+    void testProfileReturnsBeforeValidationAndDoesNotLogBanner(CapturedOutput output) {
+        AppStartupValidator validator = new AppStartupValidator(environment("test"));
+
+        assertThatCode(validator::validateSecrets).doesNotThrowAnyException();
+
+        org.assertj.core.api.Assertions.assertThat(output)
+                .doesNotContain("CV Mobile Startup Config")
+                .doesNotContain("MISSING");
+    }
+
+    @Test
+    void developmentLogsWarningsButStartsWhenDatabasePasswordExists(CapturedOutput output) {
+        ConfigurableEnvironment environment = environment("dev");
+        environment.getPropertySources().addFirst(new MapPropertySource(
+                "development-secrets", Map.of("DB_PASSWORD", "local-database-password")));
+        AppStartupValidator validator = new AppStartupValidator(environment);
+
+        assertThatCode(validator::validateSecrets).doesNotThrowAnyException();
+
+        org.assertj.core.api.Assertions.assertThat(output)
+                .contains("DEEPSEEK_API_KEY")
+                .contains("MISSING")
+                .contains("DeepSeek desactive");
+    }
+
+    @Test
     void productionContextFailsWhenCriticalSecretsAreMissing() {
         try (var context = validatorContext("prod")) {
             context.getEnvironment().getPropertySources().addFirst(new MapPropertySource(
@@ -60,6 +99,62 @@ class AppStartupValidatorTest {
                     .hasMessageContaining("JWT_SECRET")
                     .hasMessageContaining("ALLOWED_ORIGINS");
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "DEEPSEEK_API_KEY",
+            "JWT_SECRET",
+            "DB_PASSWORD",
+            "ALLOWED_ORIGINS"
+    })
+    void productionFailsForEachMissingRequiredSecret(String missingSecret) {
+        ConfigurableEnvironment environment = environment("prod");
+        Map<String, Object> secrets = new HashMap<>(PRODUCTION_SECRETS);
+        secrets.put(missingSecret, "");
+        environment.getPropertySources().addFirst(new MapPropertySource("test-secrets", secrets));
+        AppStartupValidator validator = new AppStartupValidator(environment);
+
+        assertThatThrownBy(validator::validateSecrets)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(missingSecret);
+    }
+
+    @Test
+    void productionStartsWithAllSecretsAndNeverLogsTheirValues(CapturedOutput output) {
+        ConfigurableEnvironment environment = environment("prod");
+        environment.getPropertySources().addFirst(
+                new MapPropertySource("applicationConfig: [classpath:/application.yml]", PRODUCTION_SECRETS));
+        AppStartupValidator validator = new AppStartupValidator(environment);
+
+        assertThatCode(validator::validateSecrets).doesNotThrowAnyException();
+
+        org.assertj.core.api.Assertions.assertThat(output)
+                .contains("CV Mobile Startup Config")
+                .contains("source: application.yml")
+                .contains("length=");
+        PRODUCTION_SECRETS.values().forEach(secret ->
+                org.assertj.core.api.Assertions.assertThat(output).doesNotContain(secret.toString()));
+    }
+
+    @Test
+    void reportsDotenvSystemEnvironmentAndApplicationSources(CapturedOutput output) {
+        ConfigurableEnvironment environment = environment("prod");
+        environment.getPropertySources().addFirst(new MapPropertySource(
+                "applicationConfig: [classpath:/application.yml]",
+                Map.of("DB_PASSWORD", "database-value", "ALLOWED_ORIGINS", "https://app.example.com")));
+        environment.getPropertySources().addFirst(new MapPropertySource(
+                "systemEnvironment-test", Map.of("JWT_SECRET", "jwt-value")));
+        environment.getPropertySources().addFirst(new MapPropertySource(
+                "dotenv-test", Map.of("DEEPSEEK_API_KEY", "deepseek-value")));
+        AppStartupValidator validator = new AppStartupValidator(environment);
+
+        validator.validateSecrets();
+
+        org.assertj.core.api.Assertions.assertThat(output)
+                .contains("source: dotenv")
+                .contains("source: systemEnvironment")
+                .contains("source: application.yml");
     }
 
     @Test
