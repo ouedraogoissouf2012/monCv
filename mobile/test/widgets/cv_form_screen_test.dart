@@ -6,10 +6,15 @@ import 'package:provider/provider.dart';
 
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
+import 'package:cv_mobile/repositories/cv_repository.dart';
+import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
+import 'package:cv_mobile/core/error/result.dart';
 
 class MockCvProvider extends Mock implements CvProvider {}
+
+class MockCvRepository extends Mock implements CvRepository {}
 
 void _setMobileViewport(WidgetTester tester) {
   tester.view.physicalSize = const Size(430, 900);
@@ -18,6 +23,7 @@ void _setMobileViewport(WidgetTester tester) {
 
 Widget _buildSubject(
   CvProvider cvProvider, {
+  required CvFormController controller,
   String initialLocation = '/cvs/create',
 }) {
   final router = GoRouter(
@@ -36,7 +42,7 @@ Widget _buildSubject(
       ),
       GoRoute(
         path: '/cvs/create',
-        builder: (context, state) => const CvFormScreen(),
+        builder: (context, state) => CvFormScreen(controller: controller),
       ),
     ],
   );
@@ -76,10 +82,19 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final cvProvider = MockCvProvider();
+    final repository = MockCvRepository();
+    final controller = CvFormController(
+      repository: repository,
+      fallbackTitle: 'Mon CV',
+    );
+    addTearDown(controller.dispose);
     when(() => cvProvider.addListener(any())).thenReturn(null);
     when(() => cvProvider.removeListener(any())).thenReturn(null);
 
-    await tester.pumpWidget(_buildSubject(cvProvider));
+    await tester.pumpWidget(_buildSubject(
+      cvProvider,
+      controller: controller,
+    ));
     await tester.pumpAndSettle();
 
     expect(find.text('Nouveau CV'), findsOneWidget);
@@ -95,12 +110,26 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final cvProvider = MockCvProvider();
+    final repository = MockCvRepository();
+    final controller = CvFormController(
+      repository: repository,
+      fallbackTitle: 'Mon CV',
+    );
+    addTearDown(controller.dispose);
     when(() => cvProvider.addListener(any())).thenReturn(null);
     when(() => cvProvider.removeListener(any())).thenReturn(null);
-    when(() => cvProvider.createCv(any())).thenAnswer((_) async => true);
+    when(() => cvProvider.loadCvs()).thenAnswer((_) async {});
+    when(() => repository.createCv(any())).thenAnswer(
+      (invocation) async =>
+          Result.success(invocation.positionalArguments.first as Cv),
+    );
 
     await tester.pumpWidget(
-      _buildSubject(cvProvider, initialLocation: '/home'),
+      _buildSubject(
+        cvProvider,
+        controller: controller,
+        initialLocation: '/home',
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -120,7 +149,7 @@ void main() {
     await tester.tap(find.text('Enregistrer le CV'));
     await tester.pumpAndSettle();
 
-    verify(() => cvProvider.createCv(any(
+    verify(() => repository.createCv(any(
           that: isA<Cv>().having(
             (cv) => cv.personalInfo?.prenom,
             'prenom',
