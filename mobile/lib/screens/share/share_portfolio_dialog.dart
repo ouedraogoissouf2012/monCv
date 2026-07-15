@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/cv.dart';
 import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
+import '../../utils/app_colors.dart';
 import '../../widgets/public_qr_code.dart';
 
 class SharePortfolioDialog extends StatefulWidget {
@@ -136,7 +137,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
       children: [
         const Text(
           'Ce lien ouvre une présentation professionnelle de votre CV sans connexion.',
-          style: TextStyle(color: Color(0xFF64748B), height: 1.4),
+          style: TextStyle(color: AppColors.neutral500, height: 1.4),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -162,7 +163,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: AppColors.neutral75,
             borderRadius: BorderRadius.circular(6),
           ),
           child: SelectableText(url,
@@ -242,12 +243,12 @@ class _Metric extends StatelessWidget {
       width: 164,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.neutral150),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF2563EB)),
+          Icon(icon, size: 20, color: AppColors.primary),
           const SizedBox(width: 9),
           Expanded(
             child: Column(
@@ -260,7 +261,7 @@ class _Metric extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF64748B))),
+                        fontSize: 11, color: AppColors.neutral500)),
               ],
             ),
           ),

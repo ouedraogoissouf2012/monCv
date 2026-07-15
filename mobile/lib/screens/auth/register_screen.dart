@@ -6,16 +6,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/error_helper.dart';
 
 // Même palette que login
-const _kBlue = Color(0xFF1847D6);
-const _kBg = Color(0xFFF5F3EE);
-const _kText = Color(0xFF1A1A18);
-const _kMuted = Color(0xFF7A7A72);
-const _kBorder = Color(0xFFDDDBD4);
-const _kWhite = Color(0xFFFFFFFF);
-const _kFieldBg = Color(0xFFFAFAF8);
+const _kBlue = AppColors.brandBlue;
+const _kBg = AppColors.warmBackground;
+const _kText = AppColors.neutral850;
+const _kMuted = AppColors.neutral400;
+const _kBorder = AppColors.neutral200;
+const _kWhite = AppColors.white;
+const _kFieldBg = AppColors.warmSurface;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -57,10 +58,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       color = Colors.orange;
     } else if (strength < 0.8) {
       label = 'good';
-      color = const Color(0xFF2563EB);
+      color = AppColors.primary;
     } else {
       label = 'strong';
-      color = const Color(0xFF10B981);
+      color = AppColors.success;
     }
 
     setState(() {
@@ -167,12 +168,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           border: Border.all(color: _kBorder, width: 0.5),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x12000000),
+              color: AppColors.shadowMedium,
               blurRadius: 64,
               offset: Offset(0, 24),
             ),
             BoxShadow(
-              color: Color(0x0A000000),
+              color: AppColors.shadowSoft,
               blurRadius: 16,
               offset: Offset(0, 4),
             ),
@@ -477,7 +478,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: const TextStyle(fontSize: 14, color: _kText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFBBB9B2)),
+            hintStyle: const TextStyle(color: AppColors.neutral250),
             prefixIcon: Icon(icon, size: 18, color: _kMuted),
             prefixIconConstraints: BoxConstraints(
               minWidth: compact ? 38 : 46,

@@ -6,16 +6,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/error_helper.dart';
 
 // ── Palette ─────────────────────────────────────────────────────
-const _kBlue = Color(0xFF1847D6);
-const _kBg = Color(0xFFF5F3EE);
-const _kText = Color(0xFF1A1A18);
-const _kMuted = Color(0xFF7A7A72);
-const _kBorder = Color(0xFFDDDBD4);
-const _kWhite = Color(0xFFFFFFFF);
-const _kFieldBg = Color(0xFFFAFAF8);
+const _kBlue = AppColors.brandBlue;
+const _kBg = AppColors.warmBackground;
+const _kText = AppColors.neutral850;
+const _kMuted = AppColors.neutral400;
+const _kBorder = AppColors.neutral200;
+const _kWhite = AppColors.white;
+const _kFieldBg = AppColors.warmSurface;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -55,7 +56,8 @@ class _LoginScreenState extends State<LoginScreen>
     final ok = await auth.login(
         email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!ok && mounted) {
-      ErrorHelper.showError(context, auth.error ?? AppLocalizations.of(context)!.loginError,
+      ErrorHelper.showError(
+          context, auth.error ?? AppLocalizations.of(context)!.loginError,
           onRetry: _login);
     }
   }
@@ -70,16 +72,28 @@ class _LoginScreenState extends State<LoginScreen>
           const _GridBackground(),
           // Orbes flottantes
           const _FloatingOrb(
-            size: 500, color: _kBlue, opacity: 0.10,
-            top: -100, right: -100, delay: 0,
+            size: 500,
+            color: _kBlue,
+            opacity: 0.10,
+            top: -100,
+            right: -100,
+            delay: 0,
           ),
           const _FloatingOrb(
-            size: 400, color: _kBlue, opacity: 0.06,
-            bottom: -80, left: -80, delay: 3,
+            size: 400,
+            color: _kBlue,
+            opacity: 0.06,
+            bottom: -80,
+            left: -80,
+            delay: 3,
           ),
           const _FloatingOrb(
-            size: 300, color: Color(0xFF7864C8), opacity: 0.07,
-            top: 200, left: 150, delay: 6,
+            size: 300,
+            color: AppColors.violetMuted,
+            opacity: 0.07,
+            top: 200,
+            left: 150,
+            delay: 6,
           ),
           // Contenu
           Center(
@@ -115,12 +129,12 @@ class _LoginScreenState extends State<LoginScreen>
           border: Border.all(color: _kBorder, width: 0.5),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x12000000),
+              color: AppColors.shadowMedium,
               blurRadius: 64,
               offset: Offset(0, 24),
             ),
             BoxShadow(
-              color: Color(0x0A000000),
+              color: AppColors.shadowSoft,
               blurRadius: 16,
               offset: Offset(0, 4),
             ),
@@ -167,11 +181,15 @@ class _LoginScreenState extends State<LoginScreen>
                       suffixIcon: GestureDetector(
                         onTap: () => setState(() => _obscure = !_obscure),
                         child: Icon(
-                          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          size: 18, color: _kMuted,
+                          _obscure
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          size: 18,
+                          color: _kMuted,
                         ),
                       ),
-                      validator: (v) => (v == null || v.isEmpty) ? l.fieldRequired : null,
+                      validator: (v) =>
+                          (v == null || v.isEmpty) ? l.fieldRequired : null,
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -184,7 +202,8 @@ class _LoginScreenState extends State<LoginScreen>
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(l.forgotPassword,
-                          style: const TextStyle(fontSize: 12, color: _kMuted)),
+                            style:
+                                const TextStyle(fontSize: 12, color: _kMuted)),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -194,11 +213,15 @@ class _LoginScreenState extends State<LoginScreen>
                       alignment: WrapAlignment.center,
                       children: [
                         Text('${l.noAccount} ',
-                          style: const TextStyle(fontSize: 13, color: _kMuted)),
+                            style:
+                                const TextStyle(fontSize: 13, color: _kMuted)),
                         GestureDetector(
                           onTap: () => context.go('/register'),
                           child: Text(l.register,
-                            style: const TextStyle(fontSize: 13, color: _kBlue, fontWeight: FontWeight.w600)),
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: _kBlue,
+                                  fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
@@ -219,18 +242,22 @@ class _LoginScreenState extends State<LoginScreen>
     return Row(
       children: [
         Container(
-          width: 38, height: 38,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             color: _kBlue,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.description_outlined, size: 20, color: _kWhite),
+          child:
+              const Icon(Icons.description_outlined, size: 20, color: _kWhite),
         ),
         const SizedBox(width: 10),
         Text(
           'MonCV',
           style: GoogleFonts.playfairDisplay(
-            fontSize: 20, fontWeight: FontWeight.w500, color: _kText,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: _kText,
           ),
         ),
       ],
@@ -245,13 +272,17 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           l.welcomeBack,
           style: GoogleFonts.playfairDisplay(
-            fontSize: 32, fontWeight: FontWeight.w400,
-            color: _kText, height: 1.2, letterSpacing: -0.5,
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            color: _kText,
+            height: 1.2,
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 6),
         Text(l.welcomeSubtitle,
-          style: const TextStyle(fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300)),
+            style: const TextStyle(
+                fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300)),
       ],
     );
   }
@@ -272,8 +303,10 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           label.toUpperCase(),
           style: const TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w500,
-            letterSpacing: 0.8, color: _kMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.8,
+            color: _kMuted,
           ),
         ),
         const SizedBox(height: 7),
@@ -285,15 +318,17 @@ class _LoginScreenState extends State<LoginScreen>
           style: const TextStyle(fontSize: 14, color: _kText),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFBBB9B2)),
+            hintStyle: const TextStyle(color: AppColors.neutral250),
             prefixIcon: Icon(icon, size: 18, color: _kMuted),
             suffixIcon: suffixIcon != null
-                ? Padding(padding: const EdgeInsets.only(right: 8), child: suffixIcon)
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8), child: suffixIcon)
                 : null,
             suffixIconConstraints: const BoxConstraints(maxHeight: 24),
             filled: true,
             fillColor: _kFieldBg,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: _kBorder, width: 0.5),
@@ -333,7 +368,8 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           child: auth.isLoading
               ? const SizedBox(
-                  width: 20, height: 20,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation(_kWhite),
@@ -341,7 +377,10 @@ class _LoginScreenState extends State<LoginScreen>
                 )
               : Text(
                   AppLocalizations.of(context)!.login,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.3),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.3),
                 ),
         ),
       ),
@@ -383,7 +422,8 @@ class _FeatureChip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 5, height: 5,
+          width: 5,
+          height: 5,
           decoration: BoxDecoration(
             color: _kBlue.withValues(alpha: 0.5),
             shape: BoxShape.circle,
@@ -444,7 +484,10 @@ class _FloatingOrb extends StatefulWidget {
     required this.size,
     required this.color,
     required this.opacity,
-    this.top, this.right, this.bottom, this.left,
+    this.top,
+    this.right,
+    this.bottom,
+    this.left,
     required this.delay,
   });
 
@@ -487,10 +530,14 @@ class _FloatingOrbState extends State<_FloatingOrb>
       builder: (_, child) {
         final t = _ctrl.value;
         return Positioned(
-          top: widget.top != null ? widget.top! + 20 * math.sin(t * math.pi) : null,
+          top: widget.top != null
+              ? widget.top! + 20 * math.sin(t * math.pi)
+              : null,
           right: widget.right,
           bottom: widget.bottom,
-          left: widget.left != null ? widget.left! + 15 * math.cos(t * math.pi) : null,
+          left: widget.left != null
+              ? widget.left! + 15 * math.cos(t * math.pi)
+              : null,
           child: child!,
         );
       },
@@ -511,4 +558,3 @@ class _FloatingOrbState extends State<_FloatingOrb>
     );
   }
 }
-

@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import '../utils/app_colors.dart';
+
 class CvStyle {
   final String templateId;
   final Color primaryColor;
@@ -7,7 +9,7 @@ class CvStyle {
 
   const CvStyle({
     this.templateId = 'moderne',
-    this.primaryColor = const Color(0xFF2563EB),
+    this.primaryColor = AppColors.primary,
     this.fontFamily = 'Roboto',
   });
 
@@ -16,53 +18,53 @@ class CvStyle {
       id: 'moderne',
       label: 'Moderne',
       description: 'Corporate polyvalent pour PME et candidatures locales',
-      previewColor: Color(0xFF2563EB),
+      previewColor: AppColors.primary,
     ),
     CvTemplateInfo(
       id: 'classique',
       label: 'Classique',
       description: 'Sobre, lisible et compatible ATS',
-      previewColor: Color(0xFF374151),
+      previewColor: AppColors.neutral700,
     ),
     CvTemplateInfo(
       id: 'minimaliste',
       label: 'Junior',
       description: 'Épuré pour stages, premiers emplois et reconversion',
-      previewColor: Color(0xFF6366F1),
+      previewColor: AppColors.indigo,
     ),
     CvTemplateInfo(
       id: 'creatif',
       label: 'Tech',
       description: 'Bicolonne pour projets, stack et réalisations',
-      previewColor: Color(0xFFEC4899),
+      previewColor: AppColors.pink,
     ),
     CvTemplateInfo(
       id: 'executive',
       label: 'Senior',
       description: 'Cadre supérieur, management et expertise',
-      previewColor: Color(0xFF1E3A5F),
+      previewColor: AppColors.neutral750,
     ),
     CvTemplateInfo(
       id: 'ats',
       label: 'ATS-Safe',
       description: 'International, 1 colonne, sans éléments graphiques',
-      previewColor: Color(0xFF111827),
+      previewColor: AppColors.neutral900,
     ),
   ];
 
   static const List<Color> paletteColors = [
-    Color(0xFF2563EB), // Bleu
-    Color(0xFF1E3A5F), // Marine
-    Color(0xFF374151), // Ardoise
-    Color(0xFF6366F1), // Indigo
-    Color(0xFFEC4899), // Rose
-    Color(0xFF10B981), // Emeraude
-    Color(0xFFF59E0B), // Ambre
-    Color(0xFFEF4444), // Rouge
-    Color(0xFF8B5CF6), // Violet
-    Color(0xFF14B8A6), // Teal
-    Color(0xFF000000), // Noir
-    Color(0xFF64748B), // Gris bleu
+    AppColors.primary, // Bleu
+    AppColors.neutral750, // Marine
+    AppColors.neutral700, // Ardoise
+    AppColors.indigo, // Indigo
+    AppColors.pink, // Rose
+    AppColors.green, // Emeraude
+    AppColors.amber, // Ambre
+    AppColors.redStrong, // Rouge
+    AppColors.violet, // Violet
+    AppColors.tealLight, // Teal
+    AppColors.black, // Noir
+    AppColors.neutral500, // Gris bleu
   ];
 
   static const List<String> fontFamilies = [

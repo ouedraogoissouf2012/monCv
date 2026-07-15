@@ -10,6 +10,7 @@ import '../../providers/cv_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/i_api_client.dart';
+import '../../utils/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
 
@@ -94,7 +95,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.download_outlined,
                     label: l.downloads,
                     value: '—',
-                    color: const Color(0xFF10B981),
+                    color: AppColors.success,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -103,7 +104,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.share_outlined,
                     label: l.shares,
                     value: '—',
-                    color: const Color(0xFF6366F1),
+                    color: AppColors.indigo,
                   ),
                 ),
               ],
@@ -290,7 +291,7 @@ class ProfileScreen extends StatelessWidget {
       messenger.showSnackBar(SnackBar(
         content: Text(l.exportCopied),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Color(0xFF10B981),
+        backgroundColor: AppColors.success,
       ));
     } catch (e) {
       if (!context.mounted) return;

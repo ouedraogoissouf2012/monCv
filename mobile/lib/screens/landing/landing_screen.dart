@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/app_colors.dart';
 
-const _kBlue = Color(0xFF1847D6);
-const _kBg = Color(0xFFF5F3EE);
+const _kBlue = AppColors.brandBlue;
+const _kBg = AppColors.warmBackground;
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -185,7 +186,7 @@ class _StatChip extends StatelessWidget {
       Text(
         label,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+        style: const TextStyle(fontSize: 12, color: AppColors.neutral450),
       ),
     ]);
   }
@@ -201,21 +202,13 @@ class _FeaturesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final features = [
-      (
-        Icons.auto_awesome_rounded,
-        l.aiFeatureTitle,
-        l.aiFeatureDescription
-      ),
+      (Icons.auto_awesome_rounded, l.aiFeatureTitle, l.aiFeatureDescription),
       (
         Icons.picture_as_pdf_outlined,
         l.templatesFeatureTitle,
         l.templatesFeatureDescription
       ),
-      (
-        Icons.work_outline_rounded,
-        l.atsFeatureTitle,
-        l.atsFeatureDescription
-      ),
+      (Icons.work_outline_rounded, l.atsFeatureTitle, l.atsFeatureDescription),
       (
         Icons.description_outlined,
         l.docxFeatureTitle,
@@ -243,7 +236,7 @@ class _FeaturesSection extends StatelessWidget {
         const SizedBox(height: 8),
         Text(l.allYouNeedSubtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+            style: TextStyle(fontSize: 14, color: AppColors.neutral450)),
         const SizedBox(height: 40),
         // 4 premieres cartes
         Wrap(
@@ -288,7 +281,7 @@ class _FeatureCard extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E7EB))),
+          border: Border.all(color: AppColors.neutral100)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
             width: 48,
@@ -303,7 +296,7 @@ class _FeatureCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(desc,
             style: const TextStyle(
-                fontSize: 13, color: Color(0xFF6B7280), height: 1.5)),
+                fontSize: 13, color: AppColors.neutral450, height: 1.5)),
       ]),
     );
   }
@@ -321,13 +314,13 @@ class _PreviewSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
-      color: const Color(0xFFF9FAFB),
+      color: AppColors.sectionSurface,
       child: Column(children: [
         Text(l.clearCvTitle,
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Text(l.clearCvSubtitle,
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280))),
+            style: TextStyle(fontSize: 14, color: AppColors.neutral450)),
         const SizedBox(height: 32),
         // Mockup CV
         Container(
@@ -375,11 +368,10 @@ class _PreviewSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _mockSection(l.sampleProfile),
-                    Text(
-                        l.sampleProfileText,
+                    Text(l.sampleProfileText,
                         style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF374151),
+                            color: AppColors.neutral700,
                             height: 1.5)),
                     const SizedBox(height: 12),
                     _mockSection(l.sampleSkills),
@@ -420,7 +412,7 @@ class _PreviewSection extends StatelessWidget {
                         ]),
                     Text(l.sampleCandidateCompany,
                         style: const TextStyle(
-                            fontSize: 9, color: Color(0xFF6B7280))),
+                            fontSize: 9, color: AppColors.neutral450)),
                   ]),
             ),
           ]),
@@ -495,7 +487,7 @@ class _HowItWorks extends StatelessWidget {
         Text(desc,
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontSize: 13, color: Color(0xFF6B7280), height: 1.5)),
+                fontSize: 13, color: AppColors.neutral450, height: 1.5)),
       ]));
 }
 
@@ -549,7 +541,7 @@ class _Footer extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      color: const Color(0xFF111827),
+      color: AppColors.neutral900,
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Icon(Icons.description_outlined, size: 18, color: Colors.white),

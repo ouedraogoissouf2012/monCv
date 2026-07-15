@@ -6,6 +6,7 @@ import '../../models/cv.dart';
 import '../../models/cv_style.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/pdf_service.dart';
+import '../../utils/app_colors.dart';
 import '../../widgets/cv_preview.dart';
 import '../../widgets/ai_enhance_sheet.dart';
 import '../../widgets/job_match_sheet.dart';
@@ -43,7 +44,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
         messenger.showSnackBar(SnackBar(
           content: Text(l.pdfDownloaded),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: AppColors.success,
         ));
       }
     } catch (e) {
@@ -71,7 +72,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
         messenger.showSnackBar(SnackBar(
           content: Text(l.docxDownloaded),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: AppColors.success,
         ));
       }
     } catch (e) {
@@ -112,7 +113,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
               : l.aiSuggestionsApplied
           : l.applicationError),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: ok ? const Color(0xFF10B981) : Colors.red,
+      backgroundColor: ok ? AppColors.success : Colors.red,
     ));
   }
 
@@ -201,7 +202,7 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(l.adaptedVariantCreated),
                           behavior: SnackBarBehavior.floating,
-                          backgroundColor: Color(0xFF10B981),
+                          backgroundColor: AppColors.success,
                         ));
                       }
                     }
@@ -314,7 +315,7 @@ class _CvStylePageState extends State<_CvStylePage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(l.pdfDownloaded),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: AppColors.success,
         ));
       }
     } catch (e) {
@@ -488,7 +489,7 @@ class _CvStylePageState extends State<_CvStylePage> {
   Widget _buildPreviewPane() {
     final l = AppLocalizations.of(context)!;
     return Container(
-      color: const Color(0xFFF5F5F5),
+      color: AppColors.previewSurface,
       child: Column(
         children: [
           Padding(

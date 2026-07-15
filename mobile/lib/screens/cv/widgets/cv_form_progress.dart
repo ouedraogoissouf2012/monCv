@@ -121,7 +121,7 @@ class _CompletionBar extends StatelessWidget {
 
   Color _barColor(ColorScheme cs) {
     if (percent < 35) return cs.error;
-    if (percent < 70) return const Color(0xFFF59E0B);
+    if (percent < 70) return AppColors.warning;
     return AppColors.success;
   }
 

@@ -17,7 +17,7 @@ class _DesktopLayout extends StatelessWidget {
 
   Color _barColor(ColorScheme cs, int pct) {
     if (pct < 35) return cs.error;
-    if (pct < 70) return const Color(0xFFF59E0B);
+    if (pct < 70) return AppColors.warning;
     return AppColors.success;
   }
 
