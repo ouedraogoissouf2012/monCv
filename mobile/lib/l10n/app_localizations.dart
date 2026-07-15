@@ -2875,6 +2875,246 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Archivee'**
   String get applicationArchived;
+
+  /// No description provided for @downloadQrCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Télécharger le QR code'**
+  String get downloadQrCode;
+
+  /// No description provided for @portfolioQrCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'QR code du portfolio'**
+  String get portfolioQrCode;
+
+  /// No description provided for @showQrCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le QR code'**
+  String get showQrCode;
+
+  /// No description provided for @shareViaWhatsApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager par WhatsApp'**
+  String get shareViaWhatsApp;
+
+  /// No description provided for @contact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contact'**
+  String get contact;
+
+  /// No description provided for @contactCandidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contacter le candidat'**
+  String get contactCandidate;
+
+  /// No description provided for @publicPortfolioUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce portfolio est indisponible ou son propriétaire l\'a désactivé.'**
+  String get publicPortfolioUnavailable;
+
+  /// No description provided for @publicRecruiterPortfolio.
+  ///
+  /// In fr, this message translates to:
+  /// **'Portfolio public recruteur'**
+  String get publicRecruiterPortfolio;
+
+  /// No description provided for @publicLinkActivationFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'activer le lien public.'**
+  String get publicLinkActivationFailed;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver'**
+  String get deactivate;
+
+  /// No description provided for @publicPortfolioDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce lien ouvre une présentation professionnelle de votre CV sans connexion.'**
+  String get publicPortfolioDescription;
+
+  /// No description provided for @regeneratePublicLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Régénérer le lien'**
+  String get regeneratePublicLink;
+
+  /// No description provided for @allowPublicContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser le contact'**
+  String get allowPublicContact;
+
+  /// No description provided for @allowPublicContactDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Affiche l\'e-mail et le bouton de contact.'**
+  String get allowPublicContactDescription;
+
+  /// No description provided for @allowPublicDownloads.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser PDF et DOCX'**
+  String get allowPublicDownloads;
+
+  /// No description provided for @allowPublicDownloadsDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les fichiers contiennent les coordonnées autorisées du CV.'**
+  String get allowPublicDownloadsDescription;
+
+  /// No description provided for @privacyControlTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos données restent sous votre contrôle'**
+  String get privacyControlTitle;
+
+  /// No description provided for @privacyIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'MonCV stocke les informations nécessaires à la création, l\'édition, l\'export et le partage de vos CV.'**
+  String get privacyIntro;
+
+  /// No description provided for @privacyStoredDataTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données stockées'**
+  String get privacyStoredDataTitle;
+
+  /// No description provided for @privacyStoredAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte : email, nom et prénom.'**
+  String get privacyStoredAccount;
+
+  /// No description provided for @privacyStoredCv.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV : identité, contacts, expériences, formations, compétences, langues, certifications, projets, style et liens de partage.'**
+  String get privacyStoredCv;
+
+  /// No description provided for @privacyStoredFiles.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichiers : photos importées et documents générés localement selon les actions demandées.'**
+  String get privacyStoredFiles;
+
+  /// No description provided for @privacyAiTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisation de l\'IA'**
+  String get privacyAiTitle;
+
+  /// No description provided for @privacyAiConsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun contenu de CV n\'est envoyé à l\'IA sans consentement explicite dans l\'écran concerné.'**
+  String get privacyAiConsent;
+
+  /// No description provided for @privacyAiReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les résultats IA sont affichés avant application et peuvent être refusés.'**
+  String get privacyAiReview;
+
+  /// No description provided for @privacyAiFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'En absence de clé IA, l\'application utilise des corrections locales limitées quand elles existent.'**
+  String get privacyAiFallback;
+
+  /// No description provided for @privacyRightsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos droits'**
+  String get privacyRightsTitle;
+
+  /// No description provided for @privacyRightsExport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez exporter vos données depuis le profil.'**
+  String get privacyRightsExport;
+
+  /// No description provided for @privacyRightsDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez supprimer votre compte depuis le profil.'**
+  String get privacyRightsDelete;
+
+  /// No description provided for @privacyRightsCascade.
+  ///
+  /// In fr, this message translates to:
+  /// **'La suppression du compte supprime aussi les CV rattachés côté backend.'**
+  String get privacyRightsCascade;
+
+  /// No description provided for @privacyPwaTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité PWA'**
+  String get privacyPwaTitle;
+
+  /// No description provided for @privacyPwaHttps.
+  ///
+  /// In fr, this message translates to:
+  /// **'En production, l\'application doit utiliser HTTPS et une API HTTPS.'**
+  String get privacyPwaHttps;
+
+  /// No description provided for @privacyPwaStorage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le stockage web des tokens repose sur le stockage local du navigateur : utilisez un appareil de confiance.'**
+  String get privacyPwaStorage;
+
+  /// No description provided for @privacyPwaEnterprise.
+  ///
+  /// In fr, this message translates to:
+  /// **'La cible recommandée pour une version entreprise est une session serveur avec cookies HttpOnly/SameSite.'**
+  String get privacyPwaEnterprise;
+
+  /// No description provided for @countryDialCodeAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indicatif {code} ajouté selon le pays'**
+  String countryDialCodeAdded(String code);
+
+  /// No description provided for @educationCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0 {Aucune formation} =1 {1 formation} other {{count} formations}}'**
+  String educationCount(int count);
+
+  /// No description provided for @experienceCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0 {Aucune expérience} =1 {1 expérience} other {{count} expériences}}'**
+  String experienceCount(int count);
+
+  /// No description provided for @skillCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0 {Aucune compétence} =1 {1 compétence} other {{count} compétences}}'**
+  String skillCount(int count);
+
+  /// No description provided for @languageCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0 {Aucune langue} =1 {1 langue} other {{count} langues}}'**
+  String languageCount(int count);
+
+  /// No description provided for @modifiedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifié le {date}'**
+  String modifiedOn(String date);
 }
 
 class _AppLocalizationsDelegate

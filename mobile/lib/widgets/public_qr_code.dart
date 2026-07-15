@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../l10n/app_localizations.dart';
 import '../utils/app_colors.dart';
 import '../utils/pdf_saver.dart';
 
@@ -49,6 +50,7 @@ class _PublicQrCodeState extends State<PublicQrCode> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -84,7 +86,7 @@ class _PublicQrCodeState extends State<PublicQrCode> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.download_outlined, size: 18),
-            label: const Text('Télécharger le QR code'),
+            label: Text(l.downloadQrCode),
           ),
         ],
       ],

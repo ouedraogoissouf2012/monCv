@@ -72,6 +72,10 @@ jobs:
         working-directory: mobile
         run: flutter pub get
 
+      - name: Generate localizations
+        working-directory: mobile
+        run: flutter gen-l10n
+
       - name: Analyze
         working-directory: mobile
         run: flutter analyze --no-fatal-infos

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
+
 class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
@@ -15,7 +18,7 @@ class PrivacyScreen extends StatelessWidget {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/landing'),
         ),
-        title: const Text('Confidentialité'),
+        title: Text(l.privacy),
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
@@ -24,7 +27,7 @@ class PrivacyScreen extends StatelessWidget {
               size: 42, color: colorScheme.primary),
           const SizedBox(height: 14),
           Text(
-            'Vos données restent sous votre contrôle',
+            l.privacyControlTitle,
             style: Theme.of(context)
                 .textTheme
                 .headlineSmall
@@ -32,40 +35,40 @@ class PrivacyScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'MonCV stocke les informations nécessaires à la création, l’édition, l’export et le partage de vos CV.',
+            l.privacyIntro,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
-          const _PrivacySection(
-            title: 'Données stockées',
+          _PrivacySection(
+            title: l.privacyStoredDataTitle,
             items: [
-              'Compte: email, nom et prénom.',
-              'CV: identité, contacts, expériences, formations, compétences, langues, certifications, projets, style et liens de partage.',
-              'Fichiers: photos importées et documents générés localement selon les actions demandées.',
+              l.privacyStoredAccount,
+              l.privacyStoredCv,
+              l.privacyStoredFiles,
             ],
           ),
-          const _PrivacySection(
-            title: 'Utilisation de l’IA',
+          _PrivacySection(
+            title: l.privacyAiTitle,
             items: [
-              'Aucun contenu de CV n’est envoyé à l’IA sans consentement explicite dans l’écran concerné.',
-              'Les résultats IA sont affichés avant application et peuvent être refusés.',
-              'En absence de clé IA, l’application utilise des corrections locales limitées quand elles existent.',
+              l.privacyAiConsent,
+              l.privacyAiReview,
+              l.privacyAiFallback,
             ],
           ),
-          const _PrivacySection(
-            title: 'Vos droits',
+          _PrivacySection(
+            title: l.privacyRightsTitle,
             items: [
-              'Vous pouvez exporter vos données depuis le profil.',
-              'Vous pouvez supprimer votre compte depuis le profil.',
-              'La suppression du compte supprime aussi les CV rattachés côté backend.',
+              l.privacyRightsExport,
+              l.privacyRightsDelete,
+              l.privacyRightsCascade,
             ],
           ),
-          const _PrivacySection(
-            title: 'Sécurité PWA',
+          _PrivacySection(
+            title: l.privacyPwaTitle,
             items: [
-              'En production, l’application doit utiliser HTTPS et une API HTTPS.',
-              'Le stockage web des tokens repose sur le stockage local du navigateur: utilisez un appareil de confiance.',
-              'La cible recommandée pour une version entreprise est une session serveur avec cookies HttpOnly/SameSite.',
+              l.privacyPwaHttps,
+              l.privacyPwaStorage,
+              l.privacyPwaEnterprise,
             ],
           ),
         ],

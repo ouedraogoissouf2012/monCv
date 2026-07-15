@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../utils/app_colors.dart';
 
@@ -9,6 +10,7 @@ class ThemeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final l = AppLocalizations.of(context)!;
 
     final themes = [
       (
@@ -38,7 +40,7 @@ class ThemeSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Thème',
+          l.theme,
           style: Theme.of(context)
               .textTheme
               .titleSmall

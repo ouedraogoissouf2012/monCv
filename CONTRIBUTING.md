@@ -61,6 +61,14 @@ Les sources generees et exceptions legacy sont documentees dans
 `mobile/tool/coverage_excludes.txt`; toute nouvelle exclusion doit etre
 justifiee dans la description de la PR.
 
+### Internationalisation Flutter
+
+Toute nouvelle string affichee dans l'interface doit etre ajoutee dans
+`mobile/lib/l10n/app_fr.arb`, puis traduite dans `app_en.arb`. Ne placez pas de
+texte utilisateur directement dans les widgets. Apres une modification des
+fichiers ARB, executez `flutter gen-l10n` depuis `mobile/` et commitez les
+fichiers de localisation generes.
+
 ## Avant de proposer une PR
 
 - verifier que les docs impactees sont a jour ;

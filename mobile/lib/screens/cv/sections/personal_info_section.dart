@@ -512,7 +512,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
               labelText: l.phone,
               prefixIcon: const Icon(Icons.phone_outlined, size: 20),
               helperText: _paysCtrl.text.isNotEmpty
-                  ? 'Indicatif ${_countryDialCodes[_paysCtrl.text] ?? "auto"} ajouté selon le pays'
+                  ? l.countryDialCodeAdded(
+                      _countryDialCodes[_paysCtrl.text] ?? 'auto')
                   : l.phoneCountryHelper,
               hintText: l.phoneExample,
             ),

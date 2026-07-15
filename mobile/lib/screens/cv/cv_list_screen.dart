@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../utils/constants.dart';
@@ -37,6 +38,7 @@ class _CvCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l = AppLocalizations.of(context)!;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -100,24 +102,25 @@ class _CvCard extends StatelessWidget {
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('Modifier'),
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 8),
+                            Text(l.edit),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: AppColors.error),
-                            SizedBox(width: 8),
-                            Text('Supprimer',
-                                style: TextStyle(color: AppColors.error)),
+                            const Icon(Icons.delete,
+                                size: 20, color: AppColors.error),
+                            const SizedBox(width: 8),
+                            Text(l.delete,
+                                style: const TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
@@ -132,12 +135,12 @@ class _CvCard extends StatelessWidget {
                 children: [
                   _buildInfoChip(
                     Icons.school,
-                    '${cv.educations.length} formation(s)',
+                    l.educationCount(cv.educations.length),
                   ),
                   const SizedBox(width: 12),
                   _buildInfoChip(
                     Icons.work,
-                    '${cv.experiences.length} experience(s)',
+                    l.experienceCount(cv.experiences.length),
                   ),
                 ],
               ),
@@ -146,19 +149,19 @@ class _CvCard extends StatelessWidget {
                 children: [
                   _buildInfoChip(
                     Icons.star,
-                    '${cv.skills.length} competence(s)',
+                    l.skillCount(cv.skills.length),
                   ),
                   const SizedBox(width: 12),
                   _buildInfoChip(
                     Icons.language,
-                    '${cv.languages.length} langue(s)',
+                    l.languageCount(cv.languages.length),
                   ),
                 ],
               ),
               if (cv.updatedAt != null) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Modifie le ${dateFormat.format(cv.updatedAt!)}',
+                  l.modifiedOn(dateFormat.format(cv.updatedAt!)),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -190,15 +193,16 @@ class _CvCard extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer le CV'),
-        content: Text('Voulez-vous vraiment supprimer "${cv.titre}" ?'),
+        title: Text(l.deleteCvTitle),
+        content: Text(l.deleteCvConfirm(cv.titre)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -211,7 +215,7 @@ class _CvCard extends StatelessWidget {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Supprimer'),
+            child: Text(l.delete),
           ),
         ],
       ),
