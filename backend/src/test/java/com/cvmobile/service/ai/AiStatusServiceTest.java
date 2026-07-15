@@ -1,5 +1,7 @@
 package com.cvmobile.service.ai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cvmobile.dto.AiStatusResponse;
 import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.service.ai.client.MockAiClient;
@@ -9,6 +11,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -66,5 +70,52 @@ class AiStatusServiceTest {
 
         assertThat(status.isAvailable()).isFalse();
         assertThat(status.getPrimaryStatus()).isEqualTo("KEY_INVALID");
+    }
+
+    @Test
+    void reportsAvailableWhenPrimaryAndFallbackAreUp() {
+        AiStatusResponse status = service.currentStatus();
+
+        assertThat(status.isAvailable()).isTrue();
+        assertThat(status.getPrimaryStatus()).isEqualTo("UP");
+        assertThat(status.getCircuitBreakerState()).isEqualTo("CLOSED");
+        assertThat(status.isFallbackAvailable()).isTrue();
+        assertThat(status.getFallbackProvider()).isEqualTo("mock");
+    }
+
+    @Test
+    void reportsUnavailableWhenCircuitIsOpenAndFallbackIsDisabled() {
+        ReflectionTestUtils.setField(service, "fallbackEnabled", false);
+        ReflectionTestUtils.setField(service, "mockAiClient", null);
+        circuitBreaker.transitionToOpenState();
+
+        AiStatusResponse status = service.currentStatus();
+
+        assertThat(status.isAvailable()).isFalse();
+        assertThat(status.getPrimaryStatus()).isEqualTo("CIRCUIT_OPEN");
+        assertThat(status.getCircuitBreakerState()).isEqualTo("OPEN");
+        assertThat(status.isFallbackAvailable()).isFalse();
+    }
+
+    @Test
+    void serializesPublicStatusContract() {
+        AiStatusResponse status = service.currentStatus();
+        JsonNode json = new ObjectMapper().findAndRegisterModules().valueToTree(status);
+
+        List.of(
+                "available",
+                "primaryProvider",
+                "primaryStatus",
+                "circuitBreakerState",
+                "latencyP50Ms",
+                "latencyP95Ms",
+                "errorRatePercent",
+                "fallbackInUse",
+                "fallbackAvailable",
+                "lastChecked",
+                "checkedAt")
+                .forEach(field -> assertThat(json.has(field)).as(field).isTrue());
+        assertThat(json.get("primaryProvider").asText()).isEqualTo("deepseek");
+        assertThat(json.get("available").asBoolean()).isTrue();
     }
 }
