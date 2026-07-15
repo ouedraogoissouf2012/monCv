@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
@@ -40,8 +41,8 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
       if (mounted) setState(() => _cv = cv);
     } catch (_) {
       if (mounted) {
-        setState(() => _error =
-            'Ce portfolio est indisponible ou son propriétaire l’a désactivé.');
+        final l = AppLocalizations.of(context)!;
+        setState(() => _error = l.publicPortfolioUnavailable);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -81,15 +82,16 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   }
 
   void _showQr() {
+    final l = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('QR code du portfolio'),
+        title: Text(l.portfolioQrCode),
         content: PublicQrCode(url: _publicUrl),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(l.close),
           ),
         ],
       ),
@@ -164,24 +166,25 @@ class _PublicHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = MediaQuery.sizeOf(context).width < 720;
+    final l = AppLocalizations.of(context)!;
     final actions = <Widget>[
       IconButton(
-        tooltip: 'Afficher le QR code',
+        tooltip: l.showQrCode,
         onPressed: cv == null ? null : onQr,
         icon: const Icon(Icons.qr_code_2_rounded),
       ),
       IconButton(
-        tooltip: 'Partager par WhatsApp',
+        tooltip: l.shareViaWhatsApp,
         onPressed: cv == null ? null : onWhatsApp,
         icon: const Icon(Icons.chat_outlined),
       ),
       if (cv?.publicDownloadsEnabled == true)
         PopupMenuButton<String>(
-          tooltip: 'Télécharger',
+          tooltip: l.download,
           onSelected: onDownload,
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'pdf', child: Text('Télécharger en PDF')),
-            PopupMenuItem(value: 'docx', child: Text('Télécharger en DOCX')),
+          itemBuilder: (context) => [
+            PopupMenuItem(value: 'pdf', child: Text(l.downloadPdf)),
+            PopupMenuItem(value: 'docx', child: Text(l.downloadDocx)),
           ],
           child: Padding(
             padding: const EdgeInsets.all(10),
@@ -198,7 +201,7 @@ class _PublicHeader extends StatelessWidget {
         FilledButton.icon(
           onPressed: onContact,
           icon: const Icon(Icons.mail_outline, size: 18),
-          label: Text(compact ? 'Contact' : 'Contacter le candidat'),
+          label: Text(compact ? l.contact : l.contactCandidate),
         ),
     ];
 

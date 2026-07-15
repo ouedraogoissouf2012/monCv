@@ -1525,4 +1525,181 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get applicationArchived => 'Archivee';
+
+  @override
+  String get downloadQrCode => 'Télécharger le QR code';
+
+  @override
+  String get portfolioQrCode => 'QR code du portfolio';
+
+  @override
+  String get showQrCode => 'Afficher le QR code';
+
+  @override
+  String get shareViaWhatsApp => 'Partager par WhatsApp';
+
+  @override
+  String get contact => 'Contact';
+
+  @override
+  String get contactCandidate => 'Contacter le candidat';
+
+  @override
+  String get publicPortfolioUnavailable =>
+      'Ce portfolio est indisponible ou son propriétaire l\'a désactivé.';
+
+  @override
+  String get publicRecruiterPortfolio => 'Portfolio public recruteur';
+
+  @override
+  String get publicLinkActivationFailed =>
+      'Impossible d\'activer le lien public.';
+
+  @override
+  String get deactivate => 'Désactiver';
+
+  @override
+  String get publicPortfolioDescription =>
+      'Ce lien ouvre une présentation professionnelle de votre CV sans connexion.';
+
+  @override
+  String get regeneratePublicLink => 'Régénérer le lien';
+
+  @override
+  String get allowPublicContact => 'Autoriser le contact';
+
+  @override
+  String get allowPublicContactDescription =>
+      'Affiche l\'e-mail et le bouton de contact.';
+
+  @override
+  String get allowPublicDownloads => 'Autoriser PDF et DOCX';
+
+  @override
+  String get allowPublicDownloadsDescription =>
+      'Les fichiers contiennent les coordonnées autorisées du CV.';
+
+  @override
+  String get privacyControlTitle => 'Vos données restent sous votre contrôle';
+
+  @override
+  String get privacyIntro =>
+      'MonCV stocke les informations nécessaires à la création, l\'édition, l\'export et le partage de vos CV.';
+
+  @override
+  String get privacyStoredDataTitle => 'Données stockées';
+
+  @override
+  String get privacyStoredAccount => 'Compte : email, nom et prénom.';
+
+  @override
+  String get privacyStoredCv =>
+      'CV : identité, contacts, expériences, formations, compétences, langues, certifications, projets, style et liens de partage.';
+
+  @override
+  String get privacyStoredFiles =>
+      'Fichiers : photos importées et documents générés localement selon les actions demandées.';
+
+  @override
+  String get privacyAiTitle => 'Utilisation de l\'IA';
+
+  @override
+  String get privacyAiConsent =>
+      'Aucun contenu de CV n\'est envoyé à l\'IA sans consentement explicite dans l\'écran concerné.';
+
+  @override
+  String get privacyAiReview =>
+      'Les résultats IA sont affichés avant application et peuvent être refusés.';
+
+  @override
+  String get privacyAiFallback =>
+      'En absence de clé IA, l\'application utilise des corrections locales limitées quand elles existent.';
+
+  @override
+  String get privacyRightsTitle => 'Vos droits';
+
+  @override
+  String get privacyRightsExport =>
+      'Vous pouvez exporter vos données depuis le profil.';
+
+  @override
+  String get privacyRightsDelete =>
+      'Vous pouvez supprimer votre compte depuis le profil.';
+
+  @override
+  String get privacyRightsCascade =>
+      'La suppression du compte supprime aussi les CV rattachés côté backend.';
+
+  @override
+  String get privacyPwaTitle => 'Sécurité PWA';
+
+  @override
+  String get privacyPwaHttps =>
+      'En production, l\'application doit utiliser HTTPS et une API HTTPS.';
+
+  @override
+  String get privacyPwaStorage =>
+      'Le stockage web des tokens repose sur le stockage local du navigateur : utilisez un appareil de confiance.';
+
+  @override
+  String get privacyPwaEnterprise =>
+      'La cible recommandée pour une version entreprise est une session serveur avec cookies HttpOnly/SameSite.';
+
+  @override
+  String countryDialCodeAdded(String code) {
+    return 'Indicatif $code ajouté selon le pays';
+  }
+
+  @override
+  String educationCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count formations',
+      one: '1 formation',
+      zero: 'Aucune formation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String experienceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count expériences',
+      one: '1 expérience',
+      zero: 'Aucune expérience',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String skillCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count compétences',
+      one: '1 compétence',
+      zero: 'Aucune compétence',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String languageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count langues',
+      one: '1 langue',
+      zero: 'Aucune langue',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String modifiedOn(String date) {
+    return 'Modifié le $date';
+  }
 }

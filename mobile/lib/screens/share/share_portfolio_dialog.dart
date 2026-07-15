@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
@@ -42,7 +43,8 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
       if (mounted) setState(() => _cv = cv);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Impossible d’activer le lien public.');
+        final l = AppLocalizations.of(context)!;
+        setState(() => _error = l.publicLinkActivationFailed);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -101,8 +103,9 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Portfolio public recruteur'),
+      title: Text(l.publicRecruiterPortfolio),
       content: SizedBox(
         width: 560,
         child: _loading
@@ -119,11 +122,11 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
           TextButton.icon(
             onPressed: _saving ? null : _deactivate,
             icon: const Icon(Icons.link_off_rounded),
-            label: const Text('Désactiver'),
+            label: Text(l.deactivate),
           ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Fermer'),
+          child: Text(l.close),
         ),
       ],
     );
@@ -132,12 +135,13 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
   Widget _buildContent() {
     final cv = _cv!;
     final url = _url!;
+    final l = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Ce lien ouvre une présentation professionnelle de votre CV sans connexion.',
-          style: TextStyle(color: AppColors.neutral500, height: 1.4),
+        Text(
+          l.publicPortfolioDescription,
+          style: const TextStyle(color: AppColors.neutral500, height: 1.4),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -145,15 +149,15 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
           runSpacing: 8,
           children: [
             _Metric(
-                label: 'Vues',
+                label: l.views,
                 value: cv.viewCount,
                 icon: Icons.visibility_outlined),
             _Metric(
-                label: 'Téléchargements',
+                label: l.downloads,
                 value: cv.downloadCount,
                 icon: Icons.download_outlined),
             _Metric(
-                label: 'Partages',
+                label: l.shares,
                 value: cv.shareCount,
                 icon: Icons.share_outlined),
           ],
@@ -178,7 +182,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
               onPressed: () =>
                   context.read<ShareService>().copyToClipboard(url),
               icon: const Icon(Icons.copy_rounded, size: 18),
-              label: const Text('Copier'),
+              label: Text(l.copy),
             ),
             OutlinedButton.icon(
               onPressed: _shareWhatsApp,
@@ -191,7 +195,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
               label: const Text('LinkedIn'),
             ),
             IconButton(
-              tooltip: 'Régénérer le lien',
+              tooltip: l.regeneratePublicLink,
               onPressed: _saving ? null : _regenerate,
               icon: const Icon(Icons.refresh_rounded),
             ),
@@ -207,8 +211,8 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
                     contact: value,
                     downloads: value ? null : false,
                   ),
-          title: const Text('Autoriser le contact'),
-          subtitle: const Text('Affiche l’e-mail et le bouton de contact.'),
+          title: Text(l.allowPublicContact),
+          subtitle: Text(l.allowPublicContactDescription),
         ),
         SwitchListTile.adaptive(
           contentPadding: EdgeInsets.zero,
@@ -219,9 +223,8 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
                     contact: value ? true : null,
                     downloads: value,
                   ),
-          title: const Text('Autoriser PDF et DOCX'),
-          subtitle: const Text(
-              'Les fichiers contiennent les coordonnées autorisées du CV.'),
+          title: Text(l.allowPublicDownloads),
+          subtitle: Text(l.allowPublicDownloadsDescription),
         ),
         const Divider(height: 32),
         Center(child: PublicQrCode(url: url, size: 170)),
