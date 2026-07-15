@@ -49,13 +49,13 @@ public final class AiResponseParser {
     /**
      * Parse des lignes de suggestions (nettoie numerotation, tirets, puces).
      */
-    public static List<String> parseSuggestions(String content) {
+    public static List<String> parseSuggestions(String content, int maxSuggestions) {
         return Arrays.stream(content.split("\n"))
                 .map(String::trim)
                 .filter(line -> !line.isBlank())
                 .map(line -> line.replaceAll("^[\\d•\\-–—*]+[.)]?\\s*", ""))
                 .filter(line -> !line.isBlank())
-                .limit(5)
+                .limit(maxSuggestions)
                 .collect(Collectors.toList());
     }
 }

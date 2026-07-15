@@ -1,10 +1,10 @@
 package com.cvmobile.service.notification;
 
+import com.cvmobile.config.NotificationProperties;
 import com.cvmobile.dto.NotificationDtos;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +19,7 @@ public class NotificationService {
     private final CvRepository cvs;
     private final JobApplicationRepository applications;
     private final PushGateway gateway;
-
-    @Value("${notifications.stale-cv-days:30}") private int staleCvDays;
+    private final NotificationProperties notificationProperties;
 
     @Transactional
     public void registerDevice(User user, NotificationDtos.DeviceTokenRequest request) {
@@ -55,7 +54,7 @@ public class NotificationService {
     @Scheduled(cron = "${notifications.reminder-cron:0 0 9 * * *}")
     @Transactional
     public void sendStaleCvReminders() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(staleCvDays);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(notificationProperties.staleCvDays());
         for (Cv cv : cvs.findByUpdatedAtBefore(cutoff)) {
             if (!getPreferences(cv.getUser()).staleCvEnabled()) continue;
             String period = YearMonth.now().toString();

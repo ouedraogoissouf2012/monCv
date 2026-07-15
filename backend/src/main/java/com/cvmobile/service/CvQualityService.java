@@ -1,8 +1,10 @@
 package com.cvmobile.service;
 
+import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.model.Cv;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +23,10 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CvQualityService implements com.cvmobile.service.quality.ICvQualityService {
+
+    private final CvQualityProperties properties;
 
     // Mots cliches a detecter
     private static final Set<String> CLICHES = Set.of(
@@ -182,7 +187,7 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
             String description = cv.getExperiences().get(i).getDescription();
             if (description == null || description.isBlank()) {
                 warnings.add("Ajoutez une description à l'expérience " + (i + 1) + ".");
-            } else if (description.strip().length() < 80) {
+            } else if (description.strip().length() < properties.minimumExperienceDescriptionLength()) {
                 warnings.add("Détaillez davantage l'expérience " + (i + 1)
                         + " avec missions, outils et résultats vérifiables.");
             }
@@ -197,15 +202,16 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
     public QualityReport analyze(String profile, List<String> experienceDescriptions) {
         List<String> warnings = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        int score = 100;
+        int score = properties.initialScore();
 
         // 1. Verifier le profil
         if (profile == null || profile.isBlank()) {
             errors.add("Pas de résumé professionnel");
-            score -= 20;
-        } else if (profile.length() < 100) {
-            warnings.add("Résumé professionnel trop court (min 100 caractères)");
-            score -= 10;
+            score -= properties.penaltyMissingProfile();
+        } else if (profile.length() < properties.minimumProfileLength()) {
+            warnings.add("Résumé professionnel trop court (min "
+                    + properties.minimumProfileLength() + " caractères)");
+            score -= properties.penaltyShortDescription();
         }
 
         // 2. Detecter les cliches
@@ -213,7 +219,7 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
             for (String cliche : CLICHES) {
                 if (profile.toLowerCase().contains(cliche)) {
                     warnings.add("Mot cliché détecté : \"" + cliche + "\"");
-                    score -= 5;
+                    score -= properties.penaltyCliche();
                 }
             }
         }
@@ -224,7 +230,7 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
                 String desc = experienceDescriptions.get(i);
                 if (desc == null || desc.isBlank()) {
                     errors.add("Expérience " + (i + 1) + " sans description");
-                    score -= 10;
+                    score -= properties.penaltyShortDescription();
                 }
             }
 
@@ -246,7 +252,7 @@ public class CvQualityService implements com.cvmobile.service.quality.ICvQuality
             Matcher m = PLURAL_PARTICIPLE.matcher(profile);
             while (m.find()) {
                 errors.add("Participe pluriel détecté : \"" + m.group() + "\" → utiliser le singulier");
-                score -= 5;
+                score -= properties.penaltyAiTrace();
             }
         }
 

@@ -1,5 +1,7 @@
 package com.cvmobile.service.ai;
 
+import com.cvmobile.config.AiEnhancementProperties;
+import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
@@ -38,7 +40,17 @@ class EnhancementServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new EnhancementServiceImpl(aiClient, cvRepository, new CvQualityService(), mock(NotificationService.class));
+        CvQualityProperties qualityProperties = new CvQualityProperties(
+                100, 20, 10, 5, 5, 100, 80, 10
+        );
+        service = new EnhancementServiceImpl(
+                aiClient,
+                cvRepository,
+                new CvQualityService(qualityProperties),
+                mock(NotificationService.class),
+                new AiEnhancementProperties(3000),
+                qualityProperties
+        );
     }
 
     @Test
