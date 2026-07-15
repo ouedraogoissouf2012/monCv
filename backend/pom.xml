@@ -22,6 +22,7 @@
         <jjwt.version>0.12.3</jjwt.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <argLine></argLine>
     </properties>
 
     <dependencies>
@@ -261,8 +262,97 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/cvmobile/dto/**</exclude>
+                        <exclude>com/cvmobile/model/**</exclude>
+                        <exclude>com/cvmobile/mapper/**</exclude>
+                        <exclude>com/cvmobile/CvMobileApplication.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>coverage-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>70%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>com.cvmobile.service.*</include>
+                                        <include>com.cvmobile.controller.*</include>
+                                    </includes>
+                                    <!-- Legacy baseline: remove an entry as soon as its tests reach 80%. -->
+                                    <excludes>
+                                        <exclude>com.cvmobile.controller.AiController</exclude>
+                                        <exclude>com.cvmobile.controller.AuthController</exclude>
+                                        <exclude>com.cvmobile.controller.CvController</exclude>
+                                        <exclude>com.cvmobile.controller.JobApplicationController</exclude>
+                                        <exclude>com.cvmobile.controller.NotificationController</exclude>
+                                        <exclude>com.cvmobile.controller.UploadController</exclude>
+                                        <exclude>com.cvmobile.controller.UserController</exclude>
+                                        <exclude>com.cvmobile.service.CvQualityService*</exclude>
+                                        <exclude>com.cvmobile.service.CvService</exclude>
+                                        <exclude>com.cvmobile.service.DocxGenerationService</exclude>
+                                        <exclude>com.cvmobile.service.FileStorageService</exclude>
+                                        <exclude>com.cvmobile.service.UserService</exclude>
+                                        <exclude>com.cvmobile.service.ai.AiResponseParser</exclude>
+                                        <exclude>com.cvmobile.service.ai.ResumeGeneratorServiceImpl</exclude>
+                                        <exclude>com.cvmobile.service.ai.SuggestionServiceImpl</exclude>
+                                        <exclude>com.cvmobile.service.ai.client.IAiClient</exclude>
+                                        <exclude>com.cvmobile.service.ai.client.MockAiClient</exclude>
+                                        <exclude>com.cvmobile.service.ai.client.ResilientAiClient</exclude>
+                                        <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>
+                                        <exclude>com.cvmobile.service.notification.FirebasePushGateway</exclude>
+                                        <exclude>com.cvmobile.service.notification.LoggingPushGateway</exclude>
+                                        <exclude>com.cvmobile.service.notification.NotificationService</exclude>
+                                        <exclude>com.cvmobile.service.pdf.template.AbstractPdfTemplate</exclude>
+                                    </excludes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>80%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.flywaydb</groupId>
