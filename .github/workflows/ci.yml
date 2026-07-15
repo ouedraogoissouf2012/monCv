@@ -11,6 +11,9 @@ jobs:
   backend:
     name: Backend — Build & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     services:
       postgres:
@@ -48,10 +51,30 @@ jobs:
           DEEPSEEK_API_KEY: ""
         run: mvn clean verify -q
 
+      - name: Upload Jacoco report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: backend/target/site/jacoco
+
+      - name: Upload backend coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: backend/target/site/jacoco/jacoco.xml
+          flags: backend
+          fail_ci_if_error: false
+
   # ── Frontend (Flutter) ─────────────────────────────────────
   frontend:
     name: Frontend — Analyze & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +96,36 @@ jobs:
 
       - name: Run tests
         working-directory: mobile
-        run: flutter test --no-pub --exclude-tags web-smoke --concurrency=1
+        run: flutter test --coverage --no-pub --exclude-tags web-smoke --concurrency=1
+
+      - name: Enforce Flutter coverage
+        working-directory: mobile
+        run: dart run tool/check_coverage.dart --summary=coverage/summary.md
+
+      - name: Upload Flutter coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-lcov-report
+          path: |
+            mobile/coverage/lcov.info
+            mobile/coverage/summary.md
+
+      - name: Comment coverage on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: flutter-coverage
+          path: mobile/coverage/summary.md
+
+      - name: Upload Flutter coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: mobile/coverage/lcov.info
+          flags: flutter
+          fail_ci_if_error: false
 
   # ── Smoke E2E Web (backend réel + Flutter Web) ───────────────
   web-smoke:

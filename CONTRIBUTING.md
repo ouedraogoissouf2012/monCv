@@ -42,13 +42,24 @@ cd backend
 mvn verify
 ```
 
+`mvn verify` impose 70% de couverture lignes globale. Toute nouvelle classe
+metier dans `service/` ou `controller/` doit atteindre au moins 80%. Les
+exceptions legacy sont listees explicitement dans `backend/pom.xml` et doivent
+etre retirees des que les tests correspondants sont ajoutes.
+
 ### Flutter
 
 ```bash
 cd mobile
 flutter analyze --no-fatal-infos
-flutter test --concurrency=1
+flutter test --coverage --concurrency=1
+dart run tool/check_coverage.dart --summary=coverage/summary.md
 ```
+
+Le perimetre Flutter mesure doit conserver au moins 65% de couverture lignes.
+Les sources generees et exceptions legacy sont documentees dans
+`mobile/tool/coverage_excludes.txt`; toute nouvelle exclusion doit etre
+justifiee dans la description de la PR.
 
 ## Avant de proposer une PR
 

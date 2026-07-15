@@ -1,7 +1,7 @@
 # MonCV
 
 [![CI](https://github.com/ouedraogoissouf2012/monCv/actions/workflows/ci.yml/badge.svg)](https://github.com/ouedraogoissouf2012/monCv/actions/workflows/ci.yml)
-![Coverage](https://img.shields.io/badge/coverage-local%20validation-blue)
+[![codecov](https://codecov.io/gh/ouedraogoissouf2012/monCv/graph/badge.svg)](https://codecov.io/gh/ouedraogoissouf2012/monCv)
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 
 MonCV est une plateforme de creation, adaptation et export de CV avec :
