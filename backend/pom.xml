@@ -381,6 +381,10 @@
                                     <includes>
                                         <include>com.cvmobile.config.AppStartupValidator</include>
                                         <include>com.cvmobile.config.DeepSeekHealthIndicator</include>
+                                        <include>com.cvmobile.service.ai.client.ResilientAiClient</include>
+                                        <include>com.cvmobile.service.ai.client.CompositeAiClient</include>
+                                        <include>com.cvmobile.service.ai.client.MockAiClient</include>
+                                        <include>com.cvmobile.service.ai.AiStatusService</include>
                                     </includes>
                                     <limits>
                                         <limit>

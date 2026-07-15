@@ -3,6 +3,7 @@ package com.cvmobile.service.ai.client;
 import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.exception.ai.AiProviderDownException;
+import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -61,6 +62,15 @@ class CompositeAiClientTest {
     }
 
     @Test
+    void propagatesQuotaWithoutCallingFallback() {
+        AiQuotaExceededException quota = new AiQuotaExceededException("deepseek", 60, null);
+        when(primary.complete("prompt", 100)).thenThrow(quota);
+
+        assertThatThrownBy(() -> client.complete("prompt", 100)).isSameAs(quota);
+        verify(fallback, never()).complete("prompt", 100);
+    }
+
+    @Test
     void propagatesParseErrorWithoutCallingFallback() {
         AiParseException parseError = new AiParseException("deepseek", "bad body", null);
         when(primary.complete("prompt", 100)).thenThrow(parseError);
@@ -102,6 +112,17 @@ class CompositeAiClientTest {
                 .tag("status", "error")
                 .counter()
                 .count()).isEqualTo(1.0);
+    }
+
+    @Test
+    void propagatesPrimaryFailureWhenFallbackIsDisabled() {
+        AiProviderDownException failure = providerDown("primary");
+        CompositeAiClient withoutFallback = new CompositeAiClient(
+                primary, fallback, meters, businessMetrics, new AiTelemetry(), false);
+        when(primary.complete("prompt", 100)).thenThrow(failure);
+
+        assertThatThrownBy(() -> withoutFallback.complete("prompt", 100)).isSameAs(failure);
+        verify(fallback, never()).complete("prompt", 100);
     }
 
     private AiProviderDownException providerDown(String provider) {
