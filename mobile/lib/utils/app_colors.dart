@@ -12,7 +12,7 @@ abstract final class AppColors {
   static const Color onSuccess = Color(0xFFFFFFFF);
   static const Color warning = Color(0xFF92400E);
   static const Color onWarning = Color(0xFFFFFFFF);
-  static const Color error = Color(0xFFDC2626);
+  static const Color error = Color(0xFFD11D1D);
   static const Color onError = Color(0xFFFFFFFF);
   static const Color info = Color(0xFF1D4ED8);
   static const Color onInfo = Color(0xFFFFFFFF);
@@ -29,8 +29,8 @@ abstract final class AppColors {
   static const Color statusDraft = Color(0xFF64748B);
   static const Color statusSent = primary;
   static const Color statusInterview = Color(0xFF7C3AED);
-  static const Color statusTechnicalTest = Color(0xFFD97706);
-  static const Color statusOffer = Color(0xFF059669);
+  static const Color statusTechnicalTest = warning;
+  static const Color statusOffer = success;
   static const Color statusRejected = error;
   static const Color statusArchived = Color(0xFF475569);
 

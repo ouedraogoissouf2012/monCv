@@ -26,6 +26,37 @@ void main() {
       _expectContrast('warning', AppColors.warning, AppColors.onWarning);
       _expectContrast('info', AppColors.info, AppColors.onInfo);
       _expectContrast('error', AppColors.error, AppColors.onError);
+
+      _expectContrast('draft', AppColors.white, AppColors.statusDraft);
+      _expectContrast('sent', AppColors.white, AppColors.statusSent);
+      _expectContrast(
+        'interview',
+        AppColors.white,
+        AppColors.statusInterview,
+      );
+      _expectContrast(
+        'technical test',
+        AppColors.white,
+        AppColors.statusTechnicalTest,
+      );
+      _expectContrast('offer', AppColors.white, AppColors.statusOffer);
+      _expectContrast('rejected', AppColors.white, AppColors.statusRejected);
+      _expectContrast('archived', AppColors.white, AppColors.statusArchived);
+    });
+
+    test('feedback containers expose WCAG AA foregrounds', () {
+      _expectContrast('error surface', AppColors.redSurface, AppColors.error);
+      _expectContrast(
+        'warning surface',
+        AppColors.orangeSurface,
+        AppColors.warning,
+      );
+      _expectContrast(
+        'success surface',
+        AppColors.greenSurface,
+        AppColors.success,
+      );
+      _expectContrast('info surface', AppColors.blueSurface, AppColors.info);
     });
   });
 

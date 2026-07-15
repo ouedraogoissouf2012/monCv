@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/job_application.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/job_application_provider.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 
@@ -153,7 +154,10 @@ class _StatusFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final values = <JobApplicationStatus?>[null, ...JobApplicationStatus.values];
+    final values = <JobApplicationStatus?>[
+      null,
+      ...JobApplicationStatus.values
+    ];
     return SizedBox(
       height: 38,
       child: ListView.separated(
@@ -187,7 +191,8 @@ class _ApplicationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final dateFormat = DateFormat.yMMMd(Localizations.localeOf(context).toString());
+    final dateFormat =
+        DateFormat.yMMMd(Localizations.localeOf(context).toString());
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -214,7 +219,10 @@ class _ApplicationRow extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(value.position,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 )),
                       ),
@@ -240,7 +248,10 @@ class _ApplicationRow extends StatelessWidget {
                   if (value.nextFollowUp != null) ...[
                     const SizedBox(height: 8),
                     Row(children: [
-                      Icon(value.followUpDue ? Icons.notification_important : Icons.schedule,
+                      Icon(
+                          value.followUpDue
+                              ? Icons.notification_important
+                              : Icons.schedule,
                           size: 16,
                           color: value.followUpDue
                               ? colorScheme.error
@@ -249,8 +260,10 @@ class _ApplicationRow extends StatelessWidget {
                       Text(
                         '${l.nextFollowUp}: ${dateFormat.format(value.nextFollowUp!)}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: value.followUpDue ? colorScheme.error : null,
-                              fontWeight: value.followUpDue ? FontWeight.w600 : null,
+                              color:
+                                  value.followUpDue ? colorScheme.error : null,
+                              fontWeight:
+                                  value.followUpDue ? FontWeight.w600 : null,
                             ),
                       ),
                     ]),
@@ -294,7 +307,8 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(_statusLabel(AppLocalizations.of(context)!, status),
-          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+          style: TextStyle(
+              color: color, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -309,14 +323,17 @@ class _FollowUpBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
-        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.45)),
+        color: AppColors.orangeSurface,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(children: [
-        const Icon(Icons.notifications_active_outlined, color: Color(0xFFB45309)),
+        const Icon(Icons.notifications_active_outlined,
+            color: AppColors.orangeText),
         const SizedBox(width: 10),
-        Expanded(child: Text(l.followUpsDue(count), style: const TextStyle(fontWeight: FontWeight.w600))),
+        Expanded(
+            child: Text(l.followUpsDue(count),
+                style: const TextStyle(fontWeight: FontWeight.w600))),
       ]),
     );
   }
@@ -332,13 +349,17 @@ class _EmptyApplications extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.work_outline, size: 52, color: Color(0xFF94A3B8)),
+          const Icon(Icons.work_outline, size: 52, color: AppColors.neutral350),
           const SizedBox(height: 14),
-          Text(l.noApplications, style: Theme.of(context).textTheme.titleMedium),
+          Text(l.noApplications,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 6),
           Text(l.noApplicationsDescription, textAlign: TextAlign.center),
           const SizedBox(height: 18),
-          FilledButton.icon(onPressed: onAdd, icon: const Icon(Icons.add), label: Text(l.addApplication)),
+          FilledButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: Text(l.addApplication)),
         ]),
       ),
     );
@@ -397,67 +418,105 @@ class _ApplicationFormSheetState extends State<_ApplicationFormSheet> {
       child: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text(widget.value == null ? l.addApplication : l.editApplication,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close), tooltip: l.close),
+              Expanded(
+                  child: Text(
+                      widget.value == null
+                          ? l.addApplication
+                          : l.editApplication,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700))),
+              IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  tooltip: l.close),
             ]),
             const SizedBox(height: 12),
             TextFormField(
               controller: _company,
-              decoration: InputDecoration(labelText: l.company, prefixIcon: const Icon(Icons.business_outlined)),
-              validator: (value) => value == null || value.trim().isEmpty ? l.requiredField : null,
+              decoration: InputDecoration(
+                  labelText: l.company,
+                  prefixIcon: const Icon(Icons.business_outlined)),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? l.requiredField
+                  : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _position,
-              decoration: InputDecoration(labelText: l.position, prefixIcon: const Icon(Icons.badge_outlined)),
-              validator: (value) => value == null || value.trim().isEmpty ? l.requiredField : null,
+              decoration: InputDecoration(
+                  labelText: l.position,
+                  prefixIcon: const Icon(Icons.badge_outlined)),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? l.requiredField
+                  : null,
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<JobApplicationStatus>(
               initialValue: _status,
-              decoration: InputDecoration(labelText: l.status, prefixIcon: const Icon(Icons.flag_outlined)),
+              decoration: InputDecoration(
+                  labelText: l.status,
+                  prefixIcon: const Icon(Icons.flag_outlined)),
               items: JobApplicationStatus.values
-                  .map((status) => DropdownMenuItem(value: status, child: Text(_statusLabel(l, status))))
+                  .map((status) => DropdownMenuItem(
+                      value: status, child: Text(_statusLabel(l, status))))
                   .toList(),
               onChanged: (value) => setState(() => _status = value!),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
               initialValue: _cvId ?? -1,
-              decoration: InputDecoration(labelText: l.linkedCv, prefixIcon: const Icon(Icons.description_outlined)),
+              decoration: InputDecoration(
+                  labelText: l.linkedCv,
+                  prefixIcon: const Icon(Icons.description_outlined)),
               items: [
                 DropdownMenuItem<int>(value: -1, child: Text(l.noLinkedCv)),
-                ...cvs.where((cv) => cv.id != null).map((cv) => DropdownMenuItem<int>(
-                      value: cv.id,
-                      child: Text(cv.isVariante ? '${cv.titre} · ${l.variant}' : cv.titre,
-                          overflow: TextOverflow.ellipsis),
-                    )),
+                ...cvs
+                    .where((cv) => cv.id != null)
+                    .map((cv) => DropdownMenuItem<int>(
+                          value: cv.id,
+                          child: Text(
+                              cv.isVariante
+                                  ? '${cv.titre} · ${l.variant}'
+                                  : cv.titre,
+                              overflow: TextOverflow.ellipsis),
+                        )),
               ],
-              onChanged: (value) => setState(() => _cvId = value == -1 ? null : value),
+              onChanged: (value) =>
+                  setState(() => _cvId = value == -1 ? null : value),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _url,
               keyboardType: TextInputType.url,
-              decoration: InputDecoration(labelText: l.offerLink, prefixIcon: const Icon(Icons.link)),
+              decoration: InputDecoration(
+                  labelText: l.offerLink, prefixIcon: const Icon(Icons.link)),
             ),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: _DateField(label: l.sentDate, value: _sentDate,
-                  onChanged: (date) => setState(() => _sentDate = date))),
+              Expanded(
+                  child: _DateField(
+                      label: l.sentDate,
+                      value: _sentDate,
+                      onChanged: (date) => setState(() => _sentDate = date))),
               const SizedBox(width: 10),
-              Expanded(child: _DateField(label: l.nextFollowUp, value: _followUp,
-                  onChanged: (date) => setState(() => _followUp = date))),
+              Expanded(
+                  child: _DateField(
+                      label: l.nextFollowUp,
+                      value: _followUp,
+                      onChanged: (date) => setState(() => _followUp = date))),
             ]),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notes,
               minLines: 3,
               maxLines: 5,
-              decoration: InputDecoration(labelText: l.notes, alignLabelWithHint: true),
+              decoration:
+                  InputDecoration(labelText: l.notes, alignLabelWithHint: true),
             ),
             const SizedBox(height: 18),
             SizedBox(
@@ -465,7 +524,9 @@ class _ApplicationFormSheetState extends State<_ApplicationFormSheet> {
               child: FilledButton.icon(
                 onPressed: _saving ? null : _save,
                 icon: _saving
-                    ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.check),
                 label: Text(l.save),
               ),
@@ -479,17 +540,18 @@ class _ApplicationFormSheetState extends State<_ApplicationFormSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    final success = await context.read<JobApplicationProvider>().save(JobApplication(
-          id: widget.value?.id,
-          cvId: _cvId,
-          company: _company.text.trim(),
-          position: _position.text.trim(),
-          offerUrl: _url.text.trim().isEmpty ? null : _url.text.trim(),
-          status: _status,
-          sentDate: _sentDate,
-          nextFollowUp: _followUp,
-          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-        ));
+    final success =
+        await context.read<JobApplicationProvider>().save(JobApplication(
+              id: widget.value?.id,
+              cvId: _cvId,
+              company: _company.text.trim(),
+              position: _position.text.trim(),
+              offerUrl: _url.text.trim().isEmpty ? null : _url.text.trim(),
+              status: _status,
+              sentDate: _sentDate,
+              nextFollowUp: _followUp,
+              notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+            ));
     if (success && mounted) Navigator.pop(context);
     if (mounted) setState(() => _saving = false);
   }
@@ -499,7 +561,8 @@ class _DateField extends StatelessWidget {
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime?> onChanged;
-  const _DateField({required this.label, required this.value, required this.onChanged});
+  const _DateField(
+      {required this.label, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -521,7 +584,8 @@ class _DateField extends StatelessWidget {
   }
 }
 
-String _statusLabel(AppLocalizations l, JobApplicationStatus status) => switch (status) {
+String _statusLabel(AppLocalizations l, JobApplicationStatus status) =>
+    switch (status) {
       JobApplicationStatus.draft => l.applicationDraft,
       JobApplicationStatus.sent => l.applicationSent,
       JobApplicationStatus.interview => l.applicationInterview,
@@ -532,11 +596,11 @@ String _statusLabel(AppLocalizations l, JobApplicationStatus status) => switch (
     };
 
 Color _statusColor(JobApplicationStatus status) => switch (status) {
-      JobApplicationStatus.draft => const Color(0xFF64748B),
-      JobApplicationStatus.sent => const Color(0xFF2563EB),
-      JobApplicationStatus.interview => const Color(0xFF7C3AED),
-      JobApplicationStatus.technicalTest => const Color(0xFFD97706),
-      JobApplicationStatus.offer => const Color(0xFF059669),
-      JobApplicationStatus.rejected => const Color(0xFFDC2626),
-      JobApplicationStatus.archived => const Color(0xFF475569),
+      JobApplicationStatus.draft => AppColors.statusDraft,
+      JobApplicationStatus.sent => AppColors.statusSent,
+      JobApplicationStatus.interview => AppColors.statusInterview,
+      JobApplicationStatus.technicalTest => AppColors.statusTechnicalTest,
+      JobApplicationStatus.offer => AppColors.statusOffer,
+      JobApplicationStatus.rejected => AppColors.statusRejected,
+      JobApplicationStatus.archived => AppColors.statusArchived,
     };

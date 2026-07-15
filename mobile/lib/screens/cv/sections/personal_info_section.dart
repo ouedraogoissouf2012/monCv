@@ -626,8 +626,8 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
                 color: _resumeCtrl.text.isEmpty
                     ? null
                     : _resumeCtrl.text.length < 100
-                        ? const Color(0xFFEF4444)
-                        : const Color(0xFF10B981),
+                        ? AppColors.error
+                        : AppColors.success,
                 fontWeight:
                     _resumeCtrl.text.length < 100 && _resumeCtrl.text.isNotEmpty
                         ? FontWeight.w600
@@ -646,14 +646,14 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
+                color: AppColors.redSurface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFECACA)),
+                border: Border.all(color: AppColors.redBorder),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.warning_amber_rounded,
-                      size: 16, color: Color(0xFFEF4444)),
+                      size: 16, color: AppColors.error),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -700,7 +700,7 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(l.summaryGenerated),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Color(0xFF10B981),
+        backgroundColor: AppColors.success,
       ));
     } catch (e) {
       if (!mounted) return;
@@ -752,7 +752,7 @@ class _AiResumeButtonState extends State<_AiResumeButton> {
               style: const TextStyle(fontSize: 11)),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            foregroundColor: const Color(0xFF8B5CF6),
+            foregroundColor: AppColors.violet,
           ),
         ),
       ],

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/cv.dart';
 import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/pdf_saver.dart';
 import '../../widgets/cv_preview.dart';
 import '../../widgets/public_qr_code.dart';
@@ -98,7 +99,7 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FA),
+      backgroundColor: AppColors.publicSurface,
       body: Column(
         children: [
           _PublicHeader(
@@ -127,7 +128,7 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.link_off_rounded,
-                  size: 52, color: Color(0xFF94A3B8)),
+                  size: 52, color: AppColors.neutral350),
               const SizedBox(height: 16),
               Text(
                 _error!,
@@ -215,7 +216,7 @@ class _PublicHeader extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(Icons.description_outlined,
@@ -237,7 +238,7 @@ class _PublicHeader extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF64748B)),
+                            fontSize: 12, color: AppColors.neutral500),
                       ),
                   ],
                 ),

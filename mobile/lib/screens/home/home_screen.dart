@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
 import '../../services/i_api_client.dart';
+import '../../utils/app_colors.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/cv_card.dart';
@@ -148,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
         content:
             Text(success ? l.cvDeleted : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? AppColors.success : errorColor,
       ),
     );
   }
@@ -165,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
         content:
             Text(success ? l.cvDuplicated : cvProvider.error ?? l.errorGeneric),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: success ? const Color(0xFF10B981) : errorColor,
+        backgroundColor: success ? AppColors.success : errorColor,
       ),
     );
   }
@@ -193,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.showSnackBar(SnackBar(
         content: Text(l.pdfDownloaded),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: AppColors.success,
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
@@ -231,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.showSnackBar(SnackBar(
         content: Text(l.importSuccess(cv.titre)),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: AppColors.success,
       ));
       await cvProvider.loadCvs();
     } catch (e) {
@@ -257,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
       messenger.showSnackBar(SnackBar(
         content: Text(l.docxDownloaded),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF10B981),
+        backgroundColor: AppColors.success,
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
@@ -275,7 +276,7 @@ class _OfflineBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFF59E0B),
+      color: AppColors.warning,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [

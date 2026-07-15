@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import 'app_colors.dart';
 
 /// Types d'erreur pour adapter le style.
 enum ErrorType { auth, network, validation, server, info, success }
@@ -12,7 +13,9 @@ class ErrorHelper {
     final lower = raw.toLowerCase();
 
     // Auth
-    if (lower.contains('identifiants') || lower.contains('incorrect') || lower.contains('credentials')) {
+    if (lower.contains('identifiants') ||
+        lower.contains('incorrect') ||
+        lower.contains('credentials')) {
       return l.errorInvalidCredentials;
     }
     if (lower.contains('email') && lower.contains('existe')) {
@@ -20,7 +23,9 @@ class ErrorHelper {
     }
 
     // Reseau
-    if (lower.contains('connection refused') || lower.contains('failed to fetch') || lower.contains('socketexception')) {
+    if (lower.contains('connection refused') ||
+        lower.contains('failed to fetch') ||
+        lower.contains('socketexception')) {
       return l.errorNetworkUnavailable;
     }
     if (lower.contains('timeout') || lower.contains('timed out')) {
@@ -31,10 +36,14 @@ class ErrorHelper {
     if (lower.contains('500') || lower.contains('internal')) {
       return l.errorServer;
     }
-    if (lower.contains('403') || lower.contains('forbidden') || lower.contains('non autorise')) {
+    if (lower.contains('403') ||
+        lower.contains('forbidden') ||
+        lower.contains('non autorise')) {
       return l.errorForbidden;
     }
-    if (lower.contains('429') || lower.contains('rate limit') || lower.contains('trop de tentatives')) {
+    if (lower.contains('429') ||
+        lower.contains('rate limit') ||
+        lower.contains('trop de tentatives')) {
       return l.errorRateLimit;
     }
 
@@ -49,7 +58,9 @@ class ErrorHelper {
     }
 
     // IA
-    if (lower.contains('deepseek') || lower.contains('ia') || lower.contains('enhance')) {
+    if (lower.contains('deepseek') ||
+        lower.contains('ia') ||
+        lower.contains('enhance')) {
       return l.errorAiUnavailable;
     }
 
@@ -59,7 +70,8 @@ class ErrorHelper {
     }
 
     // Defaut : nettoyer le message technique
-    String cleaned = raw.replaceAll('Exception: ', '').replaceAll('Exception:', '').trim();
+    String cleaned =
+        raw.replaceAll('Exception: ', '').replaceAll('Exception:', '').trim();
     if (cleaned.length > 100) cleaned = '${cleaned.substring(0, 100)}...';
     return cleaned;
   }
@@ -67,14 +79,22 @@ class ErrorHelper {
   /// Determine le type d'erreur pour adapter le style.
   static ErrorType errorType(String raw) {
     final lower = raw.toLowerCase();
-    if (lower.contains('identifiants') || lower.contains('credentials') || lower.contains('incorrect')) return ErrorType.auth;
-    if (lower.contains('connection') || lower.contains('socket') || lower.contains('timeout') || lower.contains('fetch')) return ErrorType.network;
-    if (lower.contains('requis') || lower.contains('invalide') || lower.contains('validation')) return ErrorType.validation;
+    if (lower.contains('identifiants') ||
+        lower.contains('credentials') ||
+        lower.contains('incorrect')) return ErrorType.auth;
+    if (lower.contains('connection') ||
+        lower.contains('socket') ||
+        lower.contains('timeout') ||
+        lower.contains('fetch')) return ErrorType.network;
+    if (lower.contains('requis') ||
+        lower.contains('invalide') ||
+        lower.contains('validation')) return ErrorType.validation;
     return ErrorType.server;
   }
 
   /// Affiche un SnackBar d'erreur bienveillant.
-  static void showError(BuildContext context, String rawError, {VoidCallback? onRetry}) {
+  static void showError(BuildContext context, String rawError,
+      {VoidCallback? onRetry}) {
     final message = friendlyMessage(context, rawError);
     final type = errorType(rawError);
     _showSnackBar(context, message, type, onRetry: onRetry);
@@ -90,7 +110,9 @@ class ErrorHelper {
     _showSnackBar(context, message, ErrorType.info);
   }
 
-  static void _showSnackBar(BuildContext context, String message, ErrorType type, {VoidCallback? onRetry}) {
+  static void _showSnackBar(
+      BuildContext context, String message, ErrorType type,
+      {VoidCallback? onRetry}) {
     final config = _configForType(type);
     final l = AppLocalizations.of(context)!;
 
@@ -108,14 +130,23 @@ class ErrorHelper {
         children: [
           Icon(config.icon, size: 20, color: config.fg),
           const SizedBox(width: 12),
-          Expanded(child: Text(message, style: TextStyle(color: config.fg, fontSize: 13, fontWeight: FontWeight.w500))),
+          Expanded(
+              child: Text(message,
+                  style: TextStyle(
+                      color: config.fg,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500))),
           if (onRetry != null)
             TextButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 onRetry();
               },
-              child: Text(l.retry, style: TextStyle(color: config.fg, fontWeight: FontWeight.w700, fontSize: 12)),
+              child: Text(l.retry,
+                  style: TextStyle(
+                      color: config.fg,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12)),
             ),
         ],
       ),
@@ -125,23 +156,35 @@ class ErrorHelper {
   static _SnackConfig _configForType(ErrorType type) {
     return switch (type) {
       ErrorType.auth => _SnackConfig(
-        bg: const Color(0xFFFEF2F2), fg: const Color(0xFFDC2626),
-        border: const Color(0xFFFECACA), icon: Icons.lock_outline_rounded),
+          bg: AppColors.redSurface,
+          fg: AppColors.error,
+          border: AppColors.redBorder,
+          icon: Icons.lock_outline_rounded),
       ErrorType.network => _SnackConfig(
-        bg: const Color(0xFFFFF7ED), fg: const Color(0xFFEA580C),
-        border: const Color(0xFFFED7AA), icon: Icons.wifi_off_rounded),
+          bg: AppColors.orangeSurface,
+          fg: AppColors.warning,
+          border: AppColors.orangeBorder,
+          icon: Icons.wifi_off_rounded),
       ErrorType.validation => _SnackConfig(
-        bg: const Color(0xFFFEFCE8), fg: const Color(0xFFCA8A04),
-        border: const Color(0xFFFEF08A), icon: Icons.info_outline_rounded),
+          bg: AppColors.yellowSurface,
+          fg: AppColors.warning,
+          border: AppColors.yellowBorder,
+          icon: Icons.info_outline_rounded),
       ErrorType.server => _SnackConfig(
-        bg: const Color(0xFFFEF2F2), fg: const Color(0xFFDC2626),
-        border: const Color(0xFFFECACA), icon: Icons.error_outline_rounded),
+          bg: AppColors.redSurface,
+          fg: AppColors.error,
+          border: AppColors.redBorder,
+          icon: Icons.error_outline_rounded),
       ErrorType.success => _SnackConfig(
-        bg: const Color(0xFFF0FDF4), fg: const Color(0xFF16A34A),
-        border: const Color(0xFFBBF7D0), icon: Icons.check_circle_outline_rounded),
+          bg: AppColors.greenSurface,
+          fg: AppColors.success,
+          border: AppColors.greenBorder,
+          icon: Icons.check_circle_outline_rounded),
       ErrorType.info => _SnackConfig(
-        bg: const Color(0xFFEFF6FF), fg: const Color(0xFF2563EB),
-        border: const Color(0xFFBFDBFE), icon: Icons.info_outline_rounded),
+          bg: AppColors.blueSurface,
+          fg: AppColors.primary,
+          border: AppColors.blueBorder,
+          icon: Icons.info_outline_rounded),
     };
   }
 }
@@ -149,5 +192,9 @@ class ErrorHelper {
 class _SnackConfig {
   final Color bg, fg, border;
   final IconData icon;
-  const _SnackConfig({required this.bg, required this.fg, required this.border, required this.icon});
+  const _SnackConfig(
+      {required this.bg,
+      required this.fg,
+      required this.border,
+      required this.icon});
 }
