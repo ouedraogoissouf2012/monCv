@@ -43,10 +43,11 @@ abstract class AbstractPdfTemplate implements PdfTemplate {
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4, theme.horizontalMargin(),
                     theme.horizontalMargin(), 40, 40);
-            PdfWriter.getInstance(document, output);
+            PdfWriter writer = PdfWriter.getInstance(document, output);
             document.open();
             PdfRenderContext context = new PdfRenderContext(cv, theme, new PdfFonts(theme), document::add);
             for (PdfSectionRenderer section : SECTIONS) section.render(context);
+            if (writer.isPageEmpty()) writer.setPageEmpty(false);
             document.close();
             return output.toByteArray();
         } catch (DocumentException | IOException exception) {
