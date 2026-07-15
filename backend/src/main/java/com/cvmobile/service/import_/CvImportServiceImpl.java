@@ -12,6 +12,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -29,10 +30,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CvImportServiceImpl implements ICvImportService {
 
+    private static final long MAX_FILE_SIZE = 5L * 1024 * 1024;
     private final IAiClient aiClient;
 
     @Override
     public CvRequest importCv(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BusinessException("IMPORT_ERROR", "Le fichier est vide");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new MaxUploadSizeExceededException(MAX_FILE_SIZE);
+        }
         String filename = file.getOriginalFilename();
         if (filename == null) throw new BusinessException("IMPORT_ERROR", "Nom de fichier manquant");
 
@@ -217,7 +225,7 @@ public class CvImportServiceImpl implements ICvImportService {
             if (cleaned.isBlank()) continue;
             String[] parts = cleaned.split(":\\s*", 2);
             String langue = parts[0].strip();
-            String niveau = parts.length > 1 ? mapLanguageLevel(parts[1].strip()) : "INTERMEDIAIRE";
+            String niveau = parts.length > 1 ? mapLanguageLevel(parts[1].strip()) : "B1";
             result.add(CvRequest.LanguageDto.builder()
                     .langue(langue)
                     .niveau(com.cvmobile.model.Language.NiveauLangue.valueOf(niveau))
@@ -235,7 +243,7 @@ public class CvImportServiceImpl implements ICvImportService {
         if (lc.contains("b1") || lc.contains("intermediaire")) return "B1";
         if (lc.contains("a2") || lc.contains("elementaire")) return "A2";
         if (lc.contains("a1") || lc.contains("debutant")) return "A1";
-        return "INTERMEDIAIRE";
+        return "B1";
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
