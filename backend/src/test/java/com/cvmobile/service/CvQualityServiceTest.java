@@ -1,5 +1,6 @@
 package com.cvmobile.service;
 
+import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Experience;
 import com.cvmobile.model.PersonalInfo;
@@ -11,7 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CvQualityServiceTest {
 
-    private final CvQualityService service = new CvQualityService();
+    private final CvQualityService service = new CvQualityService(new CvQualityProperties(
+            100, 20, 10, 5, 5, 100, 80, 10
+    ));
 
     @Test
     void cleanCorrigeLesErreursFiablesSansModifierLesSousChaines() {

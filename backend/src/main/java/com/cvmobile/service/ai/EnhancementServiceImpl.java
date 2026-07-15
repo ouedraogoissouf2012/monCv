@@ -1,5 +1,7 @@
 package com.cvmobile.service.ai;
 
+import com.cvmobile.config.AiEnhancementProperties;
+import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.CvRepository;
@@ -33,6 +35,8 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private final CvRepository cvRepository;
     private final ICvQualityService qualityService;
     private final NotificationService notificationService;
+    private final AiEnhancementProperties enhancementProperties;
+    private final CvQualityProperties qualityProperties;
 
     @Override
     public EnhanceCvResponse enhanceCv(Long cvId, String level) {
@@ -50,7 +54,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         Cv cv = cvRepository.findById(cvId)
                 .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
         String prompt = buildAdaptPrompt(cv, jobDescription);
-        String rawContent = aiClient.complete(prompt, 3000);
+        String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.info("AI adapt response summary: {}", AiLogSanitizer.summarize(rawContent));
         return parseEnhanceResponse(rawContent, cv, "MAX", fallback);
@@ -60,7 +64,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
     private EnhanceCvResponse callAiEnhance(Cv cv, String level) {
         String prompt = buildEnhancePrompt(cv, level);
-        String rawContent = aiClient.complete(prompt, 3000);
+        String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.info("AI enhance response summary: {}", AiLogSanitizer.summarize(rawContent));
         return parseEnhanceResponse(rawContent, cv, level, fallback);
@@ -170,7 +174,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
                 .titreOffre(titreOffre.isBlank() ? null : titreOffre)
                 .experiences(expEnhancements)
                 .educations(eduEnhancements)
-                .skills(skillEnhancements.stream().limit(10).collect(Collectors.toList()))
+                .skills(skillEnhancements.stream()
+                        .limit(qualityProperties.maxSkillsDisplayed())
+                        .collect(Collectors.toList()))
                 .languages(languageEnhancements)
                 .certifications(certificationEnhancements)
                 .projects(projEnhancements)

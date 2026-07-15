@@ -1,5 +1,6 @@
 package com.cvmobile.service.notification;
 
+import com.cvmobile.config.NotificationProperties;
 import com.cvmobile.dto.NotificationDtos;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.*;
@@ -7,7 +8,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDateTime;
 import java.util.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -21,16 +21,17 @@ class NotificationServiceTest {
     @Mock CvRepository cvs;
     @Mock JobApplicationRepository applications;
     @Mock PushGateway gateway;
+    @Mock NotificationProperties notificationProperties;
     @InjectMocks NotificationService service;
 
     User user;
     Cv cv;
 
     @BeforeEach void setUp() {
+        lenient().when(notificationProperties.staleCvDays()).thenReturn(30);
         user = User.builder().id(1L).email("test@example.com").build();
         cv = Cv.builder().id(8L).titre("CV pro").user(user).viewCount(10)
             .updatedAt(LocalDateTime.now().minusDays(31)).build();
-        ReflectionTestUtils.setField(service, "staleCvDays", 30);
     }
 
     @Test void notifieAuDixiemeAffichageUneSeuleFois() {

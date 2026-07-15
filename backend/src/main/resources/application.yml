@@ -54,6 +54,40 @@ ai:
     base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1}
   fallback:
     enabled: ${AI_FALLBACK_ENABLED:true}
+  # Limites conservatrices pour garder une analyse lisible et maitriser les tokens.
+  job-match:
+    default-score: ${AI_JOB_MATCH_DEFAULT_SCORE:50}
+    max-keywords: ${AI_JOB_MATCH_MAX_KEYWORDS:14}
+    max-suggestions: ${AI_JOB_MATCH_MAX_SUGGESTIONS:6}
+    max-fallback-suggestions: ${AI_JOB_MATCH_MAX_FALLBACK_SUGGESTIONS:5}
+    max-recommendations: ${AI_JOB_MATCH_MAX_RECOMMENDATIONS:5}
+    max-score: ${AI_JOB_MATCH_MAX_SCORE:100}
+    completion-tokens: ${AI_JOB_MATCH_COMPLETION_TOKENS:1800}
+  suggestions:
+    max-suggestions: ${AI_SUGGESTIONS_MAX_ITEMS:5}
+    completion-tokens: ${AI_SUGGESTIONS_COMPLETION_TOKENS:600}
+  enhancement:
+    completion-tokens: ${AI_ENHANCEMENT_COMPLETION_TOKENS:3000}
+
+# Le score qualite part de 100; les penalites privilegient les sections utiles aux recruteurs.
+cv:
+  quality:
+    initial-score: ${CV_QUALITY_INITIAL_SCORE:100}
+    penalty-missing-profile: ${CV_QUALITY_PENALTY_MISSING_PROFILE:20}
+    penalty-short-description: ${CV_QUALITY_PENALTY_SHORT_DESCRIPTION:10}
+    penalty-cliche: ${CV_QUALITY_PENALTY_CLICHE:5}
+    penalty-ai-trace: ${CV_QUALITY_PENALTY_AI_TRACE:5}
+    minimum-profile-length: ${CV_QUALITY_MINIMUM_PROFILE_LENGTH:100}
+    minimum-experience-description-length: ${CV_QUALITY_MINIMUM_EXPERIENCE_DESCRIPTION_LENGTH:80}
+    max-skills-displayed: ${CV_QUALITY_MAX_SKILLS_DISPLAYED:10}
+
+# Protection locale simple; #165 remplacera ce stockage memoire par Bucket4j/Redis.
+security:
+  rate-limit:
+    auth-requests: ${RATE_LIMIT_AUTH_REQUESTS:10}
+    ai-requests: ${RATE_LIMIT_AI_REQUESTS:20}
+    public-requests: ${RATE_LIMIT_PUBLIC_REQUESTS:60}
+    window: ${RATE_LIMIT_WINDOW:1m}
 
 notifications:
   firebase:

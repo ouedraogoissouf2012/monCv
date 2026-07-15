@@ -1,5 +1,6 @@
 package com.cvmobile.service.ai;
 
+import com.cvmobile.config.JobMatchProperties;
 import com.cvmobile.dto.JobMatchResponse;
 import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
@@ -82,6 +83,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private final IAiClient aiClient;
     private final CvRepository cvRepository;
     private final CvQualityService cvQualityService;
+    private final JobMatchProperties properties;
 
     @Override
     public JobMatchResponse matchJob(Long cvId, String jobDescription) {
@@ -93,7 +95,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
 
     private JobMatchResponse analyzeMatch(Cv cv, String jobDescription) {
         String prompt = buildMatchPrompt(cv, jobDescription);
-        String rawContent = aiClient.complete(prompt, 1800);
+        String rawContent = aiClient.complete(prompt, properties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.debug("AI match response received ({} chars)", rawContent.length());
 
@@ -234,7 +236,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
         );
 
         int weightedScore = weightedAverage(categories);
-        int globalScore = Math.max(0, Math.min(100, (weightedScore + aiScore) / 2));
+        int globalScore = Math.max(0, Math.min(properties.maxScore(), (weightedScore + aiScore) / 2));
 
         List<String> suggestions = mergeSuggestions(
                 aiSuggestions,
@@ -264,9 +266,9 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private int extractAiScore(String rawContent) {
         Matcher scoreMatcher = SCORE_PATTERN.matcher(rawContent);
         if (scoreMatcher.find()) {
-            return Math.min(100, Integer.parseInt(scoreMatcher.group(1)));
+            return Math.min(properties.maxScore(), Integer.parseInt(scoreMatcher.group(1)));
         }
-        return 50;
+        return properties.defaultScore();
     }
 
     private JobMatchResponse.CategoryScore buildCategory(
@@ -279,7 +281,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
         return JobMatchResponse.CategoryScore.builder()
                 .key(key)
                 .label(label)
-                .score(Math.max(0, Math.min(100, score)))
+                .score(Math.max(0, Math.min(properties.maxScore(), score)))
                 .summary(summary)
                 .evidence(evidence.stream().filter(s -> s != null && !s.isBlank()).distinct().toList())
                 .build();
@@ -430,7 +432,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
                 .filter(keyword -> containsTerm(normalizedExperience, keyword))
                 .count();
         score += (int) Math.min(15, matchedDemanded * 3);
-        return Math.min(100, score);
+        return Math.min(properties.maxScore(), score);
     }
 
     private String buildExperienceSummary(Cv cv) {
@@ -520,7 +522,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
     }
 
     private int scoreFormat(List<JobMatchResponse.FormatCheck> checks) {
-        int score = 100;
+        int score = properties.maxScore();
         for (JobMatchResponse.FormatCheck check : checks) {
             score -= switch (check.getSeverity()) {
                 case "critical" -> 22;
@@ -609,7 +611,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
 
         return recommendations.stream()
                 .sorted((left, right) -> Integer.compare(left.getPriority(), right.getPriority()))
-                .limit(5)
+                .limit(properties.maxRecommendations())
                 .toList();
     }
 
@@ -629,7 +631,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
         if (suggestions.isEmpty()) {
             suggestions.add("Le score est exploitable, mais vous pouvez encore créer une variante optimisée pour mieux cibler l'offre.");
         }
-        return suggestions.stream().limit(5).toList();
+        return suggestions.stream().limit(properties.maxFallbackSuggestions()).toList();
     }
 
     private List<String> mergeSuggestions(List<String> aiSuggestions, List<String> fallbackSuggestions) {
@@ -639,7 +641,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
                 .filter(value -> !value.isBlank())
                 .forEach(merged::add);
         fallbackSuggestions.forEach(merged::add);
-        return merged.stream().limit(6).toList();
+        return merged.stream().limit(properties.maxSuggestions()).toList();
     }
 
     private List<String> mergeKeywords(List<String> aiKeywords, List<String> detectedKeywords) {
@@ -652,7 +654,7 @@ public class JobMatchServiceImpl implements IJobMatchService {
                 .map(this::cleanKeyword)
                 .filter(value -> !value.isBlank())
                 .forEach(merged::add);
-        return merged.stream().limit(14).toList();
+        return merged.stream().limit(properties.maxKeywords()).toList();
     }
 
     private LinkedHashSet<String> extractKeywords(String jobDescription) {
@@ -733,7 +735,10 @@ public class JobMatchServiceImpl implements IJobMatchService {
         if (total <= 0) {
             return 70;
         }
-        return Math.max(0, Math.min(100, (matched * 100) / total));
+        return Math.max(0, Math.min(
+                properties.maxScore(),
+                (matched * properties.maxScore()) / total
+        ));
     }
 
     private boolean containsTerm(String normalizedText, String keyword) {

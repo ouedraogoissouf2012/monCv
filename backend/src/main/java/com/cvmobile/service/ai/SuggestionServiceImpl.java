@@ -1,5 +1,6 @@
 package com.cvmobile.service.ai;
 
+import com.cvmobile.config.AiSuggestionProperties;
 import com.cvmobile.dto.SuggestResponse;
 import com.cvmobile.service.ai.client.IAiClient;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.List;
 
 /**
  * Generation de suggestions de bullet points pour les experiences.
- * Produit 5 bullet points professionnels adaptes au poste.
+ * Produit des bullet points professionnels adaptes au poste.
  */
 @Slf4j
 @Service
@@ -18,14 +19,18 @@ import java.util.List;
 public class SuggestionServiceImpl implements ISuggestionService {
 
     private final IAiClient aiClient;
+    private final AiSuggestionProperties properties;
 
     @Override
     public SuggestResponse generateSuggestions(String poste, String entreprise) {
         // Exceptions IA propagees au GlobalExceptionHandler
         String prompt = buildSuggestPrompt(poste, entreprise);
-        String rawContent = aiClient.complete(prompt, 600);
+        String rawContent = aiClient.complete(prompt, properties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
-        List<String> suggestions = AiResponseParser.parseSuggestions(rawContent);
+        List<String> suggestions = AiResponseParser.parseSuggestions(
+                rawContent,
+                properties.maxSuggestions()
+        );
         return SuggestResponse.builder()
                 .suggestions(suggestions)
                 .aiGenerated(!fallback)
@@ -37,14 +42,16 @@ public class SuggestionServiceImpl implements ISuggestionService {
         String context = entreprise != null && !entreprise.isBlank()
                 ? " chez " + entreprise
                 : "";
-        return "Génère exactement 5 bullet points professionnels en français pour un CV. "
+        return "Génère exactement " + properties.maxSuggestions()
+                + " bullet points professionnels en français pour un CV. "
                 + AiPromptRules.FRANCOPHONE_MARKET_RULE
                 + AiPromptRules.ANTI_CLICHES_RULE
                 + "Poste : " + poste + context + ". "
                 + "Chaque bullet doit commencer par un verbe d'action au passé composé "
                 + "et inclure un résultat mesurable. "
                 + "Utilise un style naturel, utile pour une candidature en Afrique francophone ou a l'international. "
-                + "Réponds uniquement avec les 5 points, un par ligne, sans numérotation ni tiret.";
+                + "Réponds uniquement avec les " + properties.maxSuggestions()
+                + " points, un par ligne, sans numérotation ni tiret.";
     }
 
     private List<String> generateMockSuggestions(String poste) {

@@ -1,10 +1,13 @@
 package com.cvmobile.security;
 
+import com.cvmobile.config.RateLimitProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,13 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int AUTH_MAX_REQUESTS_PER_MINUTE = 10;
-    private static final int AI_MAX_REQUESTS_PER_MINUTE = 20;
-    private static final int PUBLIC_MAX_REQUESTS_PER_MINUTE = 60;
-    private static final long WINDOW_MS = 60_000;
-
+    private final RateLimitProperties properties;
     private final Map<String, RateWindow> ipWindows = new ConcurrentHashMap<>();
 
     @Override
@@ -46,7 +46,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String key = ip + ":" + bucketForPath(path);
         RateWindow window = ipWindows.compute(key, (k, v) -> {
             long now = System.currentTimeMillis();
-            if (v == null || now - v.startTime > WINDOW_MS) {
+            if (v == null || now - v.startTime > properties.window().toMillis()) {
                 return new RateWindow(now);
             }
             return v;
@@ -55,11 +55,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
         int count = window.counter.incrementAndGet();
         if (count > limit) {
             log.warn("Rate limit depasse pour IP: {} sur endpoint {}", ip, bucketForPath(path));
-            response.setStatus(429);
+            int retryAfterSeconds = Math.max(1, Math.toIntExact(properties.window().toSeconds()));
+            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType("application/json");
-            response.setHeader("Retry-After", "60");
+            response.setHeader("Retry-After", Integer.toString(retryAfterSeconds));
             response.getWriter().write(
-                    "{\"status\":429,\"code\":\"RATE_LIMIT_EXCEEDED\"," +
+                    "{\"status\":" + HttpStatus.TOO_MANY_REQUESTS.value()
+                    + ",\"code\":\"RATE_LIMIT_EXCEEDED\"," +
                     "\"message\":\"Trop de tentatives. Reessayez dans 1 minute.\"}");
             return;
         }
@@ -68,9 +70,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private int limitForPath(String path) {
-        if (path.startsWith("/api/auth/")) return AUTH_MAX_REQUESTS_PER_MINUTE;
-        if (path.startsWith("/api/ai/")) return AI_MAX_REQUESTS_PER_MINUTE;
-        if (path.startsWith("/api/cvs/public/")) return PUBLIC_MAX_REQUESTS_PER_MINUTE;
+        if (path.startsWith("/api/auth/")) return properties.authRequests();
+        if (path.startsWith("/api/ai/")) return properties.aiRequests();
+        if (path.startsWith("/api/cvs/public/")) return properties.publicRequests();
         return 0;
     }
 

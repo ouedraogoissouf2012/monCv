@@ -1,5 +1,6 @@
 package com.cvmobile.service.ai;
 
+import com.cvmobile.config.JobMatchProperties;
 import com.cvmobile.dto.JobMatchResponse;
 import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
@@ -14,7 +15,6 @@ import com.cvmobile.service.ai.client.IAiClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -38,13 +38,18 @@ class JobMatchServiceImplTest {
     @Mock
     private CvQualityService cvQualityService;
 
-    @InjectMocks
     private JobMatchServiceImpl service;
 
     private Cv cv;
 
     @BeforeEach
     void setUp() {
+        service = new JobMatchServiceImpl(
+                aiClient,
+                cvRepository,
+                cvQualityService,
+                new JobMatchProperties(50, 14, 6, 5, 5, 100, 1800)
+        );
         cv = Cv.builder()
                 .id(22L)
                 .titre("Chef de projet digital")
