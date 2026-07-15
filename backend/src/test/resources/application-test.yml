@@ -19,6 +19,10 @@ cors:
 upload:
   dir: ${java.io.tmpdir}/cv-test-uploads
 
+security:
+  rate-limit:
+    enabled: false
+
 ai:
   deepseek:
     api-key:

@@ -24,6 +24,7 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <flyway.version>11.7.2</flyway.version>
+        <bucket4j.version>8.19.0</bucket4j.version>
         <argLine></argLine>
     </properties>
 
@@ -101,6 +102,17 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Distributed rate limiting -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-lettuce</artifactId>
+            <version>${bucket4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
         </dependency>
 
         <!-- Logback JSON encoder pour les logs structures en prod -->

@@ -27,7 +27,20 @@ class ConfigPropertiesTest {
             assertThat(context.getBean(AiEnhancementProperties.class))
                     .isEqualTo(new AiEnhancementProperties(3000));
             assertThat(context.getBean(RateLimitProperties.class))
-                    .isEqualTo(new RateLimitProperties(10, 20, 60, Duration.ofMinutes(1)));
+                    .isEqualTo(new RateLimitProperties(
+                            true,
+                            true,
+                            10,
+                            Duration.ofMinutes(1),
+                            20,
+                            Duration.ofHours(1),
+                            5,
+                            Duration.ofHours(1),
+                            60,
+                            Duration.ofMinutes(1),
+                            "redis://localhost:6379",
+                            "moncv:rate-limit:"
+                    ));
             assertThat(context.getBean(NotificationProperties.class))
                     .isEqualTo(new NotificationProperties(30));
         });
@@ -44,7 +57,7 @@ class ConfigPropertiesTest {
                         "ai.suggestions.max-suggestions=3",
                         "ai.enhancement.completion-tokens=2400",
                         "security.rate-limit.ai-requests=12",
-                        "security.rate-limit.window=30s",
+                        "security.rate-limit.ai-window=30s",
                         "notifications.stale-cv-days=21"
                 )
                 .run(context -> {
@@ -55,7 +68,8 @@ class ConfigPropertiesTest {
                     assertThat(context.getBean(AiSuggestionProperties.class).maxSuggestions()).isEqualTo(3);
                     assertThat(context.getBean(AiEnhancementProperties.class).completionTokens()).isEqualTo(2400);
                     assertThat(context.getBean(RateLimitProperties.class).aiRequests()).isEqualTo(12);
-                    assertThat(context.getBean(RateLimitProperties.class).window()).isEqualTo(Duration.ofSeconds(30));
+                    assertThat(context.getBean(RateLimitProperties.class).aiWindow())
+                            .isEqualTo(Duration.ofSeconds(30));
                     assertThat(context.getBean(NotificationProperties.class).staleCvDays()).isEqualTo(21);
                 });
     }
