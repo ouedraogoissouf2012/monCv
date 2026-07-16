@@ -7,6 +7,7 @@ import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/public_qr_code.dart';
+import 'widgets/share_metric.dart';
 
 class SharePortfolioDialog extends StatefulWidget {
   final Cv cv;
@@ -21,6 +22,7 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
   Cv? _cv;
   bool _loading = true;
   bool _saving = false;
+  bool _sharing = false;
   String? _error;
 
   String? get _url {
@@ -91,20 +93,41 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
 
   Future<void> _shareWhatsApp() async {
     final url = _url;
-    if (url == null) return;
+    final cv = _cv;
+    if (url == null || cv?.shareToken == null || _sharing) return;
     final api = context.read<IApiClient>();
-    final share = context.read<ShareService>();
-    await api.trackPublicShare(_cv!.shareToken!);
-    await share.shareToWhatsApp(url, title: _cv!.titre);
+    final shareService = context.read<ShareService>();
+    setState(() => _sharing = true);
+    try {
+      final launched =
+          await shareService.shareToWhatsApp(url, title: cv!.titre);
+      if (launched) await _trackShareBestEffort(api, cv.shareToken!);
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
   }
 
   Future<void> _shareLinkedIn() async {
     final url = _url;
-    if (url == null) return;
+    final token = _cv?.shareToken;
+    if (url == null || token == null || _sharing) return;
     final api = context.read<IApiClient>();
-    final share = context.read<ShareService>();
-    await api.trackPublicShare(_cv!.shareToken!);
-    await share.shareToLinkedIn(url);
+    final shareService = context.read<ShareService>();
+    setState(() => _sharing = true);
+    try {
+      final launched = await shareService.shareToLinkedIn(url);
+      if (launched) await _trackShareBestEffort(api, token);
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
+
+  Future<void> _trackShareBestEffort(IApiClient api, String token) async {
+    try {
+      await api.trackPublicShare(token);
+    } catch (_) {
+      // Une metrique ne doit jamais empecher le partage demande par l'utilisateur.
+    }
   }
 
   @override
@@ -154,15 +177,15 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _Metric(
+            ShareMetric(
                 label: l.views,
                 value: cv.viewCount,
                 icon: Icons.visibility_outlined),
-            _Metric(
+            ShareMetric(
                 label: l.downloads,
                 value: cv.downloadCount,
                 icon: Icons.download_outlined),
-            _Metric(
+            ShareMetric(
                 label: l.shares,
                 value: cv.shareCount,
                 icon: Icons.share_outlined),
@@ -191,12 +214,12 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
               label: Text(l.copy),
             ),
             OutlinedButton.icon(
-              onPressed: _shareWhatsApp,
+              onPressed: _sharing ? null : _shareWhatsApp,
               icon: const Icon(Icons.chat_outlined, size: 18),
               label: const Text('WhatsApp'),
             ),
             OutlinedButton.icon(
-              onPressed: _shareLinkedIn,
+              onPressed: _sharing ? null : _shareLinkedIn,
               icon: const Icon(Icons.work_outline, size: 18),
               label: const Text('LinkedIn'),
             ),
@@ -235,47 +258,6 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
         const Divider(height: 32),
         Center(child: PublicQrCode(url: url, size: 170)),
       ],
-    );
-  }
-}
-
-class _Metric extends StatelessWidget {
-  final String label;
-  final int value;
-  final IconData icon;
-
-  const _Metric({required this.label, required this.value, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 164,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.neutral150),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppColors.primary),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$value',
-                    style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w700)),
-                Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.neutral500)),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

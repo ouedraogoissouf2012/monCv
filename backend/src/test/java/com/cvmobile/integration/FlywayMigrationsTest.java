@@ -38,7 +38,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
         long versionedMigrations = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .count();
-        assertThat(versionedMigrations).isEqualTo(11);
+        assertThat(versionedMigrations).isEqualTo(13);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -46,6 +46,9 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
             assertThat(tableExists(connection, SCHEMA, "cvs")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "certifications")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "job_applications")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "uploaded_photos")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "cv_views")).isFalse();
+            assertThat(columnExists(connection, SCHEMA, "cvs", "public_token_hash")).isTrue();
         }
     }
 
@@ -60,6 +63,15 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
     private boolean tableExists(Connection connection, String schema, String tableName) throws Exception {
         try (ResultSet tables = connection.getMetaData().getTables(null, schema, tableName, new String[]{"TABLE"})) {
             return tables.next();
+        }
+    }
+
+    private boolean columnExists(
+            Connection connection, String schema, String tableName, String columnName
+    ) throws Exception {
+        try (ResultSet columns = connection.getMetaData()
+                .getColumns(null, schema, tableName, columnName)) {
+            return columns.next();
         }
     }
 }

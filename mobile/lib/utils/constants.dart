@@ -38,9 +38,23 @@ class ApiConstants {
 
   static String _normalizeApiUrl(String value) {
     final normalized = value.trim().replaceFirst(RegExp(r'/+$'), '');
+    if (kIsWeb && normalized.startsWith('/') && !normalized.startsWith('//')) {
+      final relative = Uri.tryParse(normalized);
+      if (relative == null ||
+          relative.hasScheme ||
+          relative.hasAuthority ||
+          relative.query.isNotEmpty ||
+          relative.fragment.isNotEmpty) {
+        throw StateError('API_BASE_URL relative path is invalid.');
+      }
+      return Uri.base.resolveUri(relative).toString().replaceFirst(
+            RegExp(r'/+$'),
+            '',
+          );
+    }
     if (AppEnvironment.isProduction && !normalized.startsWith('https://')) {
       throw StateError(
-        'API_BASE_URL must use HTTPS when APP_ENV=production.',
+        'API_BASE_URL must use HTTPS or a same-origin path in production.',
       );
     }
     return normalized;

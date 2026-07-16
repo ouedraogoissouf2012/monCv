@@ -86,8 +86,11 @@ public class Cv {
     @Column(name = "variante_label", length = 200)
     private String varianteLabel;
 
-    @Column(name = "public_token", unique = true)
+    @Column(name = "public_token", unique = true, length = 160)
     private String publicToken;
+
+    @Column(name = "public_token_hash", unique = true, length = 64)
+    private String publicTokenHash;
 
     @Builder.Default
     @Column(name = "public_downloads_enabled", nullable = false)

@@ -32,7 +32,9 @@ class AppStartupValidatorTest {
             "DEEPSEEK_API_KEY", "deepseek-secret-value",
             "JWT_SECRET", "jwt-secret-value-with-enough-length",
             "DB_PASSWORD", "database-secret-value",
-            "ALLOWED_ORIGINS", "https://app.example.com");
+            "ALLOWED_ORIGINS", "https://app.example.com",
+            "PUBLIC_LINK_ENCRYPTION_KEY",
+            "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
 
     @Test
     void applicationContextFailsWithoutDatabasePassword() {
@@ -97,7 +99,8 @@ class AppStartupValidatorTest {
                     .rootCause()
                     .hasMessageContaining("DEEPSEEK_API_KEY")
                     .hasMessageContaining("JWT_SECRET")
-                    .hasMessageContaining("ALLOWED_ORIGINS");
+                    .hasMessageContaining("ALLOWED_ORIGINS")
+                    .hasMessageContaining("PUBLIC_LINK_ENCRYPTION_KEY");
         }
     }
 
@@ -106,7 +109,8 @@ class AppStartupValidatorTest {
             "DEEPSEEK_API_KEY",
             "JWT_SECRET",
             "DB_PASSWORD",
-            "ALLOWED_ORIGINS"
+            "ALLOWED_ORIGINS",
+            "PUBLIC_LINK_ENCRYPTION_KEY"
     })
     void productionFailsForEachMissingRequiredSecret(String missingSecret) {
         ConfigurableEnvironment environment = environment("prod");
@@ -142,7 +146,11 @@ class AppStartupValidatorTest {
         ConfigurableEnvironment environment = environment("prod");
         environment.getPropertySources().addFirst(new MapPropertySource(
                 "applicationConfig: [classpath:/application.yml]",
-                Map.of("DB_PASSWORD", "database-value", "ALLOWED_ORIGINS", "https://app.example.com")));
+                Map.of(
+                        "DB_PASSWORD", "database-value",
+                        "ALLOWED_ORIGINS", "https://app.example.com",
+                        "PUBLIC_LINK_ENCRYPTION_KEY",
+                        "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")));
         environment.getPropertySources().addFirst(new MapPropertySource(
                 "systemEnvironment-test", Map.of("JWT_SECRET", "jwt-value")));
         environment.getPropertySources().addFirst(new MapPropertySource(

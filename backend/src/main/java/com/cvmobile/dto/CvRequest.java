@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.cvmobile.dto.CvValidationLimits.*;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,29 +20,29 @@ import java.util.List;
 public class CvRequest {
 
     @NotBlank(message = "Le titre du CV est obligatoire")
-    @Size(max = 200, message = "Le titre ne doit pas depasser 200 caracteres")
+    @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le titre ne doit pas depasser 200 caracteres")
     private String titre;
 
     @Valid
     private PersonalInfoDto personalInfo;
 
-    @Valid
-    private List<EducationDto> educations;
+    @Size(max = MAX_SECTION_ITEMS, message = "Le nombre de formations ne doit pas depasser 50")
+    private List<@NotNull @Valid EducationDto> educations;
 
-    @Valid
-    private List<ExperienceDto> experiences;
+    @Size(max = MAX_SECTION_ITEMS, message = "Le nombre d'experiences ne doit pas depasser 50")
+    private List<@NotNull @Valid ExperienceDto> experiences;
 
-    @Valid
-    private List<SkillDto> skills;
+    @Size(max = MAX_SKILLS, message = "Le nombre de competences ne doit pas depasser 100")
+    private List<@NotNull @Valid SkillDto> skills;
 
-    @Valid
-    private List<LanguageDto> languages;
+    @Size(max = MAX_SECTION_ITEMS, message = "Le nombre de langues ne doit pas depasser 50")
+    private List<@NotNull @Valid LanguageDto> languages;
 
-    @Valid
-    private List<CertificationDto> certifications;
+    @Size(max = MAX_SECTION_ITEMS, message = "Le nombre de certifications ne doit pas depasser 50")
+    private List<@NotNull @Valid CertificationDto> certifications;
 
-    @Valid
-    private List<ProjectDto> projects;
+    @Size(max = MAX_SECTION_ITEMS, message = "Le nombre de projets ne doit pas depasser 50")
+    private List<@NotNull @Valid ProjectDto> projects;
 
     @Valid
     private StyleDto style;
@@ -50,14 +52,14 @@ public class CvRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class StyleDto {
-        @Size(max = 50, message = "Le template ne doit pas depasser 50 caracteres")
+        @Size(max = MAX_TEMPLATE_LENGTH, message = "Le template ne doit pas depasser 50 caracteres")
         private String templateId;
 
         @Min(value = 0, message = "La couleur doit etre un entier ARGB positif")
         @Max(value = 4294967295L, message = "La couleur doit etre un entier ARGB valide")
         private Long primaryColor;
 
-        @Size(max = 100, message = "La police ne doit pas depasser 100 caracteres")
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "La police ne doit pas depasser 100 caracteres")
         private String fontFamily;
     }
 
@@ -66,33 +68,40 @@ public class CvRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PersonalInfoDto {
-        @Size(max = 100, message = "Le nom ne doit pas depasser 100 caracteres")
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "Le nom ne doit pas depasser 100 caracteres")
         private String nom;
 
-        @Size(max = 100, message = "Le prenom ne doit pas depasser 100 caracteres")
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "Le prenom ne doit pas depasser 100 caracteres")
         private String prenom;
 
         @Email(message = "Format d'email invalide")
+        @Size(max = MAX_EMAIL_LENGTH, message = "L'email ne doit pas depasser 254 caracteres")
         private String email;
 
-        @Size(max = 20, message = "Le telephone ne doit pas depasser 20 caracteres")
+        @Size(max = MAX_PHONE_LENGTH, message = "Le telephone ne doit pas depasser 20 caracteres")
         private String telephone;
 
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "L'adresse ne doit pas depasser 200 caracteres")
         private String adresse;
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "La ville ne doit pas depasser 100 caracteres")
         private String ville;
+        @Size(max = MAX_POSTAL_CODE_LENGTH, message = "Le code postal ne doit pas depasser 32 caracteres")
         private String codePostal;
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "Le pays ne doit pas depasser 100 caracteres")
         private String pays;
+        @Size(max = MAX_URL_LENGTH, message = "L'URL de photo ne doit pas depasser 500 caracteres")
         private String photoUrl;
 
-        @Size(max = 500, message = "L'URL LinkedIn ne doit pas depasser 500 caracteres")
+        @Size(max = MAX_URL_LENGTH, message = "L'URL LinkedIn ne doit pas depasser 500 caracteres")
         private String linkedIn;
 
-        @Size(max = 500, message = "L'URL portfolio ne doit pas depasser 500 caracteres")
+        @Size(max = MAX_URL_LENGTH, message = "L'URL portfolio ne doit pas depasser 500 caracteres")
         private String portfolio;
 
-        @Size(max = 500, message = "Le titre de poste ne doit pas depasser 500 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le titre de poste ne doit pas depasser 200 caracteres")
         private String titrePoste;
 
+        @Size(max = MAX_LONG_TEXT_LENGTH, message = "Le resume ne doit pas depasser 10000 caracteres")
         private String resumeProfessionnel;
     }
 
@@ -104,19 +113,21 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "L'etablissement est obligatoire")
-        @Size(max = 200, message = "L'etablissement ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "L'etablissement ne doit pas depasser 200 caracteres")
         private String etablissement;
 
         @NotBlank(message = "Le diplome est obligatoire")
-        @Size(max = 200, message = "Le diplome ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le diplome ne doit pas depasser 200 caracteres")
         private String diplome;
 
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le domaine ne doit pas depasser 200 caracteres")
         private String domaine;
 
         @NotNull(message = "La date de debut est obligatoire")
         private LocalDate dateDebut;
 
         private LocalDate dateFin;
+        @Size(max = MAX_LONG_TEXT_LENGTH, message = "La description ne doit pas depasser 10000 caracteres")
         private String description;
     }
 
@@ -128,19 +139,21 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "L'entreprise est obligatoire")
-        @Size(max = 200, message = "L'entreprise ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "L'entreprise ne doit pas depasser 200 caracteres")
         private String entreprise;
 
         @NotBlank(message = "Le poste est obligatoire")
-        @Size(max = 200, message = "Le poste ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le poste ne doit pas depasser 200 caracteres")
         private String poste;
 
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le lieu ne doit pas depasser 200 caracteres")
         private String lieu;
 
         @NotNull(message = "La date de debut est obligatoire")
         private LocalDate dateDebut;
 
         private LocalDate dateFin;
+        @Size(max = MAX_LONG_TEXT_LENGTH, message = "La description ne doit pas depasser 10000 caracteres")
         private String description;
         private Boolean actuel;
     }
@@ -153,13 +166,14 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "Le nom de la competence est obligatoire")
-        @Size(max = 100, message = "Le nom ne doit pas depasser 100 caracteres")
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "Le nom ne doit pas depasser 100 caracteres")
         private String nom;
 
         @Min(value = 1, message = "Le niveau minimum est 1")
         @Max(value = 5, message = "Le niveau maximum est 5")
         private Integer niveau;
 
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "La categorie ne doit pas depasser 100 caracteres")
         private String categorie;
     }
 
@@ -171,6 +185,7 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "La langue est obligatoire")
+        @Size(max = MAX_SHORT_TEXT_LENGTH, message = "La langue ne doit pas depasser 100 caracteres")
         private String langue;
 
         @NotNull(message = "Le niveau est obligatoire")
@@ -185,14 +200,15 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "Le nom de la certification est obligatoire")
-        @Size(max = 200, message = "Le nom ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le nom ne doit pas depasser 200 caracteres")
         private String nom;
 
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "L'organisme ne doit pas depasser 200 caracteres")
         private String organisme;
         private LocalDate dateObtention;
         private LocalDate dateExpiration;
 
-        @Size(max = 500, message = "L'URL credential ne doit pas depasser 500 caracteres")
+        @Size(max = MAX_URL_LENGTH, message = "L'URL credential ne doit pas depasser 500 caracteres")
         private String credentialUrl;
     }
 
@@ -204,15 +220,16 @@ public class CvRequest {
         private Long id;
 
         @NotBlank(message = "Le nom du projet est obligatoire")
-        @Size(max = 200, message = "Le nom ne doit pas depasser 200 caracteres")
+        @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le nom ne doit pas depasser 200 caracteres")
         private String nom;
 
+        @Size(max = MAX_LONG_TEXT_LENGTH, message = "La description ne doit pas depasser 10000 caracteres")
         private String description;
 
-        @Size(max = 500, message = "Les technologies ne doivent pas depasser 500 caracteres")
+        @Size(max = MAX_URL_LENGTH, message = "Les technologies ne doivent pas depasser 500 caracteres")
         private String technologies;
 
-        @Size(max = 500, message = "Le lien ne doit pas depasser 500 caracteres")
+        @Size(max = MAX_URL_LENGTH, message = "Le lien ne doit pas depasser 500 caracteres")
         private String lien;
 
         private LocalDate dateDebut;

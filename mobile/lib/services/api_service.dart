@@ -12,14 +12,17 @@ import '../models/ai_status.dart';
 import '../models/job_application.dart';
 import 'token_storage.dart';
 import 'i_api_client.dart';
+import 'public_portfolio_api_client.dart';
+
 class ApiService implements IApiClient {
-  ApiService({TokenStorage? storage}) : _storage = storage ?? TokenStorage();
+  ApiService({TokenStorage? storage, http.Client? client})
+      : _storage = storage ?? TokenStorage(),
+        _publicPortfolioApi = PublicPortfolioApiClient(client ?? http.Client());
 
   final TokenStorage _storage;
+  final PublicPortfolioApiClient _publicPortfolioApi;
   String? _accessToken;
 
-  /// Extrait l'erreur typee du body de la reponse HTTP et la lance.
-  /// Utilise par tous les appels IA pour propager les codes AI_* au ErrorMapper.
   Never _throwTypedError(http.Response response, String fallbackMessage) {
     Map<String, dynamic>? body;
     try {
@@ -66,7 +69,6 @@ class ApiService implements IApiClient {
     return headers;
   }
 
-  // Auth endpoints
   @override
   Future<AuthResponse> register({
     required String email,
@@ -185,8 +187,9 @@ class ApiService implements IApiClient {
       if (from != null) 'from': JobApplication.formatDate(from)!,
       if (to != null) 'to': JobApplication.formatDate(to)!,
     };
-    final uri = Uri.parse('${ApiConstants.baseUrl}/applications')
-        .replace(queryParameters: query.isEmpty ? null : query);
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}/applications',
+    ).replace(queryParameters: query.isEmpty ? null : query);
     final response = await http.get(uri, headers: await _getHeaders());
     if (response.statusCode == 200) {
       return (jsonDecode(response.body) as List)
@@ -233,7 +236,6 @@ class ApiService implements IApiClient {
     }
   }
 
-  // User endpoints
   @override
   Future<User> getCurrentUser() async {
     final response = await http.get(
@@ -296,7 +298,6 @@ class ApiService implements IApiClient {
     throw Exception('Erreur lors de la suppression du compte');
   }
 
-  // CV endpoints
   @override
   Future<List<Cv>> getAllCvs() async {
     final response = await http.get(
@@ -446,6 +447,10 @@ class ApiService implements IApiClient {
   }
 
   @override
+  Future<Uint8List?> loadPhoto(String? url) async =>
+      _publicPortfolioApi.loadPhoto(url, await accessToken);
+
+  @override
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
       Uri.parse(
@@ -530,7 +535,8 @@ class ApiService implements IApiClient {
   Future<Cv> regenerateShareLink(int id) async {
     final response = await http.post(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/regenerate'),
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/regenerate',
+      ),
       headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {
@@ -559,7 +565,8 @@ class ApiService implements IApiClient {
   }) async {
     final response = await http.put(
       Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/settings'),
+        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id/share/settings',
+      ),
       headers: await _getHeaders(),
       body: jsonEncode({
         'contactEnabled': contactEnabled,
@@ -573,28 +580,16 @@ class ApiService implements IApiClient {
   }
 
   @override
-  Future<Cv> getPublicCv(String token) async {
-    final response = await http.get(Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token'));
-    if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
-    }
-    _throwTypedError(response, 'Ce portfolio est indisponible');
-  }
+  Future<Cv> getPublicCv(String token) =>
+      _publicPortfolioApi.getPortfolio(token);
 
   @override
-  Future<List<int>> downloadPublicCv(String token, String format) async {
-    final response = await http.get(Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/$format'));
-    if (response.statusCode == 200) return response.bodyBytes;
-    _throwTypedError(response, 'Telechargement public indisponible');
-  }
+  Future<List<int>> downloadPublicCv(String token, String format) =>
+      _publicPortfolioApi.download(token, format);
 
   @override
-  Future<void> trackPublicShare(String token) async {
-    await http.post(Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/public/$token/share'));
-  }
+  Future<void> trackPublicShare(String token) =>
+      _publicPortfolioApi.trackShare(token);
 
   @override
   Future<Map<String, dynamic>> enhanceCv(int cvId, String level) async {

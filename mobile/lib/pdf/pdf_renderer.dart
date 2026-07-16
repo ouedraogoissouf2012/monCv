@@ -32,9 +32,13 @@ class PdfRenderer {
   const PdfRenderer._();
   static Future<void>? _fontInitialization;
 
-  static Future<Uint8List> generate(Cv cv, [PdfTemplate? template]) async {
+  static Future<Uint8List> generate(
+    Cv cv, {
+    PdfTemplate? template,
+    Uint8List? photoBytes,
+  }) async {
     await (_fontInitialization ??= _initializeUnicodeFonts());
-    final photo = await _loadPhoto(cv.personalInfo?.photoUrl);
+    final photo = photoBytes == null ? null : pw.MemoryImage(photoBytes);
     final theme = PdfTheme(
       accent: PdfColor.fromInt(cv.style.primaryColor.toARGB32()),
       photo: photo,
@@ -81,15 +85,4 @@ class PdfRenderer {
     }
     return pw.Font.ttf(ByteData.sublistView(response.bodyBytes));
   }
-}
-
-Future<pw.MemoryImage?> _loadPhoto(String? url) async {
-  if (url == null || url.isEmpty) return null;
-  try {
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) return pw.MemoryImage(response.bodyBytes);
-  } catch (_) {
-    return null;
-  }
-  return null;
 }

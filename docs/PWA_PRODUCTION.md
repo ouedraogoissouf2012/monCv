@@ -19,7 +19,7 @@ flutter pub get
 flutter build web --release \
   --pwa-strategy=offline-first \
   --dart-define=APP_ENV=production \
-  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api
+  --dart-define=API_BASE_URL=/api
 ```
 
 Le bundle est genere dans :
@@ -52,7 +52,8 @@ flutter build web --release \
 
 Regles :
 
-- En production, `API_BASE_URL` doit commencer par `https://`.
+- En production web, `/api` est recommande : Nginx relaie l'API sur la meme origine.
+- Une URL absolue reste possible mais doit commencer par `https://`.
 - En production, `API_BASE_URL` ne doit pas etre vide.
 - En developpement web, l'application peut encore utiliser `http://localhost:8082/api`.
 - Aucun secret backend ne doit etre injecte dans le build Flutter Web.
@@ -75,7 +76,8 @@ Le backend doit autoriser le domaine de la PWA :
 ALLOWED_ORIGINS=https://app.moncv.com,https://www.moncv.com
 ```
 
-Le backend doit aussi etre servi en HTTPS, par exemple derriere un reverse proxy ou une plateforme cloud.
+Le conteneur web fourni sert le bundle et relaie `/api` vers le backend. Il applique CSP,
+HSTS, les protections anti-framing et une politique de cache adaptee au service worker.
 
 ## Fichiers PWA attendus
 

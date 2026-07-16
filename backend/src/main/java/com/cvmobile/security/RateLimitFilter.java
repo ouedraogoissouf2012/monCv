@@ -28,10 +28,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final RateLimitProperties properties;
     private final RateLimitService rateLimitService;
     private final MeterRegistry meterRegistry;
+    private final SecurityIdentifierHasher identifierHasher;
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return !properties.enabled() || ruleForPath(request.getRequestURI()) == null;
+        return !properties.enabled() || ruleForRequest(request) == null;
     }
 
     @Override
@@ -40,7 +41,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        RateLimitRule rule = ruleForPath(request.getRequestURI());
+        RateLimitRule rule = ruleForRequest(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userTier = userTier(authentication);
 
@@ -73,7 +74,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         long retryAfterSeconds = retryAfterSeconds(result.retryAfter());
         incrementRejectedMetric(rule.endpoint(), userTier);
-        log.warn("Rate limit depasse pour {} sur endpoint {}", identity, rule.endpoint());
+        log.warn("Rate limit depasse sur endpoint {} pour tier {}", rule.endpoint(), userTier);
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType("application/json");
         response.setHeader("Retry-After", Long.toString(retryAfterSeconds));
@@ -85,7 +86,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         );
     }
 
-    private RateLimitRule ruleForPath(String path) {
+    private RateLimitRule ruleForRequest(HttpServletRequest request) {
+        String path = request.getRequestURI();
         if (path.startsWith("/api/auth/")) {
             return new RateLimitRule("auth", properties.authRequests(), properties.authWindow(), false);
         }
@@ -96,6 +98,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return new RateLimitRule("cv-import", properties.importRequests(), properties.importWindow(), true);
         }
         if (path.startsWith("/api/cvs/public/")) {
+            if ("GET".equals(request.getMethod())
+                    && (path.endsWith("/pdf") || path.endsWith("/docx"))) {
+                return new RateLimitRule(
+                        "public-document",
+                        properties.publicDownloadRequests(),
+                        properties.publicDownloadWindow(),
+                        false
+                );
+            }
+            if ("POST".equals(request.getMethod()) && path.endsWith("/share")) {
+                return new RateLimitRule(
+                        "public-share",
+                        properties.publicShareRequests(),
+                        properties.publicShareWindow(),
+                        false
+                );
+            }
             return new RateLimitRule(
                     "public-cv",
                     properties.publicRequests(),
@@ -117,7 +136,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String ipKey(HttpServletRequest request) {
-        return "ip:" + request.getRemoteAddr();
+        return "ip:" + identifierHasher.hash("rate-limit", request.getRemoteAddr());
     }
 
     private String userTier(Authentication authentication) {

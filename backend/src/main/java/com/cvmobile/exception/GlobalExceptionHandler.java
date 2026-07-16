@@ -15,6 +15,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
@@ -40,6 +43,27 @@ public class GlobalExceptionHandler {
 
         return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
                 "Erreur de validation", fieldErrors);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadableJson(
+            HttpMessageNotReadableException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST",
+                "Le corps de la requete est invalide", null);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException ex) {
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE",
+                "Le type de contenu de la requete n'est pas accepte", null);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedMethod(
+            HttpRequestMethodNotSupportedException ex) {
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED",
+                "La methode HTTP n'est pas acceptee", null);
     }
 
     // ── Auth ─────────────────────────────────────────────────────
@@ -108,6 +132,18 @@ public class GlobalExceptionHandler {
                 .header("Retry-After", "60")
                 .body(buildBody(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED",
                         ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(PublicDocumentUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handlePublicDocumentUnavailable(
+            PublicDocumentUnavailableException ex) {
+        log.warn("Generation de document public refusee [correlationId={}]",
+                CorrelationIdSupport.current());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header("Retry-After", "1")
+                .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE,
+                        "PUBLIC_DOCUMENT_UNAVAILABLE",
+                        "Le document est temporairement indisponible. Reessayez.", null));
     }
 
     // ── Upload ───────────────────────────────────────────────────
