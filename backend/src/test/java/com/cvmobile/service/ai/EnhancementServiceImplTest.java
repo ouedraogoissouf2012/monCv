@@ -77,7 +77,8 @@ class EnhancementServiceImplTest {
                         .build()))
                 .skills(List.of(
                         Skill.builder().id(3L).nom("world").niveau(1).build(),
-                        Skill.builder().id(4L).nom("comminoty management").niveau(5).build()))
+                        Skill.builder().id(4L).nom("comminoty management").niveau(5).build(),
+                        Skill.builder().id(8L).nom("Jira et Confluence").niveau(4).build()))
                 .languages(List.of(Language.builder()
                         .id(5L).langue("Francais").niveau(Language.NiveauLangue.NATIF).build()))
                 .certifications(List.of(Certification.builder()
@@ -105,7 +106,7 @@ class EnhancementServiceImplTest {
                         Étude en communication
 
                         COMPETENCES:
-                        Word, Community Management
+                        Word, Community Management, Jira
 
                         PROJ_7:
                         Projet réalisé en équipe
@@ -121,10 +122,10 @@ class EnhancementServiceImplTest {
         assertThat(response.getEducations().get(0).getEtablissement()).isEqualTo("lycée municipal");
         assertThat(response.getSkills())
                 .extracting(EnhanceCvResponse.SkillEnhancement::getNom)
-                .containsExactly("Word", "Community Management");
+                .containsExactly("Word", "Community Management", "Jira et Confluence");
         assertThat(response.getSkills())
                 .extracting(EnhanceCvResponse.SkillEnhancement::getNiveau)
-                .containsExactly(1, 5);
+                .containsExactly(1, 5, 4);
         assertThat(response.getLanguages().get(0).getLangue()).isEqualTo("Français");
         assertThat(response.getProjects().get(0).getTechnologies()).isEqualTo("Excel, Canva");
         assertThat(response.getWarnings()).anyMatch(message -> message.contains("PRR"));

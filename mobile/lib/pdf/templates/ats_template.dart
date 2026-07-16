@@ -148,6 +148,10 @@ pw.Document _buildAts(Cv cv, PdfColor accent) {
               ],
             )),
       ],
+      if (cv.projects.isNotEmpty) ...[
+        atsSection('Projets'),
+        ...cv.projects.map((project) => ProjectsSection.build(project, accent)),
+      ],
     ],
   ));
   return doc;

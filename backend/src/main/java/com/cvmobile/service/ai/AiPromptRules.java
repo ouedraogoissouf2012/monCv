@@ -68,4 +68,9 @@ public final class AiPromptRules {
             "REGLE COMPETENCES: Regroupe les competences par categorie si possible. "
             + "Format: 'Backend: Java, Spring Boot | Frontend: Angular, TypeScript | DevOps: Docker, CI/CD' "
             + "LIMITE a 10 competences maximum. Garde les acronymes intacts (CI/CD, API REST, etc.). ";
+
+    public static final String PROOFREADING_SKILL_RULE =
+            "REGLE CORRECTION DES COMPETENCES: Corrige uniquement l'orthographe, les accents et la casse. "
+            + "Conserve chaque technologie et chaque terme du libelle original, dans le meme ordre. "
+            + "Ne supprime, ne fusionne, ne traduis et ne remplace aucune competence. ";
 }
