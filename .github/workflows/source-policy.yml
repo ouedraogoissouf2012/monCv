@@ -1,0 +1,92 @@
+name: Trusted source policy
+
+on:
+  pull_request_target:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  source-policy:
+    name: Trusted source policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout trusted base
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Checkout candidate as data
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Enforce trusted 300-line policy
+        run: >-
+          python trusted/tools/quality/check_source_lines.py
+          --root candidate
+          --policy candidate/tools/quality/source_line_policy.json
+          --reference-policy trusted/tools/quality/source_line_policy.json
+
+  generated-localizations:
+    name: Trusted generated localizations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout candidate without credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.41.x'
+          channel: stable
+          cache: true
+
+      - name: Prepare isolated localization inputs
+        run: |
+          mkdir -p "$RUNNER_TEMP/l10n-project/lib/l10n"
+          cp candidate/mobile/lib/l10n/app_fr.arb "$RUNNER_TEMP/l10n-project/lib/l10n/"
+          cp candidate/mobile/lib/l10n/app_en.arb "$RUNNER_TEMP/l10n-project/lib/l10n/"
+          printf '%s\n' \
+            'name: l10n_verifier' \
+            'environment:' \
+            "  sdk: '>=3.10.0 <4.0.0'" \
+            'flutter:' \
+            '  generate: true' \
+            > "$RUNNER_TEMP/l10n-project/pubspec.yaml"
+
+      # Fixed options treat candidate ARB files as data and ignore candidate config.
+      - name: Regenerate localizations in isolation
+        working-directory: ${{ runner.temp }}/l10n-project
+        run: >-
+          flutter gen-l10n
+          --arb-dir lib/l10n
+          --output-dir lib/l10n
+          --template-arb-file app_fr.arb
+          --output-localization-file app_localizations.dart
+
+      - name: Verify committed generator output
+        run: |
+          diff -u "$RUNNER_TEMP/l10n-project/lib/l10n/app_localizations.dart" candidate/mobile/lib/l10n/app_localizations.dart
+          diff -u "$RUNNER_TEMP/l10n-project/lib/l10n/app_localizations_en.dart" candidate/mobile/lib/l10n/app_localizations_en.dart
+          diff -u "$RUNNER_TEMP/l10n-project/lib/l10n/app_localizations_fr.dart" candidate/mobile/lib/l10n/app_localizations_fr.dart
