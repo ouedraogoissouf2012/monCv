@@ -3,16 +3,12 @@ package com.cvmobile.service;
 import com.cvmobile.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STShd;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -29,7 +25,7 @@ public class DocxGenerationService {
 
     public byte[] generate(Cv cv) throws IOException {
         try (XWPFDocument doc = new XWPFDocument()) {
-            configureA4Page(doc);
+            DocxPageConfigurator.configureA4(doc);
             PersonalInfo info = cv.getPersonalInfo();
 
             // ── NOM ──
@@ -166,22 +162,6 @@ public class DocxGenerationService {
     }
 
     // ── Helpers ──────────────────────────────────────────────────
-
-    private void configureA4Page(XWPFDocument doc) {
-        CTSectPr section = doc.getDocument().getBody().addNewSectPr();
-        CTPageSz pageSize = section.addNewPgSz();
-        pageSize.setW(BigInteger.valueOf(11_906));
-        pageSize.setH(BigInteger.valueOf(16_838));
-        CTPageMar margins = section.addNewPgMar();
-        BigInteger margin = BigInteger.valueOf(1_134);
-        margins.setTop(margin);
-        margins.setRight(margin);
-        margins.setBottom(margin);
-        margins.setLeft(margin);
-        margins.setHeader(BigInteger.valueOf(708));
-        margins.setFooter(BigInteger.valueOf(708));
-        margins.setGutter(BigInteger.ZERO);
-    }
 
     private String formatName(PersonalInfo info) {
         if (info == null) return "CV";
