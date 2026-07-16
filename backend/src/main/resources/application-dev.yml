@@ -4,6 +4,12 @@ spring:
   datasource:
     password: ${DB_PASSWORD}
 
+  # Les worktrees peuvent appliquer une migration plus recente avant une
+  # migration issue d'une autre branche. Autoriser Flyway a combler ce trou
+  # uniquement en developpement; le profil prod conserve la validation stricte.
+  flyway:
+    out-of-order: ${FLYWAY_OUT_OF_ORDER:true}
+
   jpa:
     show-sql: ${SHOW_SQL:false}
     properties:

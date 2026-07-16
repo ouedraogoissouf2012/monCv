@@ -20,6 +20,20 @@ cp .env.example .env
 mvn spring-boot:run
 ```
 
+Sous Windows avec PostgreSQL et Redis lances dans Docker, utilisez la tache
+VS Code `Backend local (PostgreSQL Docker)` ou :
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/run_backend_local.ps1
+```
+
+Ce lanceur charge le fichier `.env`, puis utilise `localhost:5436` pour joindre
+PostgreSQL et `localhost:6379` pour Redis. Le port dedie `5436` evite les
+conflits avec un PostgreSQL natif sur `5432` et les noms DNS internes Docker
+`postgres` et `redis` ne sont jamais transmis au processus Java local. Dans un
+worktree sans secrets, il reutilise automatiquement le `.env` d'un autre
+worktree du meme depot.
+
 ### Stack Docker locale
 
 ```bash

@@ -7,5 +7,5 @@ import com.cvmobile.dto.JobMatchResponse;
  */
 public interface IJobMatchService {
 
-    JobMatchResponse matchJob(Long cvId, String jobDescription);
+    JobMatchResponse matchJob(Long cvId, Long userId, String jobDescription);
 }

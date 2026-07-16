@@ -10,9 +10,9 @@ import com.cvmobile.model.Language;
 import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,17 +33,14 @@ import java.util.stream.Collectors;
 
 /**
  * Analyse de correspondance CV / offre d'emploi.
- * Calcule un score ATS lisible, détaille les catégories clés
- * et complète le rapport avec des recommandations IA.
+ * Calcule un score ATS lisible, détaille les catégories clés et complète le rapport avec des recommandations IA.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobMatchServiceImpl implements IJobMatchService {
-
     private static final Pattern SCORE_PATTERN = Pattern.compile("SCORE:\\s*(\\d+)");
     private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}][\\p{L}\\p{N}+.#/-]{2,}");
-
     private static final Set<String> STOP_WORDS = Set.of(
             "avec", "sans", "dans", "pour", "vous", "votre", "notre", "leurs", "elles", "nous",
             "mais", "donc", "etre", "avoir", "faire", "tres", "plus", "moins", "ainsi", "afin",
@@ -81,14 +78,13 @@ public class JobMatchServiceImpl implements IJobMatchService {
     );
 
     private final IAiClient aiClient;
-    private final CvRepository cvRepository;
+    private final CvOwnershipService cvOwnershipService;
     private final CvQualityService cvQualityService;
     private final JobMatchProperties properties;
 
     @Override
-    public JobMatchResponse matchJob(Long cvId, String jobDescription) {
-        Cv cv = cvRepository.findById(cvId)
-                .orElseThrow(() -> new IllegalArgumentException("CV non trouve"));
+    public JobMatchResponse matchJob(Long cvId, Long userId, String jobDescription) {
+        Cv cv = cvOwnershipService.requireOwnedCv(cvId, userId);
 
         return analyzeMatch(cv, jobDescription);
     }

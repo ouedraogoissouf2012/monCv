@@ -17,8 +17,6 @@ public interface ICvService {
 
     CvResponse getCvById(Long cvId, Long userId);
 
-    CvResponse getCvWithDetails(Long cvId);
-
     CvResponse getCvByPublicToken(String token);
 
     CvResponse createCv(CvRequest request, Long userId);

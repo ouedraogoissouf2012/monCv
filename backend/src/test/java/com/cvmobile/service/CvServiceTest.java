@@ -203,7 +203,7 @@ class CvServiceTest {
 
         when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(original));
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, "Offre d'emploi")).thenReturn(adapted);
+        when(enhancementService.adaptCvToJob(10L, 1L, "Offre d'emploi")).thenReturn(adapted);
         when(cvMapper.clonePersonalInfo(any())).thenReturn(
                 PersonalInfo.builder().titrePoste("Dev").resumeProfessionnel("Resume original").build());
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> {
@@ -217,7 +217,7 @@ class CvServiceTest {
 
         assertThat(result.getVarianteLabel()).isEqualTo("Developpeur Backend Java — Sopra Steria");
         assertThat(result.getParentCvId()).isEqualTo(10L);
-        verify(enhancementService).adaptCvToJob(10L, "Offre d'emploi");
+        verify(enhancementService).adaptCvToJob(10L, 1L, "Offre d'emploi");
         verify(cvRepository, times(2)).save(any(Cv.class));
     }
 
@@ -231,7 +231,7 @@ class CvServiceTest {
 
         when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(original));
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, "Offre")).thenReturn(adapted);
+        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cvMapper.toResponse(any(Cv.class))).thenReturn(expectedResponse);
 
@@ -255,6 +255,7 @@ class CvServiceTest {
 
         assertThatThrownBy(() -> cvService.createVariant(10L, "Offre", null, 2L))
                 .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(enhancementService);
     }
 
     @Test

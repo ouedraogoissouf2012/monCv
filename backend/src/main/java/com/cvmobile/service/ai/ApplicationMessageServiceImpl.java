@@ -8,12 +8,11 @@ import com.cvmobile.model.Experience;
 import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
@@ -31,13 +30,11 @@ public class ApplicationMessageServiceImpl implements IApplicationMessageService
     private static final List<String> MARKERS = List.of(COVER_LETTER, EMAIL, LINKEDIN, WHATSAPP);
 
     private final IAiClient aiClient;
-    private final CvRepository cvRepository;
+    private final CvOwnershipService cvOwnershipService;
 
     @Override
-    @Transactional(readOnly = true)
-    public ApplicationMessagesResponse generate(Long cvId, String jobDescription, String tone) {
-        Cv cv = cvRepository.findByIdWithDetails(cvId)
-                .orElseThrow(() -> new IllegalArgumentException("CV non trouve"));
+    public ApplicationMessagesResponse generate(Long cvId, Long userId, String jobDescription, String tone) {
+        Cv cv = cvOwnershipService.requireOwnedCv(cvId, userId);
 
         String resolvedTone = normalizeTone(tone);
         String rawContent = aiClient.complete(buildPrompt(cv, jobDescription, resolvedTone), 2400);

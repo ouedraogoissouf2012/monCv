@@ -8,7 +8,7 @@ import com.cvmobile.dto.EnhanceCvResponse;
  */
 public interface IEnhancementService {
 
-    EnhanceCvResponse enhanceCv(Long cvId, String level);
+    EnhanceCvResponse enhanceCv(Long cvId, Long userId, String level);
 
-    EnhanceCvResponse adaptCvToJob(Long cvId, String jobDescription);
+    EnhanceCvResponse adaptCvToJob(Long cvId, Long userId, String jobDescription);
 }

@@ -3,6 +3,7 @@ package com.cvmobile.service.ai;
 import com.cvmobile.config.AiEnhancementProperties;
 import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.dto.EnhanceCvResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Education;
@@ -11,9 +12,9 @@ import com.cvmobile.model.Language;
 import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,9 +23,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +35,7 @@ class EnhancementServiceImplTest {
     private IAiClient aiClient;
 
     @Mock
-    private CvRepository cvRepository;
+    private CvOwnershipService cvOwnershipService;
 
     private EnhancementServiceImpl service;
 
@@ -45,7 +46,7 @@ class EnhancementServiceImplTest {
         );
         service = new EnhancementServiceImpl(
                 aiClient,
-                cvRepository,
+                cvOwnershipService,
                 new CvQualityService(qualityProperties),
                 mock(NotificationService.class),
                 new AiEnhancementProperties(3000),
@@ -89,7 +90,7 @@ class EnhancementServiceImplTest {
                         .description("Projet realise en equipe")
                         .build()))
                 .build();
-        when(cvRepository.findById(42L)).thenReturn(Optional.of(cv));
+        when(cvOwnershipService.requireOwnedCv(42L, 7L)).thenReturn(cv);
         when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyInt()))
                 .thenReturn("""
@@ -112,7 +113,7 @@ class EnhancementServiceImplTest {
                         Projet réalisé en équipe
                         """);
 
-        EnhanceCvResponse response = service.enhanceCv(42L, "LITE");
+        EnhanceCvResponse response = service.enhanceCv(42L, 7L, "LITE");
 
         assertThat(response.isAiGenerated()).isTrue();
         assertThat(response.getTitrePoste()).isEqualTo("Community manager");
@@ -130,5 +131,25 @@ class EnhancementServiceImplTest {
         assertThat(response.getProjects().get(0).getTechnologies()).isEqualTo("Excel, Canva");
         assertThat(response.getWarnings()).anyMatch(message -> message.contains("PRR"));
         assertThat(response.getCorrectionCount()).isGreaterThanOrEqualTo(8);
+    }
+
+    @Test
+    void adaptCvToJob_refuseUnCvNonPossedeAvantToutAppelIa() {
+        when(cvOwnershipService.requireOwnedCv(42L, 8L))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 42L));
+
+        assertThatThrownBy(() -> service.adaptCvToJob(42L, 8L, "Offre cible"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(aiClient);
+    }
+
+    @Test
+    void enhanceCv_refuseUnCvNonPossedeAvantToutAppelIa() {
+        when(cvOwnershipService.requireOwnedCv(42L, 8L))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 42L));
+
+        assertThatThrownBy(() -> service.enhanceCv(42L, 8L, "LITE"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(aiClient);
     }
 }

@@ -36,6 +36,7 @@ mobile/.packages
 *.iml
 .vscode/*
 !.vscode/launch.json
+!.vscode/tasks.json
 *.suo
 *.user
 

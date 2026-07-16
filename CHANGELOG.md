@@ -23,6 +23,10 @@ and this project follows semantic-style release notes even if Git tags are still
 
 - historical Flyway migration gap documentation aligned with the actual `V1` to `V9` chain
 
+### Security
+
+- CV ownership is enforced before every CV-backed AI call and private DOCX export
+
 ## [1.0.0] - 2026-07-13
 
 ### Added

@@ -14,7 +14,9 @@
 
 ## Etape 1 : Base de donnees PostgreSQL
 
-PostgreSQL doit tourner sur le port **5432** (par defaut).
+Le conteneur PostgreSQL MonCV est publie sur le port hote **5436**. Le port
+interne Docker reste **5432**, ce qui evite les conflits avec une installation
+PostgreSQL native.
 
 ```bash
 # Verifier que PostgreSQL tourne
@@ -166,7 +168,7 @@ Notes importantes :
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/cvmobile` | URL PostgreSQL |
+| `DB_URL` | `jdbc:postgresql://localhost:5436/cvmobile` | URL PostgreSQL locale |
 | `DB_USERNAME` | `postgres` | User BDD |
 | `DB_PASSWORD` | `seven` | Mot de passe BDD |
 | `SERVER_PORT` | `8082` | Port du backend |

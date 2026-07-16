@@ -1,5 +1,31 @@
 # Politique de securite MonCV
 
+## Matrice d'autorisation des ressources
+
+La verification de propriete est atomique : les ressources privees sont
+chargees par leur identifiant et celui du compte JWT. L'API ne fait pas de
+lecture globale suivie d'un `403`, afin de ne pas devenir un oracle
+d'existence. Le role `ADMIN` n'accorde aucun bypass sur les donnees privees
+d'un autre compte ; un administrateur reste proprietaire de ses seules
+ressources.
+
+| Surface | Identifiant | Autorisation | Absent ou tiers | Effet externe avant controle |
+|---|---|---|---|---|
+| `POST /api/ai/enhance-cv` | `cvId` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucun appel IA |
+| `POST /api/ai/match-job` | `cvId` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucun appel IA |
+| `POST /api/ai/application-messages` | `cvId` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucun appel IA |
+| `POST /api/cvs/{id}/variant` | `id` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucune adaptation IA |
+| Routes privees `/api/cvs/{id}/...` | `id` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucun export ou partage |
+| `GET /api/cvs/{id}/variants` | `id` parent | liste filtree par proprietaire | liste vide | aucun |
+| `PUT/DELETE /api/applications/{id}` | `id` | proprietaire JWT | `404 RESOURCE_NOT_FOUND` | aucun |
+| `POST/PUT /api/applications` | `cvId` optionnel | proprietaire JWT du CV | `404 RESOURCE_NOT_FOUND` | aucun |
+| Routes `/api/cvs/public/{token}` | jeton public | capacite de partage active | `404 RESOURCE_NOT_FOUND` | selon reglages publics |
+| `GET /api/uploads/photos/{filename}` | nom UUID | acces public intentionnel | `404` | aucun |
+
+Sans JWT valide, les routes privees retournent `401` avant d'atteindre le
+controleur. Les reponses `404` de propriete ne contiennent ni donnees du CV,
+ni details internes, ni distinction entre ressource absente et interdite.
+
 ## Gestion des secrets
 
 Les mots de passe, jetons, cles API, cles privees et secrets JWT ne doivent
