@@ -14,14 +14,14 @@ class CorsConfigTest {
     void corsConfiguration_devraitAccepterLesOriginesLocalesConfigurees() {
         CorsConfig corsConfig = new CorsConfig();
         ReflectionTestUtils.setField(corsConfig, "allowedOrigins",
-                "http://localhost:3000, http://localhost:3002, http://127.0.0.1:3002");
+                "http://localhost:*, http://127.0.0.1:*");
 
         CorsConfiguration configuration = getConfiguration(corsConfig);
 
-        assertThat(configuration.checkOrigin("http://localhost:3002"))
-                .isEqualTo("http://localhost:3002");
-        assertThat(configuration.checkOrigin("http://127.0.0.1:3002"))
-                .isEqualTo("http://127.0.0.1:3002");
+        assertThat(configuration.checkOrigin("http://localhost:30589"))
+                .isEqualTo("http://localhost:30589");
+        assertThat(configuration.checkOrigin("http://127.0.0.1:53816"))
+                .isEqualTo("http://127.0.0.1:53816");
     }
 
     @Test
