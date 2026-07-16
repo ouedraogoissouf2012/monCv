@@ -3,12 +3,16 @@ package com.cvmobile.service;
 import com.cvmobile.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STShd;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -25,6 +29,7 @@ public class DocxGenerationService {
 
     public byte[] generate(Cv cv) throws IOException {
         try (XWPFDocument doc = new XWPFDocument()) {
+            configureA4Page(doc);
             PersonalInfo info = cv.getPersonalInfo();
 
             // ── NOM ──
@@ -69,6 +74,9 @@ public class DocxGenerationService {
                 for (Skill s : cv.getSkills()) {
                     if (!skills.isEmpty()) skills.append("  -  ");
                     skills.append(s.getNom());
+                    if (s.getNiveau() != null) {
+                        skills.append(" (").append(skillLevelLabel(s.getNiveau())).append(")");
+                    }
                 }
                 addParagraph(doc, skills.toString(), 11, false, "000000");
             }
@@ -159,6 +167,22 @@ public class DocxGenerationService {
 
     // ── Helpers ──────────────────────────────────────────────────
 
+    private void configureA4Page(XWPFDocument doc) {
+        CTSectPr section = doc.getDocument().getBody().addNewSectPr();
+        CTPageSz pageSize = section.addNewPgSz();
+        pageSize.setW(BigInteger.valueOf(11_906));
+        pageSize.setH(BigInteger.valueOf(16_838));
+        CTPageMar margins = section.addNewPgMar();
+        BigInteger margin = BigInteger.valueOf(1_134);
+        margins.setTop(margin);
+        margins.setRight(margin);
+        margins.setBottom(margin);
+        margins.setLeft(margin);
+        margins.setHeader(BigInteger.valueOf(708));
+        margins.setFooter(BigInteger.valueOf(708));
+        margins.setGutter(BigInteger.ZERO);
+    }
+
     private String formatName(PersonalInfo info) {
         if (info == null) return "CV";
         return ((info.getPrenom() != null ? info.getPrenom() : "")
@@ -184,13 +208,23 @@ public class DocxGenerationService {
     private String niveauLabel(Language.NiveauLangue niveau) {
         if (niveau == null) return "";
         return switch (niveau) {
-            case A1 -> "Debutant";
-            case A2 -> "Elementaire";
-            case B1 -> "Intermediaire";
-            case B2 -> "Avance";
-            case C1 -> "Courant";
-            case C2 -> "Bilingue";
-            case NATIF -> "Langue maternelle";
+            case A1 -> "A1 - Débutant";
+            case A2 -> "A2 - Élémentaire";
+            case B1 -> "B1 - Intermédiaire";
+            case B2 -> "B2 - Intermédiaire avancé";
+            case C1 -> "C1 - Courant";
+            case C2 -> "C2 - Maîtrise";
+            case NATIF -> "Natif";
+        };
+    }
+
+    private String skillLevelLabel(int niveau) {
+        return switch (Math.max(1, Math.min(niveau, 5))) {
+            case 1 -> "Débutant";
+            case 2 -> "Intermédiaire";
+            case 3 -> "Avancé";
+            case 4 -> "Confirmé";
+            default -> "Expert";
         };
     }
 
