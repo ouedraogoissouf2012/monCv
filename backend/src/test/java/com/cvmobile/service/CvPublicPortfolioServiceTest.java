@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CvPublicPortfolioServiceTest {
@@ -114,13 +115,10 @@ class CvPublicPortfolioServiceTest {
         cv.setPublicDownloadsEnabled(true);
         when(cvRepository.findByPublicToken("public-token"))
                 .thenReturn(Optional.of(cv));
-        when(cvRepository.save(any(Cv.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         service.trackPublicShare("public-token");
         service.trackPublicDownload("public-token");
 
-        assertThat(cv.getShareCount()).isEqualTo(4);
-        assertThat(cv.getDownloadCount()).isEqualTo(3);
+        verify(cvRepository).incrementShareCount(cv.getId());
+        verify(cvRepository).incrementDownloadCount(cv.getId());
     }
 }
-

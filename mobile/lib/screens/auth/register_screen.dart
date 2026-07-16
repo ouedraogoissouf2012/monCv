@@ -225,7 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 6),
               Text(
                 l.createAccountSubtitle,
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: 14, color: _kMuted, fontWeight: FontWeight.w300),
               ),
               const SizedBox(height: 28),
@@ -349,7 +349,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           )
                         : Text(
                             l.createMyAccount,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w500),
                           ),
                   ),
@@ -363,13 +363,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Text(
                     '${l.hasAccount} ',
-                    style: TextStyle(fontSize: 13, color: _kMuted),
+                    style: const TextStyle(fontSize: 13, color: _kMuted),
                   ),
                   GestureDetector(
                     onTap: () => context.go('/login'),
                     child: Text(
                       l.login,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: _kBlue,
                         fontWeight: FontWeight.w600,

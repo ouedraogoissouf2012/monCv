@@ -4,6 +4,7 @@ import com.cvmobile.model.Cv;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,6 +26,18 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     boolean existsByIdAndUserId(Long id, Long userId);
 
     Optional<Cv> findByPublicToken(String publicToken);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Cv c SET c.viewCount = c.viewCount + 1 WHERE c.id = :cvId")
+    int incrementViewCount(@Param("cvId") Long cvId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Cv c SET c.downloadCount = c.downloadCount + 1 WHERE c.id = :cvId")
+    int incrementDownloadCount(@Param("cvId") Long cvId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Cv c SET c.shareCount = c.shareCount + 1 WHERE c.id = :cvId")
+    int incrementShareCount(@Param("cvId") Long cvId);
 
     // ── Variantes ───────────────────────────────────────────────
     List<Cv> findByParentIdAndUserId(Long parentId, Long userId);

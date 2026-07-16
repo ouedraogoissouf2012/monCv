@@ -58,7 +58,7 @@ class ProjectsSection extends StatelessWidget {
             controller: nomCtrl,
             decoration: InputDecoration(
               labelText: l.projectNameRequired,
-              prefixIcon: Icon(Icons.rocket_launch_outlined, size: 20),
+              prefixIcon: const Icon(Icons.rocket_launch_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
@@ -66,7 +66,7 @@ class ProjectsSection extends StatelessWidget {
             controller: techCtrl,
             decoration: InputDecoration(
               labelText: l.technologiesUsed,
-              prefixIcon: Icon(Icons.code_rounded, size: 20),
+              prefixIcon: const Icon(Icons.code_rounded, size: 20),
               hintText: l.technologiesExample,
             ),
           ),
@@ -75,7 +75,7 @@ class ProjectsSection extends StatelessWidget {
             controller: lienCtrl,
             decoration: InputDecoration(
               labelText: l.projectLink,
-              prefixIcon: Icon(Icons.link_rounded, size: 20),
+              prefixIcon: const Icon(Icons.link_rounded, size: 20),
               hintText: 'https://github.com/...',
             ),
             keyboardType: TextInputType.url,

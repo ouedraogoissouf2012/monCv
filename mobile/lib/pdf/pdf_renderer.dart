@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../models/cv.dart';
+import '../services/http_timeout.dart' as http;
 import '../utils/cv_levels.dart';
 
 part 'sections/certifications_section.dart';
@@ -30,8 +30,10 @@ part 'theme/pdf_typography.dart';
 
 class PdfRenderer {
   const PdfRenderer._();
+  static Future<void>? _fontInitialization;
 
   static Future<Uint8List> generate(Cv cv, [PdfTemplate? template]) async {
+    await (_fontInitialization ??= _initializeUnicodeFonts());
     final photo = await _loadPhoto(cv.personalInfo?.photoUrl);
     final theme = PdfTheme(
       accent: PdfColor.fromInt(cv.style.primaryColor.toARGB32()),
@@ -50,6 +52,35 @@ class PdfRenderer {
         'ats' => const AtsPdfTemplate(),
         _ => const ModernePdfTemplate(),
       };
+
+  static Future<void> _initializeUnicodeFonts() async {
+    final fonts = await Future.wait([
+      _downloadFont(
+          'memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0C4nY1M2xLER.ttf'),
+      _downloadFont(
+          'memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1y4nY1M2xLER.ttf'),
+      _downloadFont(
+          'memQYaGs126MiZpBA-UFUIcVXSCEkx2cmqvXlWq8tWZ0Pw86hd0Rk8ZkaVcUwaERZjA.ttf'),
+      _downloadFont(
+          'memQYaGs126MiZpBA-UFUIcVXSCEkx2cmqvXlWq8tWZ0Pw86hd0RkyFjaVcUwaERZjA.ttf'),
+    ]);
+    pw.ThemeData.buildThemeData = () => pw.ThemeData.withFont(
+          base: fonts[0],
+          bold: fonts[1],
+          italic: fonts[2],
+          boldItalic: fonts[3],
+          fontFallback: [fonts[0]],
+        );
+  }
+
+  static Future<pw.Font> _downloadFont(String name) async {
+    final uri = Uri.https('fonts.gstatic.com', '/s/opensans/v40/$name');
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw StateError('Impossible de charger la police PDF Unicode');
+    }
+    return pw.Font.ttf(ByteData.sublistView(response.bodyBytes));
+  }
 }
 
 Future<pw.MemoryImage?> _loadPhoto(String? url) async {

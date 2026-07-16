@@ -111,7 +111,7 @@ class _HeroActions extends StatelessWidget {
       ),
       child: Text(l.createCvFree,
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w700)),
+          style: const TextStyle(fontWeight: FontWeight.w700)),
     );
     final secondary = OutlinedButton(
       onPressed: () => context.go('/login'),
@@ -232,11 +232,11 @@ class _FeaturesSection extends StatelessWidget {
       child: Column(children: [
         Text(l.allYouNeed,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Text(l.allYouNeedSubtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: AppColors.neutral450)),
+            style: const TextStyle(fontSize: 14, color: AppColors.neutral450)),
         const SizedBox(height: 40),
         // 4 premieres cartes
         Wrap(
@@ -317,10 +317,10 @@ class _PreviewSection extends StatelessWidget {
       color: AppColors.sectionSurface,
       child: Column(children: [
         Text(l.clearCvTitle,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Text(l.clearCvSubtitle,
-            style: TextStyle(fontSize: 14, color: AppColors.neutral450)),
+            style: const TextStyle(fontSize: 14, color: AppColors.neutral450)),
         const SizedBox(height: 32),
         // Mockup CV
         Container(
@@ -345,20 +345,20 @@ class _PreviewSection extends StatelessWidget {
                       BorderRadius.vertical(top: Radius.circular(12))),
               child: Column(children: [
                 Text(l.sampleCandidateName,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                         letterSpacing: 2)),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(l.sampleCandidateRole,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
                         fontStyle: FontStyle.italic)),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(l.sampleCandidateContact,
-                    style: TextStyle(fontSize: 9, color: Colors.white60)),
+                    style: const TextStyle(fontSize: 9, color: Colors.white60)),
               ]),
             ),
             // Corps
@@ -369,7 +369,7 @@ class _PreviewSection extends StatelessWidget {
                   children: [
                     _mockSection(l.sampleProfile),
                     Text(l.sampleProfileText,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 10,
                             color: AppColors.neutral700,
                             height: 1.5)),
@@ -402,7 +402,7 @@ class _PreviewSection extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(l.sampleCandidatePosition,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 11, fontWeight: FontWeight.w700)),
                           const Text('2024 - 2026',
                               style: TextStyle(
@@ -454,7 +454,7 @@ class _HowItWorks extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: isWide ? 80 : 24, vertical: 64),
       child: Column(children: [
         Text(l.howItWorks,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
         const SizedBox(height: 40),
         Wrap(
             spacing: 32,
@@ -505,7 +505,7 @@ class _CtaSection extends StatelessWidget {
       color: _kBlue,
       child: Column(children: [
         Text(l.readyToApply,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Colors.white)),
@@ -524,7 +524,7 @@ class _CtaSection extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12))),
             child: Text(l.startNow,
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
       ]),
     );
   }

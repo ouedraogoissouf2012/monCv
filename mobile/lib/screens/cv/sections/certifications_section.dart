@@ -53,7 +53,7 @@ class CertificationsSection extends StatelessWidget {
             controller: nomCtrl,
             decoration: InputDecoration(
               labelText: l.certificationNameRequired,
-              prefixIcon: Icon(Icons.verified_outlined, size: 20),
+              prefixIcon: const Icon(Icons.verified_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 12),
@@ -61,7 +61,7 @@ class CertificationsSection extends StatelessWidget {
             controller: organismeCtrl,
             decoration: InputDecoration(
               labelText: l.issuingOrganization,
-              prefixIcon: Icon(Icons.business_outlined, size: 20),
+              prefixIcon: const Icon(Icons.business_outlined, size: 20),
             ),
           ),
           const SizedBox(height: 16),
@@ -105,7 +105,7 @@ class CertificationsSection extends StatelessWidget {
             controller: urlCtrl,
             decoration: InputDecoration(
               labelText: l.verificationLink,
-              prefixIcon: Icon(Icons.link_rounded, size: 20),
+              prefixIcon: const Icon(Icons.link_rounded, size: 20),
               hintText: 'https://...',
             ),
             keyboardType: TextInputType.url,

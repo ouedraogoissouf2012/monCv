@@ -81,14 +81,20 @@ class ErrorHelper {
     final lower = raw.toLowerCase();
     if (lower.contains('identifiants') ||
         lower.contains('credentials') ||
-        lower.contains('incorrect')) return ErrorType.auth;
+        lower.contains('incorrect')) {
+      return ErrorType.auth;
+    }
     if (lower.contains('connection') ||
         lower.contains('socket') ||
         lower.contains('timeout') ||
-        lower.contains('fetch')) return ErrorType.network;
+        lower.contains('fetch')) {
+      return ErrorType.network;
+    }
     if (lower.contains('requis') ||
         lower.contains('invalide') ||
-        lower.contains('validation')) return ErrorType.validation;
+        lower.contains('validation')) {
+      return ErrorType.validation;
+    }
     return ErrorType.server;
   }
 
@@ -155,32 +161,32 @@ class ErrorHelper {
 
   static _SnackConfig _configForType(ErrorType type) {
     return switch (type) {
-      ErrorType.auth => _SnackConfig(
+      ErrorType.auth => const _SnackConfig(
           bg: AppColors.redSurface,
           fg: AppColors.error,
           border: AppColors.redBorder,
           icon: Icons.lock_outline_rounded),
-      ErrorType.network => _SnackConfig(
+      ErrorType.network => const _SnackConfig(
           bg: AppColors.orangeSurface,
           fg: AppColors.warning,
           border: AppColors.orangeBorder,
           icon: Icons.wifi_off_rounded),
-      ErrorType.validation => _SnackConfig(
+      ErrorType.validation => const _SnackConfig(
           bg: AppColors.yellowSurface,
           fg: AppColors.warning,
           border: AppColors.yellowBorder,
           icon: Icons.info_outline_rounded),
-      ErrorType.server => _SnackConfig(
+      ErrorType.server => const _SnackConfig(
           bg: AppColors.redSurface,
           fg: AppColors.error,
           border: AppColors.redBorder,
           icon: Icons.error_outline_rounded),
-      ErrorType.success => _SnackConfig(
+      ErrorType.success => const _SnackConfig(
           bg: AppColors.greenSurface,
           fg: AppColors.success,
           border: AppColors.greenBorder,
           icon: Icons.check_circle_outline_rounded),
-      ErrorType.info => _SnackConfig(
+      ErrorType.info => const _SnackConfig(
           bg: AppColors.blueSurface,
           fg: AppColors.primary,
           border: AppColors.blueBorder,

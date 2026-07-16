@@ -346,8 +346,8 @@ public class CvService implements ICvService {
                     .ipHash(ipHash)
                     .viewedAt(LocalDateTime.now())
                     .build());
+            cvRepository.incrementViewCount(cv.getId());
             cv.setViewCount(cv.getViewCount() + 1);
-            cvRepository.save(cv);
             notificationService.notifyViewMilestone(cv);
             log.debug("Vue enregistree: cv={}, ipHash={}", cv.getId(), ipHash);
         }
@@ -357,15 +357,13 @@ public class CvService implements ICvService {
     public void trackPublicDownload(String publicToken) {
         Cv cv = findPublicCv(publicToken);
         ensureDownloadsEnabled(cv);
-        cv.setDownloadCount(cv.getDownloadCount() + 1);
-        cvRepository.save(cv);
+        cvRepository.incrementDownloadCount(cv.getId());
     }
 
     @Transactional
     public void trackPublicShare(String publicToken) {
         Cv cv = findPublicCv(publicToken);
-        cv.setShareCount(cv.getShareCount() + 1);
-        cvRepository.save(cv);
+        cvRepository.incrementShareCount(cv.getId());
     }
 
     @Transactional(readOnly = true)

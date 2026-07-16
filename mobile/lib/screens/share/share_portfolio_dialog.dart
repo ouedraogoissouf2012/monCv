@@ -82,23 +82,29 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
 
   Future<void> _deactivate() async {
     if (_cv == null || _saving) return;
+    final navigator = Navigator.of(context);
+    final api = context.read<IApiClient>();
     setState(() => _saving = true);
-    await context.read<IApiClient>().deactivateShareLink(_cv!.id!);
-    if (mounted) Navigator.pop(context, true);
+    await api.deactivateShareLink(_cv!.id!);
+    if (mounted) navigator.pop(true);
   }
 
   Future<void> _shareWhatsApp() async {
     final url = _url;
     if (url == null) return;
-    await context.read<IApiClient>().trackPublicShare(_cv!.shareToken!);
-    await context.read<ShareService>().shareToWhatsApp(url, title: _cv!.titre);
+    final api = context.read<IApiClient>();
+    final share = context.read<ShareService>();
+    await api.trackPublicShare(_cv!.shareToken!);
+    await share.shareToWhatsApp(url, title: _cv!.titre);
   }
 
   Future<void> _shareLinkedIn() async {
     final url = _url;
     if (url == null) return;
-    await context.read<IApiClient>().trackPublicShare(_cv!.shareToken!);
-    await context.read<ShareService>().shareToLinkedIn(url);
+    final api = context.read<IApiClient>();
+    final share = context.read<ShareService>();
+    await api.trackPublicShare(_cv!.shareToken!);
+    await share.shareToLinkedIn(url);
   }
 
   @override

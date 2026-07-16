@@ -209,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final cvProvider = context.read<CvProvider>();
 
+    final api = context.read<IApiClient>();
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'docx'],
@@ -226,8 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
 
     try {
-      final cv =
-          await context.read<IApiClient>().importCv(file.bytes!, file.name);
+      final cv = await api.importCv(file.bytes!, file.name);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(SnackBar(
         content: Text(l.importSuccess(cv.titre)),

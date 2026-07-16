@@ -183,12 +183,13 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                       builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
                     ),
                   );
-                  // Si l'utilisateur a clique "Creer une variante", dupliquer le CV avec les modifs IA
-                  if (adapted != null && mounted) {
+                  if (!context.mounted) return; // Le dialogue est asynchrone.
+                  if (adapted != null) {
                     final cvProvider = context.read<CvProvider>();
                     // Dupliquer d'abord
                     final duplicated = await cvProvider.duplicateCv(cv.id!);
-                    if (duplicated && mounted) {
+                    if (!context.mounted) return;
+                    if (duplicated) {
                       // Appliquer les modifications IA sur la copie
                       final newCv = cvProvider.cvs.firstWhere(
                         (c) => c.titre.startsWith('Copie de'),
@@ -198,13 +199,12 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                         await cvProvider.applyAiEnhancements(
                             newCv.id!, adapted);
                       }
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(l.adaptedVariantCreated),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: AppColors.success,
-                        ));
-                      }
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(l.adaptedVariantCreated),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.success,
+                      ));
                     }
                   }
                 },
@@ -344,7 +344,7 @@ class _CvStylePageState extends State<_CvStylePage> {
           onPressed: () => Navigator.pop(context),
         ),
         title:
-            Text(l.customizeCv, style: TextStyle(fontWeight: FontWeight.w700)),
+            Text(l.customizeCv, style: const TextStyle(fontWeight: FontWeight.w700)),
         actions: [
           if (!isWide)
             TextButton.icon(

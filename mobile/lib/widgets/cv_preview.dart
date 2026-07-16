@@ -4,7 +4,6 @@ import '../models/cv.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/app_colors.dart';
 import '../utils/cv_levels.dart';
-
 /// Preview du CV — reproduit exactement le layout de chaque template PDF.
 class CvPreviewWidget extends StatelessWidget {
   final Cv cv;
@@ -58,8 +57,9 @@ String _fmt(DateTime? d) {
 String _dateRange(DateTime? debut, DateTime? fin, String ongoing,
     {bool actuel = false}) {
   final d = _fmt(debut);
-  if (actuel || fin == null && debut != null)
+  if (actuel || fin == null && debut != null) {
     return d.isEmpty ? ongoing : '$d - $ongoing';
+  }
   final f = _fmt(fin);
   if (d.isEmpty && f.isEmpty) return '';
   if (f.isEmpty) return d;

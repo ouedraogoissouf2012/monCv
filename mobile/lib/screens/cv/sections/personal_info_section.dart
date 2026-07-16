@@ -490,7 +490,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             controller: _emailCtrl,
             decoration: InputDecoration(
               labelText: '${l.emailShort} *',
-              prefixIcon: Icon(Icons.email_outlined, size: 20),
+              prefixIcon: const Icon(Icons.email_outlined, size: 20),
               helperText: l.professionalEmailHelper,
               hintText: l.emailExample,
             ),
@@ -539,7 +539,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             controller: _adresseCtrl,
             decoration: InputDecoration(
               labelText: l.address,
-              prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+              prefixIcon: const Icon(Icons.location_on_outlined, size: 20),
               helperText: l.postalAddressHelper,
               hintText: l.addressExample,
             ),
@@ -576,7 +576,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             controller: _linkedInCtrl,
             decoration: InputDecoration(
               labelText: l.linkedin,
-              prefixIcon: Icon(Icons.link_rounded, size: 20),
+              prefixIcon: const Icon(Icons.link_rounded, size: 20),
               hintText: 'Ex : linkedin.com/in/issouf-ouedraogo',
               helperText: l.linkedinHelper,
             ),
@@ -588,7 +588,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             controller: _portfolioCtrl,
             decoration: InputDecoration(
               labelText: l.portfolio,
-              prefixIcon: Icon(Icons.language_rounded, size: 20),
+              prefixIcon: const Icon(Icons.language_rounded, size: 20),
               hintText: 'Ex : github.com/issouf',
               helperText: l.portfolioHelper,
             ),

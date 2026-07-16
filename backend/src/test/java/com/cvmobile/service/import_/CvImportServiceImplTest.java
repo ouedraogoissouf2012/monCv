@@ -105,6 +105,18 @@ class CvImportServiceImplTest {
     }
 
     @Test
+    void rejectsMimeAndExtensionMismatch() {
+        assertImportError(file("cv.pdf", "text/html", "%PDF-faux".getBytes()),
+                "ne correspond pas");
+    }
+
+    @Test
+    void rejectsPdfWithTooManyPages() throws IOException {
+        assertImportError(file("cv.pdf", "application/pdf", pdfWithPages(31)),
+                "depasse 30 pages");
+    }
+
+    @Test
     void rejectsEmptyFile() {
         assertImportError(file("cv.pdf", "application/pdf", new byte[0]), "vide");
     }
@@ -161,6 +173,14 @@ class CvImportServiceImplTest {
     private byte[] blankPdf() throws IOException {
         try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             document.addPage(new PDPage());
+            document.save(output);
+            return output.toByteArray();
+        }
+    }
+
+    private byte[] pdfWithPages(int count) throws IOException {
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            for (int i = 0; i < count; i++) document.addPage(new PDPage());
             document.save(output);
             return output.toByteArray();
         }

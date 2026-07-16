@@ -2,6 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.exception.BusinessException;
 import com.cvmobile.service.FileStorageService;
+import com.cvmobile.service.file.ImageFileValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @RestController
@@ -28,12 +28,7 @@ import java.util.Set;
 public class UploadController {
 
     private final FileStorageService fileStorageService;
-
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
-    private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
-    );
-    private static final long MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+    private final ImageFileValidator imageFileValidator;
 
     @PostMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Uploader une photo de profil")
@@ -41,33 +36,7 @@ public class UploadController {
     public ResponseEntity<Map<String, String>> uploadPhoto(
             @RequestParam("file") MultipartFile file) {
 
-        // Validation fichier vide
-        if (file.isEmpty()) {
-            throw new BusinessException("FILE_EMPTY", "Le fichier est vide");
-        }
-
-        // Validation taille
-        if (file.getSize() > MAX_SIZE) {
-            throw new BusinessException("FILE_TOO_LARGE",
-                    "Le fichier depasse la taille maximale de 2 MB");
-        }
-
-        // Validation MIME type
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
-            throw new BusinessException("INVALID_FILE_TYPE",
-                    "Type de fichier non autorise. Formats acceptes: JPG, PNG, WebP");
-        }
-
-        // Validation extension
-        String originalName = file.getOriginalFilename();
-        if (originalName != null) {
-            String ext = originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase();
-            if (!ALLOWED_EXTENSIONS.contains(ext)) {
-                throw new BusinessException("INVALID_FILE_EXTENSION",
-                        "Extension non autorisee. Formats acceptes: .jpg, .png, .webp");
-            }
-        }
+        imageFileValidator.validate(file);
 
         String url = fileStorageService.storePhoto(file);
         log.info("Photo uploadee: {}", url);

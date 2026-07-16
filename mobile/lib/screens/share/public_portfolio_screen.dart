@@ -74,8 +74,10 @@ class _PublicPortfolioScreenState extends State<PublicPortfolioScreen> {
   }
 
   Future<void> _shareWhatsApp() async {
-    await context.read<IApiClient>().trackPublicShare(widget.token);
-    await context.read<ShareService>().shareToWhatsApp(
+    final api = context.read<IApiClient>();
+    final share = context.read<ShareService>();
+    await api.trackPublicShare(widget.token);
+    await share.shareToWhatsApp(
           _publicUrl,
           title: _cv?.titre,
         );

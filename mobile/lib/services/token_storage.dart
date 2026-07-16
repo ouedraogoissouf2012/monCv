@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Abstraction du stockage de tokens compatible mobile et web.
 ///
@@ -12,19 +11,18 @@ class TokenStorage {
   TokenStorage._internal();
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final Map<String, String> _webMemory = {};
 
   Future<String?> read(String key) async {
     if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString(key);
+      return _webMemory[key];
     }
     return _secureStorage.read(key: key);
   }
 
   Future<void> write(String key, String value) async {
     if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(key, value);
+      _webMemory[key] = value;
     } else {
       await _secureStorage.write(key: key, value: value);
     }
@@ -32,8 +30,7 @@ class TokenStorage {
 
   Future<void> delete(String key) async {
     if (kIsWeb) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(key);
+      _webMemory.remove(key);
     } else {
       await _secureStorage.delete(key: key);
     }

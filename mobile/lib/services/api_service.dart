@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
+import 'http_timeout.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/error/error_mapper.dart';
@@ -12,7 +12,6 @@ import '../models/ai_status.dart';
 import '../models/job_application.dart';
 import 'token_storage.dart';
 import 'i_api_client.dart';
-
 class ApiService implements IApiClient {
   ApiService({TokenStorage? storage}) : _storage = storage ?? TokenStorage();
 
@@ -142,7 +141,8 @@ class ApiService implements IApiClient {
     )
       ..headers.addAll(await _getHeaders())
       ..body = jsonEncode({'token': token});
-    final response = await http.Response.fromStream(await request.send());
+    final response = await http.Response.fromStream(
+        await request.send().timeout(http.requestTimeout));
     if (response.statusCode != 204) {
       _throwTypedError(response, 'Impossible de retirer cet appareil');
     }
@@ -400,7 +400,7 @@ class ApiService implements IApiClient {
     }
     request.files.add(await http.MultipartFile.fromPath('file', photo.path));
 
-    final streamed = await request.send();
+    final streamed = await request.send().timeout(http.requestTimeout);
     final body = await streamed.stream.bytesToString();
 
     if (streamed.statusCode == 200) {
@@ -435,7 +435,7 @@ class ApiService implements IApiClient {
       ),
     );
 
-    final streamed = await request.send();
+    final streamed = await request.send().timeout(http.requestTimeout);
     final body = await streamed.stream.bytesToString();
 
     if (streamed.statusCode == 200) {
@@ -748,7 +748,7 @@ class ApiService implements IApiClient {
       ),
     );
 
-    final streamed = await request.send();
+    final streamed = await request.send().timeout(http.requestTimeout);
     final body = await streamed.stream.bytesToString();
 
     if (streamed.statusCode == 201) {

@@ -8,11 +8,11 @@ void main() {
   testWidgets('affiche un QR code et son action de telechargement',
       (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('fr'),
-        home: const Scaffold(
+        locale: Locale('fr'),
+        home: Scaffold(
           body: PublicQrCode(
             url: 'https://moncv.example/#/public/cv/abc123',
           ),

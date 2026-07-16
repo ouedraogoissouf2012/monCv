@@ -142,7 +142,7 @@ class LanguagesSection extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: l.languageRequired,
                   hintText: l.languageSearchHint,
-                  prefixIcon: Icon(Icons.language_rounded, size: 20),
+                  prefixIcon: const Icon(Icons.language_rounded, size: 20),
                 ),
                 onChanged: (v) => langueText = v,
               );

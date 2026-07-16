@@ -153,7 +153,7 @@ class CvServiceTest {
         cvService.trackView("abc123", "192.168.1.1");
 
         verify(cvViewRepository).save(any(com.cvmobile.model.CvView.class));
-        verify(cvRepository).save(cv);
+        verify(cvRepository).incrementViewCount(cv.getId());
         assertThat(cv.getViewCount()).isEqualTo(6);
     }
 
@@ -171,7 +171,7 @@ class CvServiceTest {
         cvService.trackView("abc123", "192.168.1.1");
 
         verify(cvViewRepository, never()).save(any());
-        verify(cvRepository, never()).save(any());
+        verify(cvRepository, never()).incrementViewCount(any());
         assertThat(cv.getViewCount()).isEqualTo(5);
     }
 

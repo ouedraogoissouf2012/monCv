@@ -9,7 +9,7 @@
     },
     {
       "path": "backend/src/main/java/com/cvmobile/service/CvService.java",
-      "baseline_lines": 635,
+      "baseline_lines": 633,
       "issue": "#254",
       "expires_on": "2027-01-31"
     },

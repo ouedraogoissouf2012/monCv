@@ -189,7 +189,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
                   ),
                   child: Text(
                     l.proofreadingGuarantee,
-                    style: TextStyle(fontSize: 12, height: 1.35),
+                    style: const TextStyle(fontSize: 12, height: 1.35),
                   ),
                 )
               else
