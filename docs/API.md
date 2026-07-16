@@ -55,6 +55,12 @@ Authorization: Bearer <access_token>
 - `POST /api/ai/generate-resume`
 - `POST /api/ai/enhance-cv`
 - `POST /api/ai/match-job`
+- `POST /api/ai/application-messages`
+
+Les trois endpoints IA qui acceptent un `cvId` exigent que le CV appartienne
+au compte JWT courant. Un identifiant absent ou appartenant a un autre compte
+retourne le meme `404 RESOURCE_NOT_FOUND`, avant tout appel au fournisseur IA.
+Le role `ADMIN` n'accorde aucun bypass sur les CV prives.
 
 ### Uploads
 

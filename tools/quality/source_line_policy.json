@@ -9,19 +9,19 @@
     },
     {
       "path": "backend/src/main/java/com/cvmobile/service/CvService.java",
-      "baseline_lines": 642,
+      "baseline_lines": 635,
       "issue": "#254",
       "expires_on": "2027-01-31"
     },
     {
       "path": "backend/src/main/java/com/cvmobile/service/ai/EnhancementServiceImpl.java",
-      "baseline_lines": 416,
+      "baseline_lines": 410,
       "issue": "#256",
       "expires_on": "2027-01-31"
     },
     {
       "path": "backend/src/main/java/com/cvmobile/service/ai/JobMatchServiceImpl.java",
-      "baseline_lines": 875,
+      "baseline_lines": 871,
       "issue": "#257",
       "expires_on": "2027-01-31"
     },

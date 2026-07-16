@@ -8,10 +8,10 @@ import com.cvmobile.model.Cv;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvService;
 import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.PdfGenerationService;
+import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.import_.ICvImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,7 +38,7 @@ public class CvController {
     private final com.cvmobile.service.cv.ICvService cvService;
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;
-    private final CvRepository cvRepository;
+    private final CvOwnershipService cvOwnershipService;
     private final ICvImportService cvImportService;
     private final BusinessMetrics businessMetrics;
 
@@ -108,11 +108,7 @@ public class CvController {
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
         // Charger l'entite complete (pas le DTO) pour la generation DOCX
-        var cv = cvRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("CV non trouve"));
-        if (!cv.getUser().getId().equals(user.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        var cv = cvOwnershipService.requireOwnedCv(id, user.getId());
 
         try {
             byte[] docx = docxGenerationService.generate(cv);

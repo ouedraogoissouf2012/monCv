@@ -115,15 +115,19 @@ flowchart LR
 ### Generation IA
 
 1. Le client appelle `/api/ai/...`.
-2. Le backend passe par `CompositeAiClient`.
-3. `ResilientAiClient` applique retry / circuit breaker / timeout.
-4. DeepSeek repond ou un fallback mock est utilise selon la panne.
-5. Les appels sont journalises sans contenu CV brut.
+2. Le controleur transmet l'identifiant de l'utilisateur JWT au use case.
+3. Le service charge le CV par `(cvId, userId)` dans une transaction ; un CV
+   absent ou tiers produit le meme `404`, sans construire ni envoyer de prompt.
+4. Le backend passe ensuite seulement par `CompositeAiClient`.
+5. `ResilientAiClient` applique retry / circuit breaker / timeout.
+6. DeepSeek repond ou un fallback mock est utilise selon la panne.
+7. Les appels sont journalises sans contenu CV brut.
 
 ### Export PDF / DOCX
 
 1. Flutter demande un export sur `/api/cvs/{id}/pdf` ou `/docx`.
-2. L'API recharge le CV complet.
+2. L'API recharge le CV complet par `(id, userId)` et retourne le meme `404`
+   pour un identifiant absent ou tiers.
 3. Le service de generation construit le document.
 4. Le backend renvoie un binaire telechargeable.
 

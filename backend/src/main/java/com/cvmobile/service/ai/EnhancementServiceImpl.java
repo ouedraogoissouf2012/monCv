@@ -4,8 +4,8 @@ import com.cvmobile.config.AiEnhancementProperties;
 import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.model.*;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.quality.ICvQualityService;
 import com.cvmobile.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -19,37 +19,31 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.cvmobile.service.ai.AiPromptRules.*;
-
 /**
- * Amelioration de CV par IA (LITE / MEDIUM / MAX).
- * LITE  : orthographe + accents uniquement.
- * MEDIUM: reformulation + anti-cliches.
- * MAX   : optimisation ATS complete (chiffres, competences, projets).
+ * Amelioration de CV par IA : LITE corrige l'orthographe et les accents ;
+ * MEDIUM reformule ; MAX optimise le contenu pour les ATS.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EnhancementServiceImpl implements IEnhancementService {
     private final IAiClient aiClient;
-    private final CvRepository cvRepository;
+    private final CvOwnershipService cvOwnershipService;
     private final ICvQualityService qualityService;
     private final NotificationService notificationService;
     private final AiEnhancementProperties enhancementProperties;
     private final CvQualityProperties qualityProperties;
     @Override
-    public EnhanceCvResponse enhanceCv(Long cvId, String level) {
-        Cv cv = cvRepository.findById(cvId)
-                .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
-        // Les exceptions AiServiceException propagent jusqu'au GlobalExceptionHandler
-        // (plus de catch silencieux qui masque les erreurs config/quota/timeout).
+    public EnhanceCvResponse enhanceCv(Long cvId, Long userId, String level) {
+        Cv cv = cvOwnershipService.requireOwnedCv(cvId, userId);
+        // Les exceptions AiServiceException propagent sans masquer les erreurs config/quota/timeout.
         EnhanceCvResponse response = callAiEnhance(cv, level);
         notificationService.notifyAiTips(cv, response.getCorrectionCount());
         return response;
     }
     @Override
-    public EnhanceCvResponse adaptCvToJob(Long cvId, String jobDescription) {
-        Cv cv = cvRepository.findById(cvId)
-                .orElseThrow(() -> new IllegalArgumentException("CV non trouvé"));
+    public EnhanceCvResponse adaptCvToJob(Long cvId, Long userId, String jobDescription) {
+        Cv cv = cvOwnershipService.requireOwnedCv(cvId, userId);
         String prompt = buildAdaptPrompt(cv, jobDescription);
         String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();

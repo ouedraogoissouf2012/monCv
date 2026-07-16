@@ -1,13 +1,14 @@
 package com.cvmobile.service.ai;
 
 import com.cvmobile.dto.ApplicationMessagesResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.exception.ai.AiParseException;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Experience;
 import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Skill;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +18,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +35,7 @@ class ApplicationMessageServiceImplTest {
     private IAiClient aiClient;
 
     @Mock
-    private CvRepository cvRepository;
+    private CvOwnershipService cvOwnershipService;
 
     @InjectMocks
     private ApplicationMessageServiceImpl service;
@@ -55,7 +57,7 @@ class ApplicationMessageServiceImplTest {
                         .description("Livre 8 projets dans les delais")
                         .build()))
                 .build();
-        when(cvRepository.findByIdWithDetails(42L)).thenReturn(Optional.of(cv));
+        lenient().when(cvOwnershipService.requireOwnedCv(42L, 7L)).thenReturn(cv);
     }
 
     @Test
@@ -77,7 +79,7 @@ class ApplicationMessageServiceImplTest {
                 """);
 
         ApplicationMessagesResponse response = service.generate(
-                42L, "Recherche Cheffe de projet digital pour piloter des projets web.", "DIRECT");
+                42L, 7L, "Recherche Cheffe de projet digital pour piloter des projets web.", "DIRECT");
 
         assertThat(response.getCoverLetter()).doesNotContain("**");
         assertThat(response.getEmail()).startsWith("Objet :");
@@ -98,7 +100,7 @@ class ApplicationMessageServiceImplTest {
         when(aiClient.isFallbackResult()).thenReturn(true);
 
         ApplicationMessagesResponse response = service.generate(
-                42L, "Recherche Cheffe de projet digital pour piloter des projets web.", "PROFESSIONAL");
+                42L, 7L, "Recherche Cheffe de projet digital pour piloter des projets web.", "PROFESSIONAL");
 
         assertThat(response.isFallback()).isTrue();
         assertThat(response.isAiGenerated()).isFalse();
@@ -112,7 +114,7 @@ class ApplicationMessageServiceImplTest {
                 """);
 
         assertThatThrownBy(() -> service.generate(
-                42L, "Recherche Cheffe de projet digital pour piloter des projets web.", "SIMPLE"))
+                42L, 7L, "Recherche Cheffe de projet digital pour piloter des projets web.", "SIMPLE"))
                 .isInstanceOf(AiParseException.class)
                 .hasMessageContaining("messages de candidature");
     }
@@ -123,9 +125,20 @@ class ApplicationMessageServiceImplTest {
                 .thenThrow(new IllegalStateException("Fournisseur indisponible"));
 
         assertThatThrownBy(() -> service.generate(
-                42L, "Recherche Cheffe de projet digital pour piloter des projets web.", "SENIOR"))
+                42L, 7L, "Recherche Cheffe de projet digital pour piloter des projets web.", "SENIOR"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Fournisseur indisponible");
+    }
+
+    @Test
+    void generate_refuseUnCvNonPossedeAvantToutAppelIa() {
+        when(cvOwnershipService.requireOwnedCv(42L, 8L))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 42L));
+
+        assertThatThrownBy(() -> service.generate(
+                42L, 8L, "Recherche Cheffe de projet digital pour piloter des projets web.", "DIRECT"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(aiClient);
     }
 
     private String validResponse() {

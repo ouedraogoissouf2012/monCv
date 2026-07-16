@@ -2,6 +2,7 @@ package com.cvmobile.service.ai;
 
 import com.cvmobile.config.JobMatchProperties;
 import com.cvmobile.dto.JobMatchResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Experience;
@@ -9,9 +10,9 @@ import com.cvmobile.model.Language;
 import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
-import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.cv.CvOwnershipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +20,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +34,7 @@ class JobMatchServiceImplTest {
     private IAiClient aiClient;
 
     @Mock
-    private CvRepository cvRepository;
+    private CvOwnershipService cvOwnershipService;
 
     @Mock
     private CvQualityService cvQualityService;
@@ -46,7 +47,7 @@ class JobMatchServiceImplTest {
     void setUp() {
         service = new JobMatchServiceImpl(
                 aiClient,
-                cvRepository,
+                cvOwnershipService,
                 cvQualityService,
                 new JobMatchProperties(50, 14, 6, 5, 5, 100, 1800)
         );
@@ -67,7 +68,7 @@ class JobMatchServiceImplTest {
                         Skill.builder().nom("Communication").niveau(4).build()))
                 .build();
 
-        when(cvRepository.findById(22L)).thenReturn(Optional.of(cv));
+        lenient().when(cvOwnershipService.requireOwnedCv(22L, 7L)).thenReturn(cv);
         lenient().when(cvQualityService.findReviewWarnings(org.mockito.ArgumentMatchers.any())).thenReturn(List.of());
     }
 
@@ -97,7 +98,7 @@ class JobMatchServiceImplTest {
                         """);
 
         JobMatchResponse response = service.matchJob(
-                22L,
+                22L, 7L,
                 "Pilotage de projet digital, gestion des budgets, communication et analyse de donnees");
 
         assertThat(response.isAiGenerated()).isTrue();
@@ -132,7 +133,7 @@ class JobMatchServiceImplTest {
                         """);
         when(aiClient.isFallbackResult()).thenReturn(true);
 
-        JobMatchResponse response = service.matchJob(22L, "Gestion de projet et Kubernetes");
+        JobMatchResponse response = service.matchJob(22L, 7L, "Gestion de projet et Kubernetes");
 
         assertThat(response.isAiGenerated()).isFalse();
         assertThat(response.isFallback()).isTrue();
@@ -155,7 +156,7 @@ class JobMatchServiceImplTest {
                         """);
 
         JobMatchResponse response = service.matchJob(
-                22L,
+                22L, 7L,
                 "avec pour dans cette votre notre entre faire avoir");
 
         assertThat(response.getScore()).isBetween(0, 100);
@@ -172,7 +173,7 @@ class JobMatchServiceImplTest {
                 .thenThrow(new IllegalStateException("IA indisponible"));
 
         assertThatThrownBy(() -> service.matchJob(
-                22L,
+                22L, 7L,
                 "Chef de projet digital avec gestion de budgets et planification"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("IA indisponible");
@@ -215,7 +216,7 @@ class JobMatchServiceImplTest {
                 .build());
 
         JobMatchResponse response = service.matchJob(
-                22L,
+                22L, 7L,
                 "Équipe, délais, stratégie, Scrum, Figma et français.");
 
         assertThat(response.getMatchedKeywords())
@@ -252,7 +253,7 @@ class JobMatchServiceImplTest {
                         """);
 
         JobMatchResponse response = service.matchJob(
-                22L,
+                22L, 7L,
                 "Chef de projet digital avec Scrum, Jira, communication et pilotage agile");
 
         assertThat(response.getFormatChecks())
@@ -261,5 +262,15 @@ class JobMatchServiceImplTest {
         assertThat(response.getPrioritizedRecommendations())
                 .extracting(JobMatchResponse.PrioritizedRecommendation::getTitle)
                 .contains("Ajouter les mots-clés manquants", "Sécuriser le format ATS");
+    }
+
+    @Test
+    void matchJob_refuseUnCvNonPossedeAvantToutAppelIa() {
+        when(cvOwnershipService.requireOwnedCv(22L, 8L))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 22L));
+
+        assertThatThrownBy(() -> service.matchJob(22L, 8L, "Offre cible détaillée"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(aiClient);
     }
 }

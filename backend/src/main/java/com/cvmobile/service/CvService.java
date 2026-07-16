@@ -77,13 +77,6 @@ public class CvService implements ICvService {
     }
 
     @Transactional(readOnly = true)
-    public CvResponse getCvWithDetails(Long cvId) {
-        Cv cv = cvRepository.findByIdWithDetails(cvId)
-                .orElseThrow(() -> new ResourceNotFoundException("CV", "id", cvId));
-        return cvMapper.toResponse(cv);
-    }
-
-    @Transactional(readOnly = true)
     public CvResponse getCvByPublicToken(String token) {
         return toPublicResponse(findPublicCv(token));
     }
@@ -175,7 +168,7 @@ public class CvService implements ICvService {
         User user = userService.findById(userId);
 
         // 1. L'IA adapte le contenu du CV a l'offre
-        EnhanceCvResponse adapted = enhancementService.adaptCvToJob(parentCvId, jobDescription);
+        EnhanceCvResponse adapted = enhancementService.adaptCvToJob(parentCvId, userId, jobDescription);
 
         // 2. Determiner le label de la variante
         String resolvedLabel = resolveVariantLabel(label, adapted, jobDescription);
