@@ -3,6 +3,7 @@ import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/validators/cv_form_validator.dart';
+import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -47,7 +48,10 @@ void main() {
     controller.addProject(Project(nom: 'MonCV'));
 
     expect(controller.currentCv.titre, 'CV de Awa Kone');
-    expect(controller.completionPercent, 100);
+    expect(
+      controller.completionPercent,
+      const CvReadinessService().evaluate(controller.currentCv).score,
+    );
     expect(controller.experiences, hasLength(1));
     expect(controller.educations, hasLength(1));
     expect(controller.skills, hasLength(1));

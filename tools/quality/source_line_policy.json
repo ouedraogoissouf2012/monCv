@@ -135,7 +135,7 @@
     },
     {
       "path": "mobile/lib/widgets/cv_card.dart",
-      "baseline_lines": 355,
+      "baseline_lines": 350,
       "issue": "#249",
       "expires_on": "2027-01-31"
     },

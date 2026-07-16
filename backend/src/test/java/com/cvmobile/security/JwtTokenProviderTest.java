@@ -66,6 +66,8 @@ class JwtTokenProviderTest {
 
         assertThat(token).isNotBlank();
         assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        assertThat(jwtTokenProvider.validateAccessToken(token)).isTrue();
+        assertThat(jwtTokenProvider.validateRefreshToken(token)).isFalse();
     }
 
     @Test
@@ -94,5 +96,7 @@ class JwtTokenProviderTest {
 
         assertThat(accessToken).isNotEqualTo(refreshToken);
         assertThat(jwtTokenProvider.getEmailFromToken(refreshToken)).isEqualTo(email);
+        assertThat(jwtTokenProvider.validateRefreshToken(refreshToken)).isTrue();
+        assertThat(jwtTokenProvider.validateAccessToken(refreshToken)).isFalse();
     }
 }

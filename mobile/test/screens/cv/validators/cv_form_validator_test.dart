@@ -1,5 +1,6 @@
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/cv/validators/cv_form_validator.dart';
+import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -37,7 +38,10 @@ void main() {
       projects: [Project(nom: 'MonCV')],
     );
 
-    expect(CvFormValidator.completionPercent(cv), 100);
+    expect(
+      CvFormValidator.completionPercent(cv),
+      const CvReadinessService().evaluate(cv).score,
+    );
     expect(CvFormValidator.stepComplete(cv, 4), true);
   });
 

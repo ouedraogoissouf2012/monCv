@@ -37,10 +37,16 @@ void main() {
 
     test('remove retire une operation par id', () async {
       await queue.add(PendingOperation(
-        id: 'op1', type: 'create', cvId: -1, createdAt: DateTime.now(),
+        id: 'op1',
+        type: 'create',
+        cvId: -1,
+        createdAt: DateTime.now(),
       ));
       await queue.add(PendingOperation(
-        id: 'op2', type: 'update', cvId: 5, createdAt: DateTime.now(),
+        id: 'op2',
+        type: 'update',
+        cvId: 5,
+        createdAt: DateTime.now(),
       ));
 
       expect(queue.pendingCount, 2);
@@ -53,10 +59,16 @@ void main() {
 
     test('clear vide toute la queue', () async {
       await queue.add(PendingOperation(
-        id: 'op1', type: 'create', cvId: -1, createdAt: DateTime.now(),
+        id: 'op1',
+        type: 'create',
+        cvId: -1,
+        createdAt: DateTime.now(),
       ));
       await queue.add(PendingOperation(
-        id: 'op2', type: 'update', cvId: 5, createdAt: DateTime.now(),
+        id: 'op2',
+        type: 'update',
+        cvId: 5,
+        createdAt: DateTime.now(),
       ));
 
       await queue.clear();
@@ -67,7 +79,8 @@ void main() {
 
     test('persiste entre les instances', () async {
       await queue.add(PendingOperation(
-        id: 'op1', type: 'create',
+        id: 'op1',
+        type: 'create',
         cvJson: '{"titre":"Offline CV"}',
         cvId: -1,
         createdAt: DateTime(2024, 6, 1),
@@ -78,6 +91,20 @@ void main() {
 
       expect(queue2.hasPending, true);
       expect(queue2.getAll().first.cvJson, '{"titre":"Offline CV"}');
+    });
+
+    test('conserve toutes les operations ajoutees en concurrence', () async {
+      await Future.wait(List.generate(
+          25,
+          (index) => queue.add(PendingOperation(
+                id: 'op$index',
+                type: 'create',
+                cvId: -index - 1,
+                createdAt: DateTime(2024, 6, 1),
+              ))));
+
+      expect(queue.pendingCount, 25);
+      expect(queue.getAll().map((op) => op.id).toSet().length, 25);
     });
 
     test('serialisation/deserialisation PendingOperation', () {

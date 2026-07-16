@@ -56,6 +56,7 @@ void main() {
   late MockUpdateProfileUseCase mockUpdateProfile;
   late MockAuthRepository mockRepo;
   late MockFlutterSecureStorage mockStorage;
+  late int localCleanupCount;
 
   setUp(() {
     mockLogin = MockLoginUseCase();
@@ -65,6 +66,7 @@ void main() {
     mockUpdateProfile = MockUpdateProfileUseCase();
     mockRepo = MockAuthRepository();
     mockStorage = MockFlutterSecureStorage();
+    localCleanupCount = 0;
 
     registerFallbackValue(const LoginParams(email: '', password: ''));
     registerFallbackValue(const RegisterParams(email: '', password: ''));
@@ -83,6 +85,7 @@ void main() {
         updateProfileUseCase: mockUpdateProfile,
         repository: mockRepo,
         storage: mockStorage,
+        clearLocalSessionData: () async => localCleanupCount++,
       );
 
   group('AuthProvider', () {
@@ -112,6 +115,7 @@ void main() {
       expect(provider.isCheckingAuth, false);
       expect(provider.isAuthenticated, true);
       expect(provider.user?.email, 'test@test.com');
+      expect(localCleanupCount, 0);
       verify(() => mockGetUser(any())).called(1);
     });
 
@@ -145,6 +149,7 @@ void main() {
 
       expect(result, true);
       expect(provider.isAuthenticated, true);
+      expect(localCleanupCount, 1);
       expect(provider.user?.email, 'test@test.com');
     });
 
@@ -170,6 +175,7 @@ void main() {
 
       expect(result, true);
       expect(provider.isAuthenticated, true);
+      expect(localCleanupCount, 1);
     });
 
     test('register echec', () async {
@@ -197,6 +203,7 @@ void main() {
       await provider.logout();
       expect(provider.isAuthenticated, false);
       expect(provider.user, null);
+      expect(localCleanupCount, 2);
     });
 
     test('clearError', () async {

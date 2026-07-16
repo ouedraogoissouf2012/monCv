@@ -19,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -96,6 +97,24 @@ class AuthServiceTest {
     }
 
     @Test
+    void register_concurrentAvecLeMemeEmail_devraitRetournerUnConflit() {
+        RegisterRequest request = new RegisterRequest();
+        request.setEmail("course@example.com");
+        request.setPassword("password123");
+        User mappedUser = User.builder().email(request.getEmail()).build();
+
+        when(userService.existsByEmail(request.getEmail())).thenReturn(false);
+        when(userMapper.toUser(request)).thenReturn(mappedUser);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn("encoded");
+        when(userService.save(mappedUser)).thenThrow(new DataIntegrityViolationException("unique email"));
+
+        assertThatThrownBy(() -> authService.register(request))
+                .isInstanceOf(DuplicateEmailException.class);
+
+        verify(jwtTokenProvider, never()).generateToken(anyString());
+    }
+
+    @Test
     void login_avecCredentielsValides_devraitRetournerTokens() {
         ReflectionTestUtils.setField(authService, "jwtExpiration", 3600000L);
 
@@ -122,10 +141,21 @@ class AuthServiceTest {
 
     @Test
     void refreshToken_avecTokenInvalide_devraitLeverException() {
-        when(jwtTokenProvider.validateToken("bad-token")).thenReturn(false);
+        when(jwtTokenProvider.validateRefreshToken("bad-token")).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken("bad-token"))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessageContaining("invalide");
+    }
+
+    @Test
+    void refreshToken_avecAccessToken_devraitLeverException() {
+        when(jwtTokenProvider.validateRefreshToken("access-token")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.refreshToken("access-token"))
+                .isInstanceOf(InvalidTokenException.class);
+
+        verify(userService, never()).findByEmail(anyString());
+        verify(jwtTokenProvider, never()).generateToken(anyString());
     }
 }

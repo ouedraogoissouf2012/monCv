@@ -33,6 +33,7 @@ import '../../providers/notification_provider.dart';
 import '../../providers/job_application_provider.dart';
 import '../../providers/ai_status_provider.dart';
 import '../../services/push_notification_service.dart';
+import '../../services/sync_queue.dart';
 
 /// Instance globale du service locator.
 final sl = GetIt.instance;
@@ -52,17 +53,19 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
   sl.registerLazySingleton<PushNotificationService>(
       () => PushNotificationService(sl<IApiClient>()));
+  sl.registerLazySingleton<SyncQueue>(() => SyncQueue(sl<SharedPreferences>()));
 
   // ── Repositories ──────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(
     () => HttpAuthRepository(api: sl<IApiClient>()),
   );
-  sl.registerLazySingleton<CvRepository>(
+  sl.registerLazySingleton<CachedCvRepository>(
     () => CachedCvRepository(
       remote: HttpCvRepository(api: sl<IApiClient>()),
       prefs: sl<SharedPreferences>(),
     ),
   );
+  sl.registerLazySingleton<CvRepository>(() => sl<CachedCvRepository>());
 
   // ── Use Cases: Auth ───────────────────────────────────────────
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
@@ -95,6 +98,10 @@ Future<void> initDependencies() async {
       getCurrentUserUseCase: sl<GetCurrentUserUseCase>(),
       updateProfileUseCase: sl<UpdateProfileUseCase>(),
       repository: sl<AuthRepository>(),
+      clearLocalSessionData: () async {
+        await sl<CachedCvRepository>().clearCache();
+        await sl<SyncQueue>().clear();
+      },
     ),
   );
   sl.registerFactory<CvProvider>(
@@ -108,6 +115,7 @@ Future<void> initDependencies() async {
       createVariantUseCase: sl<CreateVariantUseCase>(),
       repository: sl<CvRepository>(),
       connectivity: sl<ConnectivityService>(),
+      syncQueue: sl<SyncQueue>(),
     ),
   );
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());

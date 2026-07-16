@@ -21,20 +21,21 @@ class PendingOperation {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'cvJson': cvJson,
-    'cvId': cvId,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'type': type,
+        'cvJson': cvJson,
+        'cvId': cvId,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
-  factory PendingOperation.fromJson(Map<String, dynamic> json) => PendingOperation(
-    id: json['id'] as String,
-    type: json['type'] as String,
-    cvJson: json['cvJson'] as String?,
-    cvId: json['cvId'] as int?,
-    createdAt: DateTime.parse(json['createdAt'] as String),
-  );
+  factory PendingOperation.fromJson(Map<String, dynamic> json) =>
+      PendingOperation(
+        id: json['id'] as String,
+        type: json['type'] as String,
+        cvJson: json['cvJson'] as String?,
+        cvId: json['cvId'] as int?,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
 }
 
 /// File d'attente de synchronisation persistante.
@@ -42,21 +43,24 @@ class PendingOperation {
 /// Rejouee automatiquement quand la connexion revient.
 class SyncQueue {
   final SharedPreferences _prefs;
+  Future<void> _writeTail = Future<void>.value();
 
   SyncQueue(this._prefs);
 
   /// Ajoute une operation a la file.
   Future<void> add(PendingOperation op) async {
-    final ops = getAll();
-    ops.add(op);
-    await _save(ops);
+    await _serializeWrite(() async {
+      final ops = getAll()..add(op);
+      await _save(ops);
+    });
   }
 
   /// Retire une operation de la file (apres sync reussie).
   Future<void> remove(String operationId) async {
-    final ops = getAll();
-    ops.removeWhere((op) => op.id == operationId);
-    await _save(ops);
+    await _serializeWrite(() async {
+      final ops = getAll()..removeWhere((op) => op.id == operationId);
+      await _save(ops);
+    });
   }
 
   /// Retourne toutes les operations en attente.
@@ -64,7 +68,9 @@ class SyncQueue {
     final raw = _prefs.getString(_kQueueKey);
     if (raw == null || raw.isEmpty) return [];
     final list = jsonDecode(raw) as List<dynamic>;
-    return list.map((e) => PendingOperation.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => PendingOperation.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// True s'il y a des operations en attente.
@@ -75,10 +81,17 @@ class SyncQueue {
 
   /// Vide la file (apres une sync complete).
   Future<void> clear() async {
-    await _prefs.remove(_kQueueKey);
+    await _serializeWrite(() => _prefs.remove(_kQueueKey));
+  }
+
+  Future<void> _serializeWrite(Future<void> Function() action) {
+    final result = _writeTail.then((_) => action());
+    _writeTail = result.then<void>((_) {}, onError: (_, __) {});
+    return result;
   }
 
   Future<void> _save(List<PendingOperation> ops) async {
-    await _prefs.setString(_kQueueKey, jsonEncode(ops.map((o) => o.toJson()).toList()));
+    await _prefs.setString(
+        _kQueueKey, jsonEncode(ops.map((o) => o.toJson()).toList()));
   }
 }

@@ -42,7 +42,7 @@ class JwtAuthenticationFilterTest {
     void continuesAsAnonymousWhenJwtUserNoLongerExists() throws Exception {
         MockHttpServletRequest request = bearerRequest("orphan-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(tokenProvider.validateToken("orphan-token")).thenReturn(true);
+        when(tokenProvider.validateAccessToken("orphan-token")).thenReturn(true);
         when(tokenProvider.getEmailFromToken("orphan-token")).thenReturn("deleted@example.test");
         when(userDetailsService.loadUserByUsername("deleted@example.test"))
                 .thenThrow(new UsernameNotFoundException("deleted"));
@@ -61,7 +61,7 @@ class JwtAuthenticationFilterTest {
                 "owner@example.test",
                 "password",
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
-        when(tokenProvider.validateToken("valid-token")).thenReturn(true);
+        when(tokenProvider.validateAccessToken("valid-token")).thenReturn(true);
         when(tokenProvider.getEmailFromToken("valid-token")).thenReturn(user.getUsername());
         when(userDetailsService.loadUserByUsername(user.getUsername())).thenReturn(user);
 
@@ -78,7 +78,20 @@ class JwtAuthenticationFilterTest {
     void ignoresInvalidJwtWithoutLoadingUser() throws Exception {
         MockHttpServletRequest request = bearerRequest("invalid-token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(tokenProvider.validateToken("invalid-token")).thenReturn(false);
+        when(tokenProvider.validateAccessToken("invalid-token")).thenReturn(false);
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verifyNoInteractions(userDetailsService);
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void ignoresRefreshTokenOnProtectedEndpoint() throws Exception {
+        MockHttpServletRequest request = bearerRequest("refresh-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(tokenProvider.validateAccessToken("refresh-token")).thenReturn(false);
 
         filter.doFilterInternal(request, response, filterChain);
 

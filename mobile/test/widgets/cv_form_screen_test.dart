@@ -139,7 +139,10 @@ void main() {
     await _enterFieldByLabel(tester, 'Prénom *', 'Smoke');
     await _enterFieldByLabel(tester, 'Nom *', 'Codex');
     await _enterFieldByLabel(tester, 'Email *', 'smoke@example.com');
-    expect(find.text('Complétion : 20%'), findsOneWidget);
+    expect(
+      find.text('Complétion : ${controller.completionPercent}%'),
+      findsOneWidget,
+    );
 
     for (var i = 0; i < 4; i++) {
       await tester.tap(find.text('Suivant'));

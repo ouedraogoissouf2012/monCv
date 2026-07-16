@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,13 @@ public class AuthService implements IAuthService {
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        user = userService.save(user);
+        try {
+            user = userService.save(user);
+        } catch (DataIntegrityViolationException exception) {
+            // Le controle preliminaire est ergonomique, mais seule la contrainte
+            // UNIQUE en base ferme la fenetre de course entre deux inscriptions.
+            throw new DuplicateEmailException(request.getEmail());
+        }
 
         String accessToken = jwtTokenProvider.generateToken(user.getEmail());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
@@ -64,7 +71,7 @@ public class AuthService implements IAuthService {
     }
 
     public AuthResponse refreshToken(String refreshToken) {
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
             throw new InvalidTokenException("Token de rafraichissement invalide");
         }
 

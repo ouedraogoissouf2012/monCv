@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
+    private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String ACCESS_TOKEN = "access";
+    private static final String REFRESH_TOKEN = "refresh";
+
     static final int MIN_SECRET_LENGTH = 64;
     static final double MIN_SECRET_ENTROPY = 4.0;
     private static final Set<String> BLOCKED_SECRETS = Set.of(
@@ -77,6 +81,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(email)
+                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -89,6 +94,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(email)
+                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -106,14 +112,31 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
+        return parseClaims(token) != null;
+    }
+
+    public boolean validateAccessToken(String token) {
+        return hasTokenType(token, ACCESS_TOKEN);
+    }
+
+    public boolean validateRefreshToken(String token) {
+        return hasTokenType(token, REFRESH_TOKEN);
+    }
+
+    private boolean hasTokenType(String token, String expectedType) {
+        Claims claims = parseClaims(token);
+        return claims != null && expectedType.equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
+    }
+
+    private Claims parseClaims(String token) {
         try {
-            Jwts.parser()
+            return Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
-            return true;
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            return null;
         }
     }
 }

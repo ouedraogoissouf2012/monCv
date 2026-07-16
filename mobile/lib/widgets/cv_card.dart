@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/cv.dart';
+import '../services/cv_readiness_service.dart';
 import '../utils/app_colors.dart';
+import 'cv_readiness_badge.dart';
 import 'stats_badge.dart';
 
 class CvCard extends StatelessWidget {
@@ -52,7 +54,8 @@ class CvCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final score = cv.completionScore;
+    final readiness = const CvReadinessService().evaluate(cv);
+    final score = readiness.score;
     final scoreColor = _scoreColor(score);
 
     return Card(
@@ -146,21 +149,7 @@ class CvCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   // Score badge
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: scoreColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '$score%',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: scoreColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ),
+                  CvReadinessBadge(report: readiness, color: scoreColor),
                   // Popup menu
                   PopupMenuButton<_CvCardAction>(
                     icon: Icon(Icons.more_vert,
@@ -323,6 +312,12 @@ class CvCard extends StatelessWidget {
                       ),
                       child: Text(l.view),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.outlined(
+                    onPressed: onShare,
+                    tooltip: l.share,
+                    icon: const Icon(Icons.share_outlined),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton(

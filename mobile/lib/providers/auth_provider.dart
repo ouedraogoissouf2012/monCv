@@ -20,6 +20,7 @@ class AuthProvider with ChangeNotifier {
   final AuthRepository _repository;
   final FlutterSecureStorage? _storage;
   final TokenStorage _tokenStorage;
+  final Future<void> Function()? _clearLocalSessionData;
 
   AuthProvider({
     required LoginUseCase loginUseCase,
@@ -30,6 +31,7 @@ class AuthProvider with ChangeNotifier {
     required AuthRepository repository,
     FlutterSecureStorage? storage,
     TokenStorage? tokenStorage,
+    Future<void> Function()? clearLocalSessionData,
   })  : _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _logoutUseCase = logoutUseCase,
@@ -37,7 +39,8 @@ class AuthProvider with ChangeNotifier {
         _updateProfileUseCase = updateProfileUseCase,
         _repository = repository,
         _storage = storage,
-        _tokenStorage = tokenStorage ?? TokenStorage() {
+        _tokenStorage = tokenStorage ?? TokenStorage(),
+        _clearLocalSessionData = clearLocalSessionData {
     _checkAuthStatus();
   }
 
@@ -92,6 +95,7 @@ class AuthProvider with ChangeNotifier {
 
     switch (result) {
       case Success(:final data):
+        await _clearLocalSessionData?.call();
         _user = data.user;
         _isAuthenticated = true;
         _isCheckingAuth = false;
@@ -125,6 +129,7 @@ class AuthProvider with ChangeNotifier {
 
     switch (result) {
       case Success(:final data):
+        await _clearLocalSessionData?.call();
         _user = data.user;
         _isAuthenticated = true;
         _isCheckingAuth = false;
@@ -140,6 +145,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await _logoutUseCase(const NoParams());
+    await _clearLocalSessionData?.call();
     _user = null;
     _isAuthenticated = false;
     _isCheckingAuth = false;

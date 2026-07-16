@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:cv_mobile/widgets/cv_card.dart';
 
 Cv _fakeCvComplete() => Cv(
@@ -73,9 +74,14 @@ void main() {
       expect(find.textContaining('%'), findsOneWidget);
     });
 
-    testWidgets('CV complet affiche un score élevé (≥80%)', (tester) async {
+    testWidgets('le score affiche correspond a la preparation ATS',
+        (tester) async {
       final cv = _fakeCvComplete();
-      expect(cv.completionScore, greaterThanOrEqualTo(80));
+      await tester.pumpWidget(_buildCard(cv));
+      await tester.pump();
+
+      final score = const CvReadinessService().evaluate(cv).score;
+      expect(find.text('$score% ATS'), findsOneWidget);
     });
 
     testWidgets('CV incomplet affiche un score faible', (tester) async {
@@ -143,6 +149,21 @@ void main() {
       expect(shared, isTrue);
     });
 
+    testWidgets('affiche directement le bouton de partage', (tester) async {
+      bool shared = false;
+      await tester.pumpWidget(
+          _buildCard(_fakeCvComplete(), onShare: () => shared = true));
+      await tester.pump();
+
+      final directShareButton = find.byTooltip('Partager');
+      expect(directShareButton, findsOneWidget);
+
+      await tester.tap(directShareButton);
+      await tester.pump();
+
+      expect(shared, isTrue);
+    });
+
     testWidgets('affiche la barre de progression', (tester) async {
       await tester.pumpWidget(_buildCard(_fakeCvComplete()));
       await tester.pump();
@@ -191,13 +212,15 @@ void main() {
       expect(cv.completionScore, 100);
     });
 
-    testWidgets('affiche le badge Vues quand le CV est partage', (tester) async {
+    testWidgets('affiche le badge Vues quand le CV est partage',
+        (tester) async {
       final sharedCv = Cv(
         id: 1,
         titre: 'CV Partage',
         shareToken: 'abc123',
         viewCount: 42,
-        personalInfo: PersonalInfo(nom: 'Doe', prenom: 'John', email: 'j@e.com'),
+        personalInfo:
+            PersonalInfo(nom: 'Doe', prenom: 'John', email: 'j@e.com'),
         experiences: [Experience(entreprise: 'Acme', poste: 'Dev')],
       );
       await tester.pumpWidget(_buildCard(sharedCv));
@@ -207,7 +230,8 @@ void main() {
       expect(find.text('Vues'), findsOneWidget);
     });
 
-    testWidgets('n\'affiche PAS le badge Vues quand le CV n\'est pas partage', (tester) async {
+    testWidgets('n\'affiche PAS le badge Vues quand le CV n\'est pas partage',
+        (tester) async {
       await tester.pumpWidget(_buildCard(_fakeCvComplete()));
       await tester.pump();
 

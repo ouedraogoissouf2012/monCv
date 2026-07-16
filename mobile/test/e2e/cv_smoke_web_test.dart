@@ -1,7 +1,7 @@
+@TestOn('browser')
 @Tags(['web-smoke'])
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cv_mobile/main.dart' as app;
 import 'package:cv_mobile/utils/constants.dart';
 import 'package:flutter/material.dart';

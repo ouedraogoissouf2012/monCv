@@ -1,6 +1,7 @@
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/cv_validator.dart';
+import '../../../services/cv_readiness_service.dart';
 
 enum CvFormSection { identity, experiences, education, skills, extras }
 
@@ -43,13 +44,8 @@ class CvFormValidator {
     return validationFor(cv)[section] == CvFormValidationState.valid;
   }
 
-  static int completionPercent(Cv cv) {
-    final completed = validationFor(cv)
-        .values
-        .where((state) => state == CvFormValidationState.valid)
-        .length;
-    return ((completed / CvFormSection.values.length) * 100).round();
-  }
+  static int completionPercent(Cv cv) =>
+      const CvReadinessService().evaluate(cv).score;
 
   static CvFormValidationIssue? validateForSave(
     Cv cv,
