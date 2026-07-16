@@ -28,6 +28,7 @@ Closes #
 - [ ] `mvn verify` passe localement (backend)
 - [ ] `flutter analyze` ne renvoie aucune erreur (mobile)
 - [ ] `flutter test` passe (mobile)
+- [ ] `python tools/quality/check_source_lines.py` passe
 - [ ] Smoke test manuel décrit ci-dessous
 
 ### Plan de test manuel

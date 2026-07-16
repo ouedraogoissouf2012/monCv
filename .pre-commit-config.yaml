@@ -4,3 +4,12 @@ repos:
     hooks:
       - id: gitleaks-system
         pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: source-line-policy
+        name: source line policy (300 max)
+        entry: python tools/quality/check_source_lines.py
+        language: system
+        pass_filenames: false
+        always_run: true

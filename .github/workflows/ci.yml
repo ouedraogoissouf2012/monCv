@@ -2,15 +2,46 @@ name: CI — Build & Test
 
 on:
   push:
-    branches: [main, develop, 'feature/**', 'issue-*']
+    branches: [main, develop]
   pull_request:
     branches: [main, develop]
 
 jobs:
+  source-policy:
+    name: Quality — Source policy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Test source line guard
+        run: python -m unittest discover -s tools/quality/tests -p 'test_*.py'
+
+      - name: Extract base source policy
+        env:
+          REFERENCE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: git show "$REFERENCE_SHA:tools/quality/source_line_policy.json" > "$RUNNER_TEMP/source_line_policy.base.json"
+
+      - name: Enforce 300-line source policy
+        run: >-
+          python tools/quality/check_source_lines.py
+          --reference-policy "$RUNNER_TEMP/source_line_policy.base.json"
+
   # ── Backend (Spring Boot) ──────────────────────────────────
   backend:
     name: Backend — Build & Test
     runs-on: ubuntu-latest
+    needs: [source-policy]
     permissions:
       contents: read
       id-token: write
@@ -53,6 +84,7 @@ jobs:
   frontend:
     name: Frontend — Analyze & Test
     runs-on: ubuntu-latest
+    needs: [source-policy]
     permissions:
       contents: read
       id-token: write
@@ -75,6 +107,13 @@ jobs:
       - name: Generate localizations
         working-directory: mobile
         run: flutter gen-l10n
+
+      - name: Verify generated localizations are committed
+        run: >-
+          git diff --exit-code --
+          mobile/lib/l10n/app_localizations.dart
+          mobile/lib/l10n/app_localizations_en.dart
+          mobile/lib/l10n/app_localizations_fr.dart
 
       - name: Analyze
         working-directory: mobile
