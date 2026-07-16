@@ -5,6 +5,7 @@
 - Java 21
 - Maven 3.9+
 - Flutter stable `3.41.x`
+- Python 3.12+ (garde-fous qualite)
 - Docker Desktop
 - PostgreSQL local ou `docker compose`
 
@@ -69,11 +70,26 @@ texte utilisateur directement dans les widgets. Apres une modification des
 fichiers ARB, executez `flutter gen-l10n` depuis `mobile/` et commitez les
 fichiers de localisation generes.
 
+### Politique de taille des sources
+
+```bash
+python tools/quality/check_source_lines.py
+python -m unittest discover -s tools/quality/tests -p "test_*.py"
+```
+
+Tout fichier Dart ou Java maintenu doit contenir au plus 300 lignes physiques.
+La baseline versionnee bloque la croissance des fichiers legacy et doit etre
+reduite, puis supprimee, pendant le traitement de l'issue proprietaire. Il est
+interdit d'augmenter une baseline ou d'ajouter une nouvelle exception legacy.
+Les trois sorties `app_localizations*.dart` sont les seules exceptions generees
+et leur signature `gen-l10n` est verifiee automatiquement.
+
 ## Avant de proposer une PR
 
 - verifier que les docs impactees sont a jour ;
 - ne jamais committer de secrets ;
 - lancer `pre-commit run --all-files` si `pre-commit` est configure localement ;
+- lancer `python tools/quality/check_source_lines.py` ;
 - garder les changements limites a l'issue traitee.
 
 ## Convention de branches
