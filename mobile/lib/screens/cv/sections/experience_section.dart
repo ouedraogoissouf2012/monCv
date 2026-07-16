@@ -228,7 +228,7 @@ class ExperienceSection extends StatelessWidget {
                 final suggestions =
                     await ctx.read<IApiClient>().getAiSuggestions(
                           poste: posteCtrl.text,
-                          entreprise: entrepriseCtrl.text,
+                          entreprise: entrepriseCtrl.text, description: descCtrl.text,
                         );
                 if (!ctx.mounted) return;
                 await showSuggestionsSheet(ctx, suggestions, descCtrl);

@@ -23,11 +23,17 @@ class SuggestionServiceImplTest {
                 org.mockito.ArgumentMatchers.anyInt()))
                 .thenReturn("Premier\nDeuxieme\nTroisieme\nQuatrieme");
 
-        var response = service.generateSuggestions("Developpeur", "Acme");
+        var response = service.generateSuggestions(
+                "Agent de formation continue", "Acme", "Accompagnement des apprenants");
 
         ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
         verify(aiClient).complete(prompt.capture(), org.mockito.ArgumentMatchers.eq(321));
-        assertThat(prompt.getValue()).contains("exactement 3 bullet points");
+        assertThat(prompt.getValue())
+                .contains("exactement 3 propositions")
+                .contains("Agent de formation continue")
+                .contains("<DESCRIPTION>\nAccompagnement des apprenants\n</DESCRIPTION>")
+                .contains("N'invente aucun outil, diplôme, mission, résultat, chiffre ou pourcentage")
+                .contains("Ne change jamais de métier");
         assertThat(response.getSuggestions()).containsExactly("Premier", "Deuxieme", "Troisieme");
     }
 }

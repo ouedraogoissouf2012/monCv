@@ -1,6 +1,7 @@
 package com.cvmobile.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,4 +19,7 @@ public class SuggestRequest {
     private String entreprise;
 
     private String secteur;
+
+    @Size(max = 5000, message = "La description ne doit pas depasser 5000 caracteres")
+    private String description;
 }

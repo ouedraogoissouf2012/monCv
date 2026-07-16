@@ -137,6 +137,7 @@ class ProjectsSection extends StatelessWidget {
                           poste: nomCtrl.text,
                           entreprise:
                               techCtrl.text.isNotEmpty ? techCtrl.text : null,
+                          description: descCtrl.text,
                         );
                 if (!ctx.mounted) return;
                 await showSuggestionsSheet(ctx, suggestions, descCtrl);

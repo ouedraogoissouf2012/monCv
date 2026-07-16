@@ -25,6 +25,7 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
                 + "REGLES: "
                 + AiPromptRules.FRANCOPHONE_MARKET_RULE
                 + AiPromptRules.ANTI_CLICHES_RULE
+                + AiPromptRules.GROUNDING_RULE
                 + "- Commence par le titre du poste et les annees d'experience "
                 + "- Mentionne les competences cles "
                 + "- Inclus un resultat chiffre si possible "

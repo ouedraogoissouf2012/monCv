@@ -48,7 +48,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.info("AI adapt response summary: {}", AiLogSanitizer.summarize(rawContent));
-        return parseEnhanceResponse(rawContent, cv, "MAX", fallback);
+        return parseEnhanceResponse(rawContent, cv, "MAX", fallback, true);
     }
     // ── Appel IA et parsing ─────────────────────────────────────────
 
@@ -57,11 +57,11 @@ public class EnhancementServiceImpl implements IEnhancementService {
         String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.info("AI enhance response summary: {}", AiLogSanitizer.summarize(rawContent));
-        return parseEnhanceResponse(rawContent, cv, level, fallback);
+        return parseEnhanceResponse(rawContent, cv, level, fallback, false);
     }
 
     private EnhanceCvResponse parseEnhanceResponse(String rawContent, Cv cv, String level,
-                                                    boolean fallback) {
+                                                    boolean fallback, boolean allowTitleChange) {
         List<String> allMarkers = buildMarkerList(cv);
 
         // Parse titre de l'offre (pour le label de la variante)
@@ -72,6 +72,8 @@ public class EnhancementServiceImpl implements IEnhancementService {
         if (titrePoste.isBlank() && cv.getPersonalInfo() != null) {
             titrePoste = cv.getPersonalInfo().getTitrePoste();
         }
+        String originalTitle = cv.getPersonalInfo() == null ? null : cv.getPersonalInfo().getTitrePoste();
+        if (!allowTitleChange && originalTitle != null && !SkillTermPreserver.preserves(originalTitle, titrePoste)) titrePoste = originalTitle;
 
         // Parse resume
         String resume = AiResponseParser.extractBetweenMarkers(rawContent, "RESUME:", allMarkers);
@@ -186,10 +188,9 @@ public class EnhancementServiceImpl implements IEnhancementService {
         sb.append("Tu es un expert en redaction de CV professionnels, specialise en optimisation ATS ");
         sb.append("(Applicant Tracking System). Tu connais les attentes des recruteurs en 2026. ");
 
-        sb.append(GRAMMAR_RULE);
-        sb.append(TITLE_RULE);
+        sb.append(GRAMMAR_RULE); sb.append(TITLE_RULE);
         sb.append(FRANCOPHONE_MARKET_RULE);
-
+        sb.append(GROUNDING_RULE);
         switch (level.toUpperCase()) {
             case "LITE" -> sb.append(
                     "Corrige uniquement l'orthographe, la grammaire et les accents. "
@@ -231,7 +232,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
-        sb.append(ANTI_CLICHES_RULE);
+        sb.append(GROUNDING_RULE); sb.append(ANTI_CLICHES_RULE);
         sb.append(STYLE_RULE);
         sb.append(FRANCOPHONE_MARKET_RULE);
         sb.append(QUANTIFICATION_RULE);
@@ -303,7 +304,6 @@ public class EnhancementServiceImpl implements IEnhancementService {
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
-
     private List<String> buildMarkerList(Cv cv) {
         List<String> markers = new ArrayList<>();
         markers.add("TITRE_OFFRE:");

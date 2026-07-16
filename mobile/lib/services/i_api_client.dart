@@ -58,6 +58,7 @@ abstract interface class IApiClient {
   Future<List<String>> getAiSuggestions({
     required String poste,
     String? entreprise,
+    String? description,
   });
   Future<Cv> generateShareLink(int id);
   Future<Cv> regenerateShareLink(int id);

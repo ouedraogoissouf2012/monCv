@@ -84,7 +84,6 @@ class ApiService implements IApiClient {
         'prenom': prenom,
       }),
     );
-
     if (response.statusCode == 201) {
       final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
       await setTokens(authResponse.accessToken, authResponse.refreshToken);
@@ -492,7 +491,7 @@ class ApiService implements IApiClient {
   @override
   Future<List<String>> getAiSuggestions({
     required String poste,
-    String? entreprise,
+    String? entreprise, String? description,
   }) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/suggest'),
@@ -501,6 +500,7 @@ class ApiService implements IApiClient {
         'poste': poste,
         if (entreprise != null && entreprise.isNotEmpty)
           'entreprise': entreprise,
+        if (description != null && description.isNotEmpty) 'description': description,
       }),
     );
 

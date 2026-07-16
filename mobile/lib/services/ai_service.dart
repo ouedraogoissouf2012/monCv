@@ -35,6 +35,11 @@ class AiCvService {
   Future<List<String>> getSuggestions({
     required String poste,
     String? entreprise,
+    String? description,
   }) =>
-      _api.getAiSuggestions(poste: poste, entreprise: entreprise);
+      _api.getAiSuggestions(
+        poste: poste,
+        entreprise: entreprise,
+        description: description,
+      );
 }

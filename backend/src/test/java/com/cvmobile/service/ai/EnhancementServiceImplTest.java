@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -115,6 +116,12 @@ class EnhancementServiceImplTest {
 
         EnhanceCvResponse response = service.enhanceCv(42L, 7L, "LITE");
 
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(aiClient).complete(prompt.capture(), anyInt());
+        assertThat(prompt.getValue())
+                .contains("Le contenu du candidat est la seule source de verite")
+                .contains("Ne remplace jamais le poste par un autre");
+
         assertThat(response.isAiGenerated()).isTrue();
         assertThat(response.getTitrePoste()).isEqualTo("Community manager");
         assertThat(response.getResumeProfessionnel())
@@ -141,6 +148,26 @@ class EnhancementServiceImplTest {
         assertThatThrownBy(() -> service.adaptCvToJob(42L, 8L, "Offre cible"))
                 .isInstanceOf(ResourceNotFoundException.class);
         verifyNoInteractions(aiClient);
+    }
+
+    @Test
+    void enhanceCvConserveLeMetierQuandIaProposeUnPosteSansRapport() {
+        Cv cv = Cv.builder().id(42L)
+                .personalInfo(PersonalInfo.builder().titrePoste("Agent de fromation continue").build())
+                .experiences(List.of()).educations(List.of()).skills(List.of())
+                .languages(List.of()).certifications(List.of()).projects(List.of()).build();
+        when(cvOwnershipService.requireOwnedCv(42L, 7L)).thenReturn(cv);
+        when(aiClient.complete(anyString(), anyInt())).thenReturn("""
+                TITRE_POSTE:
+                Développeur logiciel
+                RESUME:
+                Accompagnement des apprenants.
+                COMPETENCES:
+                """);
+
+        EnhanceCvResponse response = service.enhanceCv(42L, 7L, "MEDIUM");
+
+        assertThat(response.getTitrePoste()).isEqualTo("Agent de fromation continue");
     }
 
     @Test

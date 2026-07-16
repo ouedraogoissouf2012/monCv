@@ -44,7 +44,8 @@ public class AiController {
     public ResponseEntity<SuggestResponse> suggest(@Valid @RequestBody SuggestRequest request) {
         SuggestResponse response = suggestionService.generateSuggestions(
                 request.getPoste(),
-                request.getEntreprise()
+                request.getEntreprise(),
+                request.getDescription()
         );
         return ResponseEntity.ok(response);
     }

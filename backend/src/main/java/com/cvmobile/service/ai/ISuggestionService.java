@@ -7,5 +7,5 @@ import com.cvmobile.dto.SuggestResponse;
  */
 public interface ISuggestionService {
 
-    SuggestResponse generateSuggestions(String poste, String entreprise);
+    SuggestResponse generateSuggestions(String poste, String entreprise, String description);
 }

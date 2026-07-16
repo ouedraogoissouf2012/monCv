@@ -47,9 +47,15 @@ public final class AiPromptRules {
     public static final String QUANTIFICATION_RULE =
             "REGLE CHIFFRES: CONSERVE tous les chiffres que le candidat a fournis. "
             + "Si le candidat a ecrit '5 applications' ou '30%', GARDE ces chiffres. "
-            + "Si une description n'a AUCUN chiffre, ajoute des metriques CREDIBLES basees sur le contexte "
-            + "(pas des placeholders, mais des estimations raisonnables). "
-            + "Chaque bullet point devrait avoir au moins UN element mesurable. ";
+            + "Si une description n'a AUCUN chiffre, N'INVENTE aucune metrique, estimation ou placeholder. "
+            + "Ameliore alors la precision avec les faits qualitatifs reellement fournis. ";
+
+    public static final String GROUNDING_RULE =
+            "REGLE DE FIDELITE PRIORITAIRE: Le contenu du candidat est la seule source de verite. "
+            + "Conserve son metier, son secteur, ses responsabilites et son intention. "
+            + "Ameliore la formulation et explicite uniquement ce qui est directement deduisible. "
+            + "Ne remplace jamais le poste par un autre et n'invente aucune mission, technologie, "
+            + "competence, responsabilite, resultat, chiffre, client ou contexte. ";
 
     public static final String FRANCOPHONE_MARKET_RULE =
             "REGLE MARCHE FRANCOPHONE: "

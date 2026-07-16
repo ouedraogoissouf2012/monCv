@@ -6,7 +6,12 @@ import '../../services/i_api_client.dart';
 class SuggestBulletsParams {
   final String poste;
   final String? entreprise;
-  const SuggestBulletsParams({required this.poste, this.entreprise});
+  final String? description;
+  const SuggestBulletsParams({
+    required this.poste,
+    this.entreprise,
+    this.description,
+  });
 }
 
 class SuggestBulletsUseCase
@@ -17,5 +22,8 @@ class SuggestBulletsUseCase
   @override
   Future<Result<List<String>>> call(SuggestBulletsParams params) =>
       safeCall(() => _api.getAiSuggestions(
-          poste: params.poste, entreprise: params.entreprise));
+            poste: params.poste,
+            entreprise: params.entreprise,
+            description: params.description,
+          ));
 }
