@@ -16,9 +16,9 @@ springdoc:
   swagger-ui:
     enabled: true
 
-# CORS — ouvre tous les ports localhost classiques
+# CORS — accepte les ports dynamiques de Flutter Web en developpement
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8082,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://10.0.2.2:8082}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,http://10.0.2.2:8082}
 
 # JWT — valeur locale uniquement, interdite en production
 jwt:
