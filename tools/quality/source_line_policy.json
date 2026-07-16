@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "legacy_files": [
+    {
+      "path": "backend/src/main/java/com/cvmobile/service/CvQualityService.java",
+      "baseline_lines": 345,
+      "issue": "#253",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "backend/src/main/java/com/cvmobile/service/CvService.java",
+      "baseline_lines": 642,
+      "issue": "#254",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "backend/src/main/java/com/cvmobile/service/ai/EnhancementServiceImpl.java",
+      "baseline_lines": 416,
+      "issue": "#256",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "backend/src/main/java/com/cvmobile/service/ai/JobMatchServiceImpl.java",
+      "baseline_lines": 875,
+      "issue": "#257",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "backend/src/test/java/com/cvmobile/integration/CvFlowIntegrationTest.java",
+      "baseline_lines": 314,
+      "issue": "#234",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/models/cv.dart",
+      "baseline_lines": 546,
+      "issue": "#238",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/providers/cv_provider.dart",
+      "baseline_lines": 573,
+      "issue": "#240",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/applications/applications_screen.dart",
+      "baseline_lines": 606,
+      "issue": "#246",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/auth/login_screen.dart",
+      "baseline_lines": 560,
+      "issue": "#248",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/auth/register_screen.dart",
+      "baseline_lines": 667,
+      "issue": "#248",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/cv_detail_screen.dart",
+      "baseline_lines": 741,
+      "issue": "#247",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/experience_section.dart",
+      "baseline_lines": 309,
+      "issue": "#239",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/form_sheet.dart",
+      "baseline_lines": 475,
+      "issue": "#239",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/personal_info_section.dart",
+      "baseline_lines": 1085,
+      "issue": "#242",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/home/home_screen.dart",
+      "baseline_lines": 350,
+      "issue": "#249",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/landing/landing_screen.dart",
+      "baseline_lines": 563,
+      "issue": "#251",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/profile/profile_screen.dart",
+      "baseline_lines": 536,
+      "issue": "#250",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/services/api_service.dart",
+      "baseline_lines": 761,
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/services/cv_validator.dart",
+      "baseline_lines": 393,
+      "issue": "#241",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/ai_enhance_sheet.dart",
+      "baseline_lines": 905,
+      "issue": "#244",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/app_scaffold.dart",
+      "baseline_lines": 307,
+      "issue": "#249",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/application_messages_sheet.dart",
+      "baseline_lines": 325,
+      "issue": "#245",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/cv_card.dart",
+      "baseline_lines": 355,
+      "issue": "#249",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/cv_preview.dart",
+      "baseline_lines": 1018,
+      "issue": "#243",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/job_match_sheet.dart",
+      "baseline_lines": 1018,
+      "issue": "#245",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/test/e2e/cv_smoke_web_test.dart",
+      "baseline_lines": 375,
+      "issue": "#234",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/test/providers/cv_provider_test.dart",
+      "baseline_lines": 433,
+      "issue": "#234",
+      "expires_on": "2027-01-31"
+    }
+  ],
+  "generated_files": [
+    "mobile/lib/l10n/app_localizations.dart",
+    "mobile/lib/l10n/app_localizations_en.dart",
+    "mobile/lib/l10n/app_localizations_fr.dart"
+  ]
+}
