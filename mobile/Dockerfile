@@ -13,6 +13,8 @@ COPY . .
 ARG SENTRY_DSN=
 RUN --mount=type=cache,target=/root/.pub-cache \
     flutter build web --release --no-pub --no-wasm-dry-run \
+      --csp \
+      --no-web-resources-cdn \
       --pwa-strategy=offline-first \
       --dart-define=APP_ENV=production \
       --dart-define=API_BASE_URL=/api \
