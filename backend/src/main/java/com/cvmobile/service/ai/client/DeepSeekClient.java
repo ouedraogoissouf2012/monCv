@@ -51,8 +51,8 @@ public class DeepSeekClient implements IAiClient {
 
     public DeepSeekClient(RestTemplateBuilder builder) {
         this.restTemplate = builder
-                .setConnectTimeout(Duration.ofSeconds(3))
-                .setReadTimeout(Duration.ofSeconds(9))
+                .connectTimeout(Duration.ofSeconds(3))
+                .readTimeout(Duration.ofSeconds(9))
                 .build();
     }
 
