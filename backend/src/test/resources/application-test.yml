@@ -20,6 +20,9 @@ upload:
   dir: ${java.io.tmpdir}/cv-test-uploads
 
 security:
+  public-portfolio:
+    encryption-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    allowed-media-origins: http://localhost:8082
   rate-limit:
     enabled: false
 

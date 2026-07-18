@@ -2,9 +2,10 @@ package com.cvmobile.repository;
 
 import com.cvmobile.model.Cv;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,12 +28,19 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
 
     Optional<Cv> findByPublicToken(String publicToken);
 
+    Optional<Cv> findByPublicTokenHash(String publicTokenHash);
+
+    @Query("SELECT c FROM Cv c WHERE c.publicToken IS NOT NULL "
+            + "AND c.publicTokenHash IS NULL ORDER BY c.id")
+    List<Cv> findLegacyPublicTokens(Pageable pageable);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Cv c SET c.viewCount = c.viewCount + 1 WHERE c.id = :cvId")
     int incrementViewCount(@Param("cvId") Long cvId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Cv c SET c.downloadCount = c.downloadCount + 1 WHERE c.id = :cvId")
+    @Query("UPDATE Cv c SET c.downloadCount = c.downloadCount + 1 "
+            + "WHERE c.id = :cvId AND c.publicDownloadsEnabled = true")
     int incrementDownloadCount(@Param("cvId") Long cvId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)

@@ -22,6 +22,10 @@ public record RateLimitProperties(
         @DefaultValue("1h") @NotNull Duration importWindow,
         @DefaultValue("60") @Min(1) int publicRequests,
         @DefaultValue("1m") @NotNull Duration publicWindow,
+        @DefaultValue("6") @Min(1) int publicDownloadRequests,
+        @DefaultValue("1m") @NotNull Duration publicDownloadWindow,
+        @DefaultValue("20") @Min(1) int publicShareRequests,
+        @DefaultValue("1m") @NotNull Duration publicShareWindow,
         @DefaultValue("redis://localhost:6379") @NotBlank String redisUrl,
         @DefaultValue("moncv:rate-limit:") @NotBlank String keyPrefix
 ) {

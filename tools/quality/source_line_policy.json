@@ -9,7 +9,7 @@
     },
     {
       "path": "backend/src/main/java/com/cvmobile/service/CvService.java",
-      "baseline_lines": 633,
+      "baseline_lines": 531,
       "issue": "#254",
       "expires_on": "2027-01-31"
     },
@@ -81,7 +81,7 @@
     },
     {
       "path": "mobile/lib/screens/cv/sections/personal_info_section.dart",
-      "baseline_lines": 1085,
+      "baseline_lines": 1051,
       "issue": "#242",
       "expires_on": "2027-01-31"
     },
@@ -105,7 +105,7 @@
     },
     {
       "path": "mobile/lib/services/api_service.dart",
-      "baseline_lines": 761,
+      "baseline_lines": 756,
       "issue": "#237",
       "expires_on": "2027-01-31"
     },

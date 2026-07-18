@@ -4,7 +4,8 @@ import '../models/cv.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/app_colors.dart';
 import '../utils/cv_levels.dart';
-/// Preview du CV — reproduit exactement le layout de chaque template PDF.
+import 'secure_photo.dart';
+
 class CvPreviewWidget extends StatelessWidget {
   final Cv cv;
   const CvPreviewWidget({super.key, required this.cv});
@@ -430,7 +431,6 @@ class _ModerneTemplate extends StatelessWidget {
       style: _font(cv.style.fontFamily,
           const TextStyle(fontSize: 10, color: AppColors.neutral700)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        // Header
         Container(
           padding: const EdgeInsets.fromLTRB(32, 28, 32, 22),
           decoration: BoxDecoration(
@@ -438,14 +438,14 @@ class _ModerneTemplate extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
           ),
           child: Column(children: [
-            // Photo
             if (info?.photoUrl?.isNotEmpty == true) ...[
               ClipOval(
-                child: Image.network(info!.photoUrl!,
+                child: SecurePhoto(
+                    url: info!.photoUrl!,
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => CircleAvatar(
+                    fallback: CircleAvatar(
                         radius: 35,
                         backgroundColor: Colors.white.withValues(alpha: 0.2),
                         child: Icon(Icons.person,
@@ -620,15 +620,15 @@ class _CreatifTemplate extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Photo dans sidebar
               if (info?.photoUrl?.isNotEmpty == true) ...[
                 Center(
                     child: ClipOval(
-                  child: Image.network(info!.photoUrl!,
+                  child: SecurePhoto(
+                      url: info!.photoUrl!,
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => CircleAvatar(
+                      fallback: CircleAvatar(
                           radius: 30,
                           backgroundColor: Colors.white.withValues(alpha: 0.2),
                           child: Icon(Icons.person,

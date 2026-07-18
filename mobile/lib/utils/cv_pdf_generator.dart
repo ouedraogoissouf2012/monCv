@@ -5,4 +5,5 @@ import '../pdf/pdf_renderer.dart';
 
 export '../pdf/pdf_renderer.dart';
 
-Future<Uint8List> generateCvPdf(Cv cv) => PdfRenderer.generate(cv);
+Future<Uint8List> generateCvPdf(Cv cv, {Uint8List? photoBytes}) =>
+    PdfRenderer.generate(cv, photoBytes: photoBytes);

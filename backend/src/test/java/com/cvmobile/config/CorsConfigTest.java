@@ -22,6 +22,7 @@ class CorsConfigTest {
                 .isEqualTo("http://localhost:30589");
         assertThat(configuration.checkOrigin("http://127.0.0.1:53816"))
                 .isEqualTo("http://127.0.0.1:53816");
+        assertThat(configuration.getAllowCredentials()).isFalse();
     }
 
     @Test

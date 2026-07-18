@@ -36,14 +36,16 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
             "DEEPSEEK_API_KEY",
             "JWT_SECRET",
             "DB_PASSWORD",
-            "ALLOWED_ORIGINS");
+            "ALLOWED_ORIGINS",
+            "PUBLIC_LINK_ENCRYPTION_KEY");
 
     /** Secrets qui DOIVENT etre presents en prod (fail-fast). */
     private static final List<String> PROD_REQUIRED = List.of(
             "DEEPSEEK_API_KEY",
             "JWT_SECRET",
             "DB_PASSWORD",
-            "ALLOWED_ORIGINS");
+            "ALLOWED_ORIGINS",
+            "PUBLIC_LINK_ENCRYPTION_KEY");
 
     private static final List<String> NON_TEST_REQUIRED = List.of("DB_PASSWORD");
 

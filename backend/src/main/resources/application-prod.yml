@@ -24,6 +24,11 @@ cors:
 jwt:
   secret: ${JWT_SECRET}
 
+security:
+  public-portfolio:
+    encryption-key: ${PUBLIC_LINK_ENCRYPTION_KEY}
+    allowed-media-origins: ${PUBLIC_MEDIA_ALLOWED_ORIGINS}
+
 # AI — DeepSeek OBLIGATOIRE en prod
 ai:
   deepseek:
@@ -31,7 +36,7 @@ ai:
 
 # Reverse proxy (X-Forwarded-For, X-Forwarded-Proto)
 server:
-  forward-headers-strategy: framework
+  forward-headers-strategy: native
   tomcat:
     remoteip:
       remote-ip-header: X-Forwarded-For

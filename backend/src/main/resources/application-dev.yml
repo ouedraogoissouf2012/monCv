@@ -30,6 +30,11 @@ cors:
 jwt:
   secret: ${JWT_SECRET:moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6nZ}
 
+security:
+  public-portfolio:
+    encryption-key: ${PUBLIC_LINK_ENCRYPTION_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+    allowed-media-origins: ${PUBLIC_MEDIA_ALLOWED_ORIGINS:http://localhost:8082,http://127.0.0.1:8082}
+
 # AI — DeepSeek optionnel en dev (mode degrade accepte)
 ai:
   deepseek:

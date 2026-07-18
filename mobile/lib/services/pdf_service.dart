@@ -29,10 +29,19 @@ class PdfService {
 
   /// Genere le PDF en bytes.
   Future<Uint8List> generate(Cv cv) async {
+    final photoBytes = await _loadPhoto(cv.personalInfo?.photoUrl);
     if (kIsWeb) {
-      return generateCvPdf(cv);
+      return generateCvPdf(cv, photoBytes: photoBytes);
     }
-    return compute(_generateInIsolate, cv);
+    return compute(_generateInIsolate, _PdfGenerationInput(cv, photoBytes));
+  }
+
+  Future<Uint8List?> _loadPhoto(String? url) async {
+    try {
+      return await _api.loadPhoto(url);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Corrige les accents sur TOUT le CV avant export.
@@ -106,4 +115,12 @@ class PdfService {
 }
 
 /// Fonction top-level pour compute()
-Future<Uint8List> _generateInIsolate(Cv cv) => generateCvPdf(cv);
+Future<Uint8List> _generateInIsolate(_PdfGenerationInput input) =>
+    generateCvPdf(input.cv, photoBytes: input.photoBytes);
+
+final class _PdfGenerationInput {
+  const _PdfGenerationInput(this.cv, this.photoBytes);
+
+  final Cv cv;
+  final Uint8List? photoBytes;
+}

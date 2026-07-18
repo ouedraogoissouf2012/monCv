@@ -25,11 +25,13 @@ import static org.mockito.Mockito.when;
 class RateLimitFilterTest {
 
     private final RateLimitService rateLimitService = mock(RateLimitService.class);
+    private final SecurityIdentifierHasher identifierHasher = mock(SecurityIdentifierHasher.class);
     private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
     private final RateLimitFilter filter = new RateLimitFilter(
             defaultProperties(),
             rateLimitService,
-            meterRegistry
+            meterRegistry,
+            identifierHasher
     );
 
     @AfterEach
@@ -53,7 +55,8 @@ class RateLimitFilterTest {
 
     @Test
     void limiteAuthentificationParAdresseDistanteSansFaireConfianceAXForwardedFor() throws Exception {
-        when(rateLimitService.consume("auth:ip:198.51.100.7", 10, Duration.ofMinutes(1)))
+        when(identifierHasher.hash("rate-limit", "198.51.100.7")).thenReturn("client-hash");
+        when(rateLimitService.consume("auth:ip:client-hash", 10, Duration.ofMinutes(1)))
                 .thenReturn(RateLimitResult.allowed(9));
         MockHttpServletRequest request = request("POST", "/api/auth/login", "198.51.100.7");
         request.addHeader("X-Forwarded-For", "192.0.2.99");
@@ -61,7 +64,7 @@ class RateLimitFilterTest {
 
         filter.doFilter(request, response, new MockFilterChain());
 
-        verify(rateLimitService).consume("auth:ip:198.51.100.7", 10, Duration.ofMinutes(1));
+        verify(rateLimitService).consume("auth:ip:client-hash", 10, Duration.ofMinutes(1));
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getHeader("X-RateLimit-Remaining")).isEqualTo("9");
     }
@@ -76,6 +79,36 @@ class RateLimitFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         verify(rateLimitService).consume("cv-import:user:7", 5, Duration.ofHours(1));
+    }
+
+    @Test
+    void appliqueUnQuotaPlusStrictAuxDocumentsPublics() throws Exception {
+        when(identifierHasher.hash("rate-limit", "203.0.113.10"))
+                .thenReturn("client-hash");
+        when(rateLimitService.consume(
+                "public-document:ip:client-hash", 6, Duration.ofMinutes(1)))
+                .thenReturn(RateLimitResult.allowed(5));
+
+        MockHttpServletResponse response = execute(
+                "GET", "/api/cvs/public/valid-token/pdf", "203.0.113.10");
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        verify(rateLimitService).consume(
+                "public-document:ip:client-hash", 6, Duration.ofMinutes(1));
+    }
+
+    @Test
+    void separeLeQuotaDesIntentionsDePartage() throws Exception {
+        when(identifierHasher.hash("rate-limit", "203.0.113.10"))
+                .thenReturn("client-hash");
+        when(rateLimitService.consume(
+                "public-share:ip:client-hash", 20, Duration.ofMinutes(1)))
+                .thenReturn(RateLimitResult.allowed(19));
+
+        execute("POST", "/api/cvs/public/valid-token/share", "203.0.113.10");
+
+        verify(rateLimitService).consume(
+                "public-share:ip:client-hash", 20, Duration.ofMinutes(1));
     }
 
     @Test
@@ -131,6 +164,10 @@ class RateLimitFilterTest {
                 5,
                 Duration.ofHours(1),
                 60,
+                Duration.ofMinutes(1),
+                6,
+                Duration.ofMinutes(1),
+                20,
                 Duration.ofMinutes(1),
                 "redis://localhost:6379",
                 "test:rate-limit:"

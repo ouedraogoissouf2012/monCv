@@ -9,9 +9,8 @@ import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.*;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
-import com.cvmobile.repository.CvViewRepository;
+import com.cvmobile.security.PublicShareTokenCodec;
 import com.cvmobile.service.ai.IEnhancementService;
-import com.cvmobile.service.notification.NotificationService;
 import com.cvmobile.service.cv.ICvService;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,12 +28,11 @@ import java.util.stream.Collectors;
 public class CvService implements ICvService {
 
     private final CvRepository cvRepository;
-    private final CvViewRepository cvViewRepository;
     private final IUserService userService;
     private final CvMapper cvMapper;
     private final IEnhancementService enhancementService;
-    private final NotificationService notificationService;
     private final BusinessMetrics businessMetrics;
+    private final PublicShareTokenCodec publicShareTokenCodec;
 
     // ── Lecture ───────────────────────────────────────────────────
 
@@ -74,11 +68,6 @@ public class CvService implements ICvService {
     public CvResponse getCvById(Long cvId, Long userId) {
         Cv cv = findCvOrThrow(cvId, userId);
         return cvMapper.toResponse(cv);
-    }
-
-    @Transactional(readOnly = true)
-    public CvResponse getCvByPublicToken(String token) {
-        return toPublicResponse(findPublicCv(token));
     }
 
     // ── Creation ─────────────────────────────────────────────────
@@ -291,25 +280,25 @@ public class CvService implements ICvService {
     @Transactional
     public CvResponse generateShareToken(Long cvId, Long userId) {
         Cv cv = findCvOrThrow(cvId, userId);
-        if (cv.getPublicToken() == null) {
-            cv.setPublicToken(newPublicToken());
-            cv = cvRepository.save(cv);
-            log.info("Token de partage genere pour CV id={}", cvId);
-        }
-        return cvMapper.toResponse(cv);
+        String token = recoverActiveToken(cv);
+        if (token == null) token = protectNewToken(cv);
+        cv = cvRepository.save(cv);
+        log.info("Lien de partage actif pour CV id={}", cvId);
+        return shareResponse(cv, token);
     }
 
     @Transactional
     public CvResponse regenerateShareToken(Long cvId, Long userId) {
         Cv cv = findCvOrThrow(cvId, userId);
-        cv.setPublicToken(newPublicToken());
-        return cvMapper.toResponse(cvRepository.save(cv));
+        String token = protectNewToken(cv);
+        return shareResponse(cvRepository.save(cv), token);
     }
 
     @Transactional
     public CvResponse deactivateShare(Long cvId, Long userId) {
         Cv cv = findCvOrThrow(cvId, userId);
         cv.setPublicToken(null);
+        cv.setPublicTokenHash(null);
         return cvMapper.toResponse(cvRepository.save(cv));
     }
 
@@ -320,131 +309,40 @@ public class CvService implements ICvService {
         cv.setPublicContactEnabled(request.isContactEnabled());
         cv.setPublicDownloadsEnabled(
                 request.isDownloadsEnabled() && request.isContactEnabled());
-        return cvMapper.toResponse(cvRepository.save(cv));
-    }
-
-    // ── Analytics ────────────────────────────────────────────────
-
-    /**
-     * Enregistre une vue sur un CV public si le visiteur n'a pas ete vu recemment.
-     * Hash l'IP pour le RGPD (pas de stockage en clair).
-     * Delai anti-doublon : 5 minutes.
-     */
-    @Transactional
-    public void trackView(String publicToken, String ipAddress) {
-        Cv cv = findPublicCv(publicToken);
-
-        String ipHash = hashIp(ipAddress);
-        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
-
-        boolean recentView = cvViewRepository.existsByCvIdAndIpHashAndViewedAtAfter(
-                cv.getId(), ipHash, fiveMinutesAgo);
-
-        if (!recentView) {
-            cvViewRepository.save(CvView.builder()
-                    .cvId(cv.getId())
-                    .ipHash(ipHash)
-                    .viewedAt(LocalDateTime.now())
-                    .build());
-            cvRepository.incrementViewCount(cv.getId());
-            cv.setViewCount(cv.getViewCount() + 1);
-            notificationService.notifyViewMilestone(cv);
-            log.debug("Vue enregistree: cv={}, ipHash={}", cv.getId(), ipHash);
+        String token = recoverActiveToken(cv);
+        if (token == null && (cv.getPublicTokenHash() != null
+                || cv.getPublicToken() != null)) {
+            token = protectNewToken(cv);
         }
+        return shareResponse(cvRepository.save(cv), token);
     }
 
-    @Transactional
-    public void trackPublicDownload(String publicToken) {
-        Cv cv = findPublicCv(publicToken);
-        ensureDownloadsEnabled(cv);
-        cvRepository.incrementDownloadCount(cv.getId());
-    }
-
-    @Transactional
-    public void trackPublicShare(String publicToken) {
-        Cv cv = findPublicCv(publicToken);
-        cvRepository.incrementShareCount(cv.getId());
-    }
-
-    @Transactional(readOnly = true)
-    public Cv getPublicCvEntityForDownload(String publicToken) {
-        Cv cv = findPublicCv(publicToken);
-        ensureDownloadsEnabled(cv);
-
-        PersonalInfo publicInfo = cv.getPersonalInfo() == null
-                ? null
-                : cvMapper.clonePersonalInfo(cv.getPersonalInfo());
-        if (publicInfo != null) {
-            publicInfo.setAdresse(null);
-            publicInfo.setCodePostal(null);
+    private String recoverActiveToken(Cv cv) {
+        if (cv.getPublicToken() == null) return null;
+        if (cv.getPublicTokenHash() == null
+                && publicShareTokenCodec.isLegacy(cv.getPublicToken())) {
+            String legacyToken = cv.getPublicToken();
+            cv.setPublicTokenHash(publicShareTokenCodec.digest(legacyToken));
+            cv.setPublicToken(publicShareTokenCodec.encrypt(legacyToken));
+            return legacyToken;
         }
-
-        return Cv.builder()
-                .id(cv.getId())
-                .titre(cv.getTitre())
-                .personalInfo(publicInfo)
-                .educations(List.copyOf(cv.getEducations()))
-                .experiences(List.copyOf(cv.getExperiences()))
-                .skills(List.copyOf(cv.getSkills()))
-                .languages(List.copyOf(cv.getLanguages()))
-                .certifications(List.copyOf(cv.getCertifications()))
-                .projects(List.copyOf(cv.getProjects()))
-                .styleTemplateId(cv.getStyleTemplateId())
-                .stylePrimaryColor(cv.getStylePrimaryColor())
-                .styleFontFamily(cv.getStyleFontFamily())
-                .build();
+        return publicShareTokenCodec.decrypt(cv.getPublicToken())
+                .filter(token -> publicShareTokenCodec.matchesDigest(
+                        token, cv.getPublicTokenHash()))
+                .orElse(null);
     }
 
-    @Transactional(readOnly = true)
-    public CvResponse getPublicCvForDownload(String publicToken) {
-        Cv cv = findPublicCv(publicToken);
-        ensureDownloadsEnabled(cv);
-        return toPublicResponse(cv);
+    private String protectNewToken(Cv cv) {
+        String token = publicShareTokenCodec.generate();
+        cv.setPublicTokenHash(publicShareTokenCodec.digest(token));
+        cv.setPublicToken(publicShareTokenCodec.encrypt(token));
+        return token;
     }
 
-    static String hashIp(String ip) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest((ip != null ? ip : "unknown").getBytes(StandardCharsets.UTF_8));
-            StringBuilder hex = new StringBuilder();
-            for (int i = 0; i < 8; i++) hex.append(String.format("%02x", hash[i]));
-            return hex.toString();
-        } catch (Exception e) {
-            return "0000000000000000";
-        }
-    }
-
-    private Cv findPublicCv(String token) {
-        return cvRepository.findByPublicToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lien de partage invalide ou expire"));
-    }
-
-    private CvResponse toPublicResponse(Cv cv) {
+    private CvResponse shareResponse(Cv cv, String token) {
         CvResponse response = cvMapper.toResponse(cv);
-        CvResponse.PersonalInfoDto info = response.getPersonalInfo();
-        if (info != null) {
-            info.setAdresse(null);
-            info.setCodePostal(null);
-            if (!cv.isPublicContactEnabled()) {
-                info.setEmail(null);
-                info.setTelephone(null);
-            }
-        }
-        response.setPublicToken(null);
-        response.setDownloadCount(0);
-        response.setShareCount(0);
+        response.setPublicToken(token);
         return response;
-    }
-
-    private void ensureDownloadsEnabled(Cv cv) {
-        if (!cv.isPublicDownloadsEnabled()) {
-            throw new ResourceNotFoundException("Telechargement public desactive");
-        }
-    }
-
-    private String newPublicToken() {
-        return UUID.randomUUID().toString().replace("-", "");
     }
 
     // ── Suppression ──────────────────────────────────────────────

@@ -16,13 +16,42 @@ services:
   backend:
     # Utilise l'image GHCR au lieu de builder localement
     build: !reset null
-    image: ghcr.io/ouedraogoissouf2012/cv-mobile-backend:${TAG:-latest}
+    image: ghcr.io/ouedraogoissouf2012/cv-mobile-backend:${TAG:?TAG must be a commit SHA or release tag}
 
     # Pas de env_file — secrets injectes par l'orchestrateur
     env_file: !reset []
 
+    ports: []
+
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/cvmobile
+      PUBLIC_LINK_ENCRYPTION_KEY: ${PUBLIC_LINK_ENCRYPTION_KEY:?PUBLIC_LINK_ENCRYPTION_KEY is required}
+      PUBLIC_MEDIA_ALLOWED_ORIGINS: ${PUBLIC_MEDIA_ALLOWED_ORIGINS:?PUBLIC_MEDIA_ALLOWED_ORIGINS is required}
       # Les autres vars (DB_PASSWORD, JWT_SECRET, DEEPSEEK_API_KEY, ALLOWED_ORIGINS)
       # DOIVENT etre exportees dans l'environnement avant `docker compose up`
+
+  web:
+    image: ghcr.io/ouedraogoissouf2012/cv-mobile-web:${TAG:?TAG must be a commit SHA or release tag}
+    container_name: cvmobile-web
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid,nodev
+      - /var/cache/nginx:size=32m,noexec,nosuid,nodev
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    networks:
+      - cvmobile-net
+
+  adminer:
+    profiles:
+      - dev-tools
+    ports: []

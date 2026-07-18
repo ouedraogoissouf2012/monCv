@@ -33,15 +33,23 @@ Ce document centralise les variables de configuration du backend Spring Boot, du
 | `STALE_CV_DAYS` | int | non | `30` | Seuil de CV stale pour les rappels. |
 | `NOTIFICATION_REMINDER_CRON` | cron | non | `0 0 9 * * *` | Cron Spring des notifications. |
 | `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES` | csv CIDR | non | `127.0.0.1/32,::1/128` | Allowlist IP pour `/actuator/prometheus`. |
+| `PUBLIC_LINK_ENCRYPTION_KEY` | secret Base64 | oui en prod | aucun | Cle AES-256-GCM de recuperation des liens publics. |
+| `PUBLIC_MEDIA_ALLOWED_ORIGINS` | csv URL | oui en prod | aucun | Origines historiques autorisees pour les photos de CV. |
 | `SENTRY_DSN` | secret string | non | vide | Active Sentry / GlitchTip backend si defini. |
 | `SENTRY_ENVIRONMENT` | string | non | valeur de `SPRING_PROFILES_ACTIVE` | Nom d'environnement remonte a Sentry. |
+
+Generez `PUBLIC_LINK_ENCRYPTION_KEY` avec `openssl rand -base64 32` ou, sous PowerShell :
+
+```powershell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
 
 ## Flutter / build web-mobile
 
 | Variable | Type | Requise | Default | Description |
 | --- | --- | --- | --- | --- |
 | `APP_ENV` | string | non | `development` | Environnement Flutter. `production` force une API HTTPS explicite. |
-| `API_BASE_URL` | url | oui si `APP_ENV=production` | `http://localhost:8082/api` en web local, `http://10.0.2.2:8082/api` hors web | Base URL de l'API. |
+| `API_BASE_URL` | url/path | oui si `APP_ENV=production` | `http://localhost:8082/api` en web local, `http://10.0.2.2:8082/api` hors web | URL HTTPS ou chemin web same-origin `/api`. |
 | `SENTRY_DSN` | secret string | non | vide | Active `sentry_flutter` si fournie au build. |
 
 Exemple :
@@ -79,11 +87,15 @@ Variables attendues :
 - `STALE_CV_DAYS`
 - `NOTIFICATION_REMINDER_CRON`
 - `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES`
+- `PUBLIC_LINK_ENCRYPTION_KEY`
+- `PUBLIC_MEDIA_ALLOWED_ORIGINS`
 
 ## Regles d'exploitation
 
 - profil `test` : PostgreSQL 17 Testcontainers, mocks et secrets non productifs ;
 - profil `prod` : pas de fallback silencieux sur les secrets critiques ;
+- le deploiement Compose exige `TAG` avec un SHA Git ou un tag de release immuable ;
+- Adminer est reserve au developpement local, exclu du profil production et ne doit jamais etre expose publiquement ;
 - toute nouvelle variable doit etre ajoutee dans :
   - `backend/.env.example` ou `.env.example`
   - ce document

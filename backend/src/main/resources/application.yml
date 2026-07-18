@@ -83,6 +83,16 @@ cv:
 
 # Quotas anti-abus distribues entre les instances via Bucket4j et Redis.
 security:
+  request-body:
+    max-json-bytes: ${MAX_JSON_REQUEST_BYTES:1048576}
+    max-cv-json-bytes: ${MAX_CV_JSON_REQUEST_BYTES:8388608}
+  public-portfolio:
+    encryption-key: ${PUBLIC_LINK_ENCRYPTION_KEY}
+    view-deduplication-window: ${PUBLIC_VIEW_DEDUPLICATION_WINDOW:5m}
+    max-concurrent-documents: ${PUBLIC_MAX_CONCURRENT_DOCUMENTS:2}
+    document-acquire-timeout: ${PUBLIC_DOCUMENT_ACQUIRE_TIMEOUT:250ms}
+    max-document-bytes: ${PUBLIC_MAX_DOCUMENT_BYTES:10485760}
+    allowed-media-origins: ${PUBLIC_MEDIA_ALLOWED_ORIGINS:}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     admin-bypass: ${RATE_LIMIT_ADMIN_BYPASS:true}
@@ -94,6 +104,10 @@ security:
     import-window: ${RATE_LIMIT_IMPORT_WINDOW:1h}
     public-requests: ${RATE_LIMIT_PUBLIC_REQUESTS:60}
     public-window: ${RATE_LIMIT_PUBLIC_WINDOW:1m}
+    public-download-requests: ${RATE_LIMIT_PUBLIC_DOWNLOAD_REQUESTS:6}
+    public-download-window: ${RATE_LIMIT_PUBLIC_DOWNLOAD_WINDOW:1m}
+    public-share-requests: ${RATE_LIMIT_PUBLIC_SHARE_REQUESTS:20}
+    public-share-window: ${RATE_LIMIT_PUBLIC_SHARE_WINDOW:1m}
     redis-url: ${RATE_LIMIT_REDIS_URL:redis://localhost:6379}
     key-prefix: ${RATE_LIMIT_KEY_PREFIX:moncv:rate-limit:}
 

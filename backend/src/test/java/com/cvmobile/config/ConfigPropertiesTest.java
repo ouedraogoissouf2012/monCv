@@ -38,6 +38,10 @@ class ConfigPropertiesTest {
                             Duration.ofHours(1),
                             60,
                             Duration.ofMinutes(1),
+                            6,
+                            Duration.ofMinutes(1),
+                            20,
+                            Duration.ofMinutes(1),
                             "redis://localhost:6379",
                             "moncv:rate-limit:"
                     ));

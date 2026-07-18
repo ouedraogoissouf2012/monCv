@@ -8,6 +8,7 @@ import '../../../data/city_suggestions.dart';
 import '../../../models/cv.dart';
 import '../../../services/i_api_client.dart';
 import '../../../utils/constants.dart';
+import '../widgets/editable_profile_photo.dart';
 
 class PersonalInfoSection extends StatefulWidget {
   final PersonalInfo? personalInfo;
@@ -383,46 +384,11 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
         children: [
           // ── Photo de profil ────────────────────────────
           Center(
-            child: GestureDetector(
+            child: EditableProfilePhoto(
+              bytes: _photoBytes,
+              url: _photoUrl,
+              loading: _uploadingPhoto,
               onTap: _uploadingPhoto ? null : _pickPhoto,
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                    backgroundImage: _photoBytes != null
-                        ? MemoryImage(_photoBytes!) as ImageProvider
-                        : _photoUrl != null
-                            ? NetworkImage(_photoUrl!) as ImageProvider
-                            : null,
-                    child: _uploadingPhoto
-                        ? CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
-                          )
-                        : _photoUrl == null && _photoBytes == null
-                            ? Icon(Icons.person_outline_rounded,
-                                size: 40,
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.5))
-                            : null,
-                  ),
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          width: 2),
-                    ),
-                    child: const Icon(Icons.camera_alt_rounded,
-                        size: 14, color: Colors.white),
-                  ),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 4),

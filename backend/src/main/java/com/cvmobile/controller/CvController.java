@@ -4,7 +4,6 @@ import com.cvmobile.dto.CreateVariantRequest;
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.PublicShareSettingsRequest;
-import com.cvmobile.model.Cv;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
@@ -174,52 +173,6 @@ public class CvController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(
                 cvService.updateShareSettings(id, request, user.getId()));
-    }
-
-    @GetMapping("/public/{token}")
-    @Operation(summary = "Accéder à un CV partagé publiquement")
-    public ResponseEntity<CvResponse> getPublicCv(
-            @PathVariable String token,
-            jakarta.servlet.http.HttpServletRequest request) {
-        cvService.trackView(token, request.getRemoteAddr());
-        CvResponse cv = cvService.getCvByPublicToken(token);
-        return ResponseEntity.ok(cv);
-    }
-
-    @GetMapping("/public/{token}/pdf")
-    @Operation(summary = "Telecharger publiquement un CV en PDF si autorise")
-    public ResponseEntity<byte[]> downloadPublicCvPdf(@PathVariable String token) {
-        CvResponse cv = cvService.getPublicCvForDownload(token);
-        byte[] pdf = pdfGenerationService.generateCvPdf(cv, PdfTemplate.MODERNE);
-        cvService.trackPublicDownload(token);
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=moncv.pdf")
-                .body(pdf);
-    }
-
-    @GetMapping("/public/{token}/docx")
-    @Operation(summary = "Telecharger publiquement un CV en DOCX si autorise")
-    public ResponseEntity<byte[]> downloadPublicCvDocx(@PathVariable String token) {
-        Cv cv = cvService.getPublicCvEntityForDownload(token);
-        try {
-            byte[] docx = docxGenerationService.generate(cv);
-            cvService.trackPublicDownload(token);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(
-                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=moncv.docx")
-                    .body(docx);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @PostMapping("/public/{token}/share")
-    @Operation(summary = "Comptabiliser un partage du portfolio public")
-    public ResponseEntity<Void> trackPublicShare(@PathVariable String token) {
-        cvService.trackPublicShare(token);
-        return ResponseEntity.noContent().build();
     }
 
     // ── Variantes ────────────────────────────────────────────────

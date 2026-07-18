@@ -49,6 +49,7 @@ abstract interface class IApiClient {
     String filename,
     String mimeType,
   );
+  Future<Uint8List?> loadPhoto(String? url);
   Future<Cv> duplicateCv(int id);
   Future<Cv> createVariant(
     int cvId,

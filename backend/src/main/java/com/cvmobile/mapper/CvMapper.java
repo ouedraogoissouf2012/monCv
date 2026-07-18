@@ -26,7 +26,8 @@ public interface CvMapper {
     @Mapping(target = "parentCvId", source = "parent.id")
     @Mapping(target = "variantCount", ignore = true)
     @Mapping(target = "style", expression = "java(toStyleDto(cv))")
-    @Mapping(target = "publicEnabled", expression = "java(cv.getPublicToken() != null)")
+    @Mapping(target = "publicToken", ignore = true)
+    @Mapping(target = "publicEnabled", expression = "java(cv.getPublicTokenHash() != null || cv.getPublicToken() != null)")
     CvResponse toResponse(Cv cv);
 
     default CvResponse.StyleDto toStyleDto(Cv cv) {

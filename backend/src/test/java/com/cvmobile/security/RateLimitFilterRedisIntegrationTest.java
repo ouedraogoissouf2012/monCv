@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 @Testcontainers(disabledWithoutDocker = true)
 class RateLimitFilterRedisIntegrationTest {
@@ -89,7 +90,8 @@ class RateLimitFilterRedisIntegrationTest {
         return new RateLimitFilter(
                 properties,
                 new RedisRateLimitService(proxyManager, properties),
-                new SimpleMeterRegistry()
+                new SimpleMeterRegistry(),
+                mock(SecurityIdentifierHasher.class)
         );
     }
 
@@ -124,6 +126,10 @@ class RateLimitFilterRedisIntegrationTest {
                 5,
                 Duration.ofHours(1),
                 60,
+                Duration.ofMinutes(1),
+                6,
+                Duration.ofMinutes(1),
+                20,
                 Duration.ofMinutes(1),
                 "redis://unused",
                 "test:rate-limit:" + UUID.randomUUID() + ":"

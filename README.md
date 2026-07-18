@@ -54,7 +54,7 @@ Acces utiles :
 - API : `http://localhost:8082`
 - Swagger UI : `http://localhost:8082/swagger-ui.html`
 - Health readiness : `http://localhost:8082/actuator/health/readiness`
-- Adminer : `http://localhost:8081`
+- Adminer (developpement local uniquement) : `http://localhost:8081`
 
 ## Documentation
 
