@@ -10,6 +10,8 @@ void main() {
 
     expect(dockerfile, contains('nginxinc/nginx-unprivileged'));
     expect(dockerfile, contains('--dart-define=API_BASE_URL=/api'));
+    expect(dockerfile, contains('--csp'));
+    expect(dockerfile, contains('--no-web-resources-cdn'));
     expect(compose, contains('cap_drop:'));
     expect(compose, contains('no-new-privileges:true'));
     expect(compose, contains('ports: []'));
