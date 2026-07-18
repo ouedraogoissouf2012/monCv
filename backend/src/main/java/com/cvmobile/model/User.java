@@ -33,8 +33,18 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
 
-    @NotBlank
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
+
+    @Column(name = "picture_url", length = 500)
+    private String pictureUrl;
 
     private String nom;
 
@@ -97,5 +107,9 @@ public class User implements UserDetails {
 
     public enum Role {
         USER, PREMIUM, ADMIN
+    }
+
+    public enum AuthProvider {
+        LOCAL, GOOGLE, BOTH
     }
 }

@@ -9,6 +9,9 @@ import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
 import com.cvmobile.service.user.IUserService;
+import com.cvmobile.service.auth.GoogleIdentityVerifier;
+import com.cvmobile.service.auth.GoogleIdentity;
+import com.cvmobile.exception.GoogleAuthException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +38,7 @@ class AuthServiceTest {
     @Mock private JwtTokenProvider jwtTokenProvider;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private UserMapper userMapper;
+    @Mock private GoogleIdentityVerifier googleIdentityVerifier;
 
     @InjectMocks
     private AuthService authService;
@@ -157,5 +161,55 @@ class AuthServiceTest {
 
         verify(userService, never()).findByEmail(anyString());
         verify(jwtTokenProvider, never()).generateToken(anyString());
+    }
+
+    @Test
+    void googleLogin_nouveauCompteCreeUnUtilisateurSansMotDePasse() {
+        ReflectionTestUtils.setField(authService, "jwtExpiration", 3600000L);
+        GoogleIdentity identity = new GoogleIdentity(
+                "google-123", "user@gmail.com", true, "Ada", "Lovelace", "https://photo");
+        when(googleIdentityVerifier.verify("credential")).thenReturn(identity);
+        when(userService.findByGoogleSubject("google-123")).thenReturn(java.util.Optional.empty());
+        when(userService.findOptionalByEmail("user@gmail.com")).thenReturn(java.util.Optional.empty());
+        when(userService.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0); user.setId(9L); return user;
+        });
+        when(jwtTokenProvider.generateToken("user@gmail.com")).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken("user@gmail.com")).thenReturn("refresh-token");
+        when(userMapper.toUserDto(any(User.class))).thenReturn(buildUserDto());
+
+        AuthResponse response = authService.loginWithGoogle("credential");
+
+        assertThat(response.getAccessToken()).isEqualTo("access-token");
+        verify(userService).save(argThat(user -> user.getPassword() == null
+                && user.getAuthProvider() == User.AuthProvider.GOOGLE
+                && "google-123".equals(user.getGoogleSubject())));
+    }
+
+    @Test
+    void googleLogin_emailLocalExistantExigeUneLiaisonExplicite() {
+        GoogleIdentity identity = new GoogleIdentity(
+                "google-123", "user@example.com", true, null, null, null);
+        when(googleIdentityVerifier.verify("credential")).thenReturn(identity);
+        when(userService.findByGoogleSubject("google-123")).thenReturn(java.util.Optional.empty());
+        when(userService.findOptionalByEmail("user@example.com"))
+                .thenReturn(java.util.Optional.of(User.builder().id(1L).email("user@example.com").build()));
+
+        assertThatThrownBy(() -> authService.loginWithGoogle("credential"))
+                .isInstanceOf(GoogleAuthException.class)
+                .hasMessageContaining("associez Google");
+        verify(userService, never()).save(any());
+    }
+
+    @Test
+    void linkGoogle_refuseUneAdresseDifferente() {
+        User current = User.builder().id(1L).email("owner@example.com").build();
+        when(googleIdentityVerifier.verify("credential")).thenReturn(new GoogleIdentity(
+                "google-123", "attacker@example.com", true, null, null, null));
+
+        assertThatThrownBy(() -> authService.linkGoogle(current, "credential"))
+                .isInstanceOf(GoogleAuthException.class)
+                .hasMessageContaining("meme adresse email");
+        verify(userService, never()).save(any());
     }
 }

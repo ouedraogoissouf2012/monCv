@@ -143,6 +143,41 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> loginWithGoogle(String credential) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    final result = await _repository.loginWithGoogle(credential);
+    _isLoading = false;
+    switch (result) {
+      case Success(:final data):
+        await _clearLocalSessionData?.call();
+        _user = data.user;
+        _isAuthenticated = true;
+        _isCheckingAuth = false;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
+    }
+  }
+
+  Future<bool> linkGoogle(String credential) async {
+    final result = await _repository.linkGoogle(credential);
+    switch (result) {
+      case Success(:final data):
+        _user = data.user;
+        notifyListeners();
+        return true;
+      case Failure(:final exception):
+        _error = exception.message;
+        notifyListeners();
+        return false;
+    }
+  }
+
   Future<void> logout() async {
     await _logoutUseCase(const NoParams());
     await _clearLocalSessionData?.call();

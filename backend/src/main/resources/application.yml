@@ -46,6 +46,10 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
+google:
+  auth:
+    client-id: ${GOOGLE_CLIENT_ID:}
+
 # AI Configuration (DeepSeek — compatible OpenAI)
 ai:
   deepseek:

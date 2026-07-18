@@ -15,6 +15,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.util.List;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +35,14 @@ public class UserService implements IUserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouve avec l'email: " + email));
+    }
+
+    public Optional<User> findOptionalByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findByGoogleSubject(String googleSubject) {
+        return userRepository.findByGoogleSubject(googleSubject);
     }
 
     public User findById(Long id) {

@@ -13,16 +13,15 @@ import '../models/job_application.dart';
 import 'token_storage.dart';
 import 'i_api_client.dart';
 import 'public_portfolio_api_client.dart';
+import 'google_auth_http_client.dart';
 
 class ApiService implements IApiClient {
   ApiService({TokenStorage? storage, http.Client? client})
       : _storage = storage ?? TokenStorage(),
         _publicPortfolioApi = PublicPortfolioApiClient(client ?? http.Client());
-
   final TokenStorage _storage;
   final PublicPortfolioApiClient _publicPortfolioApi;
   String? _accessToken;
-
   Never _throwTypedError(http.Response response, String fallbackMessage) {
     Map<String, dynamic>? body;
     try {
@@ -32,20 +31,17 @@ class ApiService implements IApiClient {
     }
     throw ErrorMapper.fromHttpResponse(response.statusCode, body);
   }
-
   @override
   Future<String?> get accessToken async {
     _accessToken ??= await _storage.read('access_token');
     return _accessToken;
   }
-
   @override
   Future<void> setTokens(String accessToken, String refreshToken) async {
     _accessToken = accessToken;
     await _storage.write('access_token', accessToken);
     await _storage.write('refresh_token', refreshToken);
   }
-
   @override
   Future<void> clearTokens() async {
     _accessToken = null;
@@ -58,14 +54,12 @@ class ApiService implements IApiClient {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-
     if (withAuth) {
       final token = await accessToken;
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
       }
     }
-
     return headers;
   }
 
@@ -95,7 +89,6 @@ class ApiService implements IApiClient {
       throw Exception(error['message'] ?? 'Erreur lors de l\'inscription');
     }
   }
-
   @override
   Future<AuthResponse> login({
     required String email,
@@ -106,7 +99,6 @@ class ApiService implements IApiClient {
       headers: await _getHeaders(withAuth: false),
       body: jsonEncode({'email': email, 'password': password}),
     );
-
     if (response.statusCode == 200) {
       final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
       await setTokens(authResponse.accessToken, authResponse.refreshToken);
@@ -116,12 +108,18 @@ class ApiService implements IApiClient {
       throw Exception(error['message'] ?? 'Email ou mot de passe incorrect');
     }
   }
-
+  @override
+  Future<AuthResponse> loginWithGoogle(String credential) => GoogleAuthHttpClient(
+        headers: _getHeaders, storeTokens: setTokens,
+      ).request('/google', credential, withAuth: false);
+  @override
+  Future<AuthResponse> linkGoogle(String credential) => GoogleAuthHttpClient(
+        headers: _getHeaders, storeTokens: setTokens,
+      ).request('/google/link', credential, withAuth: true);
   @override
   Future<void> logout() async {
     await clearTokens();
   }
-
   @override
   Future<void> registerDeviceToken(String token, String platform) async {
     final response = await http.post(
@@ -496,7 +494,8 @@ class ApiService implements IApiClient {
   @override
   Future<List<String>> getAiSuggestions({
     required String poste,
-    String? entreprise, String? description,
+    String? entreprise,
+    String? description,
   }) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/suggest'),
@@ -505,7 +504,8 @@ class ApiService implements IApiClient {
         'poste': poste,
         if (entreprise != null && entreprise.isNotEmpty)
           'entreprise': entreprise,
-        if (description != null && description.isNotEmpty) 'description': description,
+        if (description != null && description.isNotEmpty)
+          'description': description,
       }),
     );
 

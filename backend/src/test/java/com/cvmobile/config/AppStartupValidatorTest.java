@@ -34,7 +34,8 @@ class AppStartupValidatorTest {
             "DB_PASSWORD", "database-secret-value",
             "ALLOWED_ORIGINS", "https://app.example.com",
             "PUBLIC_LINK_ENCRYPTION_KEY",
-            "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+            "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+            "GOOGLE_CLIENT_ID", "test.apps.googleusercontent.com");
 
     @Test
     void applicationContextFailsWithoutDatabasePassword() {
@@ -110,7 +111,8 @@ class AppStartupValidatorTest {
             "JWT_SECRET",
             "DB_PASSWORD",
             "ALLOWED_ORIGINS",
-            "PUBLIC_LINK_ENCRYPTION_KEY"
+            "PUBLIC_LINK_ENCRYPTION_KEY",
+            "GOOGLE_CLIENT_ID"
     })
     void productionFailsForEachMissingRequiredSecret(String missingSecret) {
         ConfigurableEnvironment environment = environment("prod");
@@ -150,7 +152,8 @@ class AppStartupValidatorTest {
                         "DB_PASSWORD", "database-value",
                         "ALLOWED_ORIGINS", "https://app.example.com",
                         "PUBLIC_LINK_ENCRYPTION_KEY",
-                        "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")));
+                        "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+                        "GOOGLE_CLIENT_ID", "test.apps.googleusercontent.com")));
         environment.getPropertySources().addFirst(new MapPropertySource(
                 "systemEnvironment-test", Map.of("JWT_SECRET", "jwt-value")));
         environment.getPropertySources().addFirst(new MapPropertySource(
@@ -219,7 +222,8 @@ class AppStartupValidatorTest {
                 "DB_PASSWORD", "",
                 "JWT_SECRET", "",
                 "DEEPSEEK_API_KEY", "",
-                "ALLOWED_ORIGINS", "")));
+                "ALLOWED_ORIGINS", "",
+                "GOOGLE_CLIENT_ID", "")));
         context.registerBean(AppStartupValidator.class, () -> new AppStartupValidator(environment));
         return context;
     }

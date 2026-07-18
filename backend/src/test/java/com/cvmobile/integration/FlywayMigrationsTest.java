@@ -38,7 +38,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
         long versionedMigrations = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .count();
-        assertThat(versionedMigrations).isEqualTo(13);
+        assertThat(versionedMigrations).isEqualTo(14);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {

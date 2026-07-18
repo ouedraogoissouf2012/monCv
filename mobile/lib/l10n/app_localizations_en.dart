@@ -1632,6 +1632,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'For enterprise use, the recommended target is a server session with HttpOnly/SameSite cookies.';
 
   @override
+  String get googleAccount => 'Google account';
+
+  @override
+  String get googleLinkSuccess => 'Google account linked successfully';
+
+  @override
+  String get googleLinkFailed => 'Could not link the Google account';
+
+  @override
+  String get googleSignInFailed => 'Google sign-in failed';
+
+  @override
   String countryDialCodeAdded(String code) {
     return 'Dial code $code added for the selected country';
   }

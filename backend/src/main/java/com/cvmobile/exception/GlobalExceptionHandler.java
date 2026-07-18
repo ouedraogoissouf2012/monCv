@@ -110,6 +110,17 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), null);
     }
 
+    @ExceptionHandler(GoogleAuthException.class)
+    public ResponseEntity<Map<String, Object>> handleGoogleAuth(GoogleAuthException ex) {
+        HttpStatus status = switch (ex.getCode()) {
+            case "GOOGLE_AUTH_UNAVAILABLE" -> HttpStatus.SERVICE_UNAVAILABLE;
+            case "GOOGLE_LINK_REQUIRED", "GOOGLE_ACCOUNT_ALREADY_LINKED", "GOOGLE_ACCOUNT_CONFLICT" -> HttpStatus.CONFLICT;
+            case "GOOGLE_EMAIL_MISMATCH" -> HttpStatus.FORBIDDEN;
+            default -> HttpStatus.UNAUTHORIZED;
+        };
+        return buildResponse(status, ex.getCode(), ex.getMessage(), null);
+    }
+
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<Map<String, Object>> handleFileStorage(FileStorageException ex) {
         log.error("Erreur stockage fichier [correlationId={}]: {}",

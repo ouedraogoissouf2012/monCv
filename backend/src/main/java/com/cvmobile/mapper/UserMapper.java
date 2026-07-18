@@ -16,6 +16,7 @@ import org.mapstruct.Named;
 public interface UserMapper {
 
     @Mapping(target = "role", source = "role", qualifiedByName = "roleToString")
+    @Mapping(target = "authProvider", expression = "java(user.getAuthProvider() != null ? user.getAuthProvider().name() : null)")
     AuthResponse.UserDto toUserDto(User user);
 
     @Mapping(target = "id", ignore = true)
@@ -24,6 +25,9 @@ public interface UserMapper {
     @Mapping(target = "cvs", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "authProvider", constant = "LOCAL")
+    @Mapping(target = "googleSubject", ignore = true)
+    @Mapping(target = "pictureUrl", ignore = true)
     User toUser(RegisterRequest request);
 
     @Named("roleToString")

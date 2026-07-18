@@ -1646,6 +1646,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'La cible recommandée pour une version entreprise est une session serveur avec cookies HttpOnly/SameSite.';
 
   @override
+  String get googleAccount => 'Compte Google';
+
+  @override
+  String get googleLinkSuccess => 'Compte Google associé avec succès';
+
+  @override
+  String get googleLinkFailed => 'Impossible d\'associer le compte Google';
+
+  @override
+  String get googleSignInFailed => 'Connexion Google impossible';
+
+  @override
   String countryDialCodeAdded(String code) {
     return 'Indicatif $code ajouté selon le pays';
   }

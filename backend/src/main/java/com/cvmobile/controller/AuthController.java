@@ -3,6 +3,8 @@ package com.cvmobile.controller;
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.dto.GoogleAuthRequest;
+import com.cvmobile.model.User;
 import com.cvmobile.service.auth.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.Map;
 
@@ -34,6 +37,20 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Connexion ou inscription avec Google")
+    public ResponseEntity<AuthResponse> google(@Valid @RequestBody GoogleAuthRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request.credential()));
+    }
+
+    @PostMapping("/google/link")
+    @Operation(summary = "Associer Google au compte connecte")
+    public ResponseEntity<AuthResponse> linkGoogle(
+            @Valid @RequestBody GoogleAuthRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(authService.linkGoogle(user, request.credential()));
     }
 
     @PostMapping("/refresh")

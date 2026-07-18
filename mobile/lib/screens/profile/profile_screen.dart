@@ -13,6 +13,7 @@ import '../../services/i_api_client.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
+import '../../widgets/google_account_link_section.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -78,7 +79,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             Row(
               children: [
                 Expanded(
@@ -194,7 +194,6 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 32),
-
             _SectionTitle(l.privacy),
             const SizedBox(height: 12),
             _InfoCard(children: [
@@ -223,7 +222,8 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // Déconnexion
+            const GoogleAccountLinkSection(),
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(

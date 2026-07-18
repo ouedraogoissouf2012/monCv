@@ -4,6 +4,8 @@ class User {
   final String? nom;
   final String? prenom;
   final String role;
+  final String authProvider;
+  final String? pictureUrl;
 
   User({
     required this.id,
@@ -11,6 +13,8 @@ class User {
     this.nom,
     this.prenom,
     required this.role,
+    this.authProvider = 'LOCAL',
+    this.pictureUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class User {
       nom: json['nom'],
       prenom: json['prenom'],
       role: json['role'],
+      authProvider: json['authProvider'] ?? 'LOCAL',
+      pictureUrl: json['pictureUrl'],
     );
   }
 
@@ -30,6 +36,8 @@ class User {
       'nom': nom,
       'prenom': prenom,
       'role': role,
+      'authProvider': authProvider,
+      'pictureUrl': pictureUrl,
     };
   }
 

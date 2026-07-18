@@ -12,6 +12,8 @@ abstract class AuthRepository {
     String? nom,
     String? prenom,
   });
+  Future<Result<AuthResponse>> loginWithGoogle(String credential);
+  Future<Result<AuthResponse>> linkGoogle(String credential);
   Future<Result<void>> logout();
   Future<Result<User>> getCurrentUser();
   Future<Result<void>> clearTokens();
@@ -37,6 +39,14 @@ class HttpAuthRepository implements AuthRepository {
   }) =>
       safeCall(() => _api.register(
           email: email, password: password, nom: nom, prenom: prenom));
+
+  @override
+  Future<Result<AuthResponse>> loginWithGoogle(String credential) =>
+      safeCall(() => _api.loginWithGoogle(credential));
+
+  @override
+  Future<Result<AuthResponse>> linkGoogle(String credential) =>
+      safeCall(() => _api.linkGoogle(credential));
 
   @override
   Future<Result<void>> logout() => safeCall(() => _api.logout());

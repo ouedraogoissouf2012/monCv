@@ -27,5 +27,7 @@ public class AuthResponse {
         private String nom;
         private String prenom;
         private String role;
+        private String authProvider;
+        private String pictureUrl;
     }
 }

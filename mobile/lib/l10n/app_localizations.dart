@@ -3080,6 +3080,30 @@ abstract class AppLocalizations {
   /// **'La cible recommandée pour une version entreprise est une session serveur avec cookies HttpOnly/SameSite.'**
   String get privacyPwaEnterprise;
 
+  /// No description provided for @googleAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte Google'**
+  String get googleAccount;
+
+  /// No description provided for @googleLinkSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte Google associé avec succès'**
+  String get googleLinkSuccess;
+
+  /// No description provided for @googleLinkFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'associer le compte Google'**
+  String get googleLinkFailed;
+
+  /// No description provided for @googleSignInFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion Google impossible'**
+  String get googleSignInFailed;
+
   /// No description provided for @countryDialCodeAdded.
   ///
   /// In fr, this message translates to:

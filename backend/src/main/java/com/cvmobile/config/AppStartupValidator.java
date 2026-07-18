@@ -37,7 +37,8 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
             "JWT_SECRET",
             "DB_PASSWORD",
             "ALLOWED_ORIGINS",
-            "PUBLIC_LINK_ENCRYPTION_KEY");
+            "PUBLIC_LINK_ENCRYPTION_KEY",
+            "GOOGLE_CLIENT_ID");
 
     /** Secrets qui DOIVENT etre presents en prod (fail-fast). */
     private static final List<String> PROD_REQUIRED = List.of(
@@ -45,7 +46,8 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
             "JWT_SECRET",
             "DB_PASSWORD",
             "ALLOWED_ORIGINS",
-            "PUBLIC_LINK_ENCRYPTION_KEY");
+            "PUBLIC_LINK_ENCRYPTION_KEY",
+            "GOOGLE_CLIENT_ID");
 
     private static final List<String> NON_TEST_REQUIRED = List.of("DB_PASSWORD");
 
@@ -97,6 +99,9 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
         if (missing.contains("DEEPSEEK_API_KEY")) {
             log.warn("⚠ DeepSeek desactive (mode degrade). "
                     + "Ajoutez DEEPSEEK_API_KEY dans backend/.env ou exportez-la dans votre shell.");
+        }
+        if (missing.contains("GOOGLE_CLIENT_ID")) {
+            log.warn("Connexion Google desactivee : configurez GOOGLE_CLIENT_ID.");
         }
     }
 

@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/error_helper.dart';
+import '../../widgets/google_login_section.dart';
 
 // ── Palette ─────────────────────────────────────────────────────
 const _kBlue = AppColors.brandBlue;
@@ -41,7 +42,6 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 2500),
     )..repeat(period: const Duration(milliseconds: 3500));
   }
-
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -150,10 +150,8 @@ class _LoginScreenState extends State<LoginScreen>
               // Logo
               _buildLogo(),
               const SizedBox(height: 28),
-              // Headline
               _buildHeadline(),
               const SizedBox(height: 28),
-              // Fields
               Builder(builder: (context) {
                 final l = AppLocalizations.of(context)!;
                 return Column(
@@ -208,6 +206,8 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 20),
                     _buildLoginButton(),
+                    const SizedBox(height: 16),
+                    const GoogleLoginSection(),
                     const SizedBox(height: 24),
                     Wrap(
                       alignment: WrapAlignment.center,

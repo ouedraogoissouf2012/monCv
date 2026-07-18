@@ -19,6 +19,8 @@ abstract interface class IApiClient {
     String? prenom,
   });
   Future<AuthResponse> login({required String email, required String password});
+  Future<AuthResponse> loginWithGoogle(String credential);
+  Future<AuthResponse> linkGoogle(String credential);
   Future<void> logout();
   Future<void> registerDeviceToken(String token, String platform);
   Future<void> unregisterDeviceToken(String token);

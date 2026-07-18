@@ -9,6 +9,8 @@ import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.security.JwtTokenProvider;
 import com.cvmobile.service.auth.IAuthService;
+import com.cvmobile.service.auth.GoogleIdentity;
+import com.cvmobile.service.auth.GoogleIdentityVerifier;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
@@ -28,6 +32,7 @@ public class AuthService implements IAuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
+    private final GoogleIdentityVerifier googleIdentityVerifier;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
@@ -68,6 +73,63 @@ public class AuthService implements IAuthService {
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
 
         return buildAuthResponse(user, accessToken, refreshToken);
+    }
+
+    @Override
+    public AuthResponse loginWithGoogle(String credential) {
+        GoogleIdentity identity = googleIdentityVerifier.verify(credential);
+        User user = userService.findByGoogleSubject(identity.subject())
+                .orElseGet(() -> createGoogleUser(identity));
+        return issueTokens(user);
+    }
+
+    @Override
+    public AuthResponse linkGoogle(User currentUser, String credential) {
+        GoogleIdentity identity = googleIdentityVerifier.verify(credential);
+        if (!currentUser.getEmail().equalsIgnoreCase(identity.email())) {
+            throw new com.cvmobile.exception.GoogleAuthException(
+                    "GOOGLE_EMAIL_MISMATCH", "Le compte Google doit utiliser la meme adresse email");
+        }
+        userService.findByGoogleSubject(identity.subject())
+                .filter(other -> !other.getId().equals(currentUser.getId()))
+                .ifPresent(other -> { throw new com.cvmobile.exception.GoogleAuthException(
+                        "GOOGLE_ACCOUNT_ALREADY_LINKED", "Ce compte Google est deja associe"); });
+        currentUser.setGoogleSubject(identity.subject());
+        currentUser.setPictureUrl(identity.pictureUrl());
+        currentUser.setAuthProvider(User.AuthProvider.BOTH);
+        return issueTokens(userService.save(currentUser));
+    }
+
+    private User createGoogleUser(GoogleIdentity identity) {
+        String email = identity.email().strip().toLowerCase(Locale.ROOT);
+        if (userService.findOptionalByEmail(email).isPresent()) {
+            throw new com.cvmobile.exception.GoogleAuthException(
+                    "GOOGLE_LINK_REQUIRED",
+                    "Un compte existe deja avec cet email. Connectez-vous puis associez Google depuis le profil.");
+        }
+        User user = User.builder()
+                .email(email)
+                .password(null)
+                .prenom(identity.givenName())
+                .nom(identity.familyName())
+                .googleSubject(identity.subject())
+                .pictureUrl(identity.pictureUrl())
+                .authProvider(User.AuthProvider.GOOGLE)
+                .build();
+        try {
+            return userService.save(user);
+        } catch (DataIntegrityViolationException exception) {
+            return userService.findByGoogleSubject(identity.subject())
+                    .orElseThrow(() -> new com.cvmobile.exception.GoogleAuthException(
+                            "GOOGLE_ACCOUNT_CONFLICT", "Impossible de creer le compte Google"));
+        }
+    }
+
+    private AuthResponse issueTokens(User user) {
+        return buildAuthResponse(
+                user,
+                jwtTokenProvider.generateToken(user.getEmail()),
+                jwtTokenProvider.generateRefreshToken(user.getEmail()));
     }
 
     public AuthResponse refreshToken(String refreshToken) {
