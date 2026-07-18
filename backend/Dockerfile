@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.7
 
 # Stage 1 : build reproductible avec cache Maven BuildKit
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM maven:3.9.16-eclipse-temurin-21-alpine@sha256:d88e5b38297858f65f97bc7e7964c760ab988fd18ace41589176f1468c49a489 AS build
 
 WORKDIR /build
 
-RUN apk add --no-cache maven
+RUN apk upgrade --no-cache
 
 COPY pom.xml ./
 RUN --mount=type=cache,target=/root/.m2 \
@@ -16,9 +16,11 @@ RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -DskipTests -B --no-transfer-progress
 
 # Stage 2 : runtime non-root
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:21.0.11_10-jre-alpine@sha256:3f08b13888f595cc49edabea7250ba69499ba25602b267da591720769400e08c AS runtime
 
-RUN addgroup -S app && adduser -S app -G app
+RUN apk upgrade --no-cache \
+    && addgroup -S app \
+    && adduser -S app -G app
 
 WORKDIR /app
 

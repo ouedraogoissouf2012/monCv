@@ -38,7 +38,7 @@ public class PublicCvController {
     private final PublicDocumentGuard documentGuard;
     private final BusinessMetrics businessMetrics;
 
-    @GetMapping("/{token}")
+    @GetMapping(value = "/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Consulter un CV public")
     public ResponseEntity<PublicCvResponse> getPublicCv(
             @PathVariable String token,

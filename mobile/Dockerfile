@@ -18,7 +18,11 @@ RUN --mount=type=cache,target=/root/.pub-cache \
       --dart-define=API_BASE_URL=/api \
       --dart-define=SENTRY_DSN=${SENTRY_DSN}
 
-FROM nginxinc/nginx-unprivileged:1.27.4-alpine@sha256:62a904036bfc0e4a4f2b556e34cbf17bc136b47fde8cdb4628762725f48c5782 AS runtime
+FROM nginxinc/nginx-unprivileged:1.30.4-alpine@sha256:dcea25a6593307a74b09e59a47f8695c4d56943750e45add532ae0bf8b24bfd6 AS runtime
+
+USER root
+RUN apk upgrade --no-cache
+USER 101
 
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY deploy/nginx/security-headers.conf /etc/nginx/security-headers.conf

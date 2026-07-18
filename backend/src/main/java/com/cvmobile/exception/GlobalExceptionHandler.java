@@ -8,6 +8,7 @@ import com.cvmobile.exception.ai.AiTimeoutException;
 import com.cvmobile.observability.CorrelationIdSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -139,7 +140,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RateLimitException.class)
     public ResponseEntity<Map<String, Object>> handleRateLimit(RateLimitException ex) {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+        return jsonResponse(HttpStatus.TOO_MANY_REQUESTS)
                 .header("Retry-After", "60")
                 .body(buildBody(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED",
                         ex.getMessage(), null));
@@ -150,7 +151,7 @@ public class GlobalExceptionHandler {
             PublicDocumentUnavailableException ex) {
         log.warn("Generation de document public refusee [correlationId={}]",
                 CorrelationIdSupport.current());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        return jsonResponse(HttpStatus.SERVICE_UNAVAILABLE)
                 .header("Retry-After", "1")
                 .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE,
                         "PUBLIC_DOCUMENT_UNAVAILABLE",
@@ -179,7 +180,7 @@ public class GlobalExceptionHandler {
         int retry = ex.getRetryAfterSeconds() != null ? ex.getRetryAfterSeconds() : 60;
         log.warn("AI quota exceeded [correlationId={}] provider={}: retry in {}s",
                 CorrelationIdSupport.current(), ex.getProviderName(), retry);
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        return jsonResponse(HttpStatus.SERVICE_UNAVAILABLE)
                 .header("Retry-After", String.valueOf(retry))
                 .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                         "Limite d'usage IA atteinte. Reessayez plus tard.",
@@ -225,7 +226,11 @@ public class GlobalExceptionHandler {
     // ── Helper ───────────────────────────────────────────────────
     private ResponseEntity<Map<String, Object>> buildResponse(
             HttpStatus status, String code, String message, Object details) {
-        return ResponseEntity.status(status).body(buildBody(status, code, message, details));
+        return jsonResponse(status).body(buildBody(status, code, message, details));
+    }
+
+    private ResponseEntity.BodyBuilder jsonResponse(HttpStatus status) {
+        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON);
     }
 
     private Map<String, Object> buildBody(

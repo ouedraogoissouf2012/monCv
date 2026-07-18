@@ -50,8 +50,8 @@ public class DeepSeekHealthIndicator extends AbstractHealthIndicator {
         this.baseUrl = baseUrl;
         this.model = model;
         this.restTemplate = builder
-                .setConnectTimeout(Duration.ofSeconds(2))
-                .setReadTimeout(Duration.ofSeconds(2))
+                .connectTimeout(Duration.ofSeconds(2))
+                .readTimeout(Duration.ofSeconds(2))
                 .build();
     }
 
