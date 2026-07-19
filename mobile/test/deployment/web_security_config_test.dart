@@ -27,6 +27,22 @@ void main() {
     expect(headers, contains('Strict-Transport-Security'));
     expect(headers, contains('X-Content-Type-Options "nosniff"'));
     expect(headers, isNot(contains("connect-src 'self' https:;")));
+    expect(
+      headers,
+      contains(
+        "script-src 'self' 'wasm-unsafe-eval' "
+        'https://accounts.google.com/gsi/client',
+      ),
+    );
+    expect(
+      headers,
+      contains('frame-src https://accounts.google.com/gsi/'),
+    );
+    expect(
+      headers,
+      contains("connect-src 'self' https://accounts.google.com/gsi/"),
+    );
+    expect(headers, isNot(contains('https://accounts.google.com *')));
     expect(nginx, contains('proxy_pass http://backend:8082;'));
     expect(nginx, contains('client_max_body_size 10m;'));
   });

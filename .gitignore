@@ -43,6 +43,7 @@ mobile/.packages
 # Python quality tooling
 __pycache__/
 *.py[cod]
+/.release/
 
 # ========================
 # OS

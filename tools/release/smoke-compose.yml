@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres@sha256:979c4379dd698aba0b890599a6104e082035f98ef31d9b9291ec22f2b13059ca
+    restart: "no"
+    environment:
+      POSTGRES_DB: cvmobile_smoke
+      POSTGRES_USER: moncv_smoke
+      POSTGRES_PASSWORD: ${SMOKE_DB_PASSWORD:?SMOKE_DB_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moncv_smoke -d cvmobile_smoke"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks: [release_net]
+
+  redis:
+    image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+    restart: "no"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks: [release_net]
+
+  backend:
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}
+    restart: "no"
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://postgres:5432/cvmobile_smoke
+      DB_USERNAME: moncv_smoke
+      DB_PASSWORD: ${SMOKE_DB_PASSWORD}
+      JWT_SECRET: ${SMOKE_JWT_SECRET:?SMOKE_JWT_SECRET is required}
+      DEEPSEEK_API_KEY: ""
+      AI_FALLBACK_ENABLED: "true"
+      ALLOWED_ORIGINS: http://localhost:*,http://127.0.0.1:*
+      RATE_LIMIT_REDIS_URL: redis://redis:6379
+      PUBLIC_LINK_ENCRYPTION_KEY: ${SMOKE_PUBLIC_LINK_KEY:?SMOKE_PUBLIC_LINK_KEY is required}
+      PUBLIC_MEDIA_ALLOWED_ORIGINS: http://localhost:${SMOKE_WEB_PORT},http://127.0.0.1:${SMOKE_WEB_PORT}
+      UPLOAD_DIR: /app/uploads
+      MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db
+    volumes:
+      - uploads:/app/uploads
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid,nodev
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8082/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    networks: [release_net]
+
+  web:
+    image: ${WEB_IMAGE:?WEB_IMAGE is required}
+    restart: "no"
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid,nodev
+      - /var/cache/nginx:size=32m,noexec,nosuid,nodev
+    depends_on:
+      backend: {condition: service_healthy}
+    ports:
+      - "127.0.0.1:${SMOKE_WEB_PORT:?SMOKE_WEB_PORT is required}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks: [release_net]
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads:
+
+networks:
+  release_net:
+    driver: bridge

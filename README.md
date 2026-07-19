@@ -85,6 +85,10 @@ ops/       Artefacts ops (ex: dashboard Grafana)
 - scan secrets via `security.yml` + Gitleaks ;
 - logs structures, correlation ID, metriques Prometheus et dashboard Grafana ;
 - tracking d'erreurs Sentry/GlitchTip active uniquement si les DSN sont fournis.
+- validation locale complete via `tools/release_local.ps1 verify` sous Windows
+  ou `tools/release_local.sh verify` sous Linux/macOS ;
+- installation des hooks portables via `tools/setup_git_hooks.ps1` ou
+  `tools/setup_git_hooks.sh`.
 
 ## Versionnement
 
