@@ -96,7 +96,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.x'
+          flutter-version: '3.38.5'
           channel: stable
           cache: true
 
@@ -186,9 +186,18 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.x'
+          flutter-version: '3.38.5'
           channel: stable
           cache: true
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.11.29'
+          enable-cache: true
+
+      - name: Install browser smoke dependencies
+        run: uv sync --locked --python 3.12.13
 
       - name: Install Flutter dependencies
         working-directory: mobile
@@ -225,9 +234,17 @@ jobs:
         working-directory: mobile
         run: flutter build web --release --no-pub --dart-define=API_BASE_URL=http://localhost:8082/api
 
+      - name: Serve web release
+        run: |
+          nohup python3 -m http.server 8083 --directory mobile/build/web > web-smoke.log 2>&1 &
+          echo $! > web-smoke.pid
+
       - name: Run web smoke
-        working-directory: mobile
-        run: flutter test test/e2e/cv_smoke_web_test.dart --platform chrome --no-pub --tags web-smoke --timeout 5m --reporter expanded --file-reporter json:../web-smoke-test-results.json --dart-define=API_BASE_URL=http://localhost:8082/api
+        run: >
+          uv run --locked python -m tools.release.browser_smoke
+          --base-url http://127.0.0.1:8083
+          --api-base-url http://127.0.0.1:8082/api
+          --artifacts .release/browser-smoke
 
       - name: Upload smoke logs
         if: failure()
@@ -236,7 +253,8 @@ jobs:
           name: web-smoke-logs
           path: |
             backend-smoke.log
-            web-smoke-test-results.json
+            web-smoke.log
+            .release/browser-smoke/
 
       - name: Build PWA web bundle
         working-directory: mobile
@@ -350,7 +368,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.x'
+          flutter-version: '3.38.5'
           channel: stable
 
       - name: Build APK

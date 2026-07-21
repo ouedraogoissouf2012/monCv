@@ -2,9 +2,12 @@ package com.cvmobile.service.cv;
 
 import com.cvmobile.config.PublicPortfolioSecurityProperties;
 import com.cvmobile.config.RateLimitProperties;
+import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.PublicCvResponse;
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.PublicCvMapper;
 import com.cvmobile.model.Cv;
+import com.cvmobile.model.PersonalInfo;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.security.InvalidPublicShareTokenException;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.time.Duration;
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -118,6 +123,96 @@ class PublicCvAccessServiceTest {
         service(true).getPortfolio(token, "203.0.113.7");
 
         verify(cvRepository, never()).incrementViewCount(12L);
+    }
+
+    @Test
+    void returnsMappedDocumentSourcesWhenDownloadsAreEnabled() {
+        Cv cv = cv();
+        cv.setPublicDownloadsEnabled(true);
+        String token = tokenFor(cv);
+        CvResponse pdfResponse = mock(CvResponse.class);
+        when(publicCvMapper.toDocumentResponse(cv)).thenReturn(pdfResponse);
+        when(publicCvMapper.toDocumentModel(cv)).thenReturn(cv);
+
+        PublicCvAccessService.PdfSource pdf = service(false).getPdfSource(token);
+        PublicCvAccessService.DocxSource docx = service(false).getDocxSource(token);
+
+        assertThat(pdf.cvId()).isEqualTo(12L);
+        assertThat(pdf.cv()).isSameAs(pdfResponse);
+        assertThat(docx.cvId()).isEqualTo(12L);
+        assertThat(docx.cv()).isSameAs(cv);
+    }
+
+    @Test
+    void hidesDocumentEndpointsWhenDownloadsAreDisabled() {
+        Cv cv = cv();
+        String token = tokenFor(cv);
+        PublicCvAccessService accessService = service(false);
+
+        assertThatThrownBy(() -> accessService.getPdfSource(token))
+                .isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> accessService.getDocxSource(token))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(publicCvMapper);
+    }
+
+    @Test
+    void loadsOnlyTheTokenOwnersPhotoAndHidesStorageMisses() {
+        Cv cv = cv();
+        cv.setPersonalInfo(PersonalInfo.builder().photoUrl("/api/photos/photo.png").build());
+        String token = tokenFor(cv);
+        var storedPhoto = new com.cvmobile.service.FileStorageService.StoredPhoto(
+                new ByteArrayResource(new byte[] {1, 2, 3}), "image/png", 3L);
+        when(urlPolicy.extractPhotoFilename("/api/photos/photo.png"))
+                .thenReturn(Optional.of("photo.png"));
+        when(photoService.loadOwned("photo.png", 4L)).thenReturn(storedPhoto);
+        PublicCvAccessService accessService = service(false);
+
+        assertThat(accessService.getPhoto(token)).isSameAs(storedPhoto);
+
+        when(photoService.loadOwned("photo.png", 4L))
+                .thenThrow(new ResourceNotFoundException("missing"));
+        assertThatThrownBy(() -> accessService.getPhoto(token))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Lien de partage invalide");
+    }
+
+    @Test
+    void exposesOnlyTokenScopedPhotoUrls() {
+        Cv cv = cv();
+        cv.setPersonalInfo(PersonalInfo.builder().photoUrl("/api/photos/photo.png").build());
+        String token = tokenFor(cv);
+        PublicCvResponse expected = response();
+        when(urlPolicy.extractPhotoFilename("/api/photos/photo.png"))
+                .thenReturn(Optional.of("photo.png"));
+        when(publicCvMapper.toResponse(
+                cv, "/api/cvs/public/" + token + "/photo"))
+                .thenReturn(expected);
+        when(identifierHasher.hash("public-view", "198.51.100.8"))
+                .thenReturn("visitor-hash");
+
+        assertThat(service(false).getPortfolio(token, "198.51.100.8"))
+                .isSameAs(expected);
+    }
+
+    @Test
+    void tracksDownloadAndShareCounters() {
+        Cv cv = cv();
+        String token = tokenFor(cv);
+        PublicCvAccessService accessService = service(false);
+
+        accessService.trackDownload(12L);
+        accessService.trackShare(token);
+
+        verify(cvRepository).incrementDownloadCount(12L);
+        verify(cvRepository).incrementShareCount(12L);
+    }
+
+    private String tokenFor(Cv cv) {
+        String token = tokenCodec.generate();
+        when(cvRepository.findByPublicTokenHash(tokenCodec.digest(token)))
+                .thenReturn(Optional.of(cv));
+        return token;
     }
 
     private PublicCvAccessService service(boolean rateLimitEnabled) {

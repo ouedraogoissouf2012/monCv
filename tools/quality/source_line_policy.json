@@ -152,12 +152,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/test/e2e/cv_smoke_web_test.dart",
-      "baseline_lines": 375,
-      "issue": "#234",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/test/providers/cv_provider_test.dart",
       "baseline_lines": 433,
       "issue": "#234",
