@@ -14,7 +14,7 @@ void main() {
     expect(dockerfile, contains('--no-web-resources-cdn'));
     expect(compose, contains('cap_drop:'));
     expect(compose, contains('no-new-privileges:true'));
-    expect(compose, contains('ports: []'));
+    expect(compose, contains('ports: !override []'));
   });
 
   test('nginx impose CSP, HSTS, anti-framing et proxy same-origin', () {

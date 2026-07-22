@@ -7,32 +7,57 @@
 services:
   postgres:
     # Pas de ports exposes en prod (DB interne)
-    ports: []
+    ports: !override []
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    networks: !override
+      - data-net
 
   redis:
     # Redis reste strictement interne au reseau Docker en production.
-    ports: []
+    ports: !override []
+    networks: !override
+      - data-net
 
   backend:
     # Utilise l'image GHCR au lieu de builder localement
     build: !reset null
-    image: ghcr.io/ouedraogoissouf2012/cv-mobile-backend:${TAG:?TAG must be a commit SHA or release tag}
+    image: ghcr.io/ouedraogoissouf2012/cv-mobile-backend:${TAG:?TAG must be a full 40-character Git SHA}
 
     # Pas de env_file — secrets injectes par l'orchestrateur
     env_file: !reset []
 
-    ports: []
+    ports: !override []
 
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://postgres:5432/cvmobile
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:?JWT_EXPIRATION is required}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:?JWT_REFRESH_EXPIRATION is required}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?ALLOWED_ORIGINS is required}
+      SHOW_SQL: "false"
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?DEEPSEEK_API_KEY is required}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      AI_FALLBACK_ENABLED: "false"
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_ADMIN_BYPASS: "false"
+      RATE_LIMIT_REDIS_URL: redis://redis:6379
       PUBLIC_LINK_ENCRYPTION_KEY: ${PUBLIC_LINK_ENCRYPTION_KEY:?PUBLIC_LINK_ENCRYPTION_KEY is required}
       PUBLIC_MEDIA_ALLOWED_ORIGINS: ${PUBLIC_MEDIA_ALLOWED_ORIGINS:?PUBLIC_MEDIA_ALLOWED_ORIGINS is required}
-      # Les autres vars (DB_PASSWORD, JWT_SECRET, DEEPSEEK_API_KEY, ALLOWED_ORIGINS)
-      # DOIVENT etre exportees dans l'environnement avant `docker compose up`
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: production
+
+    networks: !override
+      - edge-net
+      - data-net
 
   web:
-    image: ghcr.io/ouedraogoissouf2012/cv-mobile-web:${TAG:?TAG must be a commit SHA or release tag}
+    image: ghcr.io/ouedraogoissouf2012/cv-mobile-web:${TAG:?TAG must be a full 40-character Git SHA}
     container_name: cvmobile-web
     restart: unless-stopped
     read_only: true
@@ -47,11 +72,20 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "${WEB_PORT:-8080}:8080"
-    networks:
-      - cvmobile-net
+      - "127.0.0.1:${WEB_PORT:-8080}:8080"
+    networks: !override
+      - edge-net
 
   adminer:
     profiles:
       - dev-tools
-    ports: []
+    ports: !override []
+    networks: !override
+      - data-net
+
+networks:
+  edge-net:
+    driver: bridge
+  data-net:
+    driver: bridge
+    internal: true
