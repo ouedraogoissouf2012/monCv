@@ -8,12 +8,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import psutil
+
 from tools.recovery.commands import CommandSpec
 from tools.recovery.runner import (
     RecoveryCommandError,
     SafeCommandRunner,
     sanitized_environment,
 )
+from tools.recovery.processes import process_group_options
 
 
 class SafeCommandRunnerTest(unittest.TestCase):
@@ -104,14 +107,39 @@ class SafeCommandRunnerTest(unittest.TestCase):
         process.stdout.close.assert_called_once()
         kill_tree.assert_called_once_with(process)
 
-    @patch("tools.recovery.runner.signal.SIGKILL", 9, create=True)
-    @patch("tools.recovery.runner.os.killpg", create=True)
-    def test_posix_cleanup_targets_the_entire_process_group(self, killpg) -> None:
+    @patch("tools.recovery.processes.psutil.Process")
+    def test_cleanup_targets_the_entire_process_tree(self, process_factory) -> None:
+        child = Mock()
+        parent = Mock()
+        parent.children.return_value = [child]
+        process_factory.return_value = parent
         process = Mock(pid=42)
         process.poll.side_effect = (None, 0)
-        with patch("tools.recovery.runner.os.name", "posix"):
-            SafeCommandRunner(self.environment)._kill_process_tree(process)
-        killpg.assert_called_once_with(42, 9)
+
+        SafeCommandRunner(self.environment)._kill_process_tree(process)
+
+        process_factory.assert_called_once_with(42)
+        parent.children.assert_called_once_with(recursive=True)
+        parent.kill.assert_called_once()
+        child.kill.assert_called_once()
+
+    @patch("tools.recovery.processes.psutil.Process")
+    def test_cleanup_falls_back_when_process_inspection_is_denied(
+        self, process_factory
+    ) -> None:
+        process_factory.side_effect = psutil.AccessDenied(pid=42)
+        process = Mock(pid=42)
+        process.poll.side_effect = (None, None)
+
+        SafeCommandRunner(self.environment)._kill_process_tree(process)
+
+        process.kill.assert_called_once()
+
+    def test_posix_processes_start_in_a_new_session(self) -> None:
+        with patch("tools.recovery.processes.os.name", "posix"):
+            options = process_group_options()
+        self.assertTrue(options["start_new_session"])
+        self.assertEqual(options["creationflags"], 0)
 
     def test_sanitizes_environment_by_target_tool(self) -> None:
         source = {

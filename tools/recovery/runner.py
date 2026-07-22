@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import signal
 import subprocess
 import threading
 from collections.abc import Mapping, Sequence
@@ -11,6 +10,7 @@ from pathlib import Path
 from typing import BinaryIO, cast
 
 from .commands import CommandSpec
+from .processes import kill_process_tree, process_group_options
 
 MAX_CAPTURE_BYTES = 1024 * 1024
 READ_CHUNK_BYTES = 8192
@@ -100,12 +100,7 @@ class SafeCommandRunner:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 shell=False,
-                start_new_session=os.name != "nt",
-                creationflags=(
-                    getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-                    if os.name == "nt"
-                    else 0
-                ),
+                **process_group_options(),
             )
         except OSError as error:
             raise RecoveryCommandError(
@@ -176,24 +171,4 @@ class SafeCommandRunner:
         return not reader.is_alive()
 
     def _kill_process_tree(self, process: subprocess.Popen[bytes]) -> None:
-        if process.poll() is not None:
-            return
-        try:
-            if os.name == "nt":
-                subprocess.run(
-                    ("taskkill", "/PID", str(process.pid), "/T", "/F"),
-                    env=sanitized_environment(("taskkill",), self._environment),
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    check=False,
-                )
-            else:
-                os.killpg(process.pid, signal.SIGKILL)
-        except OSError:
-            pass
-        if process.poll() is None:
-            try:
-                process.kill()
-            except OSError:
-                pass
+        kill_process_tree(process)
