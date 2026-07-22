@@ -9,5 +9,7 @@ from .identity import SnapshotIdentity as SnapshotIdentity
 from .identity import SnapshotKind as SnapshotKind
 from .runner import RecoveryCommandError as RecoveryCommandError
 from .runner import SafeCommandRunner as SafeCommandRunner
+from .restore_commands import RestoreCommands as RestoreCommands
 from .settings import RecoveryConfigurationError as RecoveryConfigurationError
 from .settings import RecoverySettings as RecoverySettings
+from .target import RestoreTarget as RestoreTarget
