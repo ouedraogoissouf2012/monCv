@@ -4,103 +4,89 @@ import com.cvmobile.exception.ai.AiKeyInvalidException;
 import com.cvmobile.exception.ai.AiServiceException;
 import com.cvmobile.service.ai.client.DeepSeekClient;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Profiles;
-import org.springframework.core.env.PropertySource;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Valide au demarrage que les secrets critiques sont bien charges.
  *
  * En profil dev : DB_PASSWORD obligatoire, services optionnels en mode degrade.
- * En profil prod : throw IllegalStateException → l'app crash (container restart).
+ * En profil prod : une configuration invalide arrete le demarrage.
  *
- * Affiche aussi une banniere montrant la source de chaque secret pour le debug
- * (ex: probleme de chargement spring-dotenv si on lance depuis un mauvais CWD).
- *
- * Ne log JAMAIS la valeur du secret, seulement la longueur et la source.
+ * La banniere indique seulement si un reglage suivi est present. Elle ne log
+ * jamais la valeur, la longueur ou la source d'un secret.
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AppStartupValidator implements ApplicationListener<ApplicationReadyEvent> {
 
-    private static final List<String> ALL_SECRETS = List.of(
-            "DEEPSEEK_API_KEY",
-            "JWT_SECRET",
-            "DB_PASSWORD",
-            "ALLOWED_ORIGINS",
-            "PUBLIC_LINK_ENCRYPTION_KEY",
-            "GOOGLE_CLIENT_ID");
-
-    /** Secrets qui DOIVENT etre presents en prod (fail-fast). */
-    private static final List<String> PROD_REQUIRED = List.of(
-            "DEEPSEEK_API_KEY",
-            "JWT_SECRET",
-            "DB_PASSWORD",
-            "ALLOWED_ORIGINS",
-            "PUBLIC_LINK_ENCRYPTION_KEY",
-            "GOOGLE_CLIENT_ID");
-
-    private static final List<String> NON_TEST_REQUIRED = List.of("DB_PASSWORD");
+    private static final List<ProductionSetting> TRACKED_SETTINGS = Arrays.stream(
+            ProductionSetting.values()).filter(ProductionSetting::trackedAtStartup).toList();
 
     private final ConfigurableEnvironment env;
+    private final ProductionConfigurationPolicy productionPolicy;
 
     @Autowired(required = false)
     private DeepSeekClient deepSeekClient;
 
+    AppStartupValidator(
+            ConfigurableEnvironment env,
+            ProductionConfigurationPolicy productionPolicy
+    ) {
+        this.env = env;
+        this.productionPolicy = productionPolicy;
+    }
+
     @PostConstruct
     void validateSecrets() {
-        if (env.acceptsProfiles(Profiles.of("test"))) return;
+        ProductionConfiguration configuration = snapshot();
+        productionPolicy.validate(configuration);
+        if (configuration.activeProfiles().contains("test")) return;
 
         String[] profiles = env.getActiveProfiles();
         String profile = profiles.length > 0 ? String.join(",", profiles) : "default";
-        boolean production = env.acceptsProfiles(Profiles.of("prod"));
 
         log.info("=== CV Mobile Startup Config ===");
         log.info("Profile: {}", profile);
 
-        List<String> missing = new java.util.ArrayList<>();
+        List<ProductionSetting> missing = new java.util.ArrayList<>();
 
-        for (String key : ALL_SECRETS) {
-            String value = env.getProperty(key);
+        for (ProductionSetting setting : TRACKED_SETTINGS) {
+            String value = configuration.value(setting);
             boolean present = value != null && !value.isBlank();
-            String source = findSource(env, key);
 
             if (present) {
-                log.info("{} {} OK (source: {}, length={})",
-                        key, padding(key), source, value.length());
+                log.info("{} {} SET", setting.name(), padding(setting));
             } else {
-                log.warn("{} {} MISSING (source: none)", key, padding(key));
-                missing.add(key);
+                log.warn("{} {} MISSING", setting.name(), padding(setting));
+                missing.add(setting);
             }
         }
 
         log.info("================================");
 
-        List<String> required = production ? PROD_REQUIRED : NON_TEST_REQUIRED;
-        List<String> critical = missing.stream()
-                .filter(required::contains)
-                .toList();
-        if (!critical.isEmpty()) {
+        if (missing.contains(ProductionSetting.DB_PASSWORD)) {
             throw new IllegalStateException(
-                    "Impossible de demarrer avec le profil '" + profile + "' : secrets manquants " + critical
-                    + ". Verifiez les variables d'environnement ou le secrets manager.");
+                    "Invalid startup configuration for profile '" + profile
+                            + "': [DB_PASSWORD]");
         }
 
         // Warnings actionnables en dev
-        if (missing.contains("DEEPSEEK_API_KEY")) {
-            log.warn("⚠ DeepSeek desactive (mode degrade). "
+        if (missing.contains(ProductionSetting.DEEPSEEK_API_KEY)) {
+            log.warn("DeepSeek desactive (mode degrade). "
                     + "Ajoutez DEEPSEEK_API_KEY dans backend/.env ou exportez-la dans votre shell.");
         }
-        if (missing.contains("GOOGLE_CLIENT_ID")) {
+        if (missing.contains(ProductionSetting.GOOGLE_CLIENT_ID)) {
             log.warn("Connexion Google desactivee : configurez GOOGLE_CLIENT_ID.");
         }
     }
@@ -127,28 +113,21 @@ public class AppStartupValidator implements ApplicationListener<ApplicationReady
         }
     }
 
-    /**
-     * Trouve la PropertySource Spring qui a fourni cette cle.
-     * Utile pour diagnostiquer les problemes de chargement (ex: .env pas trouve).
-     */
-    private String findSource(ConfigurableEnvironment env, String key) {
-        for (PropertySource<?> ps : env.getPropertySources()) {
-            if (ps.containsProperty(key)) {
-                String name = ps.getName();
-                if (name.contains("dotenv")) return "dotenv";
-                if (name.contains("systemEnvironment")) return "systemEnvironment";
-                if (name.contains("systemProperties")) return "systemProperties";
-                if (name.contains("application")) return "application.yml";
-                return name;
+    private ProductionConfiguration snapshot() {
+        EnumMap<ProductionSetting, String> values = new EnumMap<>(ProductionSetting.class);
+        for (ProductionSetting setting : ProductionSetting.values()) {
+            if (setting != ProductionSetting.ACTIVE_PROFILES) {
+                values.put(setting, env.getProperty(setting.propertyName()));
             }
         }
-        return "none";
+        return new ProductionConfiguration(Set.of(env.getActiveProfiles()), values);
     }
 
     /** Aligne les cles pour que la banniere soit lisible. */
-    private String padding(String key) {
-        int maxLen = ALL_SECRETS.stream().mapToInt(String::length).max().orElse(20);
-        int dots = Math.max(3, maxLen - key.length() + 3);
+    private String padding(ProductionSetting setting) {
+        int maxLen = TRACKED_SETTINGS.stream().map(Enum::name)
+                .mapToInt(String::length).max().orElse(20);
+        int dots = Math.max(3, maxLen - setting.name().length() + 3);
         return ".".repeat(dots);
     }
 }
