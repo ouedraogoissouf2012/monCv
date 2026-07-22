@@ -178,20 +178,8 @@ class RecoveryCommands:
         *arguments: str,
         timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
     ) -> CommandSpec:
-        return CommandSpec(
-            action=action,
-            arguments=(
-                "restic",
-                "--repository-file",
-                str(self._settings.repository_file),
-                "--password-file",
-                str(self._settings.password_file),
-                "--no-cache",
-                "--retry-lock=2m",
-                *arguments,
-            ),
-            cwd=self._settings.root,
-            timeout_seconds=timeout_seconds,
+        return restic_command(
+            self._settings, action, *arguments, timeout_seconds=timeout_seconds
         )
 
     @staticmethod
@@ -199,3 +187,26 @@ class RecoveryCommands:
         identity: SnapshotIdentity, kind: SnapshotKind
     ) -> tuple[str, ...]:
         return tuple(value for tag in identity.tags(kind) for value in ("--tag", tag))
+
+
+def restic_command(
+    settings: RecoverySettings,
+    action: str,
+    *arguments: str,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> CommandSpec:
+    return CommandSpec(
+        action=action,
+        arguments=(
+            "restic",
+            "--repository-file",
+            str(settings.repository_file),
+            "--password-file",
+            str(settings.password_file),
+            "--no-cache",
+            "--retry-lock=2m",
+            *arguments,
+        ),
+        cwd=settings.root,
+        timeout_seconds=timeout_seconds,
+    )
