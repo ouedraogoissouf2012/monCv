@@ -7,6 +7,8 @@ Ce document centralise les variables de configuration du backend Spring Boot, du
 - les secrets ne doivent jamais etre commits ;
 - `backend/.env.example` documente les variables backend locales ;
 - `.env.example` a la racine documente le flux `docker compose` ;
+- `.env.production.example` est le contrat Compose de production sans secret ;
+- `.env`, `.env.production` et les autres `.env.*` reels sont ignores par Git ;
 - le frontend Flutter utilise principalement des `--dart-define`.
 
 ## Backend Spring Boot
@@ -17,6 +19,7 @@ Ce document centralise les variables de configuration du backend Spring Boot, du
 | `DB_URL` | string | non en dev / oui en prod | `jdbc:postgresql://localhost:5432/cvmobile` | URL JDBC PostgreSQL. |
 | `DB_USERNAME` | string | non en dev / oui en prod | `postgres` | Utilisateur PostgreSQL. |
 | `DB_PASSWORD` | secret string | oui hors `test` | aucun | Mot de passe PostgreSQL. |
+| `GOOGLE_CLIENT_ID` | string | oui en prod | vide en dev | Identifiant OAuth Web Google. |
 | `JWT_SECRET` | secret string | oui en prod | aucun en prod, valeur locale en dev | Secret JWT. |
 | `JWT_EXPIRATION` | long | non | `86400000` | Duree du token d'acces en ms. |
 | `JWT_REFRESH_EXPIRATION` | long | non | `604800000` | Duree du refresh token en ms. |
@@ -28,6 +31,9 @@ Ce document centralise les variables de configuration du backend Spring Boot, du
 | `AI_MODEL` | string | non | `deepseek-chat` | Modele IA. |
 | `DEEPSEEK_BASE_URL` | url | non | `https://api.deepseek.com/v1` | Base URL du fournisseur. |
 | `AI_FALLBACK_ENABLED` | bool | non | `true` | Active le fallback mock/local. |
+| `RATE_LIMIT_ENABLED` | bool | non | `true` | Active la limitation de debit. |
+| `RATE_LIMIT_ADMIN_BYPASS` | bool | non | `true` | Autorise le bypass administrateur hors production. |
+| `RATE_LIMIT_REDIS_URL` | URI | non | `redis://localhost:6379` | Stockage partage des compteurs. |
 | `FIREBASE_NOTIFICATIONS_ENABLED` | bool | non | `false` | Active FCM cote backend. |
 | `GOOGLE_APPLICATION_CREDENTIALS` | path | requise si Firebase active | aucun | Compte de service Google. |
 | `STALE_CV_DAYS` | int | non | `30` | Seuil de CV stale pour les rappels. |
@@ -71,6 +77,7 @@ Variables attendues :
 - `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
+- `GOOGLE_CLIENT_ID`
 - `JWT_SECRET`
 - `JWT_EXPIRATION`
 - `JWT_REFRESH_EXPIRATION`
@@ -89,14 +96,48 @@ Variables attendues :
 - `MANAGEMENT_PROMETHEUS_ALLOWED_IP_RANGES`
 - `PUBLIC_LINK_ENCRYPTION_KEY`
 - `PUBLIC_MEDIA_ALLOWED_ORIGINS`
+- `SENTRY_DSN`
+- `SENTRY_ENVIRONMENT`
+
+## Docker Compose production
+
+Copiez `.env.production.example` vers `.env.production`, remplissez les champs
+vides et limitez sa lecture au compte de deploiement. Sous Linux/macOS :
+
+```bash
+chmod 600 .env.production
+```
+
+Le contrat exige avant demarrage :
+
+- `TAG`, SHA Git complet de 40 caracteres en minuscules ;
+- `DB_USERNAME`, `DB_PASSWORD` et `GOOGLE_CLIENT_ID` ;
+- `JWT_SECRET`, `JWT_EXPIRATION` et `JWT_REFRESH_EXPIRATION` ;
+- `ALLOWED_ORIGINS` et `DEEPSEEK_API_KEY` ;
+- `PUBLIC_LINK_ENCRYPTION_KEY` et `PUBLIC_MEDIA_ALLOWED_ORIGINS`.
+
+`SPRING_PROFILES_ACTIVE=prod`, `SHOW_SQL=false`, `AI_FALLBACK_ENABLED=false`,
+`RATE_LIMIT_ENABLED=true` et `RATE_LIMIT_ADMIN_BYPASS=false` sont fixes dans
+`docker-compose.prod.yml` et ne sont pas configurables par le fichier secret.
+
+Validez le fichier sans afficher le rendu Compose, qui contient les secrets :
+
+```bash
+uv run --locked python -m tools.deployment.compose_contract \
+  --env-file .env.production
+```
+
+Le preflight ne renvoie jamais les valeurs : il indique la regle violee ou une
+erreur generique si Compose refuse le rendu. Il verifie aussi les ports, les
+reseaux, le profil Adminer et l'alignement des images backend/web.
 
 ## Regles d'exploitation
 
 - profil `test` : PostgreSQL 17 Testcontainers, mocks et secrets non productifs ;
 - profil `prod` : pas de fallback silencieux sur les secrets critiques ;
-- le deploiement Compose exige `TAG` avec un SHA Git ou un tag de release immuable ;
-- Adminer est reserve au developpement local, exclu du profil production et ne doit jamais etre expose publiquement ;
+- le deploiement Compose exige `TAG` avec le SHA Git complet des deux images ;
+- Adminer exige explicitement le profil `dev-tools`, qui ne doit jamais etre active en production ;
 - toute nouvelle variable doit etre ajoutee dans :
-  - `backend/.env.example` ou `.env.example`
+  - le fichier exemple correspondant au mode d'execution
   - ce document
   - le runbook si elle impacte l'ops

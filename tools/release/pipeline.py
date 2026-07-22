@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from .quality import run_repository_quality
 from .runner import CommandError, CommandRunner
 from .settings import (
     EXPECTED_FLUTTER_VERSION,
@@ -78,39 +79,7 @@ class ReleasePipeline:
                 raise CommandError("Publish requires HEAD to equal origin/main")
 
     def _quality(self) -> None:
-        python = sys.executable
-        self.runner.run(
-            [
-                python,
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                "tools/quality/tests",
-                "-p",
-                "test_*.py",
-            ],
-            cwd=self.context.root,
-        )
-        self.runner.run(
-            [python, "tools/quality/check_source_lines.py"], cwd=self.context.root
-        )
-        self.runner.run(
-            [python, "tools/quality/run_gitleaks.py"], cwd=self.context.root
-        )
-        self.runner.run(
-            [
-                python,
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                "tools/release/tests",
-                "-p",
-                "test_*.py",
-            ],
-            cwd=self.context.root,
-        )
+        run_repository_quality(self.context.root, self.runner)
 
     def _backend(self) -> None:
         test_environment = {

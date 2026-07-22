@@ -62,6 +62,18 @@ class ReleasePipelineTest(unittest.TestCase):
             },
         )
 
+    @patch("tools.release.pipeline.run_repository_quality")
+    def test_quality_delegates_to_repository_gate(self, quality: Mock) -> None:
+        pipeline = ReleasePipeline(
+            self.context,
+            ReleaseOptions(publish=False, allow_dirty=True),
+            self.runner,
+        )
+
+        pipeline._quality()
+
+        quality.assert_called_once_with(self.context.root, self.runner)
+
     def test_image_scans_use_an_explicit_timeout(self) -> None:
         pipeline = ReleasePipeline(
             self.context,
