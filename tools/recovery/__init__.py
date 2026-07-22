@@ -7,6 +7,8 @@ from .backup import BackupError as BackupError
 from .backup import BackupReceipt as BackupReceipt
 from .identity import SnapshotIdentity as SnapshotIdentity
 from .identity import SnapshotKind as SnapshotKind
+from .pipeline import PipelineSpec as PipelineSpec
+from .pipeline import SafePipelineRunner as SafePipelineRunner
 from .runner import RecoveryCommandError as RecoveryCommandError
 from .runner import SafeCommandRunner as SafeCommandRunner
 from .restore_commands import RestoreCommands as RestoreCommands

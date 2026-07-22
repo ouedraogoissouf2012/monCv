@@ -11,6 +11,7 @@ from .commands import (
     CommandSpec,
     restic_command,
 )
+from .pipeline import PipelineSpec
 from .settings import RecoverySettings
 from .target import RestoreTarget
 
@@ -115,6 +116,14 @@ class RestoreCommands:
             "--dbname",
             RESTORE_DATABASE_NAME,
             interactive=True,
+            timeout_seconds=RESTORE_TIMEOUT_SECONDS,
+        )
+
+    def database_restore(self, snapshot_id: str, target: RestoreTarget) -> PipelineSpec:
+        return PipelineSpec(
+            action="restore database snapshot",
+            source=self.database_dump(snapshot_id),
+            sink=self.import_database(target),
             timeout_seconds=RESTORE_TIMEOUT_SECONDS,
         )
 

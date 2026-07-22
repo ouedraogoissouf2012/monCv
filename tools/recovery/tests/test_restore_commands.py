@@ -100,6 +100,12 @@ class RestoreCommandsTest(unittest.TestCase):
         self.assertEqual(schema.timeout_seconds, DEFAULT_TIMEOUT_SECONDS)
         self.assertEqual(restore.timeout_seconds, RESTORE_TIMEOUT_SECONDS)
 
+        pipeline = self.commands.database_restore(SNAPSHOT, self.target)
+        self.assertEqual(pipeline.action, "restore database snapshot")
+        self.assertEqual(pipeline.source, self.commands.database_dump(SNAPSHOT))
+        self.assertEqual(pipeline.sink, restore)
+        self.assertEqual(pipeline.timeout_seconds, RESTORE_TIMEOUT_SECONDS)
+
     def test_upload_restore_and_cleanup_stay_inside_disposable_target(self) -> None:
         restore = self.commands.restore_uploads(SNAPSHOT, self.target)
         cleanup = self.commands.remove_database(self.target)
