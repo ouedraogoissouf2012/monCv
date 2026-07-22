@@ -13,6 +13,7 @@ DEFAULT_TIMEOUT_SECONDS = 60
 BACKUP_TIMEOUT_SECONDS = 3600
 CHECK_TIMEOUT_SECONDS = 7200
 SNAPSHOT_ID = re.compile(r"[0-9a-f]{64}")
+SAFE_ACTION = re.compile(r"[A-Za-z][A-Za-z0-9 -]{0,63}")
 DATABASE_DUMP_NAME = "moncv/postgres.dump"
 DATABASE_DUMP_COMMAND = (
     "exec pg_dump --format=custom --no-owner --no-privileges "
@@ -28,7 +29,21 @@ class CommandSpec:
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS
 
     def __post_init__(self) -> None:
-        if not self.action or not self.arguments or self.timeout_seconds <= 0:
+        valid_arguments = (
+            isinstance(self.arguments, tuple)
+            and bool(self.arguments)
+            and all(
+                isinstance(value, str) and value and "\0" not in value
+                for value in self.arguments
+            )
+        )
+        if (
+            SAFE_ACTION.fullmatch(self.action) is None
+            or not valid_arguments
+            or not self.cwd.is_absolute()
+            or not self.cwd.is_dir()
+            or self.timeout_seconds <= 0
+        ):
             raise ValueError("command specification is invalid")
 
 

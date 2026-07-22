@@ -130,9 +130,13 @@ class RecoveryCommandsTest(unittest.TestCase):
             ("", ("ok",), 1),
             ("ok", (), 1),
             ("ok", ("x",), 0),
+            ("line\nbreak", ("x",), 1),
+            ("ok", ("bad\0argument",), 1),
         ):
             with self.subTest(action=action), self.assertRaises(ValueError):
                 CommandSpec(action, arguments, self.root, timeout)
+        with self.assertRaises(ValueError):
+            CommandSpec("ok", ("x",), Path("."), 1)
 
     def assert_snapshot_tags(self, spec: CommandSpec, kind: str) -> None:
         for tag in ("moncv", f"operation:{OPERATION}", f"git:{SHA}", f"kind:{kind}"):
