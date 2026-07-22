@@ -131,6 +131,20 @@ Le preflight ne renvoie jamais les valeurs : il indique la regle violee ou une
 erreur generique si Compose refuse le rendu. Il verifie aussi les ports, les
 reseaux, le profil Adminer et l'alignement des images backend/web.
 
+Au demarrage, le backend applique une seconde barriere lorsque `prod` est
+actif :
+
+- `prod` doit etre le seul profil actif ;
+- les origines CORS et media doivent etre des origines HTTPS strictes ;
+- les placeholders, valeurs locales et secrets de faible diversite sont refuses ;
+- la cle publique doit decoder exactement 32 octets et ne pas etre la cle locale ;
+- l'URL fournisseur doit etre absolue, HTTPS et sans credentials ;
+- le fallback IA et le bypass administrateur sont interdits, le rate limiting
+  est obligatoire.
+
+Une erreur ne contient que les noms de variables invalides, jamais leurs
+valeurs, longueurs ou sources.
+
 ## Regles d'exploitation
 
 - profil `test` : PostgreSQL 17 Testcontainers, mocks et secrets non productifs ;

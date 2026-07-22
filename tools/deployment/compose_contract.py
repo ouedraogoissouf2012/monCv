@@ -187,16 +187,16 @@ def repository_environment(sha: str) -> dict[str, str]:
         "TAG": sha,
         "DB_USERNAME": "moncv_contract",
         "DB_PASSWORD": _derived_secret("database", 48),
-        "GOOGLE_CLIENT_ID": "contract.apps.googleusercontent.com",
+        "GOOGLE_CLIENT_ID": "contract-client.apps.googleusercontent.com",
         "JWT_SECRET": _derived_secret("jwt", 88),
         "JWT_EXPIRATION": "3600000",
         "JWT_REFRESH_EXPIRATION": "604800000",
-        "ALLOWED_ORIGINS": "https://cv.example.test",
+        "ALLOWED_ORIGINS": "https://cv.acme.org",
         "DEEPSEEK_API_KEY": _derived_secret("ai", 48),
         "PUBLIC_LINK_ENCRYPTION_KEY": base64.b64encode(
             hashlib.sha256(b"public-link-contract").digest()
         ).decode("ascii"),
-        "PUBLIC_MEDIA_ALLOWED_ORIGINS": "https://cv.example.test",
+        "PUBLIC_MEDIA_ALLOWED_ORIGINS": "https://cv.acme.org",
     }
 
 
