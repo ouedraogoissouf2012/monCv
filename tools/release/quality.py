@@ -10,6 +10,7 @@ from .runner import CommandRunner
 UNIT_TEST_SUITES = (
     "tools/quality/tests",
     "tools/deployment/tests",
+    "tools/recovery/tests",
     "tools/release/tests",
 )
 
