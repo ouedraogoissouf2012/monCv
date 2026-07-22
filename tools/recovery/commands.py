@@ -12,6 +12,9 @@ from .settings import RecoverySettings
 DEFAULT_TIMEOUT_SECONDS = 60
 BACKUP_TIMEOUT_SECONDS = 3600
 CHECK_TIMEOUT_SECONDS = 7200
+BACKEND_STOP_GRACE_SECONDS = 45
+BACKEND_START_WAIT_SECONDS = 120
+BACKEND_START_TIMEOUT_SECONDS = 180
 SNAPSHOT_ID = re.compile(r"[0-9a-f]{64}")
 SAFE_ACTION = re.compile(r"[A-Za-z][A-Za-z0-9 -]{0,63}")
 DATABASE_DUMP_NAME = "moncv/postgres.dump"
@@ -67,11 +70,27 @@ class RecoveryCommands:
             "inspect backend state", "ps", "--format", "json", "backend"
         )
 
-    def pause_backend(self) -> CommandSpec:
-        return self._compose("pause backend writes", "pause", "backend")
+    def stop_backend(self) -> CommandSpec:
+        return self._compose(
+            "stop backend writes",
+            "stop",
+            "--timeout",
+            str(BACKEND_STOP_GRACE_SECONDS),
+            "backend",
+        )
 
-    def unpause_backend(self) -> CommandSpec:
-        return self._compose("resume backend writes", "unpause", "backend")
+    def start_backend(self) -> CommandSpec:
+        return self._compose(
+            "start healthy backend",
+            "up",
+            "-d",
+            "--no-deps",
+            "--wait",
+            "--wait-timeout",
+            str(BACKEND_START_WAIT_SECONDS),
+            "backend",
+            timeout_seconds=BACKEND_START_TIMEOUT_SECONDS,
+        )
 
     def database_backup(self, identity: SnapshotIdentity) -> CommandSpec:
         child = self._compose_arguments(
@@ -128,11 +147,17 @@ class RecoveryCommands:
             timeout_seconds=CHECK_TIMEOUT_SECONDS,
         )
 
-    def _compose(self, action: str, *arguments: str) -> CommandSpec:
+    def _compose(
+        self,
+        action: str,
+        *arguments: str,
+        timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    ) -> CommandSpec:
         return CommandSpec(
             action=action,
             arguments=self._compose_arguments(*arguments),
             cwd=self._settings.root,
+            timeout_seconds=timeout_seconds,
         )
 
     def _compose_arguments(self, *arguments: str) -> tuple[str, ...]:

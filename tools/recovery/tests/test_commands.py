@@ -6,6 +6,9 @@ from pathlib import Path
 
 from tools.recovery.commands import (
     BACKUP_TIMEOUT_SECONDS,
+    BACKEND_START_TIMEOUT_SECONDS,
+    BACKEND_START_WAIT_SECONDS,
+    BACKEND_STOP_GRACE_SECONDS,
     CHECK_TIMEOUT_SECONDS,
     DATABASE_DUMP_COMMAND,
     DATABASE_DUMP_NAME,
@@ -57,8 +60,8 @@ class RecoveryCommandsTest(unittest.TestCase):
     def test_compose_commands_share_the_hardened_project_context(self) -> None:
         for spec in (
             self.commands.backend_state(),
-            self.commands.pause_backend(),
-            self.commands.unpause_backend(),
+            self.commands.stop_backend(),
+            self.commands.start_backend(),
         ):
             with self.subTest(action=spec.action):
                 self.assertEqual(spec.arguments[:2], ("docker", "compose"))
@@ -67,6 +70,12 @@ class RecoveryCommandsTest(unittest.TestCase):
                     str(self.root / "docker-compose.prod.yml"), spec.arguments
                 )
                 self.assertEqual(spec.cwd, self.root)
+
+        stop = self.commands.stop_backend()
+        start = self.commands.start_backend()
+        self.assertIn(str(BACKEND_STOP_GRACE_SECONDS), stop.arguments)
+        self.assertIn(str(BACKEND_START_WAIT_SECONDS), start.arguments)
+        self.assertEqual(start.timeout_seconds, BACKEND_START_TIMEOUT_SECONDS)
 
     def test_tool_versions_use_fixed_non_shell_commands(self) -> None:
         self.assertEqual(self.commands.restic_version().arguments[-1], "version")
