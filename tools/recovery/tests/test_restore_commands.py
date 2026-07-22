@@ -19,6 +19,7 @@ from tools.recovery.target import RestoreTarget
 SHA = "a" * 40
 OPERATION = "12345678-1234-4234-9234-123456789abc"
 SNAPSHOT = "b" * 64
+UPLOADS_SNAPSHOT = "c" * 64
 PASSWORD = "Recovery-" + "x" * 20 + "-2026-" + "Y" * 8
 
 
@@ -58,6 +59,17 @@ class RestoreCommandsTest(unittest.TestCase):
         for invalid in (None, "", "B" * 64, "b" * 63, "../latest"):
             with self.subTest(snapshot=invalid), self.assertRaises(ValueError):
                 self.commands.database_dump(invalid)  # type: ignore[arg-type]
+
+    def test_snapshot_metadata_requires_two_exact_identifiers(self) -> None:
+        spec = self.commands.snapshot_metadata(SNAPSHOT, UPLOADS_SNAPSHOT)
+
+        self.assertEqual(
+            spec.arguments[-5:],
+            ("snapshots", "--json", "--", SNAPSHOT, UPLOADS_SNAPSHOT),
+        )
+        self.assertEqual(spec.timeout_seconds, DEFAULT_TIMEOUT_SECONDS)
+        with self.assertRaises(ValueError):
+            self.commands.snapshot_metadata(SNAPSHOT, SNAPSHOT)
 
     def test_database_container_is_isolated_and_resource_bounded(self) -> None:
         spec = self.commands.create_database(self.target)
