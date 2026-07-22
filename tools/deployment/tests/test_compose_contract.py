@@ -128,7 +128,11 @@ class ComposeRenderingTest(unittest.TestCase):
         )
         with patch.dict(
             "os.environ",
-            {"COMPOSE_FILE": "attacker.yml", "JWT_SECRET": "host-secret"},
+            {
+                "AI_MODEL": "host-model",
+                "COMPOSE_FILE": "attacker.yml",
+                "JWT_SECRET": "host-secret",
+            },
             clear=True,
         ):
             document = render_contract(
@@ -138,6 +142,7 @@ class ComposeRenderingTest(unittest.TestCase):
         self.assertIn("services", document)
         process_environment = run.call_args.kwargs["env"]
         self.assertNotEqual(process_environment["JWT_SECRET"], "host-secret")
+        self.assertNotIn("AI_MODEL", process_environment)
         self.assertNotIn("COMPOSE_FILE", process_environment)
         self.assertEqual(run.call_args.kwargs["timeout"], 60)
 

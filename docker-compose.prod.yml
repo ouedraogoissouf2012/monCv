@@ -1,8 +1,8 @@
 # Override prod : utilise avec docker-compose.yml
 # Usage : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
-# Les secrets sont injectes par l'orchestrateur (pas de .env file en prod).
-# Ports postgres non exposes (DB interne uniquement).
+# Les secrets sont interpoles depuis l'orchestrateur ou un --env-file protege.
+# Aucun fichier d'environnement n'est monte dans les conteneurs.
 
 services:
   postgres:

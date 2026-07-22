@@ -32,11 +32,19 @@ The default requires a clean working tree:
 While developing the release tooling itself, `verify --allow-dirty` is allowed.
 Dirty images receive a `-dirty` suffix and can never be published.
 
-The command runs source-policy tests, Gitleaks, backend verification, Flutter
+The command runs repository and deployment-contract tests, the real production
+Compose preflight, source policy, Gitleaks, backend verification, Flutter
 analysis/tests/coverage, Docker builds, Trivy scans and an isolated browser E2E
 flow against the production images. Install Google Chrome, or set
 `CHROME_EXECUTABLE` to a Chromium-compatible executable. The smoke Compose
 project is always removed, including its volumes.
+
+Validate a production environment file without printing rendered secrets:
+
+```powershell
+uv run --locked python -m tools.deployment.compose_contract `
+  --env-file .env.production
+```
 
 ## Publish immutable images
 

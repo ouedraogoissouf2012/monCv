@@ -14,6 +14,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from .compose_environment import interpolation_keys
+
 BACKEND_IMAGE = re.compile(
     r"^ghcr\.io/ouedraogoissouf2012/cv-mobile-backend:([0-9a-f]{40})$"
 )
@@ -33,17 +35,6 @@ REQUIRED_BACKEND_ENV = (
     "PUBLIC_LINK_ENCRYPTION_KEY",
     "PUBLIC_MEDIA_ALLOWED_ORIGINS",
 )
-APP_ENV_KEYS = frozenset(REQUIRED_BACKEND_ENV) | {
-    "TAG",
-    "WEB_PORT",
-    "AI_FALLBACK_ENABLED",
-    "RATE_LIMIT_ENABLED",
-    "RATE_LIMIT_ADMIN_BYPASS",
-    "SHOW_SQL",
-    "SENTRY_DSN",
-    "SENTRY_ENVIRONMENT",
-    "SPRING_PROFILES_ACTIVE",
-}
 SECURE_FLAGS = {
     "SPRING_PROFILES_ACTIVE": "prod",
     "AI_FALLBACK_ENABLED": "false",
@@ -139,10 +130,13 @@ def render_contract(
     """Render the production Compose merge in memory."""
     root = root.resolve()
     command = ["docker", "compose", "--profile", "*"]
+    application_keys = interpolation_keys(
+        (root / "docker-compose.yml", root / "docker-compose.prod.yml")
+    )
     process_env = {
         key: value
         for key, value in os.environ.items()
-        if key not in APP_ENV_KEYS and not key.startswith("COMPOSE_")
+        if key not in application_keys and not key.startswith("COMPOSE_")
     }
     if env_file is not None:
         env_file = env_file.resolve()
