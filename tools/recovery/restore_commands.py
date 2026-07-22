@@ -38,6 +38,23 @@ class RestoreCommands:
             "stream database snapshot", "dump", snapshot_id, DATABASE_DUMP_NAME
         )
 
+    def snapshot_metadata(
+        self, database_snapshot: str, uploads_snapshot: str
+    ) -> CommandSpec:
+        self._require_snapshot_id(database_snapshot)
+        self._require_snapshot_id(uploads_snapshot)
+        if database_snapshot == uploads_snapshot:
+            raise ValueError("restore snapshots must be distinct")
+        return restic_command(
+            self._settings,
+            "inspect restore snapshots",
+            "snapshots",
+            "--json",
+            "--",
+            database_snapshot,
+            uploads_snapshot,
+        )
+
     def create_database(self, target: RestoreTarget) -> CommandSpec:
         self._require_disposable_target(target)
         return CommandSpec(

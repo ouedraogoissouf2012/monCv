@@ -15,3 +15,7 @@ from .restore_commands import RestoreCommands as RestoreCommands
 from .settings import RecoveryConfigurationError as RecoveryConfigurationError
 from .settings import RecoverySettings as RecoverySettings
 from .target import RestoreTarget as RestoreTarget
+from .validation import MigrationCatalog as MigrationCatalog
+from .validation import RestoreValidationError as RestoreValidationError
+from .validation import SchemaProof as SchemaProof
+from .validation import SnapshotProof as SnapshotProof
