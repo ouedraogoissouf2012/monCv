@@ -2,6 +2,8 @@
 # AppStartupValidator fail-fast si un secret critique manque
 
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   # Secrets obligatoires : DB_PASSWORD, JWT_SECRET (deja references sans default dans application.yml)
   datasource:
     hikari:
@@ -36,6 +38,7 @@ ai:
 
 # Reverse proxy (X-Forwarded-For, X-Forwarded-Proto)
 server:
+  shutdown: graceful
   forward-headers-strategy: native
   tomcat:
     remoteip:

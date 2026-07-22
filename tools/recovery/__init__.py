@@ -2,6 +2,9 @@
 
 from .commands import CommandSpec as CommandSpec
 from .commands import RecoveryCommands as RecoveryCommands
+from .backup import BackupCoordinator as BackupCoordinator
+from .backup import BackupError as BackupError
+from .backup import BackupReceipt as BackupReceipt
 from .identity import SnapshotIdentity as SnapshotIdentity
 from .identity import SnapshotKind as SnapshotKind
 from .runner import RecoveryCommandError as RecoveryCommandError
