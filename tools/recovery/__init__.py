@@ -15,6 +15,8 @@ from .restore_commands import RestoreCommands as RestoreCommands
 from .settings import RecoveryConfigurationError as RecoveryConfigurationError
 from .settings import RecoverySettings as RecoverySettings
 from .target import RestoreTarget as RestoreTarget
+from .uploads import UploadsProof as UploadsProof
+from .uploads import validate_restored_uploads as validate_restored_uploads
 from .validation import MigrationCatalog as MigrationCatalog
 from .validation import RestoreValidationError as RestoreValidationError
 from .validation import SchemaProof as SchemaProof

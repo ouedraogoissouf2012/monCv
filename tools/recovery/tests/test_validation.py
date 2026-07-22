@@ -61,6 +61,8 @@ class MigrationValidationTest(unittest.TestCase):
     def test_catalog_rejects_empty_unknown_and_duplicate_versions(self) -> None:
         with self.assertRaises(RestoreValidationError):
             MigrationCatalog.from_directory(self.directory)
+        with self.assertRaises(RestoreValidationError):
+            MigrationCatalog.from_directory(None)  # type: ignore[arg-type]
 
         self.migration("README.sql")
         with self.assertRaises(RestoreValidationError):
@@ -110,6 +112,7 @@ class MigrationValidationTest(unittest.TestCase):
 
 class SnapshotValidationTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.uploads_path = Path.cwd().resolve()
         self.receipt = BackupReceipt(
             OPERATION,
             SHA,
@@ -129,6 +132,9 @@ class SnapshotValidationTest(unittest.TestCase):
                 "kind:" + kind,
                 "provider-retention:daily",
             ],
+            "paths": [
+                "/moncv/postgres.dump" if kind == "database" else str(self.uploads_path)
+            ],
         }
 
     def test_accepts_exact_correlated_snapshot_metadata(self) -> None:
@@ -138,7 +144,7 @@ class SnapshotValidationTest(unittest.TestCase):
                 self.metadata(UPLOADS_SNAPSHOT, "uploads"),
             ]
         )
-        proof = validate_snapshot_metadata(output, self.receipt)
+        proof = validate_snapshot_metadata(output, self.receipt, self.uploads_path)
         self.assertEqual(proof.operation_id, OPERATION)
         self.assertEqual(proof.deployed_sha, SHA)
 
@@ -151,6 +157,8 @@ class SnapshotValidationTest(unittest.TestCase):
         conflicting["tags"].append("operation:" + "0" * 36)
         wrong_host = self.metadata(UPLOADS_SNAPSHOT, "uploads")
         wrong_host["hostname"] = marker
+        wrong_path = self.metadata(UPLOADS_SNAPSHOT, "uploads")
+        wrong_path["paths"] = [marker]
         invalid = (
             marker,
             "[]",
@@ -158,14 +166,17 @@ class SnapshotValidationTest(unittest.TestCase):
             json.dumps([database, database]),
             json.dumps([database, conflicting]),
             json.dumps([database, wrong_host]),
+            json.dumps([database, wrong_path]),
         )
         for output in invalid:
             with (
                 self.subTest(output=output),
                 self.assertRaises(RestoreValidationError) as raised,
             ):
-                validate_snapshot_metadata(output, self.receipt)
+                validate_snapshot_metadata(output, self.receipt, self.uploads_path)
             self.assertNotIn(marker, str(raised.exception))
+        with self.assertRaises(RestoreValidationError):
+            validate_snapshot_metadata("[]", self.receipt, None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

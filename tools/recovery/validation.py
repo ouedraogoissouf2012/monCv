@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .backup import BackupReceipt
-from .commands import SNAPSHOT_ID
+from .commands import DATABASE_DUMP_NAME, SNAPSHOT_ID
 from .identity import SnapshotIdentity, SnapshotKind
 
 MIGRATION_FILE = re.compile(
@@ -30,11 +30,11 @@ class MigrationCatalog:
 
     @classmethod
     def from_directory(cls, directory: Path) -> MigrationCatalog:
-        candidate = Path(directory)
         try:
+            candidate = Path(directory)
             resolved = candidate.resolve(strict=True)
             entries = tuple(resolved.iterdir())
-        except OSError as error:
+        except (OSError, TypeError) as error:
             raise RestoreValidationError("MIGRATION_CATALOG_INVALID") from error
         if candidate.is_symlink() or not resolved.is_dir() or not entries:
             raise RestoreValidationError("MIGRATION_CATALOG_INVALID")
@@ -89,7 +89,9 @@ def validate_restored_schema(output: str, catalog: MigrationCatalog) -> SchemaPr
     return SchemaProof(catalog.versions)
 
 
-def validate_snapshot_metadata(output: str, receipt: BackupReceipt) -> SnapshotProof:
+def validate_snapshot_metadata(
+    output: str, receipt: BackupReceipt, uploads_path: Path
+) -> SnapshotProof:
     try:
         identity = SnapshotIdentity.create(receipt.deployed_sha, receipt.operation_id)
         database_snapshot = receipt.database_snapshot
@@ -104,6 +106,12 @@ def validate_snapshot_metadata(output: str, receipt: BackupReceipt) -> SnapshotP
         or SNAPSHOT_ID.fullmatch(uploads_snapshot) is None
     ):
         raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
+    try:
+        expected_uploads_path = Path(uploads_path).resolve()
+    except (OSError, TypeError) as error:
+        raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID") from error
+    if not expected_uploads_path.is_absolute():
+        raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
     expected = {
         database_snapshot: SnapshotKind.DATABASE,
         uploads_snapshot: SnapshotKind.UPLOADS,
@@ -116,13 +124,24 @@ def validate_snapshot_metadata(output: str, receipt: BackupReceipt) -> SnapshotP
         snapshot_id = value.get("id")
         kind = expected.get(snapshot_id)
         tags = value.get("tags")
+        paths = value.get("paths")
         if (
             kind is None
             or snapshot_id in observed
             or value.get("hostname") != "moncv-production"
             or not isinstance(tags, list)
             or any(not isinstance(tag, str) for tag in tags)
+            or not isinstance(paths, list)
+            or len(paths) != 1
+            or not isinstance(paths[0], str)
         ):
+            raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
+        expected_path = (
+            "/" + DATABASE_DUMP_NAME
+            if kind is SnapshotKind.DATABASE
+            else str(expected_uploads_path)
+        )
+        if paths[0] != expected_path:
             raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
         required = set(identity.tags(kind))
         managed = [
