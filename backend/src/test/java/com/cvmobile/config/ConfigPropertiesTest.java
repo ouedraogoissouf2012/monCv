@@ -28,7 +28,7 @@ class ConfigPropertiesTest {
                     .isEqualTo(new AiEnhancementProperties(3000));
             assertThat(context.getBean(RateLimitProperties.class))
                     .isEqualTo(new RateLimitProperties(
-                            true,
+                            false,
                             true,
                             10,
                             Duration.ofMinutes(1),
@@ -60,6 +60,7 @@ class ConfigPropertiesTest {
                         "ai.job-match.max-keywords=9",
                         "ai.suggestions.max-suggestions=3",
                         "ai.enhancement.completion-tokens=2400",
+                        "security.rate-limit.enabled=true",
                         "security.rate-limit.ai-requests=12",
                         "security.rate-limit.ai-window=30s",
                         "notifications.stale-cv-days=21"
@@ -71,6 +72,7 @@ class ConfigPropertiesTest {
                     assertThat(context.getBean(JobMatchProperties.class).maxKeywords()).isEqualTo(9);
                     assertThat(context.getBean(AiSuggestionProperties.class).maxSuggestions()).isEqualTo(3);
                     assertThat(context.getBean(AiEnhancementProperties.class).completionTokens()).isEqualTo(2400);
+                    assertThat(context.getBean(RateLimitProperties.class).enabled()).isTrue();
                     assertThat(context.getBean(RateLimitProperties.class).aiRequests()).isEqualTo(12);
                     assertThat(context.getBean(RateLimitProperties.class).aiWindow())
                             .isEqualTo(Duration.ofSeconds(30));
