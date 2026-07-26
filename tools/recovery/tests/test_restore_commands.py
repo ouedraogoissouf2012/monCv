@@ -10,6 +10,7 @@ from tools.recovery.restore_commands import (
     RESTORE_DATABASE_IMAGE,
     RESTORE_DATABASE_NAME,
     RESTORE_DRILL_LABEL,
+    RESTORE_OWNER_FORMAT,
     RESTORE_READY_PROBE_SECONDS,
     RESTORE_SCHEMA_QUERY,
     RESTORE_TIMEOUT_SECONDS,
@@ -126,13 +127,14 @@ class RestoreCommandsTest(unittest.TestCase):
 
         owner = self.commands.database_owner(self.target)
         self.assertEqual(owner.arguments[:3], ("docker", "inspect", "--format"))
-        self.assertIn(RESTORE_DRILL_LABEL, owner.arguments[-2])
+        self.assertEqual(owner.arguments[-2], RESTORE_OWNER_FORMAT)
+        self.assertIn(RESTORE_DRILL_LABEL, RESTORE_OWNER_FORMAT)
         self.assertEqual(owner.arguments[-1], self.target.container_name)
         self.assertEqual(owner.timeout_seconds, RESTORE_READY_PROBE_SECONDS)
 
     def test_upload_restore_and_cleanup_stay_inside_disposable_target(self) -> None:
         restore = self.commands.restore_uploads(SNAPSHOT, self.target)
-        cleanup = self.commands.remove_database(self.target)
+        cleanup = self.commands.remove_database(self.target, "d" * 64)
 
         self.assertEqual(restore.arguments[0], "restic")
         self.assertIn("--verify", restore.arguments)
@@ -151,9 +153,11 @@ class RestoreCommandsTest(unittest.TestCase):
                 "rm",
                 "--force",
                 "--volumes",
-                self.target.container_name,
+                "d" * 64,
             ),
         )
+        with self.assertRaises(ValueError):
+            self.commands.remove_database(self.target, "short")
 
     def test_rejects_a_target_overlapping_application_data(self) -> None:
         overlap = self.root / "empty-restore-target"
