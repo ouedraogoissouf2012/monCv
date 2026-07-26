@@ -14,6 +14,10 @@ from .receipt import decode_backup_receipt as decode_backup_receipt
 from .receipt import decode_restore_receipt as decode_restore_receipt
 from .receipt import encode_backup_receipt as encode_backup_receipt
 from .receipt import encode_restore_receipt as encode_restore_receipt
+from .receipt_store import read_backup_receipt as read_backup_receipt
+from .receipt_store import read_restore_receipt as read_restore_receipt
+from .receipt_store import write_backup_receipt as write_backup_receipt
+from .receipt_store import write_restore_receipt as write_restore_receipt
 from .restore import RestoreCoordinator as RestoreCoordinator
 from .restore_commands import RestoreCommands as RestoreCommands
 from .restore_contract import RestoreError as RestoreError
