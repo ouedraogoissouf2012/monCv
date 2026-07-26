@@ -70,10 +70,14 @@ jobs:
           printf '%s\n' \
             'name: l10n_verifier' \
             'environment:' \
-            "  sdk: '>=3.10.0 <4.0.0'" \
+            "  sdk: '>=3.0.0 <4.0.0'" \
             'flutter:' \
             '  generate: true' \
             > "$RUNNER_TEMP/l10n-project/pubspec.yaml"
+
+      - name: Initialize isolated formatter metadata
+        working-directory: ${{ runner.temp }}/l10n-project
+        run: flutter pub get --offline
 
       # Fixed options treat candidate ARB files as data and ignore candidate config.
       - name: Regenerate localizations in isolation
@@ -84,6 +88,7 @@ jobs:
           --output-dir lib/l10n
           --template-arb-file app_fr.arb
           --output-localization-file app_localizations.dart
+          --format
 
       - name: Verify committed generator output
         run: |
