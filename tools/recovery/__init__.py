@@ -1,5 +1,6 @@
 """Secure recovery tooling for production data."""
 
+from .application import RecoveryApplication as RecoveryApplication
 from .backup import BackupCoordinator as BackupCoordinator
 from .backup import BackupError as BackupError
 from .backup import BackupReceipt as BackupReceipt
@@ -16,6 +17,7 @@ from .receipt import encode_backup_receipt as encode_backup_receipt
 from .receipt import encode_restore_receipt as encode_restore_receipt
 from .receipt_store import read_backup_receipt as read_backup_receipt
 from .receipt_store import read_restore_receipt as read_restore_receipt
+from .receipt_store import validate_receipt_destination as validate_receipt_destination
 from .receipt_store import write_backup_receipt as write_backup_receipt
 from .receipt_store import write_restore_receipt as write_restore_receipt
 from .restore import RestoreCoordinator as RestoreCoordinator
