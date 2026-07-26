@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 
 
@@ -25,3 +27,19 @@ class RestoreError(RuntimeError):
     def __init__(self, error_codes: tuple[str | RestoreFailure, ...]) -> None:
         self.error_codes = tuple(dict.fromkeys(str(code) for code in error_codes))
         super().__init__("Restore failed: " + ", ".join(self.error_codes))
+
+
+@dataclass(frozen=True)
+class RestoreReceipt:
+    drill_id: str
+    operation_id: str
+    deployed_sha: str
+    database_snapshot: str
+    uploads_snapshot: str
+    latest_migration: str
+    migration_count: int
+    upload_files: int
+    upload_directories: int
+    upload_bytes: int
+    uploads_sha256: str
+    completed_at: datetime
