@@ -9,6 +9,8 @@ from tools.recovery.identity import SnapshotIdentity
 from tools.recovery.restore_commands import (
     RESTORE_DATABASE_IMAGE,
     RESTORE_DATABASE_NAME,
+    RESTORE_DRILL_LABEL,
+    RESTORE_READY_PROBE_SECONDS,
     RESTORE_SCHEMA_QUERY,
     RESTORE_TIMEOUT_SECONDS,
     RestoreCommands,
@@ -91,6 +93,10 @@ class RestoreCommandsTest(unittest.TestCase):
             "com.moncv.recovery.operation=" + OPERATION,
             arguments,
         )
+        self.assertIn(
+            RESTORE_DRILL_LABEL + "=" + self.target.drill_id,
+            arguments,
+        )
         self.assertNotIn(PASSWORD, " ".join(arguments))
 
     def test_database_commands_use_atomic_restore_and_fixed_schema_query(self) -> None:
@@ -108,7 +114,7 @@ class RestoreCommandsTest(unittest.TestCase):
         self.assertEqual(schema.arguments[-1], RESTORE_SCHEMA_QUERY)
         for spec in (ready, restore, schema):
             self.assertIn(self.target.container_name, spec.arguments)
-        self.assertEqual(ready.timeout_seconds, DEFAULT_TIMEOUT_SECONDS)
+        self.assertEqual(ready.timeout_seconds, RESTORE_READY_PROBE_SECONDS)
         self.assertEqual(schema.timeout_seconds, DEFAULT_TIMEOUT_SECONDS)
         self.assertEqual(restore.timeout_seconds, RESTORE_TIMEOUT_SECONDS)
 
@@ -117,6 +123,12 @@ class RestoreCommandsTest(unittest.TestCase):
         self.assertEqual(pipeline.source, self.commands.database_dump(SNAPSHOT))
         self.assertEqual(pipeline.sink, restore)
         self.assertEqual(pipeline.timeout_seconds, RESTORE_TIMEOUT_SECONDS)
+
+        owner = self.commands.database_owner(self.target)
+        self.assertEqual(owner.arguments[:3], ("docker", "inspect", "--format"))
+        self.assertIn(RESTORE_DRILL_LABEL, owner.arguments[-2])
+        self.assertEqual(owner.arguments[-1], self.target.container_name)
+        self.assertEqual(owner.timeout_seconds, RESTORE_READY_PROBE_SECONDS)
 
     def test_upload_restore_and_cleanup_stay_inside_disposable_target(self) -> None:
         restore = self.commands.restore_uploads(SNAPSHOT, self.target)
