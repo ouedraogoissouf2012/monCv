@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
 from collections import Counter
 from math import log2
@@ -26,6 +27,20 @@ class ReleaseSettingsTest(unittest.TestCase):
         context = ReleaseContext(root, "a" * 40, "owner", "repository", False)
 
         self.assertEqual("3.41.9", context.flutter_version)
+
+    def test_flutter_version_must_be_exact(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mobile = root / "mobile"
+            mobile.mkdir()
+            (mobile / ".fvmrc").write_text(
+                '{"flutter": "3.41.x"}',
+                encoding="utf-8",
+            )
+            context = ReleaseContext(root, "a" * 40, "owner", "repository", False)
+
+            with self.assertRaisesRegex(ValueError, "Invalid exact Flutter version"):
+                _ = context.flutter_version
 
     def test_local_test_jwt_secret_meets_backend_entropy_policy(self) -> None:
         frequencies = Counter(LOCAL_TEST_JWT_SECRET)

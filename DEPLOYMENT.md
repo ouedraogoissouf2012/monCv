@@ -7,7 +7,7 @@ rollback ou tourner les secrets, consultez
 ## Prerequis
 
 - Java 21 et Maven 3.9+
-- Flutter 3.38.5 et Dart associe
+- Flutter dans la version exacte declaree par `mobile/.fvmrc`, et Dart associe
 - PostgreSQL 17 et Redis 7 pour une execution sans Docker
 - Docker avec Docker Compose pour le stack conteneurise
 
