@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -124,7 +125,7 @@ class RecoveryCommands:
             "--host",
             "moncv-production",
             *self._tag_arguments(identity, SnapshotKind.UPLOADS),
-            "--one-file-system",
+            *_uploads_scope_arguments(os.name),
             "--",
             str(self._settings.uploads_path),
             timeout_seconds=BACKUP_TIMEOUT_SECONDS,
@@ -187,6 +188,10 @@ class RecoveryCommands:
         identity: SnapshotIdentity, kind: SnapshotKind
     ) -> tuple[str, ...]:
         return tuple(value for tag in identity.tags(kind) for value in ("--tag", tag))
+
+
+def _uploads_scope_arguments(platform_name: str) -> tuple[str, ...]:
+    return () if platform_name == "nt" else ("--one-file-system",)
 
 
 def restic_command(

@@ -11,12 +11,12 @@ from unittest.mock import Mock, patch
 import psutil
 
 from tools.recovery.commands import CommandSpec
+from tools.recovery.processes import process_group_options
 from tools.recovery.runner import (
     RecoveryCommandError,
     SafeCommandRunner,
     sanitized_environment,
 )
-from tools.recovery.processes import process_group_options
 
 
 class SafeCommandRunnerTest(unittest.TestCase):
@@ -144,6 +144,7 @@ class SafeCommandRunnerTest(unittest.TestCase):
     def test_sanitizes_environment_by_target_tool(self) -> None:
         source = {
             "PATH": "system-path",
+            "ProgramFiles": "trusted-install-root",
             "DOCKER_HOST": "named-context",
             "AWS_SECRET_ACCESS_KEY": "cloud-credential",
             "RESTIC_PASSWORD": "override",
@@ -155,7 +156,12 @@ class SafeCommandRunnerTest(unittest.TestCase):
         restic = sanitized_environment(("restic", "version"), source)
 
         self.assertEqual(
-            compose, {"PATH": "system-path", "DOCKER_HOST": "named-context"}
+            compose,
+            {
+                "PATH": "system-path",
+                "ProgramFiles": "trusted-install-root",
+                "DOCKER_HOST": "named-context",
+            },
         )
         self.assertIn("AWS_SECRET_ACCESS_KEY", restic)
         self.assertNotIn("RESTIC_PASSWORD", restic)

@@ -28,6 +28,7 @@ CORE_ENVIRONMENT = frozenset(
         "no_proxy",
         "path",
         "pathext",
+        "programfiles",
         "ssh_auth_sock",
         "ssl_cert_dir",
         "ssl_cert_file",

@@ -16,6 +16,10 @@ MIGRATION_FILE = re.compile(
 )
 MIGRATION_VERSION = re.compile(r"[0-9]+(?:[._][0-9]+)*")
 MANAGED_TAG_PREFIXES = ("operation:", "git:", "kind:")
+WINDOWS_DATABASE_DUMP_NAME = DATABASE_DUMP_NAME.replace("/", "\\")
+WINDOWS_DATABASE_SNAPSHOT_PATH = re.compile(
+    rf"[A-Za-z]:\\{re.escape(WINDOWS_DATABASE_DUMP_NAME)}"
+)
 
 
 class RestoreValidationError(RuntimeError):
@@ -136,12 +140,12 @@ def validate_snapshot_metadata(
             or not isinstance(paths[0], str)
         ):
             raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
-        expected_path = (
-            "/" + DATABASE_DUMP_NAME
+        valid_path = (
+            _valid_database_snapshot_path(paths[0])
             if kind is SnapshotKind.DATABASE
-            else str(expected_uploads_path)
+            else paths[0] == str(expected_uploads_path)
         )
-        if paths[0] != expected_path:
+        if not valid_path:
             raise RestoreValidationError("RESTORE_SNAPSHOTS_INVALID")
         required = set(identity.tags(kind))
         managed = [
@@ -177,3 +181,10 @@ def _version_key(version: str) -> tuple[int, ...]:
     while len(values) > 1 and values[-1] == 0:
         values.pop()
     return tuple(values)
+
+
+def _valid_database_snapshot_path(path: str) -> bool:
+    return (
+        path == "/" + DATABASE_DUMP_NAME
+        or WINDOWS_DATABASE_SNAPSHOT_PATH.fullmatch(path) is not None
+    )
