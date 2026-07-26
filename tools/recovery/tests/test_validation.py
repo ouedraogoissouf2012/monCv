@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from tools.recovery.backup import BackupReceipt
@@ -118,7 +118,7 @@ class SnapshotValidationTest(unittest.TestCase):
             SHA,
             DATABASE_SNAPSHOT,
             UPLOADS_SNAPSHOT,
-            datetime(2026, 7, 22, tzinfo=timezone.utc),
+            datetime(2026, 7, 22, tzinfo=UTC),
         )
 
     def metadata(self, snapshot_id: str, kind: str) -> dict:
@@ -148,6 +148,15 @@ class SnapshotValidationTest(unittest.TestCase):
         self.assertEqual(proof.operation_id, OPERATION)
         self.assertEqual(proof.deployed_sha, SHA)
 
+    def test_accepts_canonical_windows_database_snapshot_path(self) -> None:
+        database = self.metadata(DATABASE_SNAPSHOT, "database")
+        database["paths"] = [r"C:\moncv\postgres.dump"]
+        output = json.dumps([database, self.metadata(UPLOADS_SNAPSHOT, "uploads")])
+
+        proof = validate_snapshot_metadata(output, self.receipt, self.uploads_path)
+
+        self.assertEqual(proof.database_snapshot, DATABASE_SNAPSHOT)
+
     def test_rejects_missing_duplicate_or_conflicting_metadata_without_leak(
         self,
     ) -> None:
@@ -159,6 +168,8 @@ class SnapshotValidationTest(unittest.TestCase):
         wrong_host["hostname"] = marker
         wrong_path = self.metadata(UPLOADS_SNAPSHOT, "uploads")
         wrong_path["paths"] = [marker]
+        wrong_database_path = self.metadata(DATABASE_SNAPSHOT, "database")
+        wrong_database_path["paths"] = [r"C:\other\postgres.dump"]
         invalid = (
             marker,
             "[]",
@@ -167,6 +178,12 @@ class SnapshotValidationTest(unittest.TestCase):
             json.dumps([database, conflicting]),
             json.dumps([database, wrong_host]),
             json.dumps([database, wrong_path]),
+            json.dumps(
+                [
+                    wrong_database_path,
+                    self.metadata(UPLOADS_SNAPSHOT, "uploads"),
+                ]
+            ),
         )
         for output in invalid:
             with (

@@ -3,17 +3,19 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tools.recovery.commands import (
-    BACKUP_TIMEOUT_SECONDS,
     BACKEND_START_TIMEOUT_SECONDS,
     BACKEND_START_WAIT_SECONDS,
     BACKEND_STOP_GRACE_SECONDS,
+    BACKUP_TIMEOUT_SECONDS,
     CHECK_TIMEOUT_SECONDS,
     DATABASE_DUMP_COMMAND,
     DATABASE_DUMP_NAME,
     CommandSpec,
     RecoveryCommands,
+    _uploads_scope_arguments,
 )
 from tools.recovery.identity import SnapshotIdentity
 from tools.recovery.settings import RecoverySettings
@@ -98,12 +100,20 @@ class RecoveryCommandsTest(unittest.TestCase):
         self.assert_snapshot_tags(spec, "database")
 
     def test_upload_backup_stays_on_the_configured_filesystem(self) -> None:
-        spec = self.commands.uploads_backup(self.identity)
+        with patch(
+            "tools.recovery.commands._uploads_scope_arguments",
+            return_value=("--one-file-system",),
+        ):
+            spec = self.commands.uploads_backup(self.identity)
 
         self.assertEqual(spec.timeout_seconds, BACKUP_TIMEOUT_SECONDS)
         self.assertIn("--one-file-system", spec.arguments)
         self.assertEqual(spec.arguments[-2:], ("--", str(self.uploads)))
         self.assert_snapshot_tags(spec, "uploads")
+
+    def test_upload_backup_avoids_unsupported_windows_device_scope(self) -> None:
+        self.assertEqual(_uploads_scope_arguments("nt"), ())
+        self.assertEqual(_uploads_scope_arguments("posix"), ("--one-file-system",))
 
     def test_no_command_contains_secret_file_contents_or_repository_url(self) -> None:
         specs = (
