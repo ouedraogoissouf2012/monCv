@@ -1,0 +1,148 @@
+name: CI — Trusted reports
+
+on:
+  workflow_run:
+    workflows: [CI — Build & Test]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: ci-reports-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  backend-codecov:
+    name: Backend — Trusted Codecov upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download backend coverage artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: backend-jacoco-report
+          path: coverage/backend
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Upload backend coverage to Codecov
+        if: steps.download.outcome == 'success'
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        with:
+          use_oidc: true
+          disable_search: true
+          files: coverage/backend/jacoco.xml
+          flags: backend
+          fail_ci_if_error: false
+          override_branch: ${{ github.event.workflow_run.head_branch }}
+          override_build: ${{ github.event.workflow_run.id }}
+          override_build_url: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.event.workflow_run.id) }}
+          override_commit: ${{ github.event.workflow_run.head_sha }}
+          override_pr: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
+
+  frontend-codecov:
+    name: Frontend — Trusted Codecov upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download Flutter coverage artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: flutter-lcov-report
+          path: coverage/flutter
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Upload Flutter coverage to Codecov
+        if: steps.download.outcome == 'success'
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        with:
+          use_oidc: true
+          disable_search: true
+          files: coverage/flutter/lcov.info
+          flags: flutter
+          fail_ci_if_error: false
+          override_branch: ${{ github.event.workflow_run.head_branch }}
+          override_build: ${{ github.event.workflow_run.id }}
+          override_build_url: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.event.workflow_run.id) }}
+          override_commit: ${{ github.event.workflow_run.head_sha }}
+          override_pr: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
+
+  flutter-coverage-comment:
+    name: Frontend — Trusted coverage comment
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Download Flutter coverage summary
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: flutter-lcov-report
+          path: coverage/flutter
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Check current pull request head
+        id: freshness
+        if: steps.download.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          current_sha="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')"
+          if [ "$current_sha" = "$EXPECTED_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build trusted coverage summary
+        id: summary
+        if: steps.download.outcome == 'success' && steps.freshness.outputs.current == 'true'
+        run: |
+          test "$(wc -c < coverage/flutter/lcov.info)" -le 10485760
+          awk -F: '
+            $1 == "LF" && $2 ~ /^[0-9]+$/ { total += $2 }
+            $1 == "LH" && $2 ~ /^[0-9]+$/ { hit += $2 }
+            END {
+              if (total <= 0 || hit < 0 || hit > total) exit 1
+              printf "# Couverture Flutter\n\n"
+              printf "| Mesure | Valeur |\n|---|---:|\n"
+              printf "| Lignes couvertes | %d / %d |\n", hit, total
+              printf "| Couverture | %.2f%% |\n", (100 * hit / total)
+            }
+          ' coverage/flutter/lcov.info > coverage/flutter/trusted-summary.md
+
+      - name: Comment coverage on pull request
+        if: steps.summary.outcome == 'success'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          header: flutter-coverage
+          number_force: ${{ github.event.workflow_run.pull_requests[0].number }}
+          path: coverage/flutter/trusted-summary.md

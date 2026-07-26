@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-EXPECTED_FLUTTER_VERSION = "3.38.5"
 LOCAL_TEST_JWT_SECRET = base64.urlsafe_b64encode(
     hashlib.sha512(b"moncv-local-release-test-jwt-v1").digest()
 ).decode("ascii")
@@ -19,6 +19,7 @@ TRIVY_IMAGE = (
     "sha256:cffe3f5161a47a6823fbd23d985795b3ed72a4c806da4c4df16266c02accdd6f"
 )
 _SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+_FLUTTER_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 _GITHUB_REMOTE = re.compile(
     r"github\.com[/:](?P<owner>[^/]+)/(?P<repository>[^/]+?)(?:\.git)?$"
 )
@@ -63,6 +64,17 @@ class ReleaseContext:
     @property
     def short_sha(self) -> str:
         return self.sha[:12]
+
+    @property
+    def flutter_version(self) -> str:
+        path = self.root / "mobile" / ".fvmrc"
+        try:
+            version = json.loads(path.read_text(encoding="utf-8"))["flutter"]
+        except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
+            raise ValueError(f"Invalid Flutter version file: {path}") from error
+        if not isinstance(version, str) or not _FLUTTER_VERSION_PATTERN.fullmatch(version):
+            raise ValueError(f"Invalid exact Flutter version in {path}: {version!r}")
+        return version
 
     @property
     def tag_suffix(self) -> str:

@@ -11,7 +11,6 @@ from pathlib import Path
 from .quality import run_repository_quality
 from .runner import CommandError, CommandRunner
 from .settings import (
-    EXPECTED_FLUTTER_VERSION,
     LOCAL_TEST_JWT_SECRET,
     TRIVY_IMAGE,
     TRIVY_SCAN_TIMEOUT,
@@ -60,13 +59,17 @@ class ReleasePipeline:
             )
         if self.options.publish and self.context.dirty:
             raise CommandError("Publishing a dirty working tree is forbidden")
-        flutter_version = self.runner.capture(
+        installed_flutter = self.runner.capture(
             ["flutter", "--version"], cwd=self.context.root
         )
-        if EXPECTED_FLUTTER_VERSION not in flutter_version.splitlines()[0]:
+        try:
+            expected_flutter = self.context.flutter_version
+        except ValueError as error:
+            raise CommandError(str(error)) from error
+        if f"Flutter {expected_flutter} " not in installed_flutter.splitlines()[0]:
             raise CommandError(
-                f"Flutter {EXPECTED_FLUTTER_VERSION} is required; got "
-                f"{flutter_version.splitlines()[0]}"
+                f"Flutter {expected_flutter} is required; got "
+                f"{installed_flutter.splitlines()[0]}"
             )
         self.runner.run(["docker", "version"], cwd=self.context.root)
         self.runner.run(["docker", "compose", "version"], cwd=self.context.root)
