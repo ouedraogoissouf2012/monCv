@@ -35,6 +35,21 @@ def write_restore_receipt(path: Path, receipt: RestoreReceipt) -> None:
     _write_document(path, encode_restore_receipt(receipt))
 
 
+def validate_receipt_destination(path: Path) -> Path:
+    candidate = _absolute_path(path)
+    try:
+        if (
+            _path_has_link(candidate.parent)
+            or not candidate.parent.is_dir()
+            or candidate.exists()
+            or _is_link(candidate)
+        ):
+            raise OSError
+        return candidate
+    except OSError as error:
+        raise ReceiptError("RECEIPT_WRITE_FAILED") from error
+
+
 def _read_document(path: Path) -> str:
     candidate = _absolute_path(path)
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -60,7 +75,7 @@ def _read_document(path: Path) -> str:
 
 
 def _write_document(path: Path, document: str) -> None:
-    candidate = _absolute_path(path)
+    candidate = validate_receipt_destination(path)
     parent = candidate.parent
     temporary: Path | None = None
     descriptor: int | None = None
