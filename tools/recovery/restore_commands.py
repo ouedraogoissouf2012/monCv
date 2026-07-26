@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from .commands import (
@@ -18,6 +19,8 @@ from .target import RestoreTarget
 RESTORE_TIMEOUT_SECONDS = 3600
 RESTORE_READY_PROBE_SECONDS = 5
 RESTORE_DRILL_LABEL = "com.moncv.recovery.drill"
+RESTORE_OWNER_FORMAT = '{{.Id}}|{{index .Config.Labels "' + RESTORE_DRILL_LABEL + '"}}'
+DOCKER_CONTAINER_ID = re.compile(r"[0-9a-f]{64}")
 RESTORE_DATABASE_IMAGE = (
     "postgres@sha256:979c4379dd698aba0b890599a6104e082035f98ef31d9b9291ec22f2b13059ca"
 )
@@ -134,7 +137,7 @@ class RestoreCommands:
                 "docker",
                 "inspect",
                 "--format",
-                '{{ index .Config.Labels "' + RESTORE_DRILL_LABEL + '" }}',
+                RESTORE_OWNER_FORMAT,
                 target.container_name,
             ),
             cwd=self._settings.root,
@@ -194,11 +197,16 @@ class RestoreCommands:
             snapshot_id,
         )
 
-    def remove_database(self, target: RestoreTarget) -> CommandSpec:
+    def remove_database(self, target: RestoreTarget, container_id: str) -> CommandSpec:
         self._require_disposable_target(target)
+        if (
+            not isinstance(container_id, str)
+            or DOCKER_CONTAINER_ID.fullmatch(container_id) is None
+        ):
+            raise ValueError("container_id must be a full lowercase Docker identifier")
         return CommandSpec(
             action="remove isolated restore database",
-            arguments=("docker", "rm", "--force", "--volumes", target.container_name),
+            arguments=("docker", "rm", "--force", "--volumes", container_id),
             cwd=self._settings.root,
         )
 
