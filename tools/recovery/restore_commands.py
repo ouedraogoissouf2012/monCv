@@ -16,6 +16,8 @@ from .settings import RecoverySettings
 from .target import RestoreTarget
 
 RESTORE_TIMEOUT_SECONDS = 3600
+RESTORE_READY_PROBE_SECONDS = 5
+RESTORE_DRILL_LABEL = "com.moncv.recovery.drill"
 RESTORE_DATABASE_IMAGE = (
     "postgres@sha256:979c4379dd698aba0b890599a6104e082035f98ef31d9b9291ec22f2b13059ca"
 )
@@ -69,6 +71,8 @@ class RestoreCommands:
                 "com.moncv.recovery=restore-drill",
                 "--label",
                 f"com.moncv.recovery.operation={target.operation_id}",
+                "--label",
+                f"{RESTORE_DRILL_LABEL}={target.drill_id}",
                 "--network",
                 "none",
                 "--read-only",
@@ -119,6 +123,22 @@ class RestoreCommands:
             "postgres",
             "--dbname",
             RESTORE_DATABASE_NAME,
+            timeout_seconds=RESTORE_READY_PROBE_SECONDS,
+        )
+
+    def database_owner(self, target: RestoreTarget) -> CommandSpec:
+        self._require_disposable_target(target)
+        return CommandSpec(
+            action="inspect isolated restore ownership",
+            arguments=(
+                "docker",
+                "inspect",
+                "--format",
+                '{{ index .Config.Labels "' + RESTORE_DRILL_LABEL + '" }}',
+                target.container_name,
+            ),
+            cwd=self._settings.root,
+            timeout_seconds=RESTORE_READY_PROBE_SECONDS,
         )
 
     def import_database(self, target: RestoreTarget) -> CommandSpec:
