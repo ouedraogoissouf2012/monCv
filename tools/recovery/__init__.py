@@ -9,6 +9,11 @@ from .identity import SnapshotIdentity as SnapshotIdentity
 from .identity import SnapshotKind as SnapshotKind
 from .pipeline import PipelineSpec as PipelineSpec
 from .pipeline import SafePipelineRunner as SafePipelineRunner
+from .receipt import ReceiptError as ReceiptError
+from .receipt import decode_backup_receipt as decode_backup_receipt
+from .receipt import decode_restore_receipt as decode_restore_receipt
+from .receipt import encode_backup_receipt as encode_backup_receipt
+from .receipt import encode_restore_receipt as encode_restore_receipt
 from .restore import RestoreCoordinator as RestoreCoordinator
 from .restore_commands import RestoreCommands as RestoreCommands
 from .restore_contract import RestoreError as RestoreError
