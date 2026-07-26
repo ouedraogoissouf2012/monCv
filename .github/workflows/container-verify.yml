@@ -1,0 +1,71 @@
+name: Container — Verify
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  docker-verify:
+    name: Docker — Build & Trivy scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Build backend image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./backend
+          load: true
+          push: false
+          tags: moncv-backend:${{ github.sha }}
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: moncv-backend:${{ github.sha }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+      - name: Build frontend image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: ./mobile
+          load: true
+          push: false
+          tags: moncv-web:${{ github.sha }}
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: moncv-web:${{ github.sha }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+      - name: Save verified images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: >-
+          docker save --output "$RUNNER_TEMP/verified-images.tar"
+          moncv-backend:${{ github.sha }}
+          moncv-web:${{ github.sha }}
+
+      - name: Upload verified images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: verified-images
+          path: ${{ runner.temp }}/verified-images.tar
+          retention-days: 1

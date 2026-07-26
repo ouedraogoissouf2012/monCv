@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import Mock, call
+from unittest.mock import Mock, call, patch
 
 from tools.release.browser_flow import BrowserSmokeFlow
 
@@ -31,6 +31,20 @@ class BrowserSmokeFlowTest(unittest.TestCase):
         self.flow._cleanup(suppress_errors=True)
 
         self.assertEqual(self.api.delete_cv.call_count, 2)
+
+    @patch("tools.release.browser_flow.expect")
+    def test_field_fill_is_atomic_across_flutter_rebuilds(
+        self, expect_value: Mock
+    ) -> None:
+        field = Mock()
+
+        result = self.flow._fill(field, "Smoke Codex")
+
+        self.assertIs(result, field)
+        field.scroll_into_view_if_needed.assert_called_once_with()
+        field.fill.assert_called_once_with("Smoke Codex")
+        self.flow.page.keyboard.type.assert_not_called()
+        expect_value.assert_called_once_with(field)
 
 
 if __name__ == "__main__":

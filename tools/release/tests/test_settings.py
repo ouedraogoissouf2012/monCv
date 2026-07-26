@@ -21,6 +21,12 @@ class FakeRunner:
 
 
 class ReleaseSettingsTest(unittest.TestCase):
+    def test_flutter_version_comes_from_fvm_config(self) -> None:
+        root = Path(__file__).resolve().parents[3]
+        context = ReleaseContext(root, "a" * 40, "owner", "repository", False)
+
+        self.assertEqual("3.41.9", context.flutter_version)
+
     def test_local_test_jwt_secret_meets_backend_entropy_policy(self) -> None:
         frequencies = Counter(LOCAL_TEST_JWT_SECRET)
         length = len(LOCAL_TEST_JWT_SECRET)

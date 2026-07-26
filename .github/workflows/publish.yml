@@ -1,0 +1,69 @@
+name: Trusted Docker publication
+
+on:
+  workflow_run:
+    workflows: [CI — Build & Test]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: trusted-docker-publication
+  cancel-in-progress: false
+
+jobs:
+  docker-publish:
+    name: Images — Publish verified images
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+
+    steps:
+      - name: Reject stale main publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          current_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$current_sha" = "$EXPECTED_SHA"
+
+      - name: Download verified images
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: verified-images
+          path: image
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Push verified images
+        env:
+          IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
+          BACKEND_REPOSITORY: ghcr.io/${{ github.repository_owner }}/cv-mobile-backend
+          FRONTEND_REPOSITORY: ghcr.io/${{ github.repository_owner }}/cv-mobile-web
+        run: |
+          docker load --input image/verified-images.tar
+          docker tag "moncv-backend:$IMAGE_SHA" "$BACKEND_REPOSITORY:$IMAGE_SHA"
+          docker tag "moncv-backend:$IMAGE_SHA" "$BACKEND_REPOSITORY:latest"
+          docker tag "moncv-web:$IMAGE_SHA" "$FRONTEND_REPOSITORY:$IMAGE_SHA"
+          docker tag "moncv-web:$IMAGE_SHA" "$FRONTEND_REPOSITORY:latest"
+          docker push "$BACKEND_REPOSITORY:$IMAGE_SHA"
+          docker push "$BACKEND_REPOSITORY:latest"
+          docker push "$FRONTEND_REPOSITORY:$IMAGE_SHA"
+          docker push "$FRONTEND_REPOSITORY:latest"

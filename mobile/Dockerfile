@@ -1,8 +1,14 @@
 # syntax=docker/dockerfile:1.7
 
-FROM ghcr.io/cirruslabs/flutter:3.38.5@sha256:5d943d2f328d8e6624d56eefd1f9a71897b96e79b766dfb0f2e42c6b6498cf8d AS build
+FROM ghcr.io/cirruslabs/flutter@sha256:c6fed8fee02ca8fdb1b8dc128df99f6e29b7305847b80f4b0c1e3f638e7637a8 AS build
 
 WORKDIR /build
+
+COPY .fvmrc ./
+RUN expected="$(sed -n 's/.*"flutter"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .fvmrc)" \
+    && actual="$(flutter --version | sed -n '1s/^Flutter \([^ ]*\).*/\1/p')" \
+    && test -n "$expected" \
+    && test "$actual" = "$expected"
 
 COPY pubspec.yaml pubspec.lock ./
 RUN --mount=type=cache,target=/root/.pub-cache \

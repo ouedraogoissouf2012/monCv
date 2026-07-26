@@ -13,3 +13,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: ci-workflow-security
+        name: CI workflow security policy
+        entry: python -m tools.ci.check_workflow_security
+        language: system
+        pass_filenames: false
+        always_run: true
