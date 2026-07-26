@@ -31,7 +31,7 @@ Ce document centralise les variables de configuration du backend Spring Boot, du
 | `AI_MODEL` | string | non | `deepseek-chat` | Modele IA. |
 | `DEEPSEEK_BASE_URL` | url | non | `https://api.deepseek.com/v1` | Base URL du fournisseur. |
 | `AI_FALLBACK_ENABLED` | bool | non | `true` | Active le fallback mock/local. |
-| `RATE_LIMIT_ENABLED` | bool | non | `true` | Active la limitation de debit. |
+| `RATE_LIMIT_ENABLED` | bool | non | `false` direct, `true` avec Compose | Active la limitation de debit. |
 | `RATE_LIMIT_ADMIN_BYPASS` | bool | non | `true` | Autorise le bypass administrateur hors production. |
 | `RATE_LIMIT_REDIS_URL` | URI | non | `redis://localhost:6379` | Stockage partage des compteurs. |
 | `FIREBASE_NOTIFICATIONS_ENABLED` | bool | non | `false` | Active FCM cote backend. |

@@ -12,7 +12,7 @@ import java.time.Duration;
 @Validated
 @ConfigurationProperties("security.rate-limit")
 public record RateLimitProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("true") boolean adminBypass,
         @DefaultValue("10") @Min(1) int authRequests,
         @DefaultValue("1m") @NotNull Duration authWindow,
