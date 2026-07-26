@@ -29,6 +29,9 @@ from .runner import SafeCommandRunner as SafeCommandRunner
 from .settings import RecoveryConfigurationError as RecoveryConfigurationError
 from .settings import RecoverySettings as RecoverySettings
 from .target import RestoreTarget as RestoreTarget
+from .toolchain import ToolchainError as ToolchainError
+from .toolchain import ToolchainProof as ToolchainProof
+from .toolchain import ToolchainVerifier as ToolchainVerifier
 from .uploads import UploadsProof as UploadsProof
 from .uploads import validate_restored_uploads as validate_restored_uploads
 from .validation import MigrationCatalog as MigrationCatalog
