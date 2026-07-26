@@ -41,6 +41,7 @@ class BrowserSmokeFlow:
             self.token = self.api.login(self.identity.email, self.identity.password)
             self._create_cv()
             created = self.api.find_cv(self.identity.cv_title, self.token)
+            self._assert_location(created)
             self.cv_id = self._integer_id(created, "created CV")
             self._verify_detail_and_api()
             self._customize()
@@ -100,11 +101,11 @@ class BrowserSmokeFlow:
         for _ in range(4):
             self._click("Suivant")
         self._click("Enregistrer le CV")
-        expect(
-            self.page.get_by_role(
-                "group", name=re.compile(re.escape(self.identity.cv_title))
-            ).first
-        ).to_be_visible(timeout=30_000)
+        title = re.compile(re.escape(self.identity.cv_title))
+        card_marker = self.page.get_by_text(
+            self.identity.cv_title, exact=True
+        ).or_(self.page.get_by_role("progressbar", name=title))
+        expect(card_marker.first).to_be_visible(timeout=30_000)
         print("[browser-smoke] CV creation passed", flush=True)
 
     def _verify_detail_and_api(self) -> None:
@@ -149,8 +150,9 @@ class BrowserSmokeFlow:
         expect(self.page.locator("flt-semantics").first).to_be_attached()
 
     def _field(self, label: str) -> Locator:
-        candidate = self.page.get_by_label(label, exact=True).or_(
-            self.page.get_by_role("textbox", name=label, exact=True)
+        label_pattern = re.compile(rf"^{re.escape(label)}(?:\n|$)")
+        candidate = self.page.get_by_label(label_pattern).or_(
+            self.page.get_by_role("textbox", name=label_pattern)
         )
         target = candidate.first
         expect(target).to_be_visible()
@@ -162,36 +164,39 @@ class BrowserSmokeFlow:
         return target
 
     def _fill(self, target: Locator, value: str) -> Locator:
+        target.scroll_into_view_if_needed()
+        self.page.wait_for_timeout(100)
         for attempt in range(2):
-            focused = self._prepare_input(target)
-            self.page.keyboard.type(value, delay=15)
+            target.fill(value)
             try:
-                expect(focused).to_have_value(value, timeout=3_000)
+                expect(target).to_have_value(value, timeout=3_000)
                 self.page.wait_for_timeout(100)
-                return focused
+                return target
             except AssertionError:
                 if attempt == 1:
                     raise
-                self.page.keyboard.press("Tab")
                 self.page.wait_for_timeout(250)
         raise AssertionError(f"Unable to fill field with {value!r}")
 
     def _select_suggestion(self, label: str, value: str) -> None:
         target = self._field(label)
-        focused = self._prepare_input(target)
-        self.page.keyboard.insert_text(value)
-        expect(focused).to_have_value(value)
-        self.page.keyboard.press("ArrowDown")
-        self.page.keyboard.press("Enter")
+        target.fill(value)
         expect(self._field(label)).to_have_value(value)
 
-    def _prepare_input(self, target: Locator) -> Locator:
-        target.click()
-        focused = self.page.locator("input:focus, textarea:focus")
-        expect(focused).to_be_attached()
-        self.page.keyboard.press("ControlOrMeta+A")
-        self.page.keyboard.press("Backspace")
-        return focused
+        option = self.page.get_by_text(value, exact=True)
+        if option.count() and option.first.is_visible():
+            option.first.click()
+        else:
+            focused = self.page.locator("input:focus, textarea:focus")
+            focused_label = (
+                focused.first.get_attribute("aria-label")
+                if focused.count()
+                else None
+            )
+            if focused_label == label:
+                self.page.keyboard.press("ArrowDown")
+                self.page.keyboard.press("Enter")
+        expect(self._field(label)).to_have_value(value)
 
     def _button(self, label: str) -> Locator:
         target = self.page.get_by_role("button", name=label, exact=True).first
@@ -218,3 +223,15 @@ class BrowserSmokeFlow:
         if not isinstance(identifier, int):
             raise RuntimeError(f"The {label} has no integer id")
         return identifier
+
+    @staticmethod
+    def _assert_location(payload: dict[str, object]) -> None:
+        personal_info = payload.get("personalInfo")
+        if not isinstance(personal_info, dict):
+            raise RuntimeError("The created CV has no personal information")
+        actual = (personal_info.get("pays"), personal_info.get("ville"))
+        expected = ("Côte d'Ivoire", "Abidjan")
+        if actual != expected:
+            raise RuntimeError(
+                f"The created CV location is invalid: expected {expected}, got {actual}"
+            )
