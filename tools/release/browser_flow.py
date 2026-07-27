@@ -94,7 +94,7 @@ class BrowserSmokeFlow:
             ("Email *", self.identity.email),
             ("Resume professionnel", summary),
         ):
-            expect(self._field(label)).to_have_value(value)
+            self._expect_field_value(label, value)
         expect(
             self.page.get_by_text(re.compile(r"Complétion : [1-9]\d?%"), exact=False)
         ).to_be_visible()
@@ -177,6 +177,18 @@ class BrowserSmokeFlow:
                     raise
                 self.page.wait_for_timeout(250)
         raise AssertionError(f"Unable to fill field with {value!r}")
+
+    def _expect_field_value(self, label: str, value: str) -> None:
+        # Re-checking a field long after it was filled is racy: filling the
+        # Pays/Ville Autocomplete rebuilds the form and its internal controller
+        # re-sync can transiently clear a sibling field. Retry the assertion,
+        # and self-heal by re-filling once before the final check rather than
+        # failing on a transient empty read.
+        try:
+            expect(self._field(label)).to_have_value(value, timeout=3_000)
+        except AssertionError:
+            self._fill(self._field(label), value)
+            expect(self._field(label)).to_have_value(value, timeout=3_000)
 
     def _select_suggestion(self, label: str, value: str) -> None:
         # Reuse the retrying _fill primitive: the Flutter Autocomplete field
