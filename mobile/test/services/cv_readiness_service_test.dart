@@ -1,4 +1,5 @@
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/data/mappers/cv_mapper.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/cv_style.dart';
 import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -87,16 +88,22 @@ void main() {
   });
 
   test('evaluation reste identique apres serialisation et rechargement', () {
+    const mapper = CvMapper();
     final original = readyCv();
-    final reloaded = Cv.fromJson({
-      ...original.toJson(),
-      'id': 42,
-      'createdAt': '2026-07-16T10:00:00',
-      'updatedAt': '2026-07-16T10:01:00',
-    });
+    // Round-trip via le format reseau (contrat serveur) : le score de
+    // readiness ne doit pas changer apres (de)serialisation.
+    final reloaded = Cv.fromEntity(
+      mapper.fromNetworkJson({
+        ...mapper.toNetworkJson(original.entity),
+        'id': 42,
+        'createdAt': '2026-07-16T10:00:00',
+        'updatedAt': '2026-07-16T10:01:00',
+      }),
+    );
 
-    final reloadedJson = reloaded.toJson()..remove('id');
-    expect(reloadedJson, original.toJson());
+    // Hors id (ajoute au rechargement), le corps reseau doit etre identique.
+    final reloadedJson = mapper.toNetworkJson(reloaded.entity)..remove('id');
+    expect(reloadedJson, mapper.toNetworkJson(original.entity));
     expect(service.evaluate(reloaded).score, service.evaluate(original).score);
     expect(service.evaluate(reloaded).isReady, isTrue);
   });

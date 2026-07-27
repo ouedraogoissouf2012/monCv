@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 
 import '../core/error/error_mapper.dart';
 import '../core/security/public_share_token.dart';
-import '../models/cv.dart';
+import '../features/cv/data/mappers/cv_mapper.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../utils/constants.dart';
 import 'bounded_http_reader.dart';
 import 'secure_photo_api_client.dart';
@@ -40,7 +41,9 @@ final class PublicPortfolioApiClient {
     if (json is! Map<String, dynamic>) {
       throw const FormatException('Reponse de portfolio invalide');
     }
-    return Cv.fromJson(_normalizeMediaUrls(json));
+    return Cv.fromEntity(
+      const CvMapper().fromNetworkJson(_normalizeMediaUrls(json)),
+    );
   }
 
   Future<List<int>> download(String token, String format) async {

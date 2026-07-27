@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
-import '../models/cv.dart';
+import '../features/cv/data/cv_cache_codec.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
 import '../services/connectivity_service.dart';
@@ -124,7 +124,7 @@ class CvProvider with ChangeNotifier {
       await _syncQueue!.add(PendingOperation(
         id: 'create_$tempId',
         type: 'create',
-        cvJson: jsonEncode(cv.toJson()),
+        cvJson: cvToQueueString(cv),
         cvId: tempId,
         createdAt: DateTime.now(),
       ));
@@ -162,7 +162,7 @@ class CvProvider with ChangeNotifier {
       await _syncQueue!.add(PendingOperation(
         id: 'update_${id}_${DateTime.now().millisecondsSinceEpoch}',
         type: 'update',
-        cvJson: jsonEncode(cv.toJson()),
+        cvJson: cvToQueueString(cv),
         cvId: id,
         createdAt: DateTime.now(),
       ));
@@ -534,9 +534,8 @@ class CvProvider with ChangeNotifier {
       try {
         switch (op.type) {
           case 'create':
-            if (op.cvJson != null) {
-              final cv =
-                  Cv.fromJson(jsonDecode(op.cvJson!) as Map<String, dynamic>);
+            final cv = cvFromQueueString(op.cvJson);
+            if (cv != null) {
               final result = await _createCv(cv);
               if (result case Success(:final data)) {
                 final tempIndex = _cvs.indexWhere((c) => c.id == op.cvId);
@@ -545,9 +544,8 @@ class CvProvider with ChangeNotifier {
               }
             }
           case 'update':
-            if (op.cvJson != null && op.cvId != null && op.cvId! > 0) {
-              final cv =
-                  Cv.fromJson(jsonDecode(op.cvJson!) as Map<String, dynamic>);
+            final cv = cvFromQueueString(op.cvJson);
+            if (cv != null && op.cvId != null && op.cvId! > 0) {
               final result =
                   await _updateCv(UpdateCvParams(id: op.cvId!, cv: cv));
               if (result.isSuccess) await queue.remove(op.id);
