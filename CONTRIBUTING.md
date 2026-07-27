@@ -2,7 +2,7 @@
 
 ## Prerequis
 
-- Java 21
+- Java 25 (LTS)
 - Maven 3.9+
 - Flutter stable `3.41.x`
 - Python 3.12+ (garde-fous qualite)

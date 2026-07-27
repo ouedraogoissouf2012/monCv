@@ -16,7 +16,7 @@ and this project follows semantic-style release notes even if Git tags are still
 ### Changed
 
 - Spring Boot upgraded to `3.3.13`
-- backend Java target aligned to `21`
+- backend Java target upgraded from `21` to `25` (LTS); CI, release and Docker runtime images aligned and pinned by digest (see `docs/adr/001-migration-java-25.md`)
 - Docker runtime and local compose flow hardened for production-readiness work
 
 ### Fixed
