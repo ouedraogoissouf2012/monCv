@@ -18,7 +18,7 @@
     <description>Backend API pour l'application mobile de creation de CV</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <firebase-admin.version>9.10.0</firebase-admin.version>
         <grpc.version>1.75.0</grpc.version>
         <jackson-bom.version>2.21.4</jackson-bom.version>
