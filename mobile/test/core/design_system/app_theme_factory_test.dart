@@ -69,6 +69,16 @@ void main() {
       });
     }
 
+    test('appbar surface tint matches the original per mode', () {
+      // Seul Vibrant neutralisait la teinte M3 dans l'ancien theme.
+      expect(AppThemeFactory.build(AppThemeModes.vibrant).appBarTheme
+          .surfaceTintColor, const Color(0x00000000)); // transparent
+      expect(AppThemeFactory.build(AppThemeModes.minimal).appBarTheme
+          .surfaceTintColor, isNull);
+      expect(AppThemeFactory.build(AppThemeModes.premium).appBarTheme
+          .surfaceTintColor, isNull);
+    });
+
     test('color schemes are preserved per mode (no implicit redesign)', () {
       expect(AppThemeModes.minimal.colorScheme.primary,
           const Color(0xFF2563EB)); // AppColors.primary

@@ -21,6 +21,7 @@ class AppThemeSpec {
     required this.colorTokens,
     this.cardBorderColor,
     this.inputEnabledBorderColor,
+    this.flattenAppBarTint = false,
   });
 
   /// Roles de couleur Material du mode.
@@ -54,4 +55,10 @@ class AppThemeSpec {
   /// Contour optionnel des champs au repos (Premium l'utilise; sinon `null`
   /// = champ sans bordure au repos).
   final Color? inputEnabledBorderColor;
+
+  /// Neutralise la teinte de surface Material sur la barre d'application
+  /// (`surfaceTintColor: transparent`). `false` conserve le comportement M3
+  /// par defaut. Seul le mode Vibrant l'activait dans le theme d'origine :
+  /// on reproduit cet etat exact (non-regression #233).
+  final bool flattenAppBarTint;
 }

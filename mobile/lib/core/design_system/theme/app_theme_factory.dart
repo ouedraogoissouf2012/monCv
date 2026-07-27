@@ -59,7 +59,9 @@ abstract final class AppThemeFactory {
   static AppBarTheme _appBarTheme(AppThemeSpec spec) => AppBarTheme(
         backgroundColor: spec.appBarBackground,
         foregroundColor: spec.appBarForeground,
-        surfaceTintColor: Colors.transparent,
+        // Neutralise la teinte M3 uniquement la ou le theme d'origine le
+        // faisait (Vibrant); sinon on garde le defaut Material.
+        surfaceTintColor: spec.flattenAppBarTint ? Colors.transparent : null,
         elevation: _flatElevation,
         centerTitle: false,
       );

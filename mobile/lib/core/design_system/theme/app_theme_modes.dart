@@ -47,6 +47,7 @@ abstract final class AppThemeModes {
     cardColor: AppColors.white,
     inputFill: AppColors.violetContainer,
     colorTokens: AppColorTokens.light,
+    flattenAppBarTint: true,
   );
 
   static const AppThemeSpec premium = AppThemeSpec(
