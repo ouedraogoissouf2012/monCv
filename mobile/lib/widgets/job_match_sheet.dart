@@ -5,7 +5,7 @@ import '../core/error/result.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
 import '../providers/cv_provider.dart';
-import '../services/ai_service.dart';
+import '../features/ai/compat/ai_service_facade.dart';
 import '../utils/app_colors.dart';
 import '../utils/error_helper.dart';
 import 'ai_button.dart';
