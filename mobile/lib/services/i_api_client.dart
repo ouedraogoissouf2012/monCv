@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
-import '../models/ai_status.dart';
 import '../models/cv.dart';
 import '../models/job_application.dart';
 import '../models/notification_preferences.dart';
@@ -81,7 +80,6 @@ abstract interface class IApiClient {
     String? competences,
     String? experience,
   );
-  Future<AiStatus> getAiStatus();
   Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'});
   Future<Cv> importCv(Uint8List bytes, String filename);
 }

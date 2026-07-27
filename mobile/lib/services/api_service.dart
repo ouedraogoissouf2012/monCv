@@ -8,7 +8,6 @@ import '../features/cv/data/cv_network_codec.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/notification_preferences.dart';
-import '../models/ai_status.dart';
 import '../models/job_application.dart';
 import 'token_storage.dart';
 import 'i_api_client.dart';
@@ -644,22 +643,6 @@ class ApiService implements IApiClient {
       return data['resume'] as String? ?? '';
     }
     _throwTypedError(response, 'Erreur lors de la generation');
-  }
-
-  /// GET /api/ai/status - etat du sous-systeme IA.
-  /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
-  @override
-  Future<AiStatus> getAiStatus() async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/status'),
-      headers: await _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return AiStatus.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-    }
-    _throwTypedError(response, 'Erreur lors de la recuperation du status IA');
   }
 
   @override

@@ -148,7 +148,7 @@ Future<void> initDependencies() async {
   );
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
   sl.registerFactory<AiStatusProvider>(
-      () => AiStatusProvider(api: sl<IApiClient>()));
+      () => AiStatusProvider(getAiStatus: sl<GetAiStatusUseCase>()));
   sl.registerFactory<NotificationProvider>(
       () => NotificationProvider(sl<IApiClient>()));
   sl.registerFactory<JobApplicationProvider>(

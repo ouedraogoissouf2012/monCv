@@ -34,10 +34,6 @@ lib/services/api_service.dart
 lib/services/connectivity_service.dart
 lib/services/pdf_service.dart
 lib/services/push_notification_service.dart
-lib/usecases/ai/enhance_cv_usecase.dart
-lib/usecases/ai/generate_resume_usecase.dart
-lib/usecases/ai/match_job_usecase.dart
-lib/usecases/ai/suggest_bullets_usecase.dart
 lib/usecases/auth/get_current_user_usecase.dart
 lib/usecases/auth/logout_usecase.dart
 lib/usecases/auth/register_usecase.dart
