@@ -138,3 +138,43 @@ flowchart LR
 - PostgreSQL comme source de verite, avec Flyway pour les migrations.
 - IA encapsulee derriere des clients resilience4j pour limiter l'impact fournisseur.
 - Observabilite native au backend: correlation ID, logs structures, metriques business.
+
+## 7. Cible Clean Architecture et migration
+
+Le chantier de refactoring (EPIC #231) fait evoluer l'organisation **par type**
+(actuelle) vers une organisation **par fonctionnalite**, sans regression et sans
+big-bang. Les decisions sont formalisees dans deux ADR :
+
+- [`adr/002-flutter-clean-architecture.md`](adr/002-flutter-clean-architecture.md)
+- [`adr/003-backend-modular-monolith.md`](adr/003-backend-modular-monolith.md)
+
+### Etat actuel -> cible
+
+| Couche | Etat actuel (par type) | Cible (par feature) |
+| --- | --- | --- |
+| Flutter | `lib/{screens,widgets,providers,usecases,repositories,services,models}` | `lib/features/<feature>/{domain,application,data,presentation}` + `lib/core` |
+| Backend | `com.cvmobile.{controller,service,repository,model,dto,mapper}` | `com.cvmobile.<feature>/{domain,application,adapter/in/web,adapter/out}` |
+
+Direction des dependances : **toujours vers le domaine**. La presentation ne
+parle qu'a l'application/domaine; le domaine ignore Flutter, HTTP, Spring et JPA.
+
+### Violations connues au demarrage (2026-07-27, verifiees dans le code)
+
+- Flutter : 12 fichiers de presentation importent `IApiClient`/`api_service`;
+  4 use cases IA court-circuitent la couche repository.
+- Backend : `User implements UserDetails`; ports fichier/import exposant
+  `MultipartFile`; 13 entites annotees `@Entity`. (`CvController` ne depend plus
+  d'un repository — deja corrige.)
+
+Ces violations sont gelees dans des allowlists **decroissantes** (jamais
+augmentees), appliquees en CI par `custom_lint` (Flutter) et ArchUnit (backend).
+
+### Ordre de migration (phases de l'EPIC #231)
+
+0. Securite + filet anti-regression (#252, #235, #234, #232) — **en cours**.
+1. Fondations partagees (design system #233, transport #237, domaine CV #238,
+   modules backend #255).
+2. Etat et formulaires CV (#240, #241, #239, #242).
+3. Ecrans et flows Flutter (#243 a #251).
+4. Services metier backend (#253, #254, #256, #257).
+5. Fermeture des dettes transverses (#166, #258).
