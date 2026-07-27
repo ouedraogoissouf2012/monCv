@@ -26,12 +26,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "backend/src/test/java/com/cvmobile/integration/CvFlowIntegrationTest.java",
-      "baseline_lines": 314,
-      "issue": "#234",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/models/cv.dart",
       "baseline_lines": 546,
       "issue": "#238",
@@ -149,12 +143,6 @@
       "path": "mobile/lib/widgets/job_match_sheet.dart",
       "baseline_lines": 1018,
       "issue": "#245",
-      "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/test/providers/cv_provider_test.dart",
-      "baseline_lines": 433,
-      "issue": "#234",
       "expires_on": "2027-01-31"
     }
   ],
