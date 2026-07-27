@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "description": "Allowlist decroissante des fichiers de presentation important encore le transport reseau (ADR 002, issue #235). Une nouvelle violation echoue ; retirer une entree des que le fichier est migre.",
+  "allowlisted_files": [
+    {
+      "path": "mobile/lib/providers/ai_status_provider.dart",
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/providers/job_application_provider.dart",
+      "issue": "#246",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/providers/notification_provider.dart",
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/experience_section.dart",
+      "issue": "#239",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/personal_info_section.dart",
+      "issue": "#242",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/cv/sections/projects_section.dart",
+      "issue": "#239",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/home/home_screen.dart",
+      "issue": "#249",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/profile/profile_screen.dart",
+      "issue": "#250",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/share/public_portfolio_screen.dart",
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/screens/share/share_portfolio_dialog.dart",
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/ai_enhance_sheet.dart",
+      "issue": "#244",
+      "expires_on": "2027-01-31"
+    },
+    {
+      "path": "mobile/lib/widgets/secure_photo.dart",
+      "issue": "#237",
+      "expires_on": "2027-01-31"
+    }
+  ]
+}

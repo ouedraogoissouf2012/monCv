@@ -56,6 +56,9 @@ jobs:
           python tools/quality/check_source_lines.py
           --reference-policy "$RUNNER_TEMP/source_line_policy.base.json"
 
+      - name: Enforce Flutter presentation import boundary
+        run: python -m tools.quality.flutter_import_guard
+
   # ── Backend (Spring Boot) ──────────────────────────────────
   backend:
     name: Backend — Build & Test
