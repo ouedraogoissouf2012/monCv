@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/design_system/tokens/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/app_colors.dart';
 
@@ -56,7 +56,7 @@ class _HeroSection extends StatelessWidget {
                   size: 22, color: _kBlue)),
           const SizedBox(width: 12),
           Text('MonCV',
-              style: GoogleFonts.playfairDisplay(
+              style: AppTypography.display(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
                   color: Colors.white)),
@@ -67,7 +67,7 @@ class _HeroSection extends StatelessWidget {
           child: Text(
             heroTitle,
             textAlign: TextAlign.center,
-            style: GoogleFonts.playfairDisplay(
+            style: AppTypography.display(
               fontSize: isWide ? 52 : 31,
               fontWeight: FontWeight.w400,
               color: Colors.white,
@@ -547,7 +547,7 @@ class _Footer extends StatelessWidget {
           const Icon(Icons.description_outlined, size: 18, color: Colors.white),
           const SizedBox(width: 8),
           Text('MonCV',
-              style: GoogleFonts.playfairDisplay(
+              style: AppTypography.display(
                   fontSize: 16,
                   color: Colors.white,
                   fontWeight: FontWeight.w500)),

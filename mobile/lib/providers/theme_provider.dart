@@ -2,7 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppThemeMode { minimal, vibrant, premium }
+import '../core/design_system/theme/app_theme_mode.dart';
+
+// L'enum vit dans le design system (direction des dependances). Reexporte ici
+// pour les appelants historiques qui l'importent via ce provider.
+export '../core/design_system/theme/app_theme_mode.dart';
 
 class ThemeProvider with ChangeNotifier {
   AppThemeMode _mode = AppThemeMode.minimal;

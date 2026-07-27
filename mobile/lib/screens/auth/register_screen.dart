@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../core/design_system/tokens/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
@@ -202,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(width: 10),
                   Text(
                     'MonCV',
-                    style: GoogleFonts.playfairDisplay(
+                    style: AppTypography.display(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
                       color: _kText,
@@ -214,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Headline
               Text(
                 l.createAccount,
-                style: GoogleFonts.playfairDisplay(
+                style: AppTypography.display(
                   fontSize: 32,
                   fontWeight: FontWeight.w400,
                   color: _kText,
