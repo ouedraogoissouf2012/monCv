@@ -179,9 +179,10 @@ class BrowserSmokeFlow:
         raise AssertionError(f"Unable to fill field with {value!r}")
 
     def _select_suggestion(self, label: str, value: str) -> None:
-        target = self._field(label)
-        target.fill(value)
-        expect(self._field(label)).to_have_value(value)
+        # Reuse the retrying _fill primitive: the Flutter Autocomplete field
+        # keeps an internal controller that re-syncs on rebuild, so a bare
+        # fill + immediate assertion is racy and fails intermittently.
+        target = self._fill(self._field(label), value)
 
         option = self.page.get_by_text(value, exact=True)
         if option.count() and option.first.is_visible():
