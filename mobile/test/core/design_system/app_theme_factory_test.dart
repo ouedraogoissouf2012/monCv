@@ -28,18 +28,39 @@ void main() {
         expect(tokens, same(spec.colorTokens));
       });
 
-      test('$mode wires component themes from the shared factory', () {
-        // Aucune definition dupliquee par mode : la factory garantit que tous
-        // les themes de composants sont peuples avec les rayons du token set.
-        expect(theme.elevatedButtonTheme.style, isNotNull);
-        expect(theme.textButtonTheme.style, isNotNull);
-        expect(theme.outlinedButtonTheme.style, isNotNull);
-        expect(theme.inputDecorationTheme.filled, isTrue);
-        expect(theme.bottomSheetTheme.shape, isA<RoundedRectangleBorder>());
-        expect(theme.dialogTheme.shape, isA<RoundedRectangleBorder>());
+      test('$mode reproduces the original component themes exactly', () {
+        // Non-regression : mêmes valeurs que l'ancien AppThemes, produites par
+        // les tokens. La factory n'ajoute AUCUN theme de composant nouveau
+        // (pas de redesign implicite) — seuls appBar/card/bouton/champ existent.
+        final card = theme.cardTheme.shape as RoundedRectangleBorder;
+        expect(card.borderRadius, AppRadii.xl); // circular(16) d'origine
+        expect(theme.cardTheme.elevation, 0);
 
-        final cardShape = theme.cardTheme.shape as RoundedRectangleBorder;
-        expect(cardShape.borderRadius, AppRadii.xl);
+        expect(theme.inputDecorationTheme.filled, isTrue);
+        final inputBorder =
+            theme.inputDecorationTheme.border as OutlineInputBorder;
+        expect(inputBorder.borderRadius, AppRadii.lg); // circular(12) d'origine
+        expect(theme.inputDecorationTheme.contentPadding,
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14));
+
+        final buttonStyle = theme.elevatedButtonTheme.style!;
+        expect(buttonStyle.padding!.resolve({}),
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 14));
+        final buttonShape =
+            buttonStyle.shape!.resolve({}) as RoundedRectangleBorder;
+        expect(buttonShape.borderRadius, AppRadii.lg); // circular(12) d'origine
+      });
+
+      test('$mode does not introduce new component themes (no redesign)', () {
+        // Ces themes n'existaient pas dans l'ancien AppThemes : la factory ne
+        // doit pas les surcharger tant que leurs goldens n'ont pas ete figes.
+        final defaults = ThemeData(brightness: spec.brightness);
+        expect(theme.snackBarTheme, defaults.snackBarTheme);
+        expect(theme.navigationBarTheme, defaults.navigationBarTheme);
+        expect(theme.bottomSheetTheme, defaults.bottomSheetTheme);
+        expect(theme.dialogTheme, defaults.dialogTheme);
+        expect(theme.textButtonTheme, defaults.textButtonTheme);
+        expect(theme.outlinedButtonTheme, defaults.outlinedButtonTheme);
       });
 
       test('$mode brightness matches its spec', () {

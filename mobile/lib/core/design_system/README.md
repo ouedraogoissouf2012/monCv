@@ -71,9 +71,15 @@ Une valeur source par échelle :
 Ne **jamais** dupliquer un thème de composant. Ajouter une entrée
 `AppThemeSpec` dans [`theme/app_theme_modes.dart`](theme/app_theme_modes.dart)
 en ne décrivant que ses différences (couleurs, fonds, remplissages). La
-construction du `ThemeData` (boutons, champs, cartes, feuilles, dialogues,
-navigation) est faite une seule fois par
+construction du `ThemeData` (barre d'app, cartes, bouton élevé, champs) est
+faite une seule fois par
 [`theme/app_theme_factory.dart`](theme/app_theme_factory.dart).
+
+> **Non-régression** : cette PR socle reproduit à l'identique les 4 thèmes de
+> composants qui préexistaient et l'échelle typographique Material. Étendre le
+> thème à d'autres composants (feuilles, dialogues, navigation, snackbars) est
+> un **changement visuel** : il doit venir avec ses goldens, dans une PR
+> dédiée, jamais se glisser ici (l'issue #233 interdit tout redesign implicite).
 
 ## Migration en cours
 

@@ -9,19 +9,30 @@ import 'package:flutter_test/flutter_test.dart';
 /// (issue #233).
 void main() {
   group('AppTypography.textTheme', () {
-    final theme = AppTypography.textTheme();
+    // Base Material standard : les tailles ne doivent pas changer, seule la
+    // famille est appliquee (parite avec l'ancien GoogleFonts.poppinsTextTheme).
+    final base = Typography.material2021().black;
+    final theme = AppTypography.textTheme(base);
 
     test('applies the embedded body family to every role', () {
-      final styles = <TextStyle?>[
-        theme.displayLarge,
-        theme.headlineSmall,
-        theme.titleMedium,
-        theme.bodyMedium,
-        theme.labelSmall,
-      ];
-      for (final style in styles) {
-        expect(style?.fontFamily, AppTypography.fontFamilyBody);
-      }
+      final roles = <String, TextStyle?>{
+        'displayLarge': theme.displayLarge,
+        'headlineSmall': theme.headlineSmall,
+        'titleMedium': theme.titleMedium,
+        'bodyMedium': theme.bodyMedium,
+        'labelSmall': theme.labelSmall,
+      };
+      roles.forEach((name, style) {
+        expect(style?.fontFamily, AppTypography.fontFamilyBody, reason: name);
+      });
+    });
+
+    test('preserves the base Material sizes (no typographic redesign)', () {
+      // La geometrie doit rester celle de la base : seule la police change.
+      expect(theme.displayLarge?.fontSize, base.displayLarge?.fontSize);
+      expect(theme.titleLarge?.fontSize, base.titleLarge?.fontSize);
+      expect(theme.bodyMedium?.fontSize, base.bodyMedium?.fontSize);
+      expect(theme.labelSmall?.fontSize, base.labelSmall?.fontSize);
     });
   });
 
