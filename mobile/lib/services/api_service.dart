@@ -646,47 +646,6 @@ class ApiService implements IApiClient {
     _throwTypedError(response, 'Erreur lors de la generation');
   }
 
-  @override
-  Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
-    final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
-        'cvId': cvId,
-        'jobDescription': jobDescription,
-        'aiConsentAccepted': true,
-      }),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    _throwTypedError(response, 'Erreur lors de l\'analyse IA');
-  }
-
-  @override
-  Future<Map<String, dynamic>> generateApplicationMessages(
-    int cvId,
-    String jobDescription,
-    String tone,
-  ) async {
-    final response = await http.post(
-      Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/application-messages',
-      ),
-      headers: await _getHeaders(),
-      body: jsonEncode({
-        'cvId': cvId,
-        'jobDescription': jobDescription,
-        'tone': tone,
-        'aiConsentAccepted': true,
-      }),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    _throwTypedError(response, 'Erreur lors de la generation des messages');
-  }
-
   /// GET /api/ai/status - etat du sous-systeme IA.
   /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
   @override

@@ -81,12 +81,6 @@ abstract interface class IApiClient {
     String? competences,
     String? experience,
   );
-  Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription);
-  Future<Map<String, dynamic>> generateApplicationMessages(
-    int cvId,
-    String jobDescription,
-    String tone,
-  );
   Future<AiStatus> getAiStatus();
   Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'});
   Future<Cv> importCv(Uint8List bytes, String filename);
