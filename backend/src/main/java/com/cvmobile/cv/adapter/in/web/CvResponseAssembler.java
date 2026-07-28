@@ -1,5 +1,6 @@
 package com.cvmobile.cv.adapter.in.web;
 
+import com.cvmobile.cv.application.CvNotFoundException;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.repository.CvRepository;
@@ -36,15 +37,15 @@ public class CvResponseAssembler {
     /**
      * Construit la reponse complete d'un CV possede, a partir de son entite.
      *
-     * @throws IllegalStateException si l'entite n'existe plus pour ce
-     *                               proprietaire (incoherence transactionnelle)
+     * @throws CvNotFoundException si aucun CV possede ne correspond (par ex.
+     *                             suppression concurrente) : l'API repond alors
+     *                             404, jamais 500.
      */
     @Transactional(readOnly = true)
     public CvResponse assemble(long cvId, long ownerId) {
         return cvRepository.findByIdAndUserId(cvId, ownerId)
                 .map(cvMapper::toResponse)
-                .orElseThrow(() -> new IllegalStateException(
-                        "CV " + cvId + " introuvable pour assemblage de la reponse."));
+                .orElseThrow(() -> new CvNotFoundException(cvId));
     }
 
     /**

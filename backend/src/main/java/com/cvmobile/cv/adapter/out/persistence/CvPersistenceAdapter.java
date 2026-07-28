@@ -7,6 +7,7 @@ import com.cvmobile.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Adaptateur de sortie implementant {@link CvRepositoryPort} au-dessus de Spring
@@ -36,6 +37,7 @@ public class CvPersistenceAdapter implements CvRepositoryPort {
     }
 
     @Override
+    @Transactional
     public Cv save(Cv cv) {
         com.cvmobile.model.Cv entity = resolveTarget(cv);
         mapper.applyToEntity(cv, entity);
@@ -59,11 +61,13 @@ public class CvPersistenceAdapter implements CvRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Cv> findByIdAndOwnerId(long cvId, long ownerId) {
         return cvRepository.findByIdAndUserId(cvId, ownerId).map(mapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Cv> findAllByOwnerId(long ownerId) {
         return cvRepository.findByUserIdWithDetails(ownerId).stream()
                 .map(mapper::toDomain)
@@ -71,6 +75,7 @@ public class CvPersistenceAdapter implements CvRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Cv> findVariantsByParentIdAndOwnerId(long parentId, long ownerId) {
         return cvRepository.findByParentIdAndUserId(parentId, ownerId).stream()
                 .map(mapper::toDomain)
@@ -78,11 +83,13 @@ public class CvPersistenceAdapter implements CvRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByIdAndOwnerId(long cvId, long ownerId) {
         return cvRepository.existsByIdAndUserId(cvId, ownerId);
     }
 
     @Override
+    @Transactional
     public boolean deleteByIdAndOwnerId(long cvId, long ownerId) {
         if (!cvRepository.existsByIdAndUserId(cvId, ownerId)) {
             return false;

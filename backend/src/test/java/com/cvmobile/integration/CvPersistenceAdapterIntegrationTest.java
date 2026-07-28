@@ -137,6 +137,35 @@ class CvPersistenceAdapterIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    @DisplayName("un utilisateur ne peut pas s'approprier une section d'un autre CV via un id injecte")
+    void updateCannotHijackAnotherCvSectionById() {
+        long victimId = newOwner().getId();
+        long attackerId = newOwner().getId();
+
+        // La victime possede un CV avec une competence identifiee.
+        Cv victimCv = Cv.create("CV Victime", victimId);
+        victimCv.addSkill(Skill.of(null, "SecretSkillDeVictime", 5, null));
+        Cv victimSaved = port.save(victimCv);
+        long victimSkillId = victimSaved.getSkills().get(0).id();
+
+        // L'attaquant met a jour SON propre CV en injectant l'id de la
+        // competence de la victime (comme le ferait un corps de requete forge).
+        Cv attackerCv = port.save(Cv.create("CV Attaquant", attackerId));
+        Cv malicious = port.findByIdAndOwnerId(attackerCv.getId(), attackerId).orElseThrow();
+        malicious.replaceSkills(java.util.List.of(
+                Skill.of(victimSkillId, "SkillVoleParAttaquant", 1, null)));
+        port.save(malicious);
+        cvRepository.flush();
+
+        // La competence de la victime doit rester intacte et rattachee a son CV.
+        Cv victimReloaded = port.findByIdAndOwnerId(victimSaved.getId(), victimId).orElseThrow();
+        assertThat(victimReloaded.getSkills())
+                .as("le CV de la victime ne doit pas avoir perdu sa competence")
+                .singleElement()
+                .satisfies(s -> assertThat(s.nom()).isEqualTo("SecretSkillDeVictime"));
+    }
+
+    @Test
     @DisplayName("les variantes d'un parent sont retrouvees par proprietaire")
     void findsVariantsByParent() {
         long ownerId = newOwner().getId();

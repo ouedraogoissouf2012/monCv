@@ -54,12 +54,12 @@ class CvResponseAssemblerTest {
     }
 
     @Test
-    @DisplayName("assemble echoue si l'entite a disparu (incoherence transactionnelle)")
+    @DisplayName("assemble echoue en 404 (CvNotFoundException) si l'entite a disparu")
     void assembleFailsWhenEntityGone() {
         when(cvRepository.findByIdAndUserId(10L, OWNER)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> assembler.assemble(10L, OWNER))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(com.cvmobile.cv.application.CvNotFoundException.class);
     }
 
     @Test

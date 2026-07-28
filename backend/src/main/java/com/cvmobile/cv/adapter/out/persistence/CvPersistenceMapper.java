@@ -77,30 +77,67 @@ public class CvPersistenceMapper {
         applyCollections(domain, target);
     }
 
+    /**
+     * Remplace les sections de l'entite en n'honorant un identifiant fourni que
+     * s'il correspond deja a un enfant du <em>meme</em> CV. Un identifiant
+     * inconnu (etranger ou absent) est traite comme une insertion : ceci empeche
+     * un utilisateur de reparentaliser ou d'ecraser la ligne d'un autre CV en
+     * injectant son identifiant (protection contre l'IDOR au niveau section).
+     */
     private void applyCollections(Cv domain, com.cvmobile.model.Cv target) {
-        target.getExperiences().clear();
-        domain.getExperiences().forEach(e ->
-                target.addExperience(CvSectionPersistenceMapper.toEntity(e)));
+        replaceSection(target.getExperiences(), domain.getExperiences(),
+                com.cvmobile.model.Experience::getId,
+                CvSectionPersistenceMapper::toEntity, target::addExperience);
+        replaceSection(target.getEducations(), domain.getEducations(),
+                com.cvmobile.model.Education::getId,
+                CvSectionPersistenceMapper::toEntity, target::addEducation);
+        replaceSection(target.getSkills(), domain.getSkills(),
+                com.cvmobile.model.Skill::getId,
+                CvSectionPersistenceMapper::toEntity, target::addSkill);
+        replaceSection(target.getLanguages(), domain.getLanguages(),
+                com.cvmobile.model.Language::getId,
+                CvSectionPersistenceMapper::toEntity, target::addLanguage);
+        replaceSection(target.getCertifications(), domain.getCertifications(),
+                com.cvmobile.model.Certification::getId,
+                CvSectionPersistenceMapper::toEntity, target::addCertification);
+        replaceSection(target.getProjects(), domain.getProjects(),
+                com.cvmobile.model.Project::getId,
+                CvSectionPersistenceMapper::toEntity, target::addProject);
+    }
 
-        target.getEducations().clear();
-        domain.getEducations().forEach(e ->
-                target.addEducation(CvSectionPersistenceMapper.toEntity(e)));
+    /**
+     * Reconstruit une collection de sections : collecte d'abord les identifiants
+     * reellement possedes par le CV, vide la collection (orphanRemoval supprime
+     * les absents), puis re-ajoute chaque valeur du domaine — en conservant son
+     * identifiant seulement s'il etait possede, sinon en l'inserant (id neuf).
+     *
+     * @param existing    collection d'entites enfants actuellement rattachees
+     * @param domainItems valeurs de domaine cibles
+     * @param entityId    extrait l'identifiant d'une entite enfant
+     * @param toEntity    convertit une valeur de domaine en entite enfant
+     * @param attach      rattache l'entite au CV (pose la back-reference)
+     */
+    private static <D, E> void replaceSection(
+            java.util.List<E> existing,
+            java.util.List<D> domainItems,
+            java.util.function.Function<E, Long> entityId,
+            java.util.function.Function<D, E> toEntity,
+            java.util.function.Consumer<E> attach) {
+        java.util.Set<Long> ownedIds = existing.stream()
+                .map(entityId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
 
-        target.getSkills().clear();
-        domain.getSkills().forEach(s ->
-                target.addSkill(CvSectionPersistenceMapper.toEntity(s)));
-
-        target.getLanguages().clear();
-        domain.getLanguages().forEach(l ->
-                target.addLanguage(CvSectionPersistenceMapper.toEntity(l)));
-
-        target.getCertifications().clear();
-        domain.getCertifications().forEach(c ->
-                target.addCertification(CvSectionPersistenceMapper.toEntity(c)));
-
-        target.getProjects().clear();
-        domain.getProjects().forEach(p ->
-                target.addProject(CvSectionPersistenceMapper.toEntity(p)));
+        existing.clear();
+        for (D item : domainItems) {
+            E entity = toEntity.apply(item);
+            if (entityId.apply(entity) != null && !ownedIds.contains(entityId.apply(entity))) {
+                // Identifiant non possede : forcer une insertion, jamais un
+                // update par cle primaire sur la ligne d'autrui.
+                CvSectionPersistenceMapper.stripId(entity);
+            }
+            attach.accept(entity);
+        }
     }
 
     private static long ownerIdOf(com.cvmobile.model.Cv entity) {

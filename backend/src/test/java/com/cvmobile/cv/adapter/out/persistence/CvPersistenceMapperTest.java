@@ -217,5 +217,40 @@ class CvPersistenceMapperTest {
             assertThat(target.getSkills()).singleElement()
                     .satisfies(s -> assertThat(s.getNom()).isEqualTo("Nouveau"));
         }
+
+        @Test
+        @DisplayName("conserve l'identifiant d'une section deja possedee (mise a jour)")
+        void keepsOwnedSectionId() {
+            com.cvmobile.model.Cv target = new com.cvmobile.model.Cv();
+            target.addSkill(com.cvmobile.model.Skill.builder()
+                    .id(50L).nom("Ancien").niveau(1).build());
+
+            Cv domain = Cv.create("CV", 7L);
+            domain.addSkill(Skill.of(50L, "Maj", 3, null));
+            mapper.applyToEntity(domain, target);
+
+            assertThat(target.getSkills()).singleElement().satisfies(s -> {
+                assertThat(s.getId()).isEqualTo(50L);
+                assertThat(s.getNom()).isEqualTo("Maj");
+            });
+        }
+
+        @Test
+        @DisplayName("neutralise un identifiant de section NON possede (protection IDOR)")
+        void stripsForeignSectionId() {
+            // target ne possede aucune competence : l'id 999 est etranger.
+            com.cvmobile.model.Cv target = new com.cvmobile.model.Cv();
+
+            Cv domain = Cv.create("CV", 7L);
+            domain.addSkill(Skill.of(999L, "Injecte", 5, null));
+            mapper.applyToEntity(domain, target);
+
+            assertThat(target.getSkills()).singleElement().satisfies(s -> {
+                assertThat(s.getId())
+                        .as("un id de section etranger doit etre neutralise (insertion)")
+                        .isNull();
+                assertThat(s.getNom()).isEqualTo("Injecte");
+            });
+        }
     }
 }

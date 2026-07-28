@@ -92,6 +92,41 @@ class CvDomainPurityTest {
                 .check(CV_DOMAIN_CLASSES);
     }
 
+    // ── Couche application : depend du port + domaine, jamais d'un adapter ──
+
+    private static final String CV_APPLICATION = "com.cvmobile.cv.application..";
+
+    private static final JavaClasses CV_MODULE_CLASSES = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("com.cvmobile.cv");
+
+    @Test
+    @DisplayName("l'application ne depend pas des adapters (dependances vers l'interieur)")
+    void applicationMustNotDependOnAdapters() {
+        noClasses()
+                .that().resideInAPackage(CV_APPLICATION)
+                .should().dependOnClassesThat().resideInAPackage("com.cvmobile.cv.adapter..")
+                .because("les use cases dependent du port (interface), jamais d'un adapter (ADR 003)")
+                .check(CV_MODULE_CLASSES);
+    }
+
+    @Test
+    @DisplayName("l'application ne depend d'aucune infrastructure de persistance ni transport")
+    void applicationMustNotDependOnInfrastructure() {
+        noClasses()
+                .that().resideInAPackage(CV_APPLICATION)
+                .should().dependOnClassesThat()
+                .resideInAnyPackage(
+                        "com.cvmobile.repository..",
+                        "com.cvmobile.model..",
+                        "com.cvmobile.dto..",
+                        "com.cvmobile.mapper..",
+                        "jakarta.persistence..",
+                        "org.springframework.web..")
+                .because("la couche application ignore JPA, les DTOs web et la couche transport (ADR 003)")
+                .check(CV_MODULE_CLASSES);
+    }
+
     private static ArchRule rule(String forbiddenPackage, String label) {
         return noClasses()
                 .that().resideInAPackage(CV_DOMAIN)

@@ -19,6 +19,24 @@ final class CvSectionPersistenceMapper {
     private CvSectionPersistenceMapper() {
     }
 
+    /**
+     * Efface l'identifiant d'une entite enfant, forcant Hibernate a l'inserer
+     * comme nouvelle ligne plutot qu'a mettre a jour une ligne existante par
+     * cle primaire. Utilise pour neutraliser un identifiant non possede.
+     */
+    static void stripId(Object entity) {
+        switch (entity) {
+            case com.cvmobile.model.Experience e -> e.setId(null);
+            case com.cvmobile.model.Education e -> e.setId(null);
+            case com.cvmobile.model.Skill e -> e.setId(null);
+            case com.cvmobile.model.Language e -> e.setId(null);
+            case com.cvmobile.model.Certification e -> e.setId(null);
+            case com.cvmobile.model.Project e -> e.setId(null);
+            default -> throw new IllegalArgumentException(
+                    "Type de section inconnu : " + entity.getClass().getName());
+        }
+    }
+
     // ── Experience ───────────────────────────────────────────────────
 
     static Experience toDomain(com.cvmobile.model.Experience e) {
