@@ -1,3 +1,4 @@
+import 'package:cv_mobile/features/ai/application/get_ai_status_usecase.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/widgets/ai_enhance_sheet.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ import 'package:mocktail/mocktail.dart';
 
 class MockApiClient extends Mock implements IApiClient {}
 
+class _MockGetAiStatus extends Mock implements GetAiStatusUseCase {}
+
 void main() {
   final cv = Cv(id: 42, titre: 'Community manager');
 
@@ -18,7 +21,9 @@ void main() {
     return MultiProvider(
       providers: [
         Provider<IApiClient>.value(value: api),
-        ChangeNotifierProvider(create: (_) => AiStatusProvider(api: api)),
+        ChangeNotifierProvider(
+          create: (_) => AiStatusProvider(getAiStatus: _MockGetAiStatus()),
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

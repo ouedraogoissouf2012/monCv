@@ -58,11 +58,38 @@ class FindViolationsTest(unittest.TestCase):
         )
         self.assertEqual(len(find_violations(root)), 1)
 
+    def test_detects_core_network_import(self) -> None:
+        root = Path(self.enterContext(_tmp()))
+        _write(
+            root / "mobile/lib/providers/net.dart",
+            "import '../core/network/api_transport.dart';\n",
+        )
+        self.assertEqual(len(find_violations(root)), 1)
+
+    def test_detects_feature_data_import(self) -> None:
+        root = Path(self.enterContext(_tmp()))
+        _write(
+            root / "mobile/lib/widgets/ds.dart",
+            "import 'package:cv_mobile/features/ai/data/"
+            "ai_remote_data_source.dart';\n",
+        )
+        self.assertEqual(len(find_violations(root)), 1)
+
     def test_ignores_legitimate_domain_import(self) -> None:
         root = Path(self.enterContext(_tmp()))
         _write(
             root / "mobile/lib/widgets/ok.dart",
             "import 'package:cv_mobile/usecases/cv/get_all_cvs_usecase.dart';\n",
+        )
+        self.assertEqual(find_violations(root), [])
+
+    def test_allows_feature_application_import(self) -> None:
+        # La presentation PEUT dependre de application/ (use cases).
+        root = Path(self.enterContext(_tmp()))
+        _write(
+            root / "mobile/lib/providers/app.dart",
+            "import 'package:cv_mobile/features/ai/application/"
+            "get_ai_status_usecase.dart';\n",
         )
         self.assertEqual(find_violations(root), [])
 

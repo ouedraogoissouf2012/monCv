@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
+import '../core/usecase/usecase.dart';
+import '../features/ai/application/get_ai_status_usecase.dart';
 import '../models/ai_status.dart';
-import '../services/i_api_client.dart';
 
 export '../models/ai_status.dart';
 
@@ -9,12 +10,14 @@ export '../models/ai_status.dart';
 /// adapter l'UI (boutons desactives + tooltip si indisponible).
 class AiStatusProvider extends ChangeNotifier {
   AiStatus _status;
-  final IApiClient _api;
+  final GetAiStatusUseCase _getAiStatus;
   String? _lastFailureReason;
   DateTime? _retryAfter;
 
-  AiStatusProvider({required IApiClient api, AiStatus? initialStatus})
-      : _api = api,
+  AiStatusProvider({
+    required GetAiStatusUseCase getAiStatus,
+    AiStatus? initialStatus,
+  })  : _getAiStatus = getAiStatus,
         _status = initialStatus ?? const AiStatus.unknown();
 
   AiStatus get status => _status;
@@ -53,15 +56,18 @@ class AiStatusProvider extends ChangeNotifier {
   /// Rafraichit le status depuis le backend.
   /// Utilise au demarrage + apres chaque echec d'appel IA.
   Future<void> refresh() async {
-    try {
-      _status = await _api.getAiStatus();
-      if (!_quotaDelayActive) {
-        _lastFailureReason = null;
-        _retryAfter = null;
-      }
-    } catch (_) {
-      // En cas d'erreur reseau ou 401, on garde le dernier status connu.
-      // On ne met PAS "unavailable" car l'IA peut etre up (c'est /status qui a echoue).
+    final result = await _getAiStatus(const NoParams());
+    switch (result) {
+      case Success(:final data):
+        _status = data;
+        if (!_quotaDelayActive) {
+          _lastFailureReason = null;
+          _retryAfter = null;
+        }
+      case Failure():
+        // Erreur reseau ou 401 : on garde le dernier status connu. On ne met
+        // PAS "unavailable" car l'IA peut etre up (c'est /status qui a echoue).
+        break;
     }
     notifyListeners();
   }

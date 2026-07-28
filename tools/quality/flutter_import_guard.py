@@ -28,13 +28,18 @@ PRESENTATION_DIRS = (
     "mobile/lib/providers",
 )
 
-# Imports interdits dans la presentation (transport reseau).
+# Imports interdits dans la presentation (transport reseau + couche data).
+# Couvre : http/dio, l'ancien transport (services/api_service|i_api_client), le
+# nouveau transport (core/network/*) et toute couche data de feature
+# (features/<feature>/data/*). La presentation ne parle qu'a application/domain.
 BANNED_IMPORT = re.compile(
     r"""^\s*import\s+['"]"""
     r"""(?:"""
     r"""package:http/|"""
     r"""package:dio/|"""
-    r"""(?:package:cv_mobile/|[./]*)services/(?:api_service|i_api_client)\.dart"""
+    r"""(?:package:cv_mobile/|[./]*)services/(?:api_service|i_api_client)\.dart|"""
+    r"""(?:package:cv_mobile/|[./]*)core/network/|"""
+    r"""(?:package:cv_mobile/|[./]*)features/[a-z_]+/data/"""
     r""")""",
     re.MULTILINE,
 )

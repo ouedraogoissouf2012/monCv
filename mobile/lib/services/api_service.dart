@@ -8,7 +8,6 @@ import '../features/cv/data/cv_network_codec.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
 import '../models/notification_preferences.dart';
-import '../models/ai_status.dart';
 import '../models/job_application.dart';
 import 'token_storage.dart';
 import 'i_api_client.dart';
@@ -644,63 +643,6 @@ class ApiService implements IApiClient {
       return data['resume'] as String? ?? '';
     }
     _throwTypedError(response, 'Erreur lors de la generation');
-  }
-
-  @override
-  Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async {
-    final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/match-job'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
-        'cvId': cvId,
-        'jobDescription': jobDescription,
-        'aiConsentAccepted': true,
-      }),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    _throwTypedError(response, 'Erreur lors de l\'analyse IA');
-  }
-
-  @override
-  Future<Map<String, dynamic>> generateApplicationMessages(
-    int cvId,
-    String jobDescription,
-    String tone,
-  ) async {
-    final response = await http.post(
-      Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/application-messages',
-      ),
-      headers: await _getHeaders(),
-      body: jsonEncode({
-        'cvId': cvId,
-        'jobDescription': jobDescription,
-        'tone': tone,
-        'aiConsentAccepted': true,
-      }),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    _throwTypedError(response, 'Erreur lors de la generation des messages');
-  }
-
-  /// GET /api/ai/status - etat du sous-systeme IA.
-  /// Utilise par AiStatusProvider au demarrage + apres chaque erreur AI.
-  @override
-  Future<AiStatus> getAiStatus() async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/status'),
-      headers: await _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return AiStatus.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>,
-      );
-    }
-    _throwTypedError(response, 'Erreur lors de la recuperation du status IA');
   }
 
   @override

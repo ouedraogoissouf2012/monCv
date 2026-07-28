@@ -1,13 +1,28 @@
+// Cable la facade AiCvService @Deprecated (transitoire, retiree par #245).
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/ai/application/enhance_cv_usecase.dart';
+import '../../features/ai/application/generate_application_messages_usecase.dart';
+import '../../features/ai/application/generate_resume_usecase.dart';
+import '../../features/ai/application/get_ai_status_usecase.dart';
+import '../../features/ai/application/match_job_usecase.dart';
+import '../../features/ai/application/suggest_bullets_usecase.dart';
+import '../../features/ai/compat/ai_service_facade.dart';
+import '../../features/ai/data/ai_remote_data_source.dart';
+import '../../features/ai/data/ai_repository_impl.dart';
+import '../../features/ai/domain/repositories/ai_repository.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/cv_repository.dart';
 import '../../repositories/cached_cv_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/i_api_client.dart';
-import '../../services/ai_service.dart';
 import '../../services/pdf_service.dart';
+import '../network/api_transport.dart';
+import '../network/multipart_transport.dart';
+import '../network/token_store.dart';
 import '../../services/share_service.dart';
 import '../../services/connectivity_service.dart';
 import '../../usecases/auth/login_usecase.dart';
@@ -22,10 +37,6 @@ import '../../usecases/cv/update_cv_usecase.dart';
 import '../../usecases/cv/delete_cv_usecase.dart';
 import '../../usecases/cv/duplicate_cv_usecase.dart';
 import '../../usecases/cv/create_variant_usecase.dart';
-import '../../usecases/ai/enhance_cv_usecase.dart';
-import '../../usecases/ai/match_job_usecase.dart';
-import '../../usecases/ai/generate_resume_usecase.dart';
-import '../../usecases/ai/suggest_bullets_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -45,9 +56,24 @@ Future<void> initDependencies() async {
   final prefs = await SharedPreferences.getInstance();
   sl.registerSingleton<SharedPreferences>(prefs);
 
+  // ── Transport reseau (issue #237) ─────────────────────────────
+  sl.registerLazySingleton<http.Client>(() => http.Client());
+  sl.registerLazySingleton<TokenStore>(() => SecureTokenStore());
+  sl.registerLazySingleton<ApiTransport>(
+      () => ApiTransport(sl<http.Client>(), sl<TokenStore>()));
+  sl.registerLazySingleton<MultipartTransport>(
+      () => MultipartTransport(sl<http.Client>(), sl<TokenStore>()));
+
+  // ── Feature AI (issue #237) ───────────────────────────────────
+  sl.registerLazySingleton<AiRemoteDataSource>(
+      () => HttpAiRemoteDataSource(sl<ApiTransport>()));
+  sl.registerLazySingleton<AiRepository>(
+      () => HttpAiRepository(sl<AiRemoteDataSource>()));
+
   // ── Services ──────────────────────────────────────────────────
   sl.registerLazySingleton<IApiClient>(() => ApiService());
-  sl.registerLazySingleton<AiCvService>(() => AiCvService(sl<IApiClient>()));
+  sl.registerLazySingleton<AiCvService>(
+      () => AiCvService(sl<AiRemoteDataSource>()));
   sl.registerLazySingleton<PdfService>(() => PdfService(sl<IApiClient>()));
   sl.registerLazySingleton<ShareService>(() => ShareService(sl<IApiClient>()));
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
@@ -83,11 +109,13 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => DuplicateCvUseCase(sl<CvRepository>()));
   sl.registerFactory(() => CreateVariantUseCase(sl<CvRepository>()));
 
-  // ── Use Cases: AI ─────────────────────────────────────────────
-  sl.registerFactory(() => EnhanceCvUseCase(sl<IApiClient>()));
-  sl.registerFactory(() => MatchJobUseCase(sl<IApiClient>()));
-  sl.registerFactory(() => GenerateResumeUseCase(sl<IApiClient>()));
-  sl.registerFactory(() => SuggestBulletsUseCase(sl<IApiClient>()));
+  // ── Use Cases: AI (issue #237 — port AiRepository, plus IApiClient) ──
+  sl.registerFactory(() => EnhanceCvUseCase(sl<AiRepository>()));
+  sl.registerFactory(() => MatchJobUseCase(sl<AiRepository>()));
+  sl.registerFactory(() => GenerateResumeUseCase(sl<AiRepository>()));
+  sl.registerFactory(() => SuggestBulletsUseCase(sl<AiRepository>()));
+  sl.registerFactory(() => GenerateApplicationMessagesUseCase(sl<AiRepository>()));
+  sl.registerFactory(() => GetAiStatusUseCase(sl<AiRepository>()));
 
   // ── Providers ─────────────────────────────────────────────────
   sl.registerLazySingleton<AuthProvider>(
@@ -120,7 +148,7 @@ Future<void> initDependencies() async {
   );
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
   sl.registerFactory<AiStatusProvider>(
-      () => AiStatusProvider(api: sl<IApiClient>()));
+      () => AiStatusProvider(getAiStatus: sl<GetAiStatusUseCase>()));
   sl.registerFactory<NotificationProvider>(
       () => NotificationProvider(sl<IApiClient>()));
   sl.registerFactory<JobApplicationProvider>(

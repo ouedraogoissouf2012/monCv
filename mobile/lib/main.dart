@@ -1,3 +1,5 @@
+// Expose la facade AiCvService @Deprecated au widget tree (transitoire, #245).
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -15,8 +17,8 @@ import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/job_application_provider.dart';
+import 'features/ai/compat/ai_service_facade.dart';
 import 'services/i_api_client.dart';
-import 'services/ai_service.dart';
 import 'services/pdf_service.dart';
 import 'services/share_service.dart';
 import 'services/push_notification_service.dart';

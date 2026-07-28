@@ -1,7 +1,10 @@
+// Teste la facade AiCvService @Deprecated (transitoire, migree par #245).
+// ignore_for_file: deprecated_member_use_from_same_package
+import 'package:cv_mobile/features/ai/compat/ai_service_facade.dart';
+import 'package:cv_mobile/features/ai/data/ai_remote_data_source.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/repositories/auth_repository.dart';
-import 'package:cv_mobile/services/ai_service.dart';
 import 'package:cv_mobile/services/api_service.dart';
 import 'package:cv_mobile/services/i_api_client.dart';
 import 'package:cv_mobile/services/share_service.dart';
@@ -10,23 +13,27 @@ import 'package:mocktail/mocktail.dart';
 
 class MockApiClient extends Mock implements IApiClient {}
 
+class MockAiRemoteDataSource extends Mock implements AiRemoteDataSource {}
+
 void main() {
   late MockApiClient api;
 
   setUp(() => api = MockApiClient());
 
-  test('AiCvService délègue au client injecté', () async {
-    when(() => api.generateResume('Développeur', 'Dart', '3 ans'))
+  test('La facade AiCvService delegue au data source typé', () async {
+    final dataSource = MockAiRemoteDataSource();
+    when(() => dataSource.generateResume('Développeur', 'Dart', '3 ans'))
         .thenAnswer((_) async => 'Résumé généré');
 
-    final result = await AiCvService(api).generateResume(
+    final result = await AiCvService(dataSource).generateResume(
       titrePoste: 'Développeur',
       competences: 'Dart',
       experience: '3 ans',
     );
 
     expect(result, 'Résumé généré');
-    verify(() => api.generateResume('Développeur', 'Dart', '3 ans')).called(1);
+    verify(() => dataSource.generateResume('Développeur', 'Dart', '3 ans'))
+        .called(1);
   });
 
   test('ShareService utilise le client injecté pour créer le lien', () async {
