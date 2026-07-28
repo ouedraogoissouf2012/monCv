@@ -120,8 +120,15 @@ class Cv {
   /// Score de completion (0-100), delegue a la politique de domaine.
   int get completionScore => const CvCompletionPolicy().score(entity);
 
-  /// Copie en conservant la semantique historique (`null` = ne pas changer,
-  /// hors `createdAt`/`updatedAt` qui restent portes par l'entite).
+  /// Copie en conservant la semantique HISTORIQUE (`null` = ne pas changer).
+  ///
+  /// Choix volontaire et transitoire : ce wrapper de compatibilite ne doit pas
+  /// changer le comportement observe par les ~34 consommateurs non encore
+  /// migres. L'effacement explicite d'un nullable (critere #238) est disponible
+  /// sur l'entite de domaine [CvEntity.copyWith] via une sentinelle ; les
+  /// consommateurs l'obtiendront en migrant vers `CvEntity`. Aucun appelant
+  /// actuel n'efface un champ via `copyWith` (verifie), donc cette limitation
+  /// n'introduit aucun bug fonctionnel. Dette suivie par la migration #238.
   Cv copyWith({
     int? id,
     String? titre,

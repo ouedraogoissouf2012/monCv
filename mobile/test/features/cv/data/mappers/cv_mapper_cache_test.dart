@@ -46,7 +46,8 @@ void main() {
   group('round-trip cache SANS perte', () {
     test('tous les champs preserves apres toCacheJson/fromCacheJson', () {
       final original = richCv();
-      final restored = mapper.fromCacheJson(mapper.toCacheJson([original]));
+      // Blob valide produit par toCacheJson => fromCacheJson non-null.
+      final restored = mapper.fromCacheJson(mapper.toCacheJson([original]))!;
       expect(restored, hasLength(1));
       // Egalite structurelle complete de l'entite.
       expect(restored.single, original);
@@ -54,7 +55,7 @@ void main() {
 
     test('les metadonnees perdues par le format reseau sont conservees', () {
       final restored =
-          mapper.fromCacheJson(mapper.toCacheJson([richCv()])).single;
+          mapper.fromCacheJson(mapper.toCacheJson([richCv()]))!.single;
       expect(restored.viewCount, 42);
       expect(restored.shareToken, 'tok-1');
       expect(restored.downloadCount, 7);

@@ -86,24 +86,32 @@ final class CvMapper {
         'data': cvs.map(_toCacheMap).toList(),
       });
 
-  /// Deserialise le cache local, en migrant les anciens formats et en
-  /// ignorant toute donnee corrompue (jamais d'exception propagee).
-  List<CvEntity> fromCacheJson(String raw) {
-    if (raw.isEmpty) return const [];
+  /// Deserialise le cache local, en migrant les anciens formats.
+  ///
+  /// Retourne `null` quand le cache est **illisible ou incompatible** (JSON
+  /// corrompu, forme inattendue, version de schema future inconnue) afin que
+  /// l'appelant puisse le distinguer d'un cache **legitimement vide** (`[]`) et
+  /// ne pas masquer une erreur reseau derriere une liste vide. Les items
+  /// individuels malformes d'un blob par ailleurs valide restent ignores
+  /// (best-effort). Ne propage jamais d'exception.
+  List<CvEntity>? fromCacheJson(String raw) {
+    if (raw.isEmpty) return null;
     final Object? decoded;
     try {
       decoded = jsonDecode(raw);
     } on FormatException {
-      return const [];
+      return null;
     }
     // Format legacy : liste brute au format reseau minimal (schemaVersion 0).
     if (decoded is List) return _decodeItems(decoded);
     if (decoded is Map<String, dynamic>) {
       final version = asInt(decoded['schemaVersion']);
-      if (version == null || version > kCvCacheSchemaVersion) return const [];
-      return _decodeItems(decoded['data']);
+      if (version == null || version > kCvCacheSchemaVersion) return null;
+      final data = decoded['data'];
+      if (data is! List) return null;
+      return _decodeItems(data);
     }
-    return const [];
+    return null;
   }
 
   /// Serialise un CV isole pour la file de synchronisation offline (meme schema
@@ -132,8 +140,7 @@ final class CvMapper {
 
   // ────────────────────────── Internes ──────────────────────────
 
-  List<CvEntity> _decodeItems(Object? rawItems) {
-    if (rawItems is! List) return const [];
+  List<CvEntity> _decodeItems(List<dynamic> rawItems) {
     final cvs = <CvEntity>[];
     for (final item in rawItems) {
       if (item is Map<String, dynamic>) cvs.add(_fromCacheMap(item));

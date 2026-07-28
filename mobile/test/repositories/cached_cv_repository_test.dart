@@ -26,11 +26,11 @@ Cv _fakeCv({int id = 1, String titre = 'Mon CV'}) => Cv(
 String _cacheBlob(List<Cv> cvs) =>
     _mapper.toCacheJson(cvs.map((c) => c.entity).toList());
 
-/// Relit le cache tel que le repository le rechargerait.
-List<Cv> _readCache(SharedPreferences prefs) => _mapper
-    .fromCacheJson(prefs.getString('cached_cvs')!)
-    .map(Cv.fromEntity)
-    .toList();
+/// Relit le cache tel que le repository le rechargerait (blob valide attendu).
+List<Cv> _readCache(SharedPreferences prefs) =>
+    (_mapper.fromCacheJson(prefs.getString('cached_cvs')!) ?? const [])
+        .map(Cv.fromEntity)
+        .toList();
 
 void main() {
   late MockCvRepository mockRemote;
@@ -85,6 +85,31 @@ void main() {
       final result = await repo.getAllCvs();
 
       expect(result.isFailure, true);
+    });
+
+    test('propage l\'erreur reseau si le cache est corrompu (pas de liste vide)',
+        () async {
+      // Un cache illisible ne doit pas masquer l'echec reseau derriere un
+      // Result.success([]) : l'erreur reseau doit remonter a l'appelant.
+      await prefs.setString('cached_cvs', '{{ blob corrompu');
+      when(() => mockRemote.getAllCvs()).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Offline')));
+
+      final result = await buildRepo().getAllCvs();
+
+      expect(result.isFailure, true);
+    });
+
+    test('sert le cache vide legitime (distinct du cache corrompu)', () async {
+      // Cache present et valide mais vide : on sert bien [] en fallback.
+      await prefs.setString('cached_cvs', _cacheBlob([]));
+      when(() => mockRemote.getAllCvs()).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'Offline')));
+
+      final result = await buildRepo().getAllCvs();
+
+      expect(result.isSuccess, true);
+      expect((result as Success<List<Cv>>).data, isEmpty);
     });
   });
 

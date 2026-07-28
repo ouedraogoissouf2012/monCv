@@ -13,26 +13,33 @@ void main() {
     test('format legacy (liste brute) => migre en V0->V1', () {
       final cvs = mapper.fromCacheJson(_raw('cv_cache_legacy_list.json'));
       expect(cvs, hasLength(1));
-      expect(cvs.single.titre, 'Ancien cache format liste');
+      expect(cvs!.single.titre, 'Ancien cache format liste');
       expect(cvs.single.personalInfo?.nom, 'Legacy');
       expect(cvs.single.experiences.single.poste, 'Dev');
     });
 
-    test('version inconnue (future) => liste vide, jamais de throw', () {
+    test('version inconnue (future) => null (illisible, pas vide)', () {
+      // null distingue "illisible" de "legitimement vide" pour ne pas masquer
+      // une erreur reseau derriere une liste vide cote repository.
       expect(mapper.fromCacheJson(_raw('cv_cache_unknown_version.json')),
-          isEmpty);
+          isNull);
     });
 
-    test('JSON corrompu => liste vide', () {
-      expect(mapper.fromCacheJson('{{ ceci n est pas du json'), isEmpty);
+    test('JSON corrompu => null', () {
+      expect(mapper.fromCacheJson('{{ ceci n est pas du json'), isNull);
     });
 
-    test('chaine vide => liste vide', () {
-      expect(mapper.fromCacheJson(''), isEmpty);
+    test('chaine vide => null', () {
+      expect(mapper.fromCacheJson(''), isNull);
     });
 
-    test('forme inattendue (objet sans data) => liste vide', () {
-      expect(mapper.fromCacheJson('{"autre": 1}'), isEmpty);
+    test('forme inattendue (objet sans data) => null', () {
+      expect(mapper.fromCacheJson('{"autre": 1}'), isNull);
+    });
+
+    test('cache legitimement vide => liste vide (distinct de illisible)', () {
+      expect(mapper.fromCacheJson('{"schemaVersion": 1, "data": []}'), isEmpty);
+      expect(mapper.fromCacheJson('[]'), isEmpty);
     });
 
     test('un item corrompu dans data n annule pas les items valides', () {
@@ -40,7 +47,7 @@ void main() {
           '{"schemaVersion": 1, "data": [{"titre": "ok"}, 42, "pas un objet"]}';
       final cvs = mapper.fromCacheJson(mixed);
       expect(cvs, hasLength(1));
-      expect(cvs.single.titre, 'ok');
+      expect(cvs!.single.titre, 'ok');
     });
   });
 }

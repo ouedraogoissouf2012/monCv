@@ -18,15 +18,17 @@ class CachedCvRepository implements CvRepository {
 
   // ── Cache helpers ──────────────────────────────────────────────
 
+  /// Lit le cache, ou `null` s'il est absent, illisible ou incompatible.
+  ///
+  /// Un cache illisible est traite comme une absence de cache : on ne sert pas
+  /// une liste vide qui masquerait l'erreur reseau. La distinction entre cache
+  /// vide legitime (`[]`) et cache illisible (`null`) provient du mapper.
   List<Cv>? _readCache() {
     final raw = _prefs.getString(_kCacheKey);
     if (raw == null) return null;
-    // Le mapper gere l'enveloppe versionnee, la migration des anciens formats
-    // et tolere un blob corrompu (retourne une liste vide plutot que throw).
-    return _mapper
-        .fromCacheJson(raw)
-        .map((entity) => Cv.fromEntity(entity))
-        .toList();
+    final entities = _mapper.fromCacheJson(raw);
+    if (entities == null) return null;
+    return entities.map(Cv.fromEntity).toList();
   }
 
   Future<void> _writeCache(List<Cv> cvs) async {
