@@ -34,6 +34,8 @@ abstract final class AppThemeModes {
     appBarBackground: AppColors.coolSurface,
     appBarForeground: AppColors.neutral800,
     cardColor: AppColors.white,
+    // Ombre douce reprise a l'identique de l'ancien theme Minimal.
+    cardShadowColor: Colors.black12,
     inputFill: AppColors.neutral75,
     colorTokens: AppColorTokens.light,
   );

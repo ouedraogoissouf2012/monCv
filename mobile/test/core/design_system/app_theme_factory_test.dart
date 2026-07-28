@@ -69,6 +69,16 @@ void main() {
       });
     }
 
+    test('card shadow color matches the original per mode', () {
+      // Seul Minimal fixait shadowColor: black12 dans l'ancien theme.
+      expect(AppThemeFactory.build(AppThemeModes.minimal).cardTheme.shadowColor,
+          const Color(0x1F000000)); // Colors.black12
+      expect(AppThemeFactory.build(AppThemeModes.vibrant).cardTheme.shadowColor,
+          isNull);
+      expect(AppThemeFactory.build(AppThemeModes.premium).cardTheme.shadowColor,
+          isNull);
+    });
+
     test('appbar surface tint matches the original per mode', () {
       // Seul Vibrant neutralisait la teinte M3 dans l'ancien theme.
       expect(AppThemeFactory.build(AppThemeModes.vibrant).appBarTheme

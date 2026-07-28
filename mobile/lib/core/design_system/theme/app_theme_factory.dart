@@ -69,6 +69,7 @@ abstract final class AppThemeFactory {
   static CardThemeData _cardTheme(AppThemeSpec spec) => CardThemeData(
         color: spec.cardColor,
         elevation: _flatElevation,
+        shadowColor: spec.cardShadowColor,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadii.xl,
           side: spec.cardBorderColor == null

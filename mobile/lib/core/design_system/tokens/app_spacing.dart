@@ -5,8 +5,8 @@
 /// code existant : 4, 8, 12, 16, 20, 24, 28, 32 dominent, avec des demi-pas
 /// 2/6/10/14). Changer l'unite de base ici re-espace toute l'application.
 ///
-/// Usage : `AppSpacing.md` plutot qu'un litteral `16`. Les demi-pas
-/// ([xxs], [xs]) couvrent les ajustements fins deja presents dans le code.
+/// Usage : `AppSpacing.md` plutot qu'un litteral `16`. Le demi-pas [xxs]
+/// (2 dp) couvre les ajustements fins deja presents dans le code.
 abstract final class AppSpacing {
   const AppSpacing._();
 

@@ -19,6 +19,7 @@ class AppThemeSpec {
     required this.cardColor,
     required this.inputFill,
     required this.colorTokens,
+    this.cardShadowColor,
     this.cardBorderColor,
     this.inputEnabledBorderColor,
     this.flattenAppBarTint = false,
@@ -41,6 +42,11 @@ class AppThemeSpec {
 
   /// Fond des cartes.
   final Color cardColor;
+
+  /// Couleur d'ombre des cartes lorsqu'elles ont une elevation > 0. `null`
+  /// laisse le defaut Material. Seul Minimal la fixait (`Colors.black12`) dans
+  /// le theme d'origine : on reproduit cet etat (non-regression #233).
+  final Color? cardShadowColor;
 
   /// Remplissage des champs de saisie.
   final Color inputFill;
