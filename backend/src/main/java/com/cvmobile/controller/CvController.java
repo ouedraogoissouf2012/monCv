@@ -5,7 +5,6 @@ import com.cvmobile.cv.adapter.in.web.CvWebMapper;
 import com.cvmobile.cv.application.usecase.CreateCvUseCase;
 import com.cvmobile.cv.application.usecase.DeleteCvUseCase;
 import com.cvmobile.cv.application.usecase.DuplicateCvUseCase;
-import com.cvmobile.cv.application.usecase.GetCvUseCase;
 import com.cvmobile.cv.application.usecase.UpdateCvUseCase;
 import com.cvmobile.cv.domain.model.Cv;
 import com.cvmobile.dto.CreateVariantRequest;
@@ -42,7 +41,6 @@ import java.util.List;
 public class CvController {
 
     // CRUD : use cases du module CV migre (issue #255)
-    private final GetCvUseCase getCvUseCase;
     private final CreateCvUseCase createCvUseCase;
     private final UpdateCvUseCase updateCvUseCase;
     private final DeleteCvUseCase deleteCvUseCase;
@@ -70,9 +68,8 @@ public class CvController {
     public ResponseEntity<CvResponse> getCvById(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-        // Le use case tranche l'existence/appartenance (404 propre via
-        // CvNotFoundException); l'assembleur ne fait que produire la reponse.
-        getCvUseCase.get(id, user.getId());
+        // L'assembleur restreint deja par proprietaire et leve
+        // CvNotFoundException (404) si absent : une seule lecture suffit.
         return ResponseEntity.ok(cvResponseAssembler.assemble(id, user.getId()));
     }
 

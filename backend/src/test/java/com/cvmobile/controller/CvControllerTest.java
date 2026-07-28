@@ -35,7 +35,6 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 class CvControllerTest {
 
-    @Mock private com.cvmobile.cv.application.usecase.GetCvUseCase getCvUseCase;
     @Mock private CreateCvUseCase createCvUseCase;
     @Mock private UpdateCvUseCase updateCvUseCase;
     @Mock private DeleteCvUseCase deleteCvUseCase;
@@ -56,7 +55,7 @@ class CvControllerTest {
     @BeforeEach
     void setUp() {
         cvController = new CvController(
-                getCvUseCase, createCvUseCase, updateCvUseCase, deleteCvUseCase,
+                createCvUseCase, updateCvUseCase, deleteCvUseCase,
                 duplicateCvUseCase, cvWebMapper, cvResponseAssembler,
                 cvService, pdfGenerationService, docxGenerationService,
                 cvOwnershipService, cvImportService, businessMetrics);
@@ -158,7 +157,7 @@ class CvControllerTest {
     @Test
     void getCvById_quandCvInexistant_devraitPropagerException() {
         User user = buildUser();
-        when(getCvUseCase.get(99L, 1L)).thenThrow(new CvNotFoundException(99L));
+        when(cvResponseAssembler.assemble(99L, 1L)).thenThrow(new CvNotFoundException(99L));
 
         assertThatThrownBy(() -> cvController.getCvById(99L, user))
                 .isInstanceOf(CvNotFoundException.class)
