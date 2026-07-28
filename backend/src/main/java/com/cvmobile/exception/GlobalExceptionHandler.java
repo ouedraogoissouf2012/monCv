@@ -87,6 +87,13 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), null);
     }
 
+    @ExceptionHandler(com.cvmobile.cv.application.CvNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCvNotFound(
+            com.cvmobile.cv.application.CvNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND",
+                ex.getMessage(), null);
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN",
