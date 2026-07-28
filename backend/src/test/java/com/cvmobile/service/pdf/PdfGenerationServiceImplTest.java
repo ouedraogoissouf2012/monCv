@@ -1,4 +1,4 @@
-package com.cvmobile.service;
+package com.cvmobile.service.pdf;
 
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.exception.PdfGenerationException;
@@ -15,9 +15,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class PdfGenerationServiceTest {
+/**
+ * Rendu PDF de bout en bout, teste directement sur l'implementation geree par
+ * Spring (plus de facade {@code new ...()} — issue #255).
+ */
+class PdfGenerationServiceImplTest {
 
-    private final PdfGenerationService service = new PdfGenerationService();
+    private final PdfGenerationService service = new PdfGenerationServiceImpl();
 
     @ParameterizedTest
     @EnumSource(PdfTemplate.class)

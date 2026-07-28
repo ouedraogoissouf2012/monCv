@@ -45,7 +45,7 @@ class CvControllerTest {
 
     // Collaborateurs restant pour partage/PDF/variantes/import (non exerces ici).
     @Mock private com.cvmobile.service.cv.ICvService cvService;
-    @Mock private com.cvmobile.service.PdfGenerationService pdfGenerationService;
+    @Mock private com.cvmobile.service.pdf.PdfGenerationService pdfGenerationService;
     @Mock private com.cvmobile.service.DocxGenerationService docxGenerationService;
     @Mock private com.cvmobile.service.cv.CvOwnershipService cvOwnershipService;
     @Mock private com.cvmobile.service.import_.ICvImportService cvImportService;

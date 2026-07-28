@@ -11,7 +11,14 @@ import com.cvmobile.service.pdf.template.ModernePdfTemplate;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
+/**
+ * Implementation du service de generation PDF, geree par le container Spring
+ * (issue #255) : plus aucune instanciation manuelle {@code new ...Impl()} hors
+ * container. Assemble les strategies de modele par type de template.
+ */
+@Service
 public final class PdfGenerationServiceImpl implements PdfGenerationService {
 
     private final Map<PdfTemplate, com.cvmobile.service.pdf.template.PdfTemplate> templates;

@@ -6,7 +6,7 @@ import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.security.PublicDocumentGuard;
 import com.cvmobile.service.DocxGenerationService;
-import com.cvmobile.service.PdfGenerationService;
+import com.cvmobile.service.pdf.PdfGenerationService;
 import com.cvmobile.service.cv.PublicCvAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
