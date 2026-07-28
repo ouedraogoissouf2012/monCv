@@ -1,5 +1,13 @@
 package com.cvmobile.controller;
 
+import com.cvmobile.cv.adapter.in.web.CvResponseAssembler;
+import com.cvmobile.cv.adapter.in.web.CvWebMapper;
+import com.cvmobile.cv.application.usecase.CreateCvUseCase;
+import com.cvmobile.cv.application.usecase.DeleteCvUseCase;
+import com.cvmobile.cv.application.usecase.DuplicateCvUseCase;
+import com.cvmobile.cv.application.usecase.GetCvUseCase;
+import com.cvmobile.cv.application.usecase.UpdateCvUseCase;
+import com.cvmobile.cv.domain.model.Cv;
 import com.cvmobile.dto.CreateVariantRequest;
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
@@ -7,7 +15,6 @@ import com.cvmobile.dto.PublicShareSettingsRequest;
 import com.cvmobile.model.PdfTemplate;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
-import com.cvmobile.service.CvService;
 import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.PdfGenerationService;
 import com.cvmobile.service.cv.CvOwnershipService;
@@ -34,6 +41,17 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class CvController {
 
+    // CRUD : use cases du module CV migre (issue #255)
+    private final GetCvUseCase getCvUseCase;
+    private final CreateCvUseCase createCvUseCase;
+    private final UpdateCvUseCase updateCvUseCase;
+    private final DeleteCvUseCase deleteCvUseCase;
+    private final DuplicateCvUseCase duplicateCvUseCase;
+    private final CvWebMapper cvWebMapper;
+    private final CvResponseAssembler cvResponseAssembler;
+
+    // Partage public et variantes : encore portes par le service historique
+    // (dependances non migrees) — cf. tranches 255-C+/255-E.
     private final com.cvmobile.service.cv.ICvService cvService;
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;
@@ -44,8 +62,7 @@ public class CvController {
     @GetMapping
     @Operation(summary = "Obtenir tous les CV de l'utilisateur connecte")
     public ResponseEntity<List<CvResponse>> getAllCvs(@AuthenticationPrincipal User user) {
-        List<CvResponse> cvs = cvService.getAllCvsByUserId(user.getId());
-        return ResponseEntity.ok(cvs);
+        return ResponseEntity.ok(cvResponseAssembler.assembleAll(user.getId()));
     }
 
     @GetMapping("/{id}")
@@ -53,8 +70,10 @@ public class CvController {
     public ResponseEntity<CvResponse> getCvById(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-        CvResponse cv = cvService.getCvById(id, user.getId());
-        return ResponseEntity.ok(cv);
+        // Le use case tranche l'existence/appartenance (404 propre via
+        // CvNotFoundException); l'assembleur ne fait que produire la reponse.
+        getCvUseCase.get(id, user.getId());
+        return ResponseEntity.ok(cvResponseAssembler.assemble(id, user.getId()));
     }
 
     @PostMapping
@@ -62,8 +81,9 @@ public class CvController {
     public ResponseEntity<CvResponse> createCv(
             @Valid @RequestBody CvRequest request,
             @AuthenticationPrincipal User user) {
-        CvResponse cv = cvService.createCv(request, user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(cv);
+        Cv created = createCvUseCase.create(cvWebMapper.toDomain(request, user.getId()));
+        CvResponse response = cvResponseAssembler.assemble(created.getId(), user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
@@ -72,8 +92,9 @@ public class CvController {
             @PathVariable Long id,
             @Valid @RequestBody CvRequest request,
             @AuthenticationPrincipal User user) {
-        CvResponse cv = cvService.updateCv(id, request, user.getId());
-        return ResponseEntity.ok(cv);
+        Cv changes = cvWebMapper.toDomain(request, user.getId());
+        updateCvUseCase.update(id, user.getId(), changes);
+        return ResponseEntity.ok(cvResponseAssembler.assemble(id, user.getId()));
     }
 
     @GetMapping("/{id}/pdf")
@@ -127,8 +148,9 @@ public class CvController {
     public ResponseEntity<CvResponse> duplicateCv(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-        CvResponse cv = cvService.duplicateCv(id, user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(cv);
+        Cv copy = duplicateCvUseCase.duplicate(id, user.getId());
+        CvResponse response = cvResponseAssembler.assemble(copy.getId(), user.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
@@ -136,7 +158,7 @@ public class CvController {
     public ResponseEntity<Void> deleteCv(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-        cvService.deleteCv(id, user.getId());
+        deleteCvUseCase.delete(id, user.getId());
         return ResponseEntity.noContent().build();
     }
 
