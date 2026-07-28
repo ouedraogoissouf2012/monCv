@@ -42,6 +42,9 @@ abstract final class AppColors {
   static const Color vibrantPrimary = Color(0xFF5B4BD8);
   static const Color vibrantSecondary = Color(0xFF764BA2);
   static const Color violet = Color(0xFF8B5CF6);
+  // Violet clair (violet-400) : lisible sur fond sombre (statut "interview"
+  // du theme Premium), contraste >= 4.5:1 verifie par test.
+  static const Color violetLight = Color(0xFFA78BFA);
   static const Color violetMuted = Color(0xFF7864C8);
   static const Color pink = Color(0xFFEC4899);
   static const Color teal = Color(0xFF0F766E);
@@ -98,6 +101,9 @@ abstract final class AppColors {
   static const Color yellowBorder = Color(0xFFFEF08A);
   static const Color redBorder = Color(0xFFFECACA);
   static const Color redStrong = Color(0xFFEF4444);
+  // Rouge clair (red-400) : lisible sur les surfaces sombres du theme Premium
+  // (score "faible"), contraste >= 4.5:1 verifie par test.
+  static const Color redLight = Color(0xFFF87171);
   static const Color orangeText = Color(0xFFB45309);
 
   // Premium theme.

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/design_system/tokens/app_radii.dart';
+import '../../core/design_system/tokens/app_spacing.dart';
+import '../../core/design_system/tokens/app_typography.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/app_colors.dart';
 
@@ -50,13 +52,13 @@ class _HeroSection extends StatelessWidget {
           Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              decoration: const BoxDecoration(
+                  color: Colors.white, borderRadius: AppRadii.md),
               child: const Icon(Icons.description_outlined,
                   size: 22, color: _kBlue)),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Text('MonCV',
-              style: GoogleFonts.playfairDisplay(
+              style: AppTypography.display(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
                   color: Colors.white)),
@@ -67,7 +69,7 @@ class _HeroSection extends StatelessWidget {
           child: Text(
             heroTitle,
             textAlign: TextAlign.center,
-            style: GoogleFonts.playfairDisplay(
+            style: AppTypography.display(
               fontSize: isWide ? 52 : 31,
               fontWeight: FontWeight.w400,
               color: Colors.white,
@@ -75,7 +77,7 @@ class _HeroSection extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         ConstrainedBox(
           constraints: BoxConstraints(maxWidth: isWide ? 680 : 300),
           child: Text(
@@ -87,7 +89,7 @@ class _HeroSection extends StatelessWidget {
                 height: 1.45),
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: AppSpacing.xxxl),
         _HeroActions(isWide: isWide),
       ]),
     );
@@ -107,7 +109,7 @@ class _HeroActions extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: _kBlue,
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadii.lg),
       ),
       child: Text(l.createCvFree,
           textAlign: TextAlign.center,
@@ -119,7 +121,7 @@ class _HeroActions extends StatelessWidget {
         foregroundColor: Colors.white,
         side: const BorderSide(color: Colors.white),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadii.lg),
       ),
       child: Text(l.login),
     );
@@ -233,7 +235,7 @@ class _FeaturesSection extends StatelessWidget {
         Text(l.allYouNeed,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(l.allYouNeedSubtitle,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 14, color: AppColors.neutral450)),
@@ -280,7 +282,7 @@ class _FeatureCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadii.xl,
           border: Border.all(color: AppColors.neutral100)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
@@ -288,12 +290,12 @@ class _FeatureCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
                 color: _kBlue.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12)),
+                borderRadius: AppRadii.lg),
             child: Icon(icon, color: _kBlue, size: 24)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Text(title,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(desc,
             style: const TextStyle(
                 fontSize: 13, color: AppColors.neutral450, height: 1.5)),
@@ -318,16 +320,16 @@ class _PreviewSection extends StatelessWidget {
       child: Column(children: [
         Text(l.clearCvTitle,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(l.clearCvSubtitle,
             style: const TextStyle(fontSize: 14, color: AppColors.neutral450)),
-        const SizedBox(height: 32),
+        const SizedBox(height: AppSpacing.xxxl),
         // Mockup CV
         Container(
           constraints: BoxConstraints(maxWidth: isWide ? 500 : double.infinity),
           decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadii.lg,
               boxShadow: [
                 BoxShadow(
                     color: Colors.black.withValues(alpha: 0.1),
@@ -356,7 +358,7 @@ class _PreviewSection extends StatelessWidget {
                         fontSize: 12,
                         color: Colors.white70,
                         fontStyle: FontStyle.italic)),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(l.sampleCandidateContact,
                     style: const TextStyle(fontSize: 9, color: Colors.white60)),
               ]),
@@ -480,10 +482,10 @@ class _HowItWorks extends StatelessWidget {
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: Colors.white))),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Text(title,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(desc,
             textAlign: TextAlign.center,
             style: const TextStyle(
@@ -509,7 +511,7 @@ class _CtaSection extends StatelessWidget {
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Colors.white)),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(l.readyToApplySubtitle,
             style: TextStyle(
                 fontSize: 14, color: Colors.white.withValues(alpha: 0.8))),
@@ -519,10 +521,8 @@ class _CtaSection extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: _kBlue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12))),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                shape: const RoundedRectangleBorder(borderRadius: AppRadii.lg)),
             child: Text(l.startNow,
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
       ]),
@@ -547,7 +547,7 @@ class _Footer extends StatelessWidget {
           const Icon(Icons.description_outlined, size: 18, color: Colors.white),
           const SizedBox(width: 8),
           Text('MonCV',
-              style: GoogleFonts.playfairDisplay(
+              style: AppTypography.display(
                   fontSize: 16,
                   color: Colors.white,
                   fontWeight: FontWeight.w500)),

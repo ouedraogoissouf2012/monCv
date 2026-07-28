@@ -73,3 +73,25 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+  # Polices embarquees : source unique de la charte typographique de l'app.
+  # Aucun ecran n'appelle GoogleFonts au runtime (issue #233). La famille par
+  # defaut est resolue via AppTypography.fontFamilyBody / fontFamilyDisplay.
+  # Playfair Display est une police variable (axe wght) : Flutter selectionne
+  # l'instance la plus proche du FontWeight demande.
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+    - family: Playfair Display
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-VariableFont_wght.ttf
