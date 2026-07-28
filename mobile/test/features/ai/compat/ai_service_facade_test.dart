@@ -22,14 +22,21 @@ void main() {
     facade = AiCvService(ds);
   });
 
-  test('enhanceCv reconvertit EnhancedCv en Map backend', () async {
+  test('enhanceCv reconvertit EnhancedCv en Map backend (toutes sections)',
+      () async {
     when(() => ds.enhanceCv(1, 'MAX')).thenAnswer(
       (_) async => const EnhancedCv(
         titrePoste: 'Dev',
+        resumeProfessionnel: 'resume',
+        titreOffre: 'Lead Mobile',
         aiGenerated: true,
         correctionCount: 2,
         experiences: [EnhancedExperience(id: 3, poste: 'Lead')],
+        educations: [EnhancedEducation(id: 4, diplome: 'Master')],
         skills: [EnhancedSkill(nom: 'Dart', niveau: 5)],
+        languages: [EnhancedLanguage(id: 6, langue: 'Anglais')],
+        certifications: [EnhancedCertification(id: 7, nom: 'AWS')],
+        projects: [EnhancedProject(id: 8, nom: 'MonCV', technologies: 'Flutter')],
         warnings: ['w1'],
         level: 'MAX',
       ),
@@ -38,12 +45,32 @@ void main() {
     final map = await facade.enhanceCv(1, 'MAX');
 
     expect(map['titrePoste'], 'Dev');
+    expect(map['resumeProfessionnel'], 'resume');
+    expect(map['titreOffre'], 'Lead Mobile');
     expect(map['aiGenerated'], true);
     expect(map['correctionCount'], 2);
     expect((map['experiences'] as List).single['poste'], 'Lead');
+    expect((map['educations'] as List).single['diplome'], 'Master');
     expect((map['skills'] as List).single['niveau'], 5);
+    expect((map['languages'] as List).single['langue'], 'Anglais');
+    expect((map['certifications'] as List).single['nom'], 'AWS');
+    expect((map['projects'] as List).single['technologies'], 'Flutter');
     expect(map['warnings'], ['w1']);
     expect(map['level'], 'MAX');
+  });
+
+  test('enhanceCv sans sous-listes -> Map avec listes vides (null-safe)',
+      () async {
+    when(() => ds.enhanceCv(1, 'LITE'))
+        .thenAnswer((_) async => const EnhancedCv(aiGenerated: true));
+
+    final map = await facade.enhanceCv(1, 'LITE');
+
+    expect(map['experiences'], isEmpty);
+    expect(map['educations'], isEmpty);
+    expect(map['skills'], isEmpty);
+    expect(map['warnings'], isEmpty);
+    expect(map['aiGenerated'], true);
   });
 
   test('matchJob reconvertit JobMatch en Map backend', () async {

@@ -18,8 +18,11 @@ class ApiResponse {
     required this.bodyBytes,
   });
 
-  /// Corps decode en UTF-8.
-  String get body => utf8.decode(bodyBytes);
+  /// Corps decode en UTF-8. Tolerant aux octets malformes (remplaces par le
+  /// caractere U+FFFD) : le contrat du transport veut qu'aucune exception brute
+  /// n'echappe. Un corps non-JSON reste rejete plus loin par [jsonObject] /
+  /// [jsonArray] via [FormatException], que le transport traduit en erreur typee.
+  String get body => utf8.decode(bodyBytes, allowMalformed: true);
 
   /// Vrai pour un status 2xx.
   bool get isSuccess => statusCode >= 200 && statusCode < 300;

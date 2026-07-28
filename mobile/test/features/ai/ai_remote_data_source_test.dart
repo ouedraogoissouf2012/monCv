@@ -141,6 +141,20 @@ void main() {
       expect(captured.method, 'GET');
       expect(captured.url.path, endsWith('/ai/status'));
     });
+
+    test('getSuggestions tolere un champ suggestions absent -> []', () async {
+      // Comportement volontairement plus robuste que l'ancien ApiService (qui
+      // levait). Doit rester : aucune exception, liste vide.
+      final ds = build((_) => json({'autre': 1}, 200));
+      expect(await ds.getSuggestions(poste: 'Dev'), isEmpty);
+    });
+
+    test('getSuggestions filtre les elements non-string', () async {
+      final ds = build((_) => json({
+            'suggestions': ['ok', 42, null, 'ok2'],
+          }, 200));
+      expect(await ds.getSuggestions(poste: 'Dev'), ['ok', 'ok2']);
+    });
   });
 
   group('retourne des entités typees (aucun Map ne sort)', () {

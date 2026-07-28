@@ -190,6 +190,22 @@ void main() {
       );
     });
 
+    test('corps binaire malforme (UTF-8 invalide) -> AppException, pas de crash',
+        () async {
+      // Le decodage est tolerant (allowMalformed) : aucune exception brute ne
+      // doit echapper ; le corps non-JSON est rejete en erreur typee.
+      final transport = ApiTransport(
+        MockClient(
+          (_) async => http.Response.bytes([0xFF, 0xFE, 0x00], 200),
+        ),
+        FakeTokenStore(),
+      );
+      await expectLater(
+        transport.sendJsonObject(ApiRequest.get('/x')),
+        throwsA(isA<AppException>()),
+      );
+    });
+
     test('sendNoContent accepte un 204 sans corps', () async {
       final transport = _transport((_) => http.Response('', 204));
       await expectLater(
