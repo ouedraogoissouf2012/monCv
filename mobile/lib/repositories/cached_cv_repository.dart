@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/error/result.dart';
-import '../models/cv.dart';
+import '../features/cv/data/mappers/cv_mapper.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import 'cv_repository.dart';
 
 const _kCacheKey = 'cached_cvs';
@@ -10,21 +10,32 @@ class CachedCvRepository implements CvRepository {
   final CvRepository _remote;
   final SharedPreferences _prefs;
 
+  static const CvMapper _mapper = CvMapper();
+
   CachedCvRepository({required CvRepository remote, required SharedPreferences prefs})
       : _remote = remote,
         _prefs = prefs;
 
   // ── Cache helpers ──────────────────────────────────────────────
 
+  /// Lit le cache, ou `null` s'il est absent, illisible ou incompatible.
+  ///
+  /// Un cache illisible est traite comme une absence de cache : on ne sert pas
+  /// une liste vide qui masquerait l'erreur reseau. La distinction entre cache
+  /// vide legitime (`[]`) et cache illisible (`null`) provient du mapper.
   List<Cv>? _readCache() {
     final raw = _prefs.getString(_kCacheKey);
     if (raw == null) return null;
-    final list = jsonDecode(raw) as List<dynamic>;
-    return list.map((e) => Cv.fromJson(e as Map<String, dynamic>)).toList();
+    final entities = _mapper.fromCacheJson(raw);
+    if (entities == null) return null;
+    return entities.map(Cv.fromEntity).toList();
   }
 
   Future<void> _writeCache(List<Cv> cvs) async {
-    await _prefs.setString(_kCacheKey, jsonEncode(cvs.map((c) => c.toJson()).toList()));
+    await _prefs.setString(
+      _kCacheKey,
+      _mapper.toCacheJson(cvs.map((c) => c.entity).toList()),
+    );
   }
 
   Future<void> clearCache() async {

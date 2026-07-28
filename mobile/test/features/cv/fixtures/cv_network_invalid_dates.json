@@ -1,0 +1,15 @@
+{
+  "id": 7,
+  "titre": "Dates cassées",
+  "experiences": [
+    {
+      "poste": "Dev",
+      "dateDebut": "not-a-date",
+      "dateFin": "",
+      "actuel": "oui"
+    }
+  ],
+  "certifications": [
+    {"nom": "X", "dateObtention": "31/02/2020"}
+  ]
+}

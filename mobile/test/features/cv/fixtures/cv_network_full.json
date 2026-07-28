@@ -1,0 +1,86 @@
+{
+  "id": 12,
+  "titre": "Développeur Full-Stack",
+  "personalInfo": {
+    "nom": "Ouédraogo",
+    "prenom": "Issouf",
+    "email": "issouf@example.com",
+    "telephone": "+226 70 00 00 00",
+    "adresse": "Avenue Kwamé N'Krumah",
+    "ville": "Ouagadougou",
+    "codePostal": "01 BP 1234",
+    "pays": "Burkina Faso",
+    "photoUrl": "/media/photos/issouf.png",
+    "linkedIn": "in/issouf",
+    "portfolio": "issouf.dev",
+    "titrePoste": "Développeur",
+    "resumeProfessionnel": "Développeur expérimenté en Flutter et Spring Boot."
+  },
+  "educations": [
+    {
+      "id": 1,
+      "etablissement": "Université Joseph Ki-Zerbo",
+      "diplome": "Master",
+      "domaine": "Informatique",
+      "dateDebut": "2016-09-01",
+      "dateFin": "2018-06-30",
+      "description": "Génie logiciel"
+    }
+  ],
+  "experiences": [
+    {
+      "id": 2,
+      "entreprise": "Kalga",
+      "poste": "Développeur",
+      "lieu": "Ouagadougou",
+      "dateDebut": "2019-01-15",
+      "dateFin": null,
+      "description": "Conçu des API REST.",
+      "actuel": true
+    }
+  ],
+  "skills": [
+    {"id": 3, "nom": "Flutter", "niveau": 5, "categorie": "Mobile"}
+  ],
+  "languages": [
+    {"id": 4, "langue": "Français", "niveau": "NATIF"}
+  ],
+  "certifications": [
+    {
+      "id": 5,
+      "nom": "AWS Certified",
+      "organisme": "Amazon",
+      "dateObtention": "2021-03-10",
+      "dateExpiration": "2024-03-10",
+      "credentialUrl": "https://aws.example/cert"
+    }
+  ],
+  "projects": [
+    {
+      "id": 6,
+      "nom": "MonCV",
+      "description": "Générateur de CV.",
+      "technologies": "Flutter, Dart",
+      "lien": "https://moncv.example",
+      "dateDebut": "2020-01-01",
+      "dateFin": "2020-12-31"
+    }
+  ],
+  "viewCount": 42,
+  "parentCvId": null,
+  "varianteLabel": null,
+  "variantCount": 2,
+  "publicToken": "tok-abc-123",
+  "publicEnabled": true,
+  "publicDownloadsEnabled": true,
+  "publicContactEnabled": false,
+  "downloadCount": 7,
+  "shareCount": 3,
+  "createdAt": "2026-01-05T10:30:00.000Z",
+  "updatedAt": "2026-06-20T14:00:00.000Z",
+  "style": {
+    "templateId": "ats",
+    "primaryColor": 4278224787,
+    "fontFamily": "Lato"
+  }
+}

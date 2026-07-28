@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "titre": "Ancien cache format liste",
+    "personalInfo": {"nom": "Legacy", "email": "l@e.c"},
+    "educations": [],
+    "experiences": [{"poste": "Dev"}],
+    "skills": [],
+    "languages": [],
+    "certifications": [],
+    "projects": [],
+    "style": {"templateId": "moderne", "primaryColor": 4280391411, "fontFamily": "Roboto"}
+  }
+]

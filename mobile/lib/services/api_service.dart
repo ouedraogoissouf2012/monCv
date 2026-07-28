@@ -4,9 +4,9 @@ import 'http_timeout.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/error/error_mapper.dart';
+import '../features/cv/data/cv_network_codec.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
-import '../models/cv.dart';
 import '../models/notification_preferences.dart';
 import '../models/ai_status.dart';
 import '../models/job_application.dart';
@@ -304,8 +304,8 @@ class ApiService implements IApiClient {
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Cv.fromJson(json)).toList();
+      final data = jsonDecode(response.body) as List<dynamic>;
+      return [for (final e in data) cvFromNetworkJson(e as Map<String, dynamic>)];
     } else {
       throw Exception('Erreur lors de la recuperation des CV');
     }
@@ -319,7 +319,7 @@ class ApiService implements IApiClient {
     );
 
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       throw Exception('CV non trouve');
     }
@@ -330,11 +330,11 @@ class ApiService implements IApiClient {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}'),
       headers: await _getHeaders(),
-      body: jsonEncode(cv.toJson()),
+      body: cvToNetworkBody(cv),
     );
 
     if (response.statusCode == 201) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       _throwApiError(response, 'Erreur lors de la creation du CV');
     }
@@ -345,11 +345,11 @@ class ApiService implements IApiClient {
     final response = await http.put(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/$id'),
       headers: await _getHeaders(),
-      body: jsonEncode(cv.toJson()),
+      body: cvToNetworkBody(cv),
     );
 
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       _throwApiError(response, 'Erreur lors de la mise a jour du CV');
     }
@@ -458,7 +458,7 @@ class ApiService implements IApiClient {
     );
 
     if (response.statusCode == 201) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       throw Exception('Erreur lors de la duplication du CV');
     }
@@ -482,7 +482,7 @@ class ApiService implements IApiClient {
     );
 
     if (response.statusCode == 201) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       final error = jsonDecode(response.body);
       throw Exception(
@@ -525,7 +525,7 @@ class ApiService implements IApiClient {
     );
 
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       throw Exception('Erreur lors de la génération du lien');
     }
@@ -540,7 +540,7 @@ class ApiService implements IApiClient {
       headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     }
     _throwTypedError(response, 'Erreur lors de la regeneration du lien');
   }
@@ -552,7 +552,7 @@ class ApiService implements IApiClient {
       headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     }
     _throwTypedError(response, 'Erreur lors de la desactivation du lien');
   }
@@ -574,7 +574,7 @@ class ApiService implements IApiClient {
       }),
     );
     if (response.statusCode == 200) {
-      return Cv.fromJson(jsonDecode(response.body));
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     }
     _throwTypedError(response, 'Erreur lors de la configuration du partage');
   }
@@ -747,7 +747,7 @@ class ApiService implements IApiClient {
     final body = await streamed.stream.bytesToString();
 
     if (streamed.statusCode == 201) {
-      return Cv.fromJson(jsonDecode(body));
+      return cvFromNetworkJson(jsonDecode(body) as Map<String, dynamic>);
     } else {
       final error = jsonDecode(body);
       throw Exception(error['message'] ?? 'Erreur lors de l\'import du CV');

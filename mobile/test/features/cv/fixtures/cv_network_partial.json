@@ -1,0 +1,9 @@
+{
+  "id": 99,
+  "titre": "CV minimal",
+  "personalInfo": null,
+  "experiences": null,
+  "skills": [
+    {"nom": "Dart"}
+  ]
+}
