@@ -1,8 +1,8 @@
+import '../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../models/cv.dart';
 import '../l10n/app_localizations.dart';
 
-/// Service de validation intelligente du CV.
-/// Detecte les incoherences, champs manquants, et problemes de credibilite.
+/// Service de validation intelligente du CV. Seuils : [CvValidationThresholds].
 class CvValidator {
   static final CvValidator _instance = CvValidator._();
   CvValidator._();
@@ -22,10 +22,10 @@ class CvValidator {
     _validateProjects(cv.projects, warnings, l);
     _validateOverall(cv, warnings, l);
 
-    // Calcul du score
-    const maxScore = 100;
-    final deductions = errors.length * 15 + warnings.length * 5;
-    final score = (maxScore - deductions).clamp(0, 100);
+    final deductions = errors.length * CvValidationThresholds.errorPenalty +
+        warnings.length * CvValidationThresholds.warningPenalty;
+    final score = (CvValidationThresholds.maxScore - deductions)
+        .clamp(0, CvValidationThresholds.maxScore);
 
     return ValidationReport(
       score: score,
@@ -374,7 +374,7 @@ class ValidationReport {
     required this.warnings,
   });
 
-  bool get canExport => score >= 60;
+  bool get canExport => score >= CvValidationThresholds.exportThreshold;
   int get totalIssues => errors.length + warnings.length;
 }
 
