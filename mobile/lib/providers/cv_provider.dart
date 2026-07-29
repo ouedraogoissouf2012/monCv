@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
+import '../features/cv/application/apply_ai_enhancements.dart';
 import '../features/cv/application/state/cv_operation_state.dart';
 import '../features/cv/data/cv_cache_codec.dart';
 import '../features/cv/presentation/cv_presentation_model.dart';
@@ -28,6 +29,7 @@ class CvProvider with ChangeNotifier {
   final CvRepository _repository;
   final ConnectivityService _connectivity;
   final SyncQueue? _syncQueue;
+  final ApplyAiEnhancements _applyAiEnhancements = const ApplyAiEnhancements();
 
   late final StreamSubscription<bool> _connectivitySub;
   int _tempIdCounter = -1;
@@ -243,206 +245,15 @@ class CvProvider with ChangeNotifier {
     final cv = _currentCv;
     if (cv == null || cv.id != cvId) return false;
 
-    PersonalInfo? updatedInfo = cv.personalInfo;
-    if (updatedInfo != null) {
-      final newTitre = result['titrePoste'] as String?;
-      final newResume = result['resumeProfessionnel'] as String?;
-      if ((newTitre != null && newTitre.isNotEmpty) ||
-          (newResume != null && newResume.isNotEmpty)) {
-        updatedInfo = PersonalInfo(
-          nom: updatedInfo.nom,
-          prenom: updatedInfo.prenom,
-          email: updatedInfo.email,
-          telephone: updatedInfo.telephone,
-          adresse: updatedInfo.adresse,
-          ville: updatedInfo.ville,
-          codePostal: updatedInfo.codePostal,
-          pays: updatedInfo.pays,
-          titrePoste: (newTitre != null && newTitre.isNotEmpty)
-              ? newTitre
-              : updatedInfo.titrePoste,
-          linkedIn: updatedInfo.linkedIn,
-          portfolio: updatedInfo.portfolio,
-          photoUrl: updatedInfo.photoUrl,
-          resumeProfessionnel: (newResume != null && newResume.isNotEmpty)
-              ? newResume
-              : updatedInfo.resumeProfessionnel,
-        );
-      }
-    }
-
-    List<Experience> updatedExperiences = List<Experience>.from(cv.experiences);
-    if (result['experiences'] != null) {
-      final aiExps = result['experiences'] as List<dynamic>;
-      for (int i = 0; i < aiExps.length && i < updatedExperiences.length; i++) {
-        final newPoste = aiExps[i]['poste'] as String?;
-        final newDesc = aiExps[i]['description'] as String?;
-        if ((newPoste != null && newPoste.isNotEmpty) ||
-            (newDesc != null && newDesc.isNotEmpty)) {
-          final old = updatedExperiences[i];
-          updatedExperiences[i] = Experience(
-            id: old.id,
-            poste: (newPoste != null && newPoste.isNotEmpty)
-                ? newPoste
-                : old.poste,
-            entreprise: old.entreprise,
-            lieu: old.lieu,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
-            actuel: old.actuel,
-            description: (newDesc != null && newDesc.isNotEmpty)
-                ? newDesc
-                : old.description,
-          );
-        }
-      }
-    }
-
-    List<Education> updatedEducations = List<Education>.from(cv.educations);
-    if (result['educations'] != null) {
-      final aiEdus = result['educations'] as List<dynamic>;
-      for (int i = 0; i < aiEdus.length && i < updatedEducations.length; i++) {
-        final newEtablissement = aiEdus[i]['etablissement'] as String?;
-        final newDiplome = aiEdus[i]['diplome'] as String?;
-        final newDomaine = aiEdus[i]['domaine'] as String?;
-        final newDesc = aiEdus[i]['description'] as String?;
-        if ((newEtablissement != null && newEtablissement.isNotEmpty) ||
-            (newDiplome != null && newDiplome.isNotEmpty) ||
-            (newDomaine != null && newDomaine.isNotEmpty) ||
-            (newDesc != null && newDesc.isNotEmpty)) {
-          final old = updatedEducations[i];
-          updatedEducations[i] = Education(
-            id: old.id,
-            etablissement:
-                (newEtablissement != null && newEtablissement.isNotEmpty)
-                    ? newEtablissement
-                    : old.etablissement,
-            diplome: (newDiplome != null && newDiplome.isNotEmpty)
-                ? newDiplome
-                : old.diplome,
-            domaine: (newDomaine != null && newDomaine.isNotEmpty)
-                ? newDomaine
-                : old.domaine,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
-            description: (newDesc != null && newDesc.isNotEmpty)
-                ? newDesc
-                : old.description,
-          );
-        }
-      }
-    }
-
-    List<Skill> updatedSkills = List<Skill>.from(cv.skills);
-    if (result['skills'] != null) {
-      final aiSkills = result['skills'] as List<dynamic>;
-      if (aiSkills.isNotEmpty) {
-        updatedSkills = List.generate(aiSkills.length, (index) {
-          final old = index < cv.skills.length ? cv.skills[index] : null;
-          final skill = aiSkills[index] as Map<String, dynamic>;
-          return Skill(
-            id: old?.id,
-            nom: skill['nom'] as String? ?? old?.nom ?? '',
-            niveau: skill['niveau'] as int? ?? old?.niveau ?? 3,
-            categorie: old?.categorie,
-          );
-        });
-      }
-    }
-
-    List<Language> updatedLanguages = List<Language>.from(cv.languages);
-    if (result['languages'] != null) {
-      final correctedLanguages = result['languages'] as List<dynamic>;
-      for (int i = 0;
-          i < correctedLanguages.length && i < updatedLanguages.length;
-          i++) {
-        final newName = correctedLanguages[i]['langue'] as String?;
-        if (newName != null && newName.isNotEmpty) {
-          final old = updatedLanguages[i];
-          updatedLanguages[i] = Language(
-            id: old.id,
-            langue: newName,
-            niveau: old.niveau,
-          );
-        }
-      }
-    }
-
-    List<Certification> updatedCertifications =
-        List<Certification>.from(cv.certifications);
-    if (result['certifications'] != null) {
-      final correctedCertifications = result['certifications'] as List<dynamic>;
-      for (int i = 0;
-          i < correctedCertifications.length &&
-              i < updatedCertifications.length;
-          i++) {
-        final newName = correctedCertifications[i]['nom'] as String?;
-        final newOrganization =
-            correctedCertifications[i]['organisme'] as String?;
-        if ((newName != null && newName.isNotEmpty) ||
-            (newOrganization != null && newOrganization.isNotEmpty)) {
-          final old = updatedCertifications[i];
-          updatedCertifications[i] = Certification(
-            id: old.id,
-            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
-            organisme: (newOrganization != null && newOrganization.isNotEmpty)
-                ? newOrganization
-                : old.organisme,
-            dateObtention: old.dateObtention,
-            dateExpiration: old.dateExpiration,
-            credentialUrl: old.credentialUrl,
-          );
-        }
-      }
-    }
-
-    List<Project> updatedProjects = List<Project>.from(cv.projects);
-    if (result['projects'] != null) {
-      final aiProjs = result['projects'] as List<dynamic>;
-      for (int i = 0; i < aiProjs.length && i < updatedProjects.length; i++) {
-        final newName = aiProjs[i]['nom'] as String?;
-        final newDesc = aiProjs[i]['description'] as String?;
-        final newTechnologies = aiProjs[i]['technologies'] as String?;
-        if ((newName != null && newName.isNotEmpty) ||
-            (newDesc != null && newDesc.isNotEmpty) ||
-            (newTechnologies != null && newTechnologies.isNotEmpty)) {
-          final old = updatedProjects[i];
-          updatedProjects[i] = Project(
-            id: old.id,
-            nom: (newName != null && newName.isNotEmpty) ? newName : old.nom,
-            description: (newDesc != null && newDesc.isNotEmpty)
-                ? newDesc
-                : old.description,
-            technologies:
-                (newTechnologies != null && newTechnologies.isNotEmpty)
-                    ? newTechnologies
-                    : old.technologies,
-            lien: old.lien,
-            dateDebut: old.dateDebut,
-            dateFin: old.dateFin,
-          );
-        }
-      }
-    }
-
-    final updatedCv = cv.copyWith(
-      personalInfo: updatedInfo,
-      experiences: updatedExperiences,
-      educations: updatedEducations,
-      skills: updatedSkills,
-      languages: updatedLanguages,
-      certifications: updatedCertifications,
-      projects: updatedProjects,
-    );
+    final updatedCv = _applyAiEnhancements(cv, result);
 
     _currentCv = updatedCv;
-    final index = _cvs.indexWhere((c) => c.id == cvId);
-    if (index != -1) _cvs[index] = updatedCv;
+    final listIndex = _cvs.indexWhere((c) => c.id == cvId);
+    if (listIndex != -1) _cvs[listIndex] = updatedCv;
     notifyListeners();
 
-    // Best-effort save
+    // Persistance best-effort : le resultat sera propage par la PR offline.
     await _repository.updateCv(cvId, updatedCv);
-
     return true;
   }
 
