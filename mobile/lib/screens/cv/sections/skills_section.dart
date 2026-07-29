@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
+import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
+import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../utils/cv_levels.dart';
-import 'form_sheet.dart';
 
 class SkillsSection extends StatelessWidget {
   final List<Skill> skills;
@@ -14,37 +16,19 @@ class SkillsSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _add(BuildContext context) =>
-      _showSheet(context, null, (s) => onChanged([...skills, s]));
-
-  void _edit(BuildContext context, int i) =>
-      _showSheet(context, skills[i], (s) {
-        final list = List<Skill>.from(skills);
-        list[i] = s;
-        onChanged(list);
-      });
-
-  void _delete(int i) {
-    final list = List<Skill>.from(skills);
-    list.removeAt(i);
-    onChanged(list);
-  }
-
-  void _showSheet(
-    BuildContext context,
-    Skill? skill,
-    Function(Skill) onSave,
-  ) {
+  /// Ouvre l'editeur de competence et retourne la valeur saisie (ou `null` si
+  /// annule / invalide). Ne mute jamais la liste parent.
+  Future<Skill?> _editSheet(BuildContext context, Skill? skill) {
     final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: skill?.nom);
     final catCtrl = TextEditingController(text: skill?.categorie);
     int niveau = skill?.niveau ?? 3;
 
-    showFormSheet(
+    return showSectionEditor<Skill>(
       context: context,
       title: skill == null ? l.addSkill : l.editSkill,
       icon: Icons.psychology_outlined,
-      builder: (ctx, setState) => Column(
+      content: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -55,6 +39,8 @@ class SkillsSection extends StatelessWidget {
               hintText: l.skillHint,
               prefixIcon: const Icon(Icons.code_rounded, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -66,7 +52,6 @@ class SkillsSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Niveau
           Row(
             children: [
               Text(
@@ -135,51 +120,34 @@ class SkillsSection extends StatelessWidget {
           ),
         ],
       ),
-      onSave: () {
-        if (nomCtrl.text.isNotEmpty) {
-          onSave(Skill(
-            id: skill?.id,
-            nom: nomCtrl.text,
-            niveau: niveau,
-            categorie: catCtrl.text.isNotEmpty ? catCtrl.text : null,
-          ));
-        }
-      },
+      buildResult: () => Skill(
+        id: skill?.id,
+        nom: nomCtrl.text.trim(),
+        niveau: niveau,
+        categorie: catCtrl.text.isNotEmpty ? catCtrl.text : null,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (skills.isEmpty)
-          SectionEmptyState(
-            icon: Icons.psychology_outlined,
-            label: l.noneSkill,
-          )
-        else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: skills.asMap().entries.map((entry) {
-              final i = entry.key;
-              final s = entry.value;
-              return _SkillChip(
-                skill: s,
-                onEdit: () => _edit(context, i),
-                onDelete: () => _delete(i),
-              );
-            }).toList(),
-          ),
-        const SizedBox(height: 8),
-        SectionAddButton(
-          label: l.addSkill,
-          onTap: () => _add(context),
-        ),
-      ],
+    return EditableSectionList<Skill>(
+      items: skills,
+      onChanged: onChanged,
+      layout: SectionListLayout.wrap,
+      onAdd: (ctx) => _editSheet(ctx, null),
+      onEdit: (ctx, current) => _editSheet(ctx, current),
+      addLabel: l.addSkill,
+      emptyIcon: Icons.psychology_outlined,
+      emptyLabel: l.noneSkill,
+      itemBuilder: (ctx, skill, index,
+              {required onEditItem, required onDeleteItem}) =>
+          _SkillChip(
+        skill: skill,
+        onEdit: onEditItem,
+        onDelete: onDeleteItem,
+      ),
     );
   }
 }
@@ -216,7 +184,6 @@ class _SkillChip extends StatelessWidget {
               color: colorScheme.onSurface,
             ),
           ),
-          // Niveau en points
           const SizedBox(width: 6),
           Row(
             children: List.generate(
