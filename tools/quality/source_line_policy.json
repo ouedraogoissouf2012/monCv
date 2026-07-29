@@ -27,7 +27,7 @@
     },
     {
       "path": "mobile/lib/providers/cv_provider.dart",
-      "baseline_lines": 571,
+      "baseline_lines": 549,
       "issue": "#240",
       "expires_on": "2027-01-31"
     },

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../core/error/result.dart';
 import '../core/usecase/usecase.dart';
+import '../features/cv/application/state/cv_operation_state.dart';
 import '../features/cv/data/cv_cache_codec.dart';
 import '../features/cv/presentation/cv_presentation_model.dart';
 import '../models/cv_style.dart';
@@ -64,56 +65,58 @@ class CvProvider with ChangeNotifier {
 
   List<Cv> _cvs = [];
   Cv? _currentCv;
-  bool _isLoading = false;
-  String? _error;
-  bool _isOffline = false;
+
+  // Etat unique et typE (#240) : remplace les booleans concurrents
+  // `_isLoading` / `_error` / `_isOffline` qui pouvaient se contredire.
+  // Les getters historiques ci-dessous en derivent pour ne rien casser cote UI.
+  CvOperationState _state = const CvOperationState.idle();
+
+  CvOperationState get state => _state;
 
   List<Cv> get cvs => _cvs;
   Cv? get currentCv => _currentCv;
-  bool get isLoading => _isLoading;
+  bool get isLoading => _state.isLoading;
   bool get hasPendingSync => _syncQueue?.hasPending ?? false;
   int get pendingSyncCount => _syncQueue?.pendingCount ?? 0;
-  String? get error => _error;
+  String? get error => _state.errorMessage;
   bool get isOffline => _isOffline;
+  bool _isOffline = false;
+
+  void _setState(CvOperationState next) {
+    _state = next;
+    notifyListeners();
+  }
 
   Future<void> loadCvs() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     final result = await _getAllCvs(const NoParams());
-    _isLoading = false;
 
     switch (result) {
       case Success(:final data):
         _cvs = data;
+        _setState(const CvOperationState.success());
       case Failure(:final exception):
-        _error = exception.message;
+        _setState(CvOperationState.failure(exception.message));
     }
-    notifyListeners();
   }
 
   Future<void> loadCvById(int id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     final result = await _getCvById(id);
-    _isLoading = false;
 
     switch (result) {
       case Success(:final data):
         _currentCv = data;
+        _setState(const CvOperationState.success());
       case Failure(:final exception):
-        _error = exception.message;
+        _setState(CvOperationState.failure(exception.message));
     }
-    notifyListeners();
   }
 
   Future<bool> createCv(Cv cv) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     // Si offline, sauvegarder localement avec un ID temporaire negatif
     if (_isOffline && _syncQueue != null) {
@@ -128,13 +131,11 @@ class CvProvider with ChangeNotifier {
         cvId: tempId,
         createdAt: DateTime.now(),
       ));
-      _isLoading = false;
-      notifyListeners();
+      _setState(CvOperationState.pendingSync(pendingSyncCount));
       return true;
     }
 
     final result = await _createCv(cv);
-    _isLoading = false;
 
     switch (result) {
       case Success(:final data):
@@ -143,16 +144,13 @@ class CvProvider with ChangeNotifier {
         notifyListeners();
         return true;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return false;
     }
   }
 
   Future<bool> updateCv(int id, Cv cv) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     // Si offline, sauvegarder localement + queue
     if (_isOffline && _syncQueue != null) {
@@ -166,74 +164,61 @@ class CvProvider with ChangeNotifier {
         cvId: id,
         createdAt: DateTime.now(),
       ));
-      _isLoading = false;
-      notifyListeners();
+      _setState(CvOperationState.pendingSync(pendingSyncCount));
       return true;
     }
 
     final result = await _updateCv(UpdateCvParams(id: id, cv: cv));
-    _isLoading = false;
 
     switch (result) {
       case Success(:final data):
         final index = _cvs.indexWhere((c) => c.id == id);
         if (index != -1) _cvs[index] = data;
         _currentCv = data;
-        notifyListeners();
+        _setState(const CvOperationState.success());
         return true;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return false;
     }
   }
 
   Future<bool> deleteCv(int id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     final result = await _deleteCv(id);
-    _isLoading = false;
 
     switch (result) {
       case Success():
         _cvs.removeWhere((cv) => cv.id == id);
         if (_currentCv?.id == id) _currentCv = null;
-        notifyListeners();
+        _setState(const CvOperationState.success());
         return true;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return false;
     }
   }
 
   Future<bool> duplicateCv(int id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     final result = await _duplicateCv(id);
-    _isLoading = false;
 
     switch (result) {
       case Success(:final data):
         _cvs.add(data);
-        notifyListeners();
+        _setState(const CvOperationState.success());
         return true;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return false;
     }
   }
 
   Future<Cv?> createVariant(int cvId, String jobDescription,
       {String? label}) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.loading());
 
     final result = await _createVariant(
       CreateVariantParams(
@@ -242,16 +227,13 @@ class CvProvider with ChangeNotifier {
         label: label,
       ),
     );
-    _isLoading = false;
-
     switch (result) {
       case Success(:final data):
         _cvs.add(data);
-        notifyListeners();
+        _setState(const CvOperationState.success());
         return data;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return null;
     }
   }
@@ -473,13 +455,11 @@ class CvProvider with ChangeNotifier {
             : null;
 
     if (cv == null) {
-      _error = 'CV introuvable';
-      notifyListeners();
+      _setState(const CvOperationState.failure('CV introuvable'));
       return false;
     }
 
     final updatedCv = cv.copyWith(style: style);
-    _error = null;
 
     if (_currentCv?.id == cvId) {
       _currentCv = updatedCv;
@@ -503,8 +483,7 @@ class CvProvider with ChangeNotifier {
         notifyListeners();
         return true;
       case Failure(:final exception):
-        _error = exception.message;
-        notifyListeners();
+        _setState(CvOperationState.failure(exception.message));
         return false;
     }
   }
@@ -518,8 +497,7 @@ class CvProvider with ChangeNotifier {
   bool isPendingSync(Cv cv) => cv.id != null && cv.id! < 0;
 
   void clearError() {
-    _error = null;
-    notifyListeners();
+    _setState(const CvOperationState.idle());
   }
 
   // ── Sync offline ──────────────────────────────────────────────
