@@ -21,6 +21,8 @@ enum ValidationSeverity {
 enum ValidationCode {
   // ── Identite / profil ────────────────────────────────────────
   personalInfoMissing,
+  personalInfoIncomplete,
+  cvTitleRequired,
   requiredFieldMissing,
   jobTitleMissing,
   invalidEmail,
