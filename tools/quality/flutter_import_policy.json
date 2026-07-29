@@ -3,11 +3,6 @@
   "description": "Allowlist decroissante des fichiers de presentation important encore le transport reseau (ADR 002, issue #235). Une nouvelle violation echoue ; retirer une entree des que le fichier est migre.",
   "allowlisted_files": [
     {
-      "path": "mobile/lib/providers/cv_provider.dart",
-      "issue": "#240",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/providers/job_application_provider.dart",
       "issue": "#246",
       "expires_on": "2027-01-31"

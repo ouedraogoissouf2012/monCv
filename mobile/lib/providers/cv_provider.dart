@@ -2,13 +2,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../features/cv/application/state/cv_operation_state.dart';
-import '../features/cv/data/cv_cache_codec.dart';
+import '../features/cv/application/sync/offline_cv_sync_coordinator.dart';
 import '../features/cv/presentation/controllers/cv_detail_controller.dart';
 import '../features/cv/presentation/controllers/cv_editor_controller.dart';
 import '../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../features/cv/presentation/controllers/cv_style_controller.dart';
 import '../features/cv/presentation/cv_store.dart';
-import '../core/error/result.dart';
 import '../models/cv.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
@@ -41,11 +40,7 @@ class CvProvider with ChangeNotifier {
   final CvStyleController _style;
   final ConnectivityService _connectivity;
   final SyncQueue? _syncQueue;
-
-  // Use cases conserves pour le replay offline (traite en PR offline #240).
-  final CreateCvUseCase _createCv;
-  final UpdateCvUseCase _updateCv;
-  final DeleteCvUseCase _deleteCv;
+  final OfflineCvSyncCoordinator? _syncCoordinator;
 
   late final StreamSubscription<bool> _connectivitySub;
 
@@ -69,9 +64,15 @@ class CvProvider with ChangeNotifier {
       store: sharedStore,
       connectivity: connectivity,
       syncQueue: syncQueue,
-      createCv: createCv,
-      updateCv: updateCv,
-      deleteCv: deleteCv,
+      syncCoordinator: syncQueue == null
+          ? null
+          : OfflineCvSyncCoordinator(
+              createCv: createCv,
+              updateCv: updateCv,
+              deleteCv: deleteCv,
+              queue: syncQueue,
+              store: sharedStore,
+            ),
       list: CvListController(getAllCvs: getAllCvs, store: sharedStore),
       detail: CvDetailController(getCvById: getCvById, store: sharedStore),
       editor: CvEditorController(
@@ -92,9 +93,7 @@ class CvProvider with ChangeNotifier {
     required CvStore store,
     required ConnectivityService connectivity,
     required SyncQueue? syncQueue,
-    required CreateCvUseCase createCv,
-    required UpdateCvUseCase updateCv,
-    required DeleteCvUseCase deleteCv,
+    required OfflineCvSyncCoordinator? syncCoordinator,
     required CvListController list,
     required CvDetailController detail,
     required CvEditorController editor,
@@ -102,14 +101,14 @@ class CvProvider with ChangeNotifier {
   })  : _store = store,
         _connectivity = connectivity,
         _syncQueue = syncQueue,
-        _createCv = createCv,
-        _updateCv = updateCv,
-        _deleteCv = deleteCv,
+        _syncCoordinator = syncCoordinator,
         _list = list,
         _detail = detail,
         _editor = editor,
         _style = style {
     _store.addListener(notifyListeners);
+    // Etat initial de connectivite avant toute mutation (#240, C4).
+    _initConnectivity();
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
       _store.setOffline(!online);
       if (online) {
@@ -117,6 +116,11 @@ class CvProvider with ChangeNotifier {
         if (_store.cvs.isEmpty) loadCvs();
       }
     });
+  }
+
+  Future<void> _initConnectivity() async {
+    final online = await _connectivity.isConnected();
+    _store.setOffline(!online);
   }
 
   // ── Etat expose (derive du store) ──────────────────────────────
@@ -148,40 +152,9 @@ class CvProvider with ChangeNotifier {
   /// True si ce CV a un ID temporaire negatif (cree offline, pas encore sync).
   bool isPendingSync(Cv cv) => cv.id != null && cv.id! < 0;
 
-  // ── Sync offline (renforcee en PR offline #240) ────────────────
+  // Rejeu des mutations offline, delegue au coordinateur (#240).
   Future<void> _syncPendingOperations() async {
-    final queue = _syncQueue;
-    if (queue == null || !queue.hasPending) return;
-
-    for (final op in queue.getAll()) {
-      try {
-        switch (op.type) {
-          case 'create':
-            final cv = cvFromQueueString(op.cvJson);
-            if (cv != null) {
-              final result = await _createCv(cv);
-              if (result case Success(:final data)) {
-                if (op.cvId != null) _store.replaceCv(op.cvId!, data);
-                await queue.remove(op.id);
-              }
-            }
-          case 'update':
-            final cv = cvFromQueueString(op.cvJson);
-            if (cv != null && op.cvId != null && op.cvId! > 0) {
-              final result =
-                  await _updateCv(UpdateCvParams(id: op.cvId!, cv: cv));
-              if (result.isSuccess) await queue.remove(op.id);
-            }
-          case 'delete':
-            if (op.cvId != null && op.cvId! > 0) {
-              final result = await _deleteCv(op.cvId!);
-              if (result.isSuccess) await queue.remove(op.id);
-            }
-        }
-      } catch (_) {
-        // Garder dans la queue, reessayer plus tard.
-      }
-    }
+    await _syncCoordinator?.replayPending();
     notifyListeners();
   }
 
