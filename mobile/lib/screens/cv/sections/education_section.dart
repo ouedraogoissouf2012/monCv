@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+
+import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
+import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
+import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import 'form_sheet.dart';
+import 'form_sheet.dart' show SectionDateButton;
 
 class EducationSection extends StatelessWidget {
   final List<Education> educations;
@@ -13,27 +17,9 @@ class EducationSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _add(BuildContext context) =>
-      _showSheet(context, null, (e) => onChanged([...educations, e]));
-
-  void _edit(BuildContext context, int i) =>
-      _showSheet(context, educations[i], (e) {
-        final list = List<Education>.from(educations);
-        list[i] = e;
-        onChanged(list);
-      });
-
-  void _delete(int i) {
-    final list = List<Education>.from(educations);
-    list.removeAt(i);
-    onChanged(list);
-  }
-
-  void _showSheet(
-    BuildContext context,
-    Education? edu,
-    Function(Education) onSave,
-  ) {
+  /// Ouvre l'editeur de formation et retourne la valeur saisie (ou `null` si
+  /// annule / invalide). Ne mute jamais la liste parent.
+  Future<Education?> _editSheet(BuildContext context, Education? edu) {
     final l = AppLocalizations.of(context)!;
     final etablissementCtrl = TextEditingController(text: edu?.etablissement);
     final diplomeCtrl = TextEditingController(text: edu?.diplome);
@@ -41,13 +27,15 @@ class EducationSection extends StatelessWidget {
     final descCtrl = TextEditingController(text: edu?.description);
     DateTime? debut = edu?.dateDebut;
     DateTime? fin = edu?.dateFin;
-    bool enCours = edu?.dateFin == null && edu != null ? false : false;
+    // Une formation existante sans date de fin est consideree « en cours ».
+    // (Corrige l'ancien `... ? false : false` qui restait toujours faux.)
+    bool enCours = edu != null && edu.dateFin == null;
 
-    showFormSheet(
+    return showSectionEditor<Education>(
       context: context,
       title: edu == null ? l.addEducation : l.editEducation,
       icon: Icons.school_outlined,
-      builder: (ctx, setState) => Column(
+      content: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -57,14 +45,19 @@ class EducationSection extends StatelessWidget {
               labelText: '${l.establishment} *',
               prefixIcon: const Icon(Icons.account_balance_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: diplomeCtrl,
             decoration: InputDecoration(
               labelText: '${l.degree} *',
-              prefixIcon: const Icon(Icons.workspace_premium_outlined, size: 20),
+              prefixIcon:
+                  const Icon(Icons.workspace_premium_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -156,53 +149,39 @@ class EducationSection extends StatelessWidget {
           ),
         ],
       ),
-      onSave: () => onSave(Education(
+      buildResult: () => Education(
         id: edu?.id,
-        etablissement: etablissementCtrl.text,
-        diplome: diplomeCtrl.text,
+        etablissement: etablissementCtrl.text.trim(),
+        diplome: diplomeCtrl.text.trim(),
         domaine: domaineCtrl.text,
         dateDebut: debut,
         dateFin: enCours ? null : fin,
         description: descCtrl.text,
-      )),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (educations.isEmpty)
-          SectionEmptyState(
-            icon: Icons.school_outlined,
-            label: l.noneEducation,
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: educations.length,
-            itemBuilder: (ctx, i) {
-              final edu = educations[i];
-              return SectionItemTile(
-                title: edu.diplome?.isNotEmpty == true
-                    ? edu.diplome!
-                    : edu.etablissement ?? l.untitled,
-                subtitle: edu.etablissement ?? '',
-                onEdit: () => _edit(ctx, i),
-                onDelete: () => _delete(i),
-              );
-            },
-          ),
-        const SizedBox(height: 8),
-        SectionAddButton(
-          label: l.addEducation,
-          onTap: () => _add(context),
-        ),
-      ],
+    return EditableSectionList<Education>(
+      items: educations,
+      onChanged: onChanged,
+      onAdd: (ctx) => _editSheet(ctx, null),
+      onEdit: (ctx, current) => _editSheet(ctx, current),
+      addLabel: l.addEducation,
+      emptyIcon: Icons.school_outlined,
+      emptyLabel: l.noneEducation,
+      itemBuilder: (ctx, edu, index,
+              {required onEditItem, required onDeleteItem}) =>
+          SectionItemTile(
+        title: edu.diplome?.isNotEmpty == true
+            ? edu.diplome!
+            : edu.etablissement ?? l.untitled,
+        subtitle: edu.etablissement ?? '',
+        onEdit: onEditItem,
+        onDelete: onDeleteItem,
+      ),
     );
   }
 }
