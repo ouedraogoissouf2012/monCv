@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../core/error/result.dart';
-import '../core/usecase/usecase.dart';
-import '../features/cv/application/apply_ai_enhancements.dart';
+
 import '../features/cv/application/state/cv_operation_state.dart';
 import '../features/cv/data/cv_cache_codec.dart';
-import '../features/cv/presentation/cv_presentation_model.dart';
+import '../features/cv/presentation/controllers/cv_detail_controller.dart';
+import '../features/cv/presentation/controllers/cv_editor_controller.dart';
+import '../features/cv/presentation/controllers/cv_list_controller.dart';
+import '../features/cv/presentation/controllers/cv_style_controller.dart';
+import '../features/cv/presentation/cv_store.dart';
+import '../core/error/result.dart';
+import '../models/cv.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
 import '../services/connectivity_service.dart';
@@ -18,23 +22,36 @@ import '../usecases/cv/delete_cv_usecase.dart';
 import '../usecases/cv/duplicate_cv_usecase.dart';
 import '../usecases/cv/create_variant_usecase.dart';
 
+/// Facade de compatibilite au-dessus du [CvStore] et des controllers CV
+/// (list / detail / editor / style) introduits par #240.
+///
+/// Elle ne contient plus de logique metier : chaque appel est delegue au bon
+/// controller, et l'etat unique vit dans le [CvStore]. Les widgets continuent
+/// d'ecouter ce `ChangeNotifier` et d'utiliser la meme API publique.
+///
+/// A retirer une fois les ecrans migres pour consommer directement le store et
+/// les controllers (suite de #240).
+@Deprecated('Utiliser CvStore + les controllers CV (features/cv/presentation). '
+    'Facade de migration #240, a supprimer apres migration des ecrans.')
 class CvProvider with ChangeNotifier {
-  final GetAllCvsUseCase _getAllCvs;
-  final GetCvByIdUseCase _getCvById;
+  final CvStore _store;
+  final CvListController _list;
+  final CvDetailController _detail;
+  final CvEditorController _editor;
+  final CvStyleController _style;
+  final ConnectivityService _connectivity;
+  final SyncQueue? _syncQueue;
+
+  // Use cases conserves pour le replay offline (traite en PR offline #240).
   final CreateCvUseCase _createCv;
   final UpdateCvUseCase _updateCv;
   final DeleteCvUseCase _deleteCv;
-  final DuplicateCvUseCase _duplicateCv;
-  final CreateVariantUseCase _createVariant;
-  final CvRepository _repository;
-  final ConnectivityService _connectivity;
-  final SyncQueue? _syncQueue;
-  final ApplyAiEnhancements _applyAiEnhancements = const ApplyAiEnhancements();
 
   late final StreamSubscription<bool> _connectivitySub;
-  int _tempIdCounter = -1;
 
-  CvProvider({
+  /// Point d'entree (DI). Cree le [CvStore] partage et cable les controllers
+  /// dessus pour garantir une source unique d'etat.
+  factory CvProvider({
     required GetAllCvsUseCase getAllCvs,
     required GetCvByIdUseCase getCvById,
     required CreateCvUseCase createCv,
@@ -45,281 +62,98 @@ class CvProvider with ChangeNotifier {
     required CvRepository repository,
     required ConnectivityService connectivity,
     SyncQueue? syncQueue,
-  })  : _getAllCvs = getAllCvs,
-        _getCvById = getCvById,
+    CvStore? store,
+  }) {
+    final sharedStore = store ?? CvStore();
+    return CvProvider._(
+      store: sharedStore,
+      connectivity: connectivity,
+      syncQueue: syncQueue,
+      createCv: createCv,
+      updateCv: updateCv,
+      deleteCv: deleteCv,
+      list: CvListController(getAllCvs: getAllCvs, store: sharedStore),
+      detail: CvDetailController(getCvById: getCvById, store: sharedStore),
+      editor: CvEditorController(
+        createCv: createCv,
+        updateCv: updateCv,
+        deleteCv: deleteCv,
+        duplicateCv: duplicateCv,
+        createVariant: createVariantUseCase,
+        repository: repository,
+        store: sharedStore,
+        syncQueue: syncQueue,
+      ),
+      style: CvStyleController(repository: repository, store: sharedStore),
+    );
+  }
+
+  CvProvider._({
+    required CvStore store,
+    required ConnectivityService connectivity,
+    required SyncQueue? syncQueue,
+    required CreateCvUseCase createCv,
+    required UpdateCvUseCase updateCv,
+    required DeleteCvUseCase deleteCv,
+    required CvListController list,
+    required CvDetailController detail,
+    required CvEditorController editor,
+    required CvStyleController style,
+  })  : _store = store,
+        _connectivity = connectivity,
+        _syncQueue = syncQueue,
         _createCv = createCv,
         _updateCv = updateCv,
         _deleteCv = deleteCv,
-        _duplicateCv = duplicateCv,
-        _createVariant = createVariantUseCase,
-        _repository = repository,
-        _connectivity = connectivity,
-        _syncQueue = syncQueue {
+        _list = list,
+        _detail = detail,
+        _editor = editor,
+        _style = style {
+    _store.addListener(notifyListeners);
     _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
-      _isOffline = !online;
-      notifyListeners();
+      _store.setOffline(!online);
       if (online) {
         _syncPendingOperations();
-        if (_cvs.isEmpty) loadCvs();
+        if (_store.cvs.isEmpty) loadCvs();
       }
     });
   }
 
-  List<Cv> _cvs = [];
-  Cv? _currentCv;
-
-  // Etat unique et typE (#240) : remplace les booleans concurrents
-  // `_isLoading` / `_error` / `_isOffline` qui pouvaient se contredire.
-  // Les getters historiques ci-dessous en derivent pour ne rien casser cote UI.
-  CvOperationState _state = const CvOperationState.idle();
-
-  CvOperationState get state => _state;
-
-  List<Cv> get cvs => _cvs;
-  Cv? get currentCv => _currentCv;
-  bool get isLoading => _state.isLoading;
+  // ── Etat expose (derive du store) ──────────────────────────────
+  CvOperationState get state => _store.state;
+  List<Cv> get cvs => _store.cvs;
+  Cv? get currentCv => _store.currentCv;
+  bool get isLoading => _store.state.isLoading;
+  bool get isOffline => _store.isOffline;
+  String? get error => _store.state.errorMessage;
   bool get hasPendingSync => _syncQueue?.hasPending ?? false;
   int get pendingSyncCount => _syncQueue?.pendingCount ?? 0;
-  String? get error => _state.errorMessage;
-  bool get isOffline => _isOffline;
-  bool _isOffline = false;
 
-  void _setState(CvOperationState next) {
-    _state = next;
-    notifyListeners();
-  }
-
-  Future<void> loadCvs() async {
-    _setState(const CvOperationState.loading());
-
-    final result = await _getAllCvs(const NoParams());
-
-    switch (result) {
-      case Success(:final data):
-        _cvs = data;
-        _setState(const CvOperationState.success());
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-    }
-  }
-
-  Future<void> loadCvById(int id) async {
-    _setState(const CvOperationState.loading());
-
-    final result = await _getCvById(id);
-
-    switch (result) {
-      case Success(:final data):
-        _currentCv = data;
-        _setState(const CvOperationState.success());
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-    }
-  }
-
-  Future<bool> createCv(Cv cv) async {
-    _setState(const CvOperationState.loading());
-
-    // Si offline, sauvegarder localement avec un ID temporaire negatif
-    if (_isOffline && _syncQueue != null) {
-      final tempId = _tempIdCounter--;
-      final offlineCv = cv.copyWith(id: tempId);
-      _cvs.add(offlineCv);
-      _currentCv = offlineCv;
-      await _syncQueue!.add(PendingOperation(
-        id: 'create_$tempId',
-        type: 'create',
-        cvJson: cvToQueueString(cv),
-        cvId: tempId,
-        createdAt: DateTime.now(),
-      ));
-      _setState(CvOperationState.pendingSync(pendingSyncCount));
-      return true;
-    }
-
-    final result = await _createCv(cv);
-
-    switch (result) {
-      case Success(:final data):
-        _cvs.add(data);
-        _currentCv = data;
-        notifyListeners();
-        return true;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return false;
-    }
-  }
-
-  Future<bool> updateCv(int id, Cv cv) async {
-    _setState(const CvOperationState.loading());
-
-    // Si offline, sauvegarder localement + queue
-    if (_isOffline && _syncQueue != null) {
-      final index = _cvs.indexWhere((c) => c.id == id);
-      if (index != -1) _cvs[index] = cv;
-      _currentCv = cv;
-      await _syncQueue!.add(PendingOperation(
-        id: 'update_${id}_${DateTime.now().millisecondsSinceEpoch}',
-        type: 'update',
-        cvJson: cvToQueueString(cv),
-        cvId: id,
-        createdAt: DateTime.now(),
-      ));
-      _setState(CvOperationState.pendingSync(pendingSyncCount));
-      return true;
-    }
-
-    final result = await _updateCv(UpdateCvParams(id: id, cv: cv));
-
-    switch (result) {
-      case Success(:final data):
-        final index = _cvs.indexWhere((c) => c.id == id);
-        if (index != -1) _cvs[index] = data;
-        _currentCv = data;
-        _setState(const CvOperationState.success());
-        return true;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return false;
-    }
-  }
-
-  Future<bool> deleteCv(int id) async {
-    _setState(const CvOperationState.loading());
-
-    final result = await _deleteCv(id);
-
-    switch (result) {
-      case Success():
-        _cvs.removeWhere((cv) => cv.id == id);
-        if (_currentCv?.id == id) _currentCv = null;
-        _setState(const CvOperationState.success());
-        return true;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return false;
-    }
-  }
-
-  Future<bool> duplicateCv(int id) async {
-    _setState(const CvOperationState.loading());
-
-    final result = await _duplicateCv(id);
-
-    switch (result) {
-      case Success(:final data):
-        _cvs.add(data);
-        _setState(const CvOperationState.success());
-        return true;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return false;
-    }
-  }
-
-  Future<Cv?> createVariant(int cvId, String jobDescription,
-      {String? label}) async {
-    _setState(const CvOperationState.loading());
-
-    final result = await _createVariant(
-      CreateVariantParams(
-        cvId: cvId,
-        jobDescription: jobDescription,
-        label: label,
-      ),
-    );
-    switch (result) {
-      case Success(:final data):
-        _cvs.add(data);
-        _setState(const CvOperationState.success());
-        return data;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return null;
-    }
-  }
-
-  Future<bool> applyAiEnhancements(
-      int cvId, Map<String, dynamic> result) async {
-    final cv = _currentCv;
-    if (cv == null || cv.id != cvId) return false;
-
-    final updatedCv = _applyAiEnhancements(cv, result);
-
-    _currentCv = updatedCv;
-    final listIndex = _cvs.indexWhere((c) => c.id == cvId);
-    if (listIndex != -1) _cvs[listIndex] = updatedCv;
-    notifyListeners();
-
-    // Persistance best-effort : le resultat sera propage par la PR offline.
-    await _repository.updateCv(cvId, updatedCv);
-    return true;
-  }
-
-  Future<bool> updateCvStyle(int cvId, CvStyle style) async {
-    final currentIndex = _cvs.indexWhere((c) => c.id == cvId);
-    final cv = _currentCv?.id == cvId
-        ? _currentCv
-        : currentIndex != -1
-            ? _cvs[currentIndex]
-            : null;
-
-    if (cv == null) {
-      _setState(const CvOperationState.failure('CV introuvable'));
-      return false;
-    }
-
-    final updatedCv = cv.copyWith(style: style);
-
-    if (_currentCv?.id == cvId) {
-      _currentCv = updatedCv;
-    }
-    final index = _cvs.indexWhere((c) => c.id == cvId);
-    if (index != -1) {
-      _cvs[index] = updatedCv;
-    }
-    notifyListeners();
-
-    final result = await _repository.updateCv(cvId, updatedCv);
-    switch (result) {
-      case Success(:final data):
-        if (_currentCv?.id == cvId) {
-          _currentCv = data;
-        }
-        final index = _cvs.indexWhere((c) => c.id == cvId);
-        if (index != -1) {
-          _cvs[index] = data;
-        }
-        notifyListeners();
-        return true;
-      case Failure(:final exception):
-        _setState(CvOperationState.failure(exception.message));
-        return false;
-    }
-  }
-
-  void setCurrentCv(Cv? cv) {
-    _currentCv = cv;
-    notifyListeners();
-  }
+  // ── Delegations ───────────────────────────────────────────────
+  Future<void> loadCvs() => _list.load();
+  Future<void> loadCvById(int id) => _detail.load(id);
+  Future<bool> createCv(Cv cv) => _editor.create(cv);
+  Future<bool> updateCv(int id, Cv cv) => _editor.update(id, cv);
+  Future<bool> deleteCv(int id) => _editor.delete(id);
+  Future<bool> duplicateCv(int id) => _editor.duplicate(id);
+  Future<Cv?> createVariant(int cvId, String jobDescription, {String? label}) =>
+      _editor.createVariant(cvId, jobDescription, label: label);
+  Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) =>
+      _editor.applyAiEnhancements(cvId, result);
+  Future<bool> updateCvStyle(int cvId, CvStyle style) =>
+      _style.update(cvId, style);
+  void setCurrentCv(Cv? cv) => _detail.select(cv);
+  void clearError() => _store.setState(const CvOperationState.idle());
 
   /// True si ce CV a un ID temporaire negatif (cree offline, pas encore sync).
   bool isPendingSync(Cv cv) => cv.id != null && cv.id! < 0;
 
-  void clearError() {
-    _setState(const CvOperationState.idle());
-  }
-
-  // ── Sync offline ──────────────────────────────────────────────
-
-  /// Rejoue les operations en attente quand la connexion revient.
+  // ── Sync offline (renforcee en PR offline #240) ────────────────
   Future<void> _syncPendingOperations() async {
     final queue = _syncQueue;
     if (queue == null || !queue.hasPending) return;
 
-    final operations = queue.getAll();
-    for (final op in operations) {
+    for (final op in queue.getAll()) {
       try {
         switch (op.type) {
           case 'create':
@@ -327,8 +161,7 @@ class CvProvider with ChangeNotifier {
             if (cv != null) {
               final result = await _createCv(cv);
               if (result case Success(:final data)) {
-                final tempIndex = _cvs.indexWhere((c) => c.id == op.cvId);
-                if (tempIndex != -1) _cvs[tempIndex] = data;
+                if (op.cvId != null) _store.replaceCv(op.cvId!, data);
                 await queue.remove(op.id);
               }
             }
@@ -346,7 +179,7 @@ class CvProvider with ChangeNotifier {
             }
         }
       } catch (_) {
-        // Garder dans la queue, reessayer plus tard
+        // Garder dans la queue, reessayer plus tard.
       }
     }
     notifyListeners();
@@ -355,6 +188,7 @@ class CvProvider with ChangeNotifier {
   @override
   void dispose() {
     _connectivitySub.cancel();
+    _store.removeListener(notifyListeners);
     super.dispose();
   }
 }
