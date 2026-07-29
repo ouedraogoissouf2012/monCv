@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+
+import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
+import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
+import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import 'form_sheet.dart';
+import 'form_sheet.dart' show SectionDateButton;
 
 class CertificationsSection extends StatelessWidget {
   final List<Certification> certifications;
@@ -13,26 +17,12 @@ class CertificationsSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _add(BuildContext context) =>
-      _showSheet(context, null, (c) => onChanged([...certifications, c]));
-
-  void _edit(BuildContext context, int i) =>
-      _showSheet(context, certifications[i], (c) {
-        final list = List<Certification>.from(certifications);
-        list[i] = c;
-        onChanged(list);
-      });
-
-  void _delete(int i) {
-    final list = List<Certification>.from(certifications);
-    list.removeAt(i);
-    onChanged(list);
-  }
-
-  void _showSheet(
+  /// Ouvre l'editeur de certification et retourne la valeur saisie (ou `null`
+  /// si annule / invalide). Ne mute jamais la liste parent : c'est
+  /// [EditableSectionList] qui applique le resultat.
+  Future<Certification?> _editSheet(
     BuildContext context,
     Certification? cert,
-    Function(Certification) onSave,
   ) {
     final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: cert?.nom);
@@ -41,11 +31,11 @@ class CertificationsSection extends StatelessWidget {
     DateTime? dateObtention = cert?.dateObtention;
     DateTime? dateExpiration = cert?.dateExpiration;
 
-    showFormSheet(
+    return showSectionEditor<Certification>(
       context: context,
       title: cert == null ? l.addCertification : l.editCertification,
       icon: Icons.verified_outlined,
-      builder: (ctx, setState) => Column(
+      content: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -55,6 +45,8 @@ class CertificationsSection extends StatelessWidget {
               labelText: l.certificationNameRequired,
               prefixIcon: const Icon(Icons.verified_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -69,7 +61,7 @@ class CertificationsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: SectionDateButton(
-              label: l.issueDate,
+                  label: l.issueDate,
                   date: dateObtention,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -85,7 +77,7 @@ class CertificationsSection extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: SectionDateButton(
-              label: l.expiration,
+                  label: l.expiration,
                   date: dateExpiration,
                   onTap: () async {
                     final d = await showDatePicker(
@@ -112,54 +104,42 @@ class CertificationsSection extends StatelessWidget {
           ),
         ],
       ),
-      onSave: () => onSave(Certification(
+      buildResult: () => Certification(
         id: cert?.id,
-        nom: nomCtrl.text.isNotEmpty ? nomCtrl.text : null,
-        organisme: organismeCtrl.text.isNotEmpty ? organismeCtrl.text : null,
+        nom: nomCtrl.text.trim(),
+        organisme:
+            organismeCtrl.text.isNotEmpty ? organismeCtrl.text : null,
         dateObtention: dateObtention,
         dateExpiration: dateExpiration,
         credentialUrl: urlCtrl.text.isNotEmpty ? urlCtrl.text : null,
-      )),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (certifications.isEmpty)
-          SectionEmptyState(
-            icon: Icons.verified_outlined,
-            label: l.noneCertification,
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: certifications.length,
-            itemBuilder: (ctx, i) {
-              final cert = certifications[i];
-              final expired = cert.dateExpiration != null &&
-                  cert.dateExpiration!.isBefore(DateTime.now());
-              return SectionItemTile(
-                title: cert.nom?.isNotEmpty == true ? cert.nom! : l.certifications,
-                subtitle: cert.organisme ?? '',
-                badge: expired ? l.expired : null,
-                badgeColor: Colors.orange,
-                onEdit: () => _edit(ctx, i),
-                onDelete: () => _delete(i),
-              );
-            },
-          ),
-        const SizedBox(height: 8),
-        SectionAddButton(
-          label: l.addCertification,
-          onTap: () => _add(context),
-        ),
-      ],
+    return EditableSectionList<Certification>(
+      items: certifications,
+      onChanged: onChanged,
+      onAdd: (ctx) => _editSheet(ctx, null),
+      onEdit: (ctx, current) => _editSheet(ctx, current),
+      addLabel: l.addCertification,
+      emptyIcon: Icons.verified_outlined,
+      emptyLabel: l.noneCertification,
+      itemBuilder: (ctx, cert, index,
+          {required onEditItem, required onDeleteItem}) {
+        final expired = cert.dateExpiration != null &&
+            cert.dateExpiration!.isBefore(DateTime.now());
+        return SectionItemTile(
+          title: cert.nom?.isNotEmpty == true ? cert.nom! : l.certifications,
+          subtitle: cert.organisme ?? '',
+          badge: expired ? l.expired : null,
+          badgeColor: Colors.orange,
+          onEdit: onEditItem,
+          onDelete: onDeleteItem,
+        );
+      },
     );
   }
 }
