@@ -21,7 +21,18 @@ class ValidationMessageMapper {
       // ── Identite / profil ──────────────────────────────────
       case ValidationCode.personalInfoMissing:
         return _l.validationPersonalInfoMissing;
+      case ValidationCode.personalInfoIncomplete:
+        return _l.completePersonalInfo;
+      case ValidationCode.cvTitleRequired:
+        return _l.requiredFieldMessage(_l.identity, _l.jobTitle);
       case ValidationCode.requiredFieldMissing:
+        // Deux usages : qualite (field seul) et save (item numerote + field).
+        final itemSection = p['itemSection'] as String?;
+        if (itemSection != null) {
+          final label =
+              _l.numberedItem(_sectionLabel(itemSection), p['index'] as int? ?? 1);
+          return _l.requiredFieldMessage(label, _saveFieldLabel(p));
+        }
         return _l.validationFieldMissing(_fieldLabel(p['field'] as String?));
       case ValidationCode.jobTitleMissing:
         return _l.validationJobTitleMissing;
@@ -42,7 +53,8 @@ class ValidationMessageMapper {
       case ValidationCode.noMetric:
         return _l.validationNoMetric(_itemLabel(_l.experiences, p));
       case ValidationCode.endBeforeStart:
-        return _l.validationEndBeforeStart(_itemLabel(_l.experiences, p));
+        final section = _sectionLabel(p['itemSection'] as String? ?? 'experiences');
+        return _l.validationEndBeforeStart(_itemLabel(section, p));
       case ValidationCode.futureEnd:
         return _l.validationFutureEnd(_itemLabel(_l.experiences, p));
       case ValidationCode.companyRequired:
@@ -104,6 +116,26 @@ class ValidationMessageMapper {
   String _itemLabel(String section, Map<String, Object> p) =>
       _l.numberedItem(section, p['index'] as int? ?? 1);
 
+  /// Libelle localise d'une section a partir de sa cle stable.
+  String _sectionLabel(String key) {
+    switch (key) {
+      case 'experiences':
+        return _l.experiences;
+      case 'education':
+        return _l.education;
+      case 'skills':
+        return _l.skills;
+      case 'languages':
+        return _l.languages;
+      case 'certifications':
+        return _l.certifications;
+      case 'projets':
+        return _l.projects;
+      default:
+        return key;
+    }
+  }
+
   /// Traduit une cle de champ ('firstName'...) en libelle localise.
   String _fieldLabel(String? field) {
     switch (field) {
@@ -115,6 +147,30 @@ class ValidationMessageMapper {
         return _l.emailShort;
       default:
         return field ?? '';
+    }
+  }
+
+  /// Libelle du champ pour les regles bloquantes (save), sur item numerote.
+  String _saveFieldLabel(Map<String, Object> p) {
+    switch (p['field'] as String?) {
+      case 'jobTitle':
+        return _l.jobTitle;
+      case 'company':
+        return _l.companyRequired.replaceAll(' *', '');
+      case 'start':
+        return _l.start;
+      case 'establishment':
+        return _l.establishment;
+      case 'degree':
+        return _l.degree;
+      case 'name':
+        return _l.name;
+      case 'language':
+        return _l.language;
+      case 'level':
+        return _l.level;
+      default:
+        return '';
     }
   }
 }

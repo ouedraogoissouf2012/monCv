@@ -1,6 +1,8 @@
+import '../../../features/cv/domain/validation/rules/save_rules.dart';
+import '../../../features/cv/domain/validation/validation_result.dart';
+import '../../../features/cv/presentation/validation_message_mapper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import '../../../services/cv_validator.dart';
 import '../../../services/cv_readiness_service.dart';
 
 enum CvFormSection { identity, experiences, education, skills, extras }
@@ -51,11 +53,12 @@ class CvFormValidator {
     Cv cv,
     AppLocalizations localizations,
   ) {
-    final issue = CvValidator().validateForSave(cv, localizations);
-    if (issue == null) return null;
+    final firstError =
+        ValidationOutcome(const CvSaveRules().evaluate(cv)).firstError;
+    if (firstError == null) return null;
     return CvFormValidationIssue(
-      section: sectionForCategory(issue.category),
-      message: issue.message,
+      section: sectionForCategory(firstError.section),
+      message: ValidationMessageMapper(localizations).message(firstError),
     );
   }
 
