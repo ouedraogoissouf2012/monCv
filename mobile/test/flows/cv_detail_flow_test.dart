@@ -61,6 +61,7 @@ void main() {
         .thenAnswer((_) async => Result.success(fakeUser()));
     when(() => mockConnectivity.onConnectivityChanged)
         .thenAnswer((_) => connectivityCtrl.stream);
+    when(() => mockConnectivity.isConnected()).thenAnswer((_) async => true);
 
     suppressOverflowErrors();
   });

@@ -59,6 +59,7 @@ void main() {
         .thenAnswer((_) async => null);
     when(() => mockConnectivity.onConnectivityChanged)
         .thenAnswer((_) => connectivityCtrl.stream);
+    when(() => mockConnectivity.isConnected()).thenAnswer((_) async => true);
 
     suppressOverflowErrors();
   });

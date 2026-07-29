@@ -50,6 +50,8 @@ class CvProviderHarness {
 
     when(() => connectivity.onConnectivityChanged)
         .thenAnswer((_) => connectivityController.stream);
+    // Etat initial de connectivite interroge au demarrage du provider (#240).
+    when(() => connectivity.isConnected()).thenAnswer((_) async => true);
   }
 
   /// Libere le stream de connectivite. A appeler dans `tearDown()`.
