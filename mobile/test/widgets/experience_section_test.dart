@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cv_mobile/features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/cv/sections/experience_section.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
