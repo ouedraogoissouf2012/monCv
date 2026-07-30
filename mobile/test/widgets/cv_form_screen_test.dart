@@ -11,10 +11,19 @@ import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/core/di/injection_container.dart';
+import 'package:cv_mobile/features/ai/application/generate_resume_usecase.dart';
+import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
+import 'package:cv_mobile/features/cv/application/upload_profile_photo_usecase.dart';
+import 'package:cv_mobile/features/cv/domain/repositories/profile_photo_repository.dart';
 
 class MockCvProvider extends Mock implements CvProvider {}
 
 class MockCvRepository extends Mock implements CvRepository {}
+
+class _MockPhotoRepo extends Mock implements ProfilePhotoRepository {}
+
+class _MockAiRepo extends Mock implements AiRepository {}
 
 void _setMobileViewport(WidgetTester tester) {
   tester.view.physicalSize = const Size(430, 900);
@@ -74,6 +83,27 @@ Future<void> _enterFieldByLabel(
 void main() {
   setUpAll(() {
     registerFallbackValue(Cv(titre: 'Fallback'));
+    // PersonalInfoSection resout ses use cases via le service locator quand
+    // ils ne sont pas injectes : on les enregistre avec des repos mockes pour
+    // que le montage de l'ecran ne leve pas (#242 D5b).
+    final aiRepo = _MockAiRepo();
+    when(() => aiRepo.generateResume(any(), any(), any()))
+        .thenAnswer((_) async => const Result.success(''));
+    if (!sl.isRegistered<UploadProfilePhotoUseCase>()) {
+      sl.registerFactory(() => UploadProfilePhotoUseCase(_MockPhotoRepo()));
+    }
+    if (!sl.isRegistered<GenerateResumeUseCase>()) {
+      sl.registerFactory(() => GenerateResumeUseCase(aiRepo));
+    }
+  });
+
+  tearDownAll(() {
+    if (sl.isRegistered<UploadProfilePhotoUseCase>()) {
+      sl.unregister<UploadProfilePhotoUseCase>();
+    }
+    if (sl.isRegistered<GenerateResumeUseCase>()) {
+      sl.unregister<GenerateResumeUseCase>();
+    }
   });
 
   testWidgets('CvFormScreen mobile affiche la premiere etape sans exception',
