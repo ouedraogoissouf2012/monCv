@@ -89,5 +89,23 @@ void main() {
       expect(CountryCatalog.search(''), isEmpty);
       expect(CountryCatalog.search('   '), isEmpty);
     });
+
+    test('searchContains filtre par sous-chaine insensible casse/accents', () {
+      // "ivoire" doit trouver "Cote d'Ivoire" (sous-chaine, pas prefixe).
+      final names =
+          CountryCatalog.searchContains('ivoire').map((c) => c.nameFr);
+      expect(names, contains("Côte d'Ivoire"));
+    });
+
+    test('searchContains insensible aux accents dans la requete', () {
+      // "gé" (accentue) doit trouver Géorgie et Nigéria via la normalisation.
+      final names =
+          CountryCatalog.searchContains('gé').map((c) => c.nameFr).toSet();
+      expect(names, containsAll(<String>['Géorgie', 'Nigéria']));
+    });
+
+    test('searchContains vide -> aucune suggestion', () {
+      expect(CountryCatalog.searchContains(''), isEmpty);
+    });
   });
 }
