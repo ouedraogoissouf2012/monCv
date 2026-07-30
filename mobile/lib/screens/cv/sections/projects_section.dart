@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
+import '../../../features/cv/presentation/section_editor/section_form_fields.dart';
+import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/i_api_client.dart';
-import 'experience_section.dart' show showSuggestionsSheet;
-import 'form_sheet.dart';
+import 'form_sheet.dart' show showFormSheet;
 
 class ProjectsSection extends StatelessWidget {
   final List<Project> projects;
