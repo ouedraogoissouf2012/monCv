@@ -6,6 +6,7 @@ import com.cvmobile.exception.ai.AiProviderDownException;
 import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiTimeoutException;
 import com.cvmobile.observability.CorrelationIdSupport;
+import com.cvmobile.service.ai.AiProviderLabel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -179,7 +180,7 @@ public class GlobalExceptionHandler {
                 CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                 "Le service IA est mal configure. Contactez l'administrateur.",
-                Map.of("provider", ex.getProviderName()));
+                Map.of("provider", AiProviderLabel.toPublicLabel(ex.getProviderName())));
     }
 
     @ExceptionHandler(AiQuotaExceededException.class)
@@ -191,7 +192,8 @@ public class GlobalExceptionHandler {
                 .header("Retry-After", String.valueOf(retry))
                 .body(buildBody(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                         "Limite d'usage IA atteinte. Reessayez plus tard.",
-                        Map.of("provider", ex.getProviderName(), "retryAfter", retry)));
+                        Map.of("provider", AiProviderLabel.toPublicLabel(ex.getProviderName()),
+                                "retryAfter", retry)));
     }
 
     @ExceptionHandler(AiTimeoutException.class)
@@ -200,7 +202,7 @@ public class GlobalExceptionHandler {
                 CorrelationIdSupport.current(), ex.getProviderName());
         return buildResponse(HttpStatus.GATEWAY_TIMEOUT, ex.getErrorCode(),
                 "Le service IA met trop de temps a repondre. Reessayez.",
-                Map.of("provider", ex.getProviderName()));
+                Map.of("provider", AiProviderLabel.toPublicLabel(ex.getProviderName())));
     }
 
     @ExceptionHandler(AiProviderDownException.class)
@@ -209,7 +211,7 @@ public class GlobalExceptionHandler {
                 CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getErrorCode(),
                 "Le service IA est temporairement indisponible. Reessayez.",
-                Map.of("provider", ex.getProviderName()));
+                Map.of("provider", AiProviderLabel.toPublicLabel(ex.getProviderName())));
     }
 
     @ExceptionHandler(AiParseException.class)
@@ -218,7 +220,7 @@ public class GlobalExceptionHandler {
                 CorrelationIdSupport.current(), ex.getProviderName(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_GATEWAY, ex.getErrorCode(),
                 "Reponse IA invalide. Reessayez.",
-                Map.of("provider", ex.getProviderName()));
+                Map.of("provider", AiProviderLabel.toPublicLabel(ex.getProviderName())));
     }
 
     // ── Fallback ─────────────────────────────────────────────────

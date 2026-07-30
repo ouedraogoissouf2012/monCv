@@ -115,7 +115,8 @@ class AiStatusServiceTest {
                 "lastChecked",
                 "checkedAt")
                 .forEach(field -> assertThat(json.has(field)).as(field).isTrue());
-        assertThat(json.get("primaryProvider").asText()).isEqualTo("deepseek");
+        // Libelle public neutre, jamais le nom technique "deepseek" (charte #336).
+        assertThat(json.get("primaryProvider").asText()).isEqualTo("primary");
         assertThat(json.get("available").asBoolean()).isTrue();
     }
 }
