@@ -83,7 +83,7 @@ public class AiStatusService {
 
         return AiStatusResponse.builder()
                 .available(available)
-                .primaryProvider(DeepSeekClient.PROVIDER_NAME)
+                .primaryProvider(AiProviderLabel.toPublicLabel(DeepSeekClient.PROVIDER_NAME))
                 .primaryStatus(primaryStatus)
                 .circuitBreakerState(cbState.name())
                 .lastError(lastError)

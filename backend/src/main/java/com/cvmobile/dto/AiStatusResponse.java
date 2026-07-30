@@ -21,7 +21,8 @@ public class AiStatusResponse {
     /** True si au moins un provider peut servir des requetes IA. */
     private boolean available;
 
-    /** Nom du provider principal (ex: "deepseek"). */
+    /** Libelle public neutre du provider principal : "primary"/"fallback"/"unknown".
+     *  Ne divulgue jamais le nom technique du fournisseur (charte, issue #336). */
     private String primaryProvider;
 
     /** Etat du provider principal : UP, DOWN, KEY_INVALID, RATE_LIMITED, CIRCUIT_OPEN, UNKNOWN. */

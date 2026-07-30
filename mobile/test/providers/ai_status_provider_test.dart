@@ -23,7 +23,7 @@ void main() {
       (_) async => Result.success(
         AiStatus.fromJson({
           'available': false,
-          'primaryProvider': 'deepseek',
+          'primaryProvider': 'primary',
           'primaryStatus': 'CIRCUIT_OPEN',
           'circuitBreakerState': 'OPEN',
           'fallbackAvailable': false,

@@ -57,10 +57,10 @@ class ErrorHelper {
       return l.errorDownload;
     }
 
-    // IA
-    if (lower.contains('deepseek') ||
-        lower.contains('ia') ||
-        lower.contains('enhance')) {
+    // IA — ne teste jamais le nom du fournisseur (charte, issue #336) : le
+    // backend renvoie un libelle neutre, la detection se fait sur des termes
+    // fonctionnels.
+    if (lower.contains('ia') || lower.contains('enhance')) {
       return l.errorAiUnavailable;
     }
 

@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +47,9 @@ class GlobalExceptionHandlerAiTest {
                 .andExpect(jsonPath("$.correlationId").isString())
                 .andExpect(jsonPath("$.message")
                         .value("Limite d'usage IA atteinte. Reessayez plus tard."))
-                .andExpect(jsonPath("$.details.provider").value("deepseek"))
+                // Le nom technique "deepseek" ne doit JAMAIS fuiter : libelle
+                // neutre uniquement (charte, issue #336).
+                .andExpect(jsonPath("$.details.provider").value("primary"))
                 .andExpect(jsonPath("$.details.retryAfter").value(75));
     }
 
@@ -75,7 +80,10 @@ class GlobalExceptionHandlerAiTest {
                 .andExpect(jsonPath("$.code").value(code))
                 .andExpect(jsonPath("$.correlationId").isString())
                 .andExpect(jsonPath("$.message").value(message))
-                .andExpect(jsonPath("$.details.provider").value("deepseek"));
+                // Libelle neutre, jamais le nom technique (charte, issue #336).
+                .andExpect(jsonPath("$.details.provider").value("primary"))
+                // Garde-fou : le corps complet ne contient jamais "deepseek".
+                .andExpect(content().string(not(containsString("deepseek"))));
     }
 
     @RestController
