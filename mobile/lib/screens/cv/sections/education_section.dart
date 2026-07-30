@@ -168,6 +168,8 @@ class EducationSection extends StatelessWidget {
     return EditableSectionList<Education>(
       items: educations,
       onChanged: onChanged,
+      reorderable: true,
+      keyOf: (edu, index) => ValueKey('edu-${edu.id ?? index}'),
       onAdd: (ctx) => _editSheet(ctx, null),
       onEdit: (ctx, current) => _editSheet(ctx, current),
       addLabel: l.addEducation,
