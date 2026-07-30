@@ -50,12 +50,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/cv/sections/personal_info_section.dart",
-      "baseline_lines": 1051,
-      "issue": "#242",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/home/home_screen.dart",
       "baseline_lines": 350,
       "issue": "#249",
