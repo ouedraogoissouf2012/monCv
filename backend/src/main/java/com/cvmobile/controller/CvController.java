@@ -124,20 +124,19 @@ public class CvController {
     public ResponseEntity<byte[]> downloadCvDocx(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
-        // Charger l'entite complete (pas le DTO) pour la generation DOCX
+        // Charger l'entite complete (pas le DTO) pour la generation DOCX.
         var cv = cvOwnershipService.requireOwnedCv(id, user.getId());
 
-        try {
-            byte[] docx = docxGenerationService.generate(cv);
-            String filename = "cv-" + id + ".docx";
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(
-                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                    .body(docx);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        // Toute erreur de generation remonte au GlobalExceptionHandler, qui la
+        // journalise avec correlationId et renvoie un 500 structure. On n'avale
+        // plus l'exception ici (perte de stacktrace) pour un 500 nu.
+        byte[] docx = docxGenerationService.generate(cv);
+        String filename = "cv-" + id + ".docx";
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(docx);
     }
 
     @PostMapping("/{id}/duplicate")
@@ -188,7 +187,7 @@ public class CvController {
     @Operation(summary = "Configurer les donnees et telechargements publics")
     public ResponseEntity<CvResponse> updateShareSettings(
             @PathVariable Long id,
-            @RequestBody PublicShareSettingsRequest request,
+            @Valid @RequestBody PublicShareSettingsRequest request,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(
                 cvService.updateShareSettings(id, request, user.getId()));

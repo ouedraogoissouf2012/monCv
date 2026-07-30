@@ -92,7 +92,8 @@ public class AiStatusService {
                 .errorRatePercent(errorRate)
                 .fallbackInUse(snapshot.fallbackInUse())
                 .fallbackAvailable(fallbackUp)
-                .fallbackProvider(fallbackUp ? MockAiClient.PROVIDER_NAME : null)
+                .fallbackProvider(
+                        fallbackUp ? AiProviderLabel.toPublicLabel(MockAiClient.PROVIDER_NAME) : null)
                 .lastChecked(checkedAt)
                 .checkedAt(checkedAt)
                 .build();
