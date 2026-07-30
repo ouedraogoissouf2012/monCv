@@ -44,4 +44,16 @@ class CountryCatalog {
         .where((c) => c.id.startsWith(needle))
         .toList(growable: false);
   }
+
+  /// Filtre les pays dont le nom CONTIENT [query] (insensible casse/accents).
+  /// Conserve le comportement historique de l'autocompletion pays (recherche
+  /// par sous-chaine), en gagnant l'insensibilite aux accents. [query] vide ->
+  /// liste vide.
+  static List<CountryMetadata> searchContains(String query) {
+    final needle = CountryMetadata.normalize(query);
+    if (needle.isEmpty) return const [];
+    return kCountryCatalog
+        .where((c) => c.id.contains(needle))
+        .toList(growable: false);
+  }
 }
