@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 /// Primitives visuelles reutilisables des sections CV (issue #239).
 ///
-/// Deplacees depuis `screens/cv/sections/form_sheet.dart` vers la couche
-/// `features/cv/presentation` pour que le neuf ne dependent plus du legacy
-/// (sens de la migration Clean Architecture, EPIC #231). `form_sheet.dart`
-/// les re-exporte le temps que les 6 sections legacy soient migrees (PR-C).
+/// Extraites de l'ancien monolithe `screens/cv/sections/form_sheet.dart` (depuis
+/// supprime) vers la couche `features/cv/presentation`, dans le sens de la
+/// migration Clean Architecture (EPIC #231). Les sections de formulaire
+/// importent ces primitives directement depuis `section_editor/`.
 
 // ── SectionEmptyState ─────────────────────────────────────────
 
