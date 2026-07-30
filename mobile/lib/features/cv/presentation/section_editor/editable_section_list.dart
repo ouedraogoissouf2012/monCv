@@ -37,7 +37,18 @@ class EditableSectionList<T> extends StatelessWidget {
     this.layout = SectionListLayout.column,
     this.wrapSpacing = 8,
     this.wrapRunSpacing = 8,
-  });
+    this.reorderable = false,
+    this.keyOf,
+  })  : assert(
+          !reorderable || layout == SectionListLayout.column,
+          'Le reorder par glisser-deposer n\'est supporte qu\'en layout '
+          'colonne (les chips en Wrap ne se reordonnent pas).',
+        ),
+        assert(
+          !reorderable || keyOf != null,
+          'reorderable exige keyOf : chaque item doit fournir une Key stable '
+          '(sinon ReorderableListView ne peut pas suivre les elements).',
+        );
 
   /// Items actuels (source de verite detenue par le parent).
   final List<T> items;
@@ -69,6 +80,13 @@ class EditableSectionList<T> extends StatelessWidget {
   final double wrapSpacing;
   final double wrapRunSpacing;
 
+  /// Active le reordonnancement par glisser-deposer (layout colonne seulement).
+  /// Exige [keyOf] pour identifier chaque item de maniere stable.
+  final bool reorderable;
+
+  /// Fournit une [Key] stable par item (requis si [reorderable]).
+  final Key Function(T item, int index)? keyOf;
+
   Future<void> _add(BuildContext context) async {
     final created = await onAdd(context);
     if (created != null) onChanged([...items, created]);
@@ -85,6 +103,19 @@ class EditableSectionList<T> extends StatelessWidget {
 
   void _delete(int index) {
     final next = List<T>.of(items)..removeAt(index);
+    onChanged(next);
+  }
+
+  /// Deplace l'item de [oldIndex] vers [newIndex] et emet la nouvelle liste.
+  /// Applique la convention de ReorderableListView : quand on descend un item,
+  /// [newIndex] est calcule avant retrait, donc on le decremente.
+  void _reorder(int oldIndex, int newIndex) {
+    var target = newIndex;
+    if (newIndex > oldIndex) target -= 1;
+    if (target == oldIndex) return;
+    final next = List<T>.of(items);
+    final moved = next.removeAt(oldIndex);
+    next.insert(target, moved);
     onChanged(next);
   }
 
@@ -110,6 +141,20 @@ class EditableSectionList<T> extends StatelessWidget {
             runSpacing: wrapRunSpacing,
             children: [
               for (var i = 0; i < items.length; i++) _tile(context, i),
+            ],
+          )
+        else if (reorderable)
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: true,
+            onReorder: _reorder,
+            children: [
+              for (var i = 0; i < items.length; i++)
+                KeyedSubtree(
+                  key: keyOf!(items[i], i),
+                  child: _tile(context, i),
+                ),
             ],
           )
         else

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
+import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
+import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../features/cv/presentation/section_editor/section_form_fields.dart';
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/i_api_client.dart';
-import 'form_sheet.dart' show showFormSheet;
 
 class ProjectsSection extends StatelessWidget {
   final List<Project> projects;
@@ -19,27 +20,9 @@ class ProjectsSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _add(BuildContext context) =>
-      _showSheet(context, null, (p) => onChanged([...projects, p]));
-
-  void _edit(BuildContext context, int i) =>
-      _showSheet(context, projects[i], (p) {
-        final list = List<Project>.from(projects);
-        list[i] = p;
-        onChanged(list);
-      });
-
-  void _delete(int i) {
-    final list = List<Project>.from(projects);
-    list.removeAt(i);
-    onChanged(list);
-  }
-
-  void _showSheet(
-    BuildContext context,
-    Project? proj,
-    Function(Project) onSave,
-  ) {
+  /// Ouvre l'editeur de projet et retourne la valeur saisie (ou `null` si
+  /// annule / invalide). Ne mute jamais la liste parent.
+  Future<Project?> _editSheet(BuildContext context, Project? proj) {
     final l = AppLocalizations.of(context)!;
     final nomCtrl = TextEditingController(text: proj?.nom);
     final descCtrl = TextEditingController(text: proj?.description);
@@ -49,11 +32,11 @@ class ProjectsSection extends StatelessWidget {
     DateTime? dateFin = proj?.dateFin;
     bool isLoadingAi = false;
 
-    showFormSheet(
+    return showSectionEditor<Project>(
       context: context,
       title: proj == null ? l.addProject : l.editProject,
       icon: Icons.rocket_launch_outlined,
-      builder: (ctx, setState) => Column(
+      content: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -63,6 +46,8 @@ class ProjectsSection extends StatelessWidget {
               labelText: l.projectNameRequired,
               prefixIcon: const Icon(Icons.rocket_launch_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -159,51 +144,37 @@ class ProjectsSection extends StatelessWidget {
           ),
         ],
       ),
-      onSave: () => onSave(Project(
+      buildResult: () => Project(
         id: proj?.id,
-        nom: nomCtrl.text.isNotEmpty ? nomCtrl.text : null,
+        nom: nomCtrl.text.trim(),
         description: descCtrl.text.isNotEmpty ? descCtrl.text : null,
         technologies: techCtrl.text.isNotEmpty ? techCtrl.text : null,
         lien: lienCtrl.text.isNotEmpty ? lienCtrl.text : null,
         dateDebut: dateDebut,
         dateFin: dateFin,
-      )),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (projects.isEmpty)
-          SectionEmptyState(
-            icon: Icons.rocket_launch_outlined,
-            label: l.noneProject,
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: projects.length,
-            itemBuilder: (ctx, i) {
-              final proj = projects[i];
-              return SectionItemTile(
-                title: proj.nom?.isNotEmpty == true ? proj.nom! : l.projects,
-                subtitle: proj.technologies ?? proj.lien ?? '',
-                onEdit: () => _edit(ctx, i),
-                onDelete: () => _delete(i),
-              );
-            },
-          ),
-        const SizedBox(height: 8),
-        SectionAddButton(
-          label: l.addProject,
-          onTap: () => _add(context),
-        ),
-      ],
+    return EditableSectionList<Project>(
+      items: projects,
+      onChanged: onChanged,
+      onAdd: (ctx) => _editSheet(ctx, null),
+      onEdit: (ctx, current) => _editSheet(ctx, current),
+      addLabel: l.addProject,
+      emptyIcon: Icons.rocket_launch_outlined,
+      emptyLabel: l.noneProject,
+      itemBuilder: (ctx, proj, index,
+              {required onEditItem, required onDeleteItem}) =>
+          SectionItemTile(
+        title: proj.nom?.isNotEmpty == true ? proj.nom! : l.projects,
+        subtitle: proj.technologies ?? proj.lien ?? '',
+        onEdit: onEditItem,
+        onDelete: onDeleteItem,
+      ),
     );
   }
 }

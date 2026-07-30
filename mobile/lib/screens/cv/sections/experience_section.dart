@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
+import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
+import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../features/cv/presentation/section_editor/section_form_fields.dart';
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
 import '../../../services/i_api_client.dart';
-import 'form_sheet.dart' show showFormSheet;
 
 class ExperienceSection extends StatelessWidget {
   final List<Experience> experiences;
@@ -19,27 +20,9 @@ class ExperienceSection extends StatelessWidget {
     required this.onChanged,
   });
 
-  void _add(BuildContext context) =>
-      _showSheet(context, null, (e) => onChanged([...experiences, e]));
-
-  void _edit(BuildContext context, int i) =>
-      _showSheet(context, experiences[i], (e) {
-        final list = List<Experience>.from(experiences);
-        list[i] = e;
-        onChanged(list);
-      });
-
-  void _delete(int i) {
-    final list = List<Experience>.from(experiences);
-    list.removeAt(i);
-    onChanged(list);
-  }
-
-  void _showSheet(
-    BuildContext context,
-    Experience? exp,
-    Function(Experience) onSave,
-  ) {
+  /// Ouvre l'editeur d'experience et retourne la valeur saisie (ou `null` si
+  /// annule / invalide). Ne mute jamais la liste parent.
+  Future<Experience?> _editSheet(BuildContext context, Experience? exp) {
     final l = AppLocalizations.of(context)!;
     final posteCtrl = TextEditingController(text: exp?.poste);
     final entrepriseCtrl = TextEditingController(text: exp?.entreprise);
@@ -50,11 +33,11 @@ class ExperienceSection extends StatelessWidget {
     bool actuel = exp?.actuel ?? false;
     bool isLoadingAi = false;
 
-    showFormSheet(
+    return showSectionEditor<Experience>(
       context: context,
       title: exp == null ? l.addExperience : l.editExperience,
       icon: Icons.work_outline_rounded,
-      builder: (ctx, setState) => Column(
+      content: (ctx, setState) => Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -64,6 +47,8 @@ class ExperienceSection extends StatelessWidget {
               labelText: l.jobTitleRequired,
               prefixIcon: const Icon(Icons.badge_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -72,6 +57,8 @@ class ExperienceSection extends StatelessWidget {
               labelText: l.companyRequired,
               prefixIcon: const Icon(Icons.business_outlined, size: 20),
             ),
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? l.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -146,25 +133,21 @@ class ExperienceSection extends StatelessWidget {
                 final suggestions =
                     await ctx.read<IApiClient>().getAiSuggestions(
                           poste: posteCtrl.text,
-                          entreprise: entrepriseCtrl.text, description: descCtrl.text,
+                          entreprise: entrepriseCtrl.text,
+                          description: descCtrl.text,
                         );
                 if (!ctx.mounted) return;
                 await showSuggestionsSheet(ctx, suggestions, descCtrl);
-              } catch (e) {
+              } catch (_) {
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      l.aiSuggestionsUnavailable,
-                    ),
+                    content: Text(l.aiSuggestionsUnavailable),
                     backgroundColor: Theme.of(ctx).colorScheme.errorContainer,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
-                    action: SnackBarAction(
-                      label: l.close,
-                      onPressed: () {},
-                    ),
+                    action: SnackBarAction(label: l.close, onPressed: () {}),
                   ),
                 );
               } finally {
@@ -174,54 +157,42 @@ class ExperienceSection extends StatelessWidget {
           ),
         ],
       ),
-      onSave: () => onSave(Experience(
+      buildResult: () => Experience(
         id: exp?.id,
-        poste: posteCtrl.text,
-        entreprise: entrepriseCtrl.text,
+        poste: posteCtrl.text.trim(),
+        entreprise: entrepriseCtrl.text.trim(),
         lieu: lieuCtrl.text,
         dateDebut: debut,
-        dateFin: fin,
+        dateFin: actuel ? null : fin,
         description: descCtrl.text,
         actuel: actuel,
-      )),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (experiences.isEmpty)
-          SectionEmptyState(
-            icon: Icons.work_outline_rounded,
-            label: l.noneExperience,
-          )
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: experiences.length,
-            itemBuilder: (ctx, i) {
-              final exp = experiences[i];
-              return SectionItemTile(
-                title: exp.poste?.isNotEmpty == true ? exp.poste! : l.untitled,
-                subtitle: exp.entreprise ?? '',
-                badge: exp.actuel ? l.currentPosition : null,
-                badgeColor: Colors.green,
-                onEdit: () => _edit(ctx, i),
-                onDelete: () => _delete(i),
-              );
-            },
-          ),
-        const SizedBox(height: 8),
-        SectionAddButton(
-          label: l.addExperience,
-          onTap: () => _add(context),
-        ),
-      ],
+    return EditableSectionList<Experience>(
+      items: experiences,
+      onChanged: onChanged,
+      reorderable: true,
+      keyOf: (exp, index) => ValueKey('exp-${exp.id ?? index}'),
+      onAdd: (ctx) => _editSheet(ctx, null),
+      onEdit: (ctx, current) => _editSheet(ctx, current),
+      addLabel: l.addExperience,
+      emptyIcon: Icons.work_outline_rounded,
+      emptyLabel: l.noneExperience,
+      itemBuilder: (ctx, exp, index,
+              {required onEditItem, required onDeleteItem}) =>
+          SectionItemTile(
+        title: exp.poste?.isNotEmpty == true ? exp.poste! : l.untitled,
+        subtitle: exp.entreprise ?? '',
+        badge: exp.actuel ? l.currentPosition : null,
+        badgeColor: Colors.green,
+        onEdit: onEditItem,
+        onDelete: onDeleteItem,
+      ),
     );
   }
 }
