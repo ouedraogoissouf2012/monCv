@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/ai/application/enhance_cv_usecase.dart';
+import '../../features/cv/application/upload_profile_photo_usecase.dart';
+import '../../features/cv/data/http_profile_photo_repository.dart';
+import '../../features/cv/domain/repositories/profile_photo_repository.dart';
+import '../../utils/constants.dart';
 import '../../features/ai/application/generate_application_messages_usecase.dart';
 import '../../features/ai/application/generate_resume_usecase.dart';
 import '../../features/ai/application/get_ai_status_usecase.dart';
@@ -92,6 +96,13 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<CvRepository>(() => sl<CachedCvRepository>());
+  sl.registerLazySingleton<ProfilePhotoRepository>(
+    () => HttpProfilePhotoRepository(
+      sl<IApiClient>(),
+      // Base des medias = URL de l'API sans le suffixe /api (issue #242).
+      mediaBaseUrl: ApiConstants.baseUrl.replaceAll('/api', ''),
+    ),
+  );
 
   // ── Use Cases: Auth ───────────────────────────────────────────
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
@@ -108,6 +119,8 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => DeleteCvUseCase(sl<CvRepository>()));
   sl.registerFactory(() => DuplicateCvUseCase(sl<CvRepository>()));
   sl.registerFactory(() => CreateVariantUseCase(sl<CvRepository>()));
+  sl.registerFactory(
+      () => UploadProfilePhotoUseCase(sl<ProfilePhotoRepository>()));
 
   // ── Use Cases: AI (issue #237 — port AiRepository, plus IApiClient) ──
   sl.registerFactory(() => EnhanceCvUseCase(sl<AiRepository>()));
