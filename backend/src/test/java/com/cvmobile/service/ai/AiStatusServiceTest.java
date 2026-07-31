@@ -80,7 +80,8 @@ class AiStatusServiceTest {
         assertThat(status.getPrimaryStatus()).isEqualTo("UP");
         assertThat(status.getCircuitBreakerState()).isEqualTo("CLOSED");
         assertThat(status.isFallbackAvailable()).isTrue();
-        assertThat(status.getFallbackProvider()).isEqualTo("mock");
+        // Libelle public neutre, jamais le nom technique "mock" (charte #336).
+        assertThat(status.getFallbackProvider()).isEqualTo("fallback");
     }
 
     @Test
@@ -115,8 +116,11 @@ class AiStatusServiceTest {
                 "lastChecked",
                 "checkedAt")
                 .forEach(field -> assertThat(json.has(field)).as(field).isTrue());
-        // Libelle public neutre, jamais le nom technique "deepseek" (charte #336).
+        // Libelles publics neutres, jamais les noms techniques "deepseek"/"mock"
+        // (charte #336). Le fallback etait la fuite oubliee par le fix initial.
         assertThat(json.get("primaryProvider").asText()).isEqualTo("primary");
+        assertThat(json.get("fallbackProvider").asText()).isEqualTo("fallback");
+        assertThat(json.toString()).doesNotContain("deepseek").doesNotContain("mock");
         assertThat(json.get("available").asBoolean()).isTrue();
     }
 }
