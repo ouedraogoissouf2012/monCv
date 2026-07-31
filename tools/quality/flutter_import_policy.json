@@ -18,11 +18,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/cv/sections/personal_info_section.dart",
-      "issue": "#242",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/cv/sections/projects_section.dart",
       "issue": "#239",
       "expires_on": "2027-01-31"
