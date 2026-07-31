@@ -1583,13 +1583,13 @@ abstract class AppLocalizations {
   /// No description provided for @completion.
   ///
   /// In fr, this message translates to:
-  /// **'Complétion : {percent}%'**
+  /// **'Score ATS : {percent}%'**
   String completion(int percent);
 
   /// No description provided for @cvCompletion.
   ///
   /// In fr, this message translates to:
-  /// **'COMPLETION DU CV'**
+  /// **'SCORE ATS DU CV'**
   String get cvCompletion;
 
   /// No description provided for @toComplete.

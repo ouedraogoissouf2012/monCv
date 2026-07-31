@@ -46,7 +46,9 @@ class CvFormValidator {
     return validationFor(cv)[section] == CvFormValidationState.valid;
   }
 
-  static int completionPercent(Cv cv) =>
+  /// Score ATS (readiness) du CV, de 0 a 100. Mesure la qualite/lisibilite
+  /// pour un recruteur ou un ATS (et non un simple taux de remplissage).
+  static int readinessScore(Cv cv) =>
       const CvReadinessService().evaluate(cv).score;
 
   static CvFormValidationIssue? validateForSave(

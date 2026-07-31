@@ -1,10 +1,10 @@
-/// Seuils du score de *validation* (qualite) d'un CV.
+/// Seuils du score de *qualite/ATS* d'un CV — point unique de verite.
 ///
-/// Distincts du score de *completion* (presence des sections) porte par
-/// [CvCompletionPolicy] : ici on mesure la qualite via un bareme par
-/// deductions. Regroupes dans cette politique nommee pour supprimer les magic
-/// numbers disperses dans `CvValidator`, les formulaires et `CvCard`
-/// (issue #241 / critere C5 de #238).
+/// Depuis l'unification du scoring, un seul bareme qualifie un CV : le score
+/// de readiness (100 - deductions) porte par `CvReadinessService`. Ce fichier
+/// centralise TOUS ses magic numbers (penalites, seuils de regles, seuils
+/// d'affichage) pour qu'aucun ne soit redefini ailleurs (issue #241 / C5 #238,
+/// unification post-audit).
 abstract final class CvValidationThresholds {
   /// Plafond du bareme (point de depart avant deductions).
   static const int maxScore = 100;
@@ -18,9 +18,34 @@ abstract final class CvValidationThresholds {
   /// Score minimal requis pour autoriser l'export du CV.
   static const int exportThreshold = 60;
 
+  /// Score a partir duquel un CV est considere "pret" (recruteur/ATS).
+  static const int readyThreshold = 80;
+
+  // ── Seuils d'affichage du score (couleur / libelle) ──────────
+  /// Score >= [displayGoodThreshold] : etat "complet" (vert).
+  static const int displayGoodThreshold = 80;
+
+  /// Score >= [displayMediumThreshold] : etat "en cours" (orange) ; en dessous,
+  /// "incomplet" (rouge).
+  static const int displayMediumThreshold = 50;
+
+  /// Barre de progression du formulaire : score >= [progressBarGoodThreshold]
+  /// = vert, >= [progressBarMediumThreshold] = orange, en dessous = rouge.
+  static const int progressBarGoodThreshold = 70;
+  static const int progressBarMediumThreshold = 35;
+
   // ── Seuils de qualite par regle (issue #241) ─────────────────
   /// Longueur minimale conseillee pour un resume professionnel.
   static const int minSummaryLength = 100;
+
+  /// Longueur minimale conseillee pour la description d'une experience.
+  static const int minExperienceDescriptionLength = 80;
+
+  /// En deca, une duree de formation parait incoherente (jours).
+  static const int suspiciousEducationDurationDays = 45;
+
+  /// Nombre de cliches toleres dans le resume avant de le signaler.
+  static const int maxTolerableCliches = 2;
 
   /// En dessous, on suggere d'ajouter des competences.
   static const int recommendedSkillCount = 5;

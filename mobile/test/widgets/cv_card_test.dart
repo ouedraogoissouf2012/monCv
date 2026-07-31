@@ -84,9 +84,9 @@ void main() {
       expect(find.text('$score% ATS'), findsOneWidget);
     });
 
-    testWidgets('CV incomplet affiche un score faible', (tester) async {
+    test('CV incomplet obtient un score ATS faible', () {
       final cv = _fakeCvIncomplete();
-      expect(cv.completionScore, lessThan(50));
+      expect(const CvReadinessService().evaluate(cv).score, lessThan(50));
     });
 
     testWidgets('appelle onTap quand le bouton Voir est pressé',
@@ -172,46 +172,7 @@ void main() {
     });
   });
 
-  group('Cv.completionScore', () {
-    test('titre seul = 10 pts', () {
-      final cv = Cv(titre: 'Test');
-      expect(cv.completionScore, 10);
-    });
-
-    test('titre + nom + prénom + email = 30 pts', () {
-      final cv = Cv(
-        titre: 'Test',
-        personalInfo: PersonalInfo(
-          nom: 'Doe',
-          prenom: 'John',
-          email: 'j@e.com',
-        ),
-      );
-      expect(cv.completionScore, 30);
-    });
-
-    test('CV complet = 100 pts', () {
-      final cv = Cv(
-        titre: 'CV',
-        personalInfo: PersonalInfo(
-          nom: 'Doe',
-          prenom: 'John',
-          email: 'j@e.com',
-          telephone: '0600',
-          titrePoste: 'Dev',
-          adresse: '1 rue',
-          resumeProfessionnel: 'Expert.',
-        ),
-        experiences: [Experience(poste: 'Dev')],
-        educations: [Education(etablissement: 'Univ')],
-        skills: [Skill(nom: 'Flutter')],
-        languages: [Language(langue: 'FR', niveau: 'NATIF')],
-        certifications: [Certification(nom: 'AWS')],
-        projects: [Project(nom: 'MonCV')],
-      );
-      expect(cv.completionScore, 100);
-    });
-
+  group('CvCard partage & metadonnees', () {
     testWidgets('affiche le badge Vues quand le CV est partage',
         (tester) async {
       final sharedCv = Cv(

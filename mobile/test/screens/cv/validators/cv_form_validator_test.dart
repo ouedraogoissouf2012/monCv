@@ -39,7 +39,7 @@ void main() {
     );
 
     expect(
-      CvFormValidator.completionPercent(cv),
+      CvFormValidator.readinessScore(cv),
       const CvReadinessService().evaluate(cv).score,
     );
     expect(CvFormValidator.stepComplete(cv, 4), true);

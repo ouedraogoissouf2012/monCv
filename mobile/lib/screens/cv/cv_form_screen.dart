@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/di/injection_container.dart';
+import '../../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
 import '../../providers/cv_provider.dart';
@@ -248,7 +249,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
                     currentStep: controller.currentStep,
                     onStepTap: _goToStep,
                     stepComplete: controller.stepComplete,
-                    completionPercent: controller.completionPercent,
+                    readinessScore: controller.readinessScore,
                     stepContents: _stepContents,
                   )
                 : _MobileLayout(
@@ -256,7 +257,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
                     pageController: _pageController,
                     onStepTap: _goToStep,
                     stepComplete: controller.stepComplete,
-                    completionPercent: controller.completionPercent,
+                    readinessScore: controller.readinessScore,
                     stepContents: _stepContents,
                     onNext: _next,
                     onPrevious: _previous,

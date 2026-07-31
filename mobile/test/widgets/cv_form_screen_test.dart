@@ -170,7 +170,7 @@ void main() {
     await _enterFieldByLabel(tester, 'Nom *', 'Codex');
     await _enterFieldByLabel(tester, 'Email *', 'smoke@example.com');
     expect(
-      find.text('Complétion : ${controller.completionPercent}%'),
+      find.text('Score ATS : ${controller.readinessScore}%'),
       findsOneWidget,
     );
 

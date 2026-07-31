@@ -86,7 +86,7 @@ class CvFormController extends ChangeNotifier {
 
   Map<CvFormSection, CvFormValidationState> get validation =>
       CvFormValidator.validationFor(currentCv);
-  int get completionPercent => CvFormValidator.completionPercent(currentCv);
+  int get readinessScore => CvFormValidator.readinessScore(currentCv);
   bool stepComplete(int index) =>
       CvFormValidator.stepComplete(currentCv, index);
 

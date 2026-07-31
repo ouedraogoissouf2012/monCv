@@ -5,7 +5,7 @@ class _MobileLayout extends StatelessWidget {
   final PageController pageController;
   final Function(int) onStepTap;
   final bool Function(int) stepComplete;
-  final int completionPercent;
+  final int readinessScore;
   final List<Widget> stepContents;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
@@ -18,7 +18,7 @@ class _MobileLayout extends StatelessWidget {
     required this.pageController,
     required this.onStepTap,
     required this.stepComplete,
-    required this.completionPercent,
+    required this.readinessScore,
     required this.stepContents,
     required this.onNext,
     required this.onPrevious,
@@ -35,7 +35,7 @@ class _MobileLayout extends StatelessWidget {
     return Column(
       children: [
         // Barre de progression
-        _CompletionBar(percent: completionPercent),
+        _CompletionBar(percent: readinessScore),
 
         // Stepper horizontal
         _StepperHeader(

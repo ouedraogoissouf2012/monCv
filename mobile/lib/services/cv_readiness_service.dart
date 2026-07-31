@@ -1,3 +1,4 @@
+import '../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../models/cv.dart';
 
 class CvReadinessIssue {
@@ -15,7 +16,9 @@ class CvReadinessReport {
   final List<CvReadinessIssue> issues;
 
   bool get isReady =>
-      score >= 80 && issues.every((issue) => issue.penalty < 15);
+      score >= CvValidationThresholds.readyThreshold &&
+      issues.every(
+          (issue) => issue.penalty < CvValidationThresholds.errorPenalty);
 }
 
 /// Evalue si un CV est exploitable par un recruteur et lisible par un ATS.
@@ -71,7 +74,7 @@ class CvReadinessService {
     if (profile.isEmpty) {
       _add(issues, 'profile', 'Ajoutez un résumé professionnel.', 15);
     } else {
-      if (profile.length < 100) {
+      if (profile.length < CvValidationThresholds.minSummaryLength) {
         _add(
             issues,
             'short_profile',
@@ -80,7 +83,7 @@ class CvReadinessService {
       }
       final normalized = profile.toLowerCase();
       final clicheCount = _cliches.where(normalized.contains).length;
-      if (clicheCount >= 3) {
+      if (clicheCount > CvValidationThresholds.maxTolerableCliches) {
         _add(
             issues,
             'generic_profile',
@@ -99,8 +102,9 @@ class CvReadinessService {
       _add(issues, 'experience', 'Ajoutez au moins une expérience.', 15);
     } else {
       final weakDescriptions = cv.experiences
-          .where(
-              (experience) => (experience.description?.trim().length ?? 0) < 80)
+          .where((experience) =>
+              (experience.description?.trim().length ?? 0) <
+              CvValidationThresholds.minExperienceDescriptionLength)
           .length;
       if (weakDescriptions > 0) {
         _add(
@@ -116,7 +120,8 @@ class CvReadinessService {
       final end = education.dateFin;
       if (start == null || end == null) return false;
       final days = end.difference(start).inDays;
-      return days >= 0 && days < 45;
+      return days >= 0 &&
+          days < CvValidationThresholds.suspiciousEducationDurationDays;
     }).length;
     if (suspiciousEducationDates > 0) {
       _add(
@@ -139,8 +144,9 @@ class CvReadinessService {
     }
 
     final deductions = issues.fold<int>(0, (sum, issue) => sum + issue.penalty);
+    const max = CvValidationThresholds.maxScore;
     return CvReadinessReport(
-      score: (100 - deductions).clamp(0, 100),
+      score: (max - deductions).clamp(0, max),
       issues: List.unmodifiable(issues),
     );
   }
