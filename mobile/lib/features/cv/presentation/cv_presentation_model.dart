@@ -9,7 +9,6 @@ import '../domain/entities/language.dart';
 import '../domain/entities/personal_info.dart';
 import '../domain/entities/project.dart';
 import '../domain/entities/skill.dart';
-import '../domain/policies/cv_completion_policy.dart';
 import '../domain/value_objects/cv_id.dart';
 import '../domain/value_objects/cv_style_ref.dart';
 
@@ -116,9 +115,6 @@ class Cv {
 
   /// True si ce CV est une variante adaptee a une offre.
   bool get isVariante => entity.isVariante;
-
-  /// Score de completion (0-100), delegue a la politique de domaine.
-  int get completionScore => const CvCompletionPolicy().score(entity);
 
   /// Copie en conservant la semantique HISTORIQUE (`null` = ne pas changer).
   ///

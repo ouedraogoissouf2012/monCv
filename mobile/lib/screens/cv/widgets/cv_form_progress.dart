@@ -120,8 +120,12 @@ class _CompletionBar extends StatelessWidget {
   const _CompletionBar({required this.percent});
 
   Color _barColor(ColorScheme cs) {
-    if (percent < 35) return cs.error;
-    if (percent < 70) return AppColors.warning;
+    if (percent < CvValidationThresholds.progressBarMediumThreshold) {
+      return cs.error;
+    }
+    if (percent < CvValidationThresholds.progressBarGoodThreshold) {
+      return AppColors.warning;
+    }
     return AppColors.success;
   }
 

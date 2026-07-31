@@ -808,11 +808,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String completion(int percent) {
-    return 'Completion: $percent%';
+    return 'ATS score: $percent%';
   }
 
   @override
-  String get cvCompletion => 'CV COMPLETION';
+  String get cvCompletion => 'CV ATS SCORE';
 
   @override
   String get toComplete => 'To complete';

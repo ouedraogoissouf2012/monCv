@@ -29,7 +29,7 @@ void main() {
   test('etat initial vide', () {
     expect(controller.currentStep, 0);
     expect(controller.currentCv.titre, 'Mon CV');
-    expect(controller.completionPercent, 0);
+    expect(controller.readinessScore, 0);
     expect(
       controller.validation[CvFormSection.identity],
       CvFormValidationState.empty,
@@ -49,7 +49,7 @@ void main() {
 
     expect(controller.currentCv.titre, 'CV de Awa Kone');
     expect(
-      controller.completionPercent,
+      controller.readinessScore,
       const CvReadinessService().evaluate(controller.currentCv).score,
     );
     expect(controller.experiences, hasLength(1));

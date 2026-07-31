@@ -4,27 +4,31 @@ class _DesktopLayout extends StatelessWidget {
   final int currentStep;
   final Function(int) onStepTap;
   final bool Function(int) stepComplete;
-  final int completionPercent;
+  final int readinessScore;
   final List<Widget> stepContents;
 
   const _DesktopLayout({
     required this.currentStep,
     required this.onStepTap,
     required this.stepComplete,
-    required this.completionPercent,
+    required this.readinessScore,
     required this.stepContents,
   });
 
   Color _barColor(ColorScheme cs, int pct) {
-    if (pct < 35) return cs.error;
-    if (pct < 70) return AppColors.warning;
+    if (pct < CvValidationThresholds.progressBarMediumThreshold) {
+      return cs.error;
+    }
+    if (pct < CvValidationThresholds.progressBarGoodThreshold) {
+      return AppColors.warning;
+    }
     return AppColors.success;
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final barColor = _barColor(colorScheme, completionPercent);
+    final barColor = _barColor(colorScheme, readinessScore);
     final l = AppLocalizations.of(context)!;
 
     return Row(
@@ -61,7 +65,7 @@ class _DesktopLayout extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: completionPercent / 100,
+                        value: readinessScore / 100,
                         backgroundColor:
                             colorScheme.outline.withValues(alpha: 0.15),
                         valueColor: AlwaysStoppedAnimation(barColor),
@@ -72,7 +76,7 @@ class _DesktopLayout extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '$completionPercent%',
+                          '$readinessScore%',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
@@ -81,9 +85,11 @@ class _DesktopLayout extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          completionPercent < 50
+                          readinessScore <
+                                  CvValidationThresholds.displayMediumThreshold
                               ? l.toComplete
-                              : completionPercent < 80
+                              : readinessScore <
+                                      CvValidationThresholds.displayGoodThreshold
                                   ? l.goodStart
                                   : l.excellent,
                           style: TextStyle(
