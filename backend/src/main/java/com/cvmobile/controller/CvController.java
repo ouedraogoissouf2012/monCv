@@ -31,6 +31,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -123,13 +124,14 @@ public class CvController {
     @Operation(summary = "Telecharger le CV en DOCX (Word) — ATS-friendly")
     public ResponseEntity<byte[]> downloadCvDocx(
             @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user) throws IOException {
         // Charger l'entite complete (pas le DTO) pour la generation DOCX.
         var cv = cvOwnershipService.requireOwnedCv(id, user.getId());
 
-        // Toute erreur de generation remonte au GlobalExceptionHandler, qui la
-        // journalise avec correlationId et renvoie un 500 structure. On n'avale
-        // plus l'exception ici (perte de stacktrace) pour un 500 nu.
+        // L'IOException de generation est declaree (throws) et remonte au
+        // GlobalExceptionHandler, qui la journalise avec correlationId et renvoie
+        // un 500 structure. On n'avale plus l'exception ici (perte de stacktrace)
+        // pour un 500 nu.
         byte[] docx = docxGenerationService.generate(cv);
         String filename = "cv-" + id + ".docx";
         return ResponseEntity.ok()
