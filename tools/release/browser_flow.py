@@ -96,7 +96,7 @@ class BrowserSmokeFlow:
         ):
             self._expect_field_value(label, value)
         expect(
-            self.page.get_by_text(re.compile(r"Complétion : [1-9]\d?%"), exact=False)
+            self.page.get_by_text(re.compile(r"Score ATS : [1-9]\d?%"), exact=False)
         ).to_be_visible()
         for _ in range(4):
             self._click("Suivant")
