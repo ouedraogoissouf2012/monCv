@@ -39,9 +39,13 @@ class CvDocumentViewModel {
   /// comportement du monolithe : niveau par defaut [_defaultSkillLevel] si
   /// absent, aucune borne appliquee (l'affichage des barres borne cote
   /// template). Iso-comportement pour la parite (#243).
-  List<SkillView> get skills {
+  List<SkillView> get skills => splitSkills(cv.skills);
+
+  /// Eclate une liste de [Skill] "Java, Python; Go" en [SkillView] unitaires.
+  /// Expose en statique pour etre utilisable sans instancier le view model.
+  static List<SkillView> splitSkills(List<Skill> skills) {
     final result = <SkillView>[];
-    for (final skill in cv.skills) {
+    for (final skill in skills) {
       final level = skill.niveau ?? _defaultSkillLevel;
       for (final part in (skill.nom ?? '').split(RegExp(r'[,;]+'))) {
         final name = part.trim();
