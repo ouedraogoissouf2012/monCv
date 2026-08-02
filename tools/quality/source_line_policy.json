@@ -98,12 +98,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/widgets/cv_preview.dart",
-      "baseline_lines": 1018,
-      "issue": "#243",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/widgets/job_match_sheet.dart",
       "baseline_lines": 1018,
       "issue": "#245",
