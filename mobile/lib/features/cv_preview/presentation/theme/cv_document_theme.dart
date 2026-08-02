@@ -23,6 +23,12 @@ abstract final class CvDocumentTheme {
   /// Couleur du texte attenue (dates, meta).
   static const Color textMuted = AppColors.neutral450;
 
+  /// Couleur du texte tres discret (contact/titre des templates epures).
+  static const Color textFaint = AppColors.neutral300;
+
+  /// Couleur des filets de separation fins.
+  static const Color divider = AppColors.neutral100;
+
   // ── Tailles de police (echelle du document) ────────────────────
   static const double sizeName = 12;
   static const double sizeTitle = 11;
