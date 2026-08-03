@@ -7,6 +7,7 @@ import '../../../../usecases/cv/update_cv_usecase.dart';
 import '../../../../usecases/cv/delete_cv_usecase.dart';
 import '../../../../usecases/cv/duplicate_cv_usecase.dart';
 import '../../../../usecases/cv/create_variant_usecase.dart';
+import '../../../ai/domain/entities/enhanced_cv.dart';
 import '../../application/apply_ai_enhancements.dart';
 import '../../application/state/cv_operation_state.dart';
 import '../../data/cv_cache_codec.dart';
@@ -160,9 +161,23 @@ class CvEditorController {
     if (cv == null || cv.id != cvId) return false;
 
     final updatedCv = _applyAi(cv, result);
+    return _persist(cvId, updatedCv);
+  }
+
+  /// Applique un resultat d'amelioration IA TYPE (issue #244) : voie sans
+  /// `Map`, pour la presentation refondue de #244. Meme effet que
+  /// [applyAiEnhancements] mais a partir de l'entite [EnhancedCv].
+  Future<bool> applyEnhancedCv(int cvId, EnhancedCv enhanced) async {
+    final cv = _store.currentCv;
+    if (cv == null || cv.id != cvId) return false;
+
+    final updatedCv = _applyAi.fromEnhanced(cv, enhanced);
+    return _persist(cvId, updatedCv);
+  }
+
+  Future<bool> _persist(int cvId, Cv updatedCv) async {
     _store.replaceCv(cvId, updatedCv);
     _store.setCurrentCv(updatedCv);
-
     // Persistance best-effort ; propagation du resultat en PR offline.
     await _repository.updateCv(cvId, updatedCv);
     return true;
