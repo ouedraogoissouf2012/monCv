@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import '../features/ai/domain/entities/enhanced_cv.dart';
 import '../features/cv/application/state/cv_operation_state.dart';
 import '../features/cv/application/sync/offline_cv_sync_coordinator.dart';
 import '../features/cv/presentation/controllers/cv_detail_controller.dart';
@@ -144,6 +145,8 @@ class CvProvider with ChangeNotifier {
       _editor.createVariant(cvId, jobDescription, label: label);
   Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) =>
       _editor.applyAiEnhancements(cvId, result);
+  Future<bool> applyEnhancedCv(int cvId, EnhancedCv enhanced) =>
+      _editor.applyEnhancedCv(cvId, enhanced);
   Future<bool> updateCvStyle(int cvId, CvStyle style) =>
       _style.update(cvId, style);
   void setCurrentCv(Cv? cv) => _detail.select(cv);
