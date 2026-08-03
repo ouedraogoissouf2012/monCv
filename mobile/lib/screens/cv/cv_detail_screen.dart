@@ -8,6 +8,7 @@ import '../../providers/cv_provider.dart';
 import '../../services/pdf_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/cv_preview.dart';
+import '../../features/ai/domain/entities/enhanced_cv.dart';
 import '../../widgets/ai_enhance_sheet.dart';
 import '../../widgets/job_match_sheet.dart';
 
@@ -92,19 +93,18 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     final l = AppLocalizations.of(context)!;
     final provider = context.read<CvProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    final result = await showModalBottomSheet<EnhancedCv>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => AiEnhanceSheet(
         cv: cv,
-        initialLevel: proofreadOnly ? 'LITE' : 'MEDIUM',
         proofreadOnly: proofreadOnly,
       ),
     );
     if (result == null || !mounted) return;
 
-    final ok = await provider.applyAiEnhancements(cv.id!, result);
+    final ok = await provider.applyEnhancedCv(cv.id!, result);
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(
       content: Text(ok

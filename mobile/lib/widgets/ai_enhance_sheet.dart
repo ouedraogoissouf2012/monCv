@@ -1,704 +1,105 @@
 import 'package:flutter/material.dart';
-import '../models/cv.dart';
 import 'package:provider/provider.dart';
-import '../core/error/result.dart';
+
+import '../core/di/injection_container.dart';
+import '../features/ai/application/enhance_cv_usecase.dart';
+import '../features/ai/domain/entities/enhanced_cv.dart';
+import '../features/ai_enhancement/domain/enhancement_level.dart';
+import '../features/ai_enhancement/presentation/components/consent_notice.dart';
+import '../features/ai_enhancement/presentation/components/enhancement_result_list.dart';
+import '../features/ai_enhancement/presentation/components/enhancement_sheet_parts.dart';
+import '../features/ai_enhancement/presentation/components/level_selector.dart';
+import '../features/ai_enhancement/presentation/components/status_banner.dart';
+import '../features/ai_enhancement/presentation/enhancement_controller.dart';
 import '../l10n/app_localizations.dart';
+import '../models/cv.dart';
 import '../providers/ai_status_provider.dart';
-import '../services/i_api_client.dart';
 import '../utils/app_colors.dart';
 import 'ai_button.dart';
 
-/// Bottom sheet d'amelioration IA — 3 niveaux : Lite / Medium / Max
-/// Retourne le resultat via Navigator.pop (pas de callback)
+/// Feuille d'amelioration IA d'un CV (issue #244).
+///
+/// Orchestrateur : compose [EnhancementController] (etat + use case typé) et
+/// des composants courts. Ne connait plus le transport ni les
+/// `Map<String, dynamic>` : le resultat est l'entite [EnhancedCv], retournee via
+/// `Navigator.pop` a l'appelant qui l'applique par la voie typee (F4a).
 class AiEnhanceSheet extends StatefulWidget {
-  final Cv cv;
-  final String initialLevel;
-  final bool proofreadOnly;
-
   const AiEnhanceSheet({
     super.key,
     required this.cv,
-    this.initialLevel = 'MEDIUM',
+    this.initialLevel = EnhancementLevel.medium,
     this.proofreadOnly = false,
   });
+
+  final Cv cv;
+  final EnhancementLevel initialLevel;
+  final bool proofreadOnly;
 
   @override
   State<AiEnhanceSheet> createState() => _AiEnhanceSheetState();
 }
 
 class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
-  late String _selectedLevel;
-  bool _loading = false;
-  bool _aiConsentAccepted = false;
-  Map<String, dynamic>? _result;
-  String? _error;
-
-  List<_LevelInfo> get _levels {
-    final l = AppLocalizations.of(context)!;
-    return [
-      _LevelInfo(
-        id: 'LITE',
-        label: l.lite,
-        description: l.liteLevelDescription,
-        icon: Icons.spellcheck_rounded,
-        color: AppColors.success,
-      ),
-      _LevelInfo(
-        id: 'MEDIUM',
-        label: l.medium,
-        description: l.mediumLevelDescription,
-        icon: Icons.auto_fix_normal_rounded,
-        color: AppColors.primary,
-      ),
-      _LevelInfo(
-        id: 'MAX',
-        label: l.maximum,
-        description: l.maxLevelDescription,
-        icon: Icons.rocket_launch_rounded,
-        color: AppColors.violet,
-      ),
-    ];
-  }
+  late final EnhancementController _controller;
 
   @override
   void initState() {
     super.initState();
-    _selectedLevel = widget.proofreadOnly ? 'LITE' : widget.initialLevel;
+    _controller = EnhancementController(
+      cv: widget.cv,
+      enhanceCv: sl<EnhanceCvUseCase>(),
+      proofreadOnly: widget.proofreadOnly,
+      initialLevel: widget.initialLevel,
+      onAiError: (e) {
+        if (!mounted) return;
+        context.read<AiStatusProvider>()
+          ..recordError(e)
+          ..refresh();
+      },
+    );
   }
 
-  Future<void> _enhance() async {
-    if (widget.cv.id == null) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-      _result = null;
-    });
-    try {
-      final result = await context.read<IApiClient>().enhanceCv(
-            widget.cv.id!,
-            _selectedLevel,
-          );
-      if (!mounted) return;
-      setState(() {
-        _result = result;
-        _loading = false;
-      });
-    } on AiException catch (e) {
-      // Erreur IA typee : message precis au lieu de "mode hors ligne"
-      if (!mounted) return;
-      setState(() {
-        _error = e.message;
-        _loading = false;
-      });
-      // Rafraichir le status IA pour mettre a jour l'UI globale
-      if (!mounted) return;
-      final status = context.read<AiStatusProvider>();
-      status.recordError(e);
-      status.refresh();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e is AppException
-            ? e.message
-            : e.toString().replaceAll('Exception: ', '');
-        _loading = false;
-      });
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l = AppLocalizations.of(context)!;
-
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        24 + MediaQuery.of(context).viewInsets.bottom,
-      ),
+          20, 12, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Poignee
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.violet.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    widget.proofreadOnly
-                        ? Icons.spellcheck_rounded
-                        : Icons.auto_awesome_rounded,
-                    color: widget.proofreadOnly
-                        ? AppColors.success
-                        : AppColors.violet,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  widget.proofreadOnly ? l.proofreadingTitle : l.enhanceWithAi,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.proofreadOnly
-                  ? l.proofreadingSubtitle
-                  : l.enhancementSubtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.55),
-                  ),
-            ),
-            const SizedBox(height: 20),
-
-            // Selecteur de niveau
-            if (_result == null) ...[
-              if (widget.proofreadOnly)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    l.proofreadingGuarantee,
-                    style: const TextStyle(fontSize: 12, height: 1.35),
-                  ),
-                )
+        child: ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SheetHandle(),
+              const SizedBox(height: 16),
+              EnhancementHeader(proofreadOnly: widget.proofreadOnly),
+              const SizedBox(height: 20),
+              if (_controller.result == null)
+                ..._buildForm(context)
               else
-                ..._levels.map(
-                  (lvl) => _LevelTile(
-                    info: lvl,
-                    selected: _selectedLevel == lvl.id,
-                    onTap: () => setState(() => _selectedLevel = lvl.id),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              _AiConsentNotice(
-                value: _aiConsentAccepted,
-                onChanged: (value) => setState(() {
-                  _aiConsentAccepted = value ?? false;
-                }),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: AiButton(
-                  onPressed: _enhance,
-                  enabled: _aiConsentAccepted,
-                  loading: _loading,
-                  icon: Icon(
-                    widget.proofreadOnly
-                        ? Icons.spellcheck_rounded
-                        : Icons.auto_awesome_rounded,
-                  ),
-                  label: _loading
-                      ? l.proofreadingInProgress
-                      : widget.proofreadOnly
-                          ? l.proofreadCv
-                          : l.improve,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.violet,
-                  ),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: colorScheme.onErrorContainer,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _error!,
-                          style: TextStyle(
-                            color: colorScheme.onErrorContainer,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ] else ...[
-              // Resultat
-              _ResultSection(
-                result: _result!,
-                cv: widget.cv,
-                proofreadOnly: widget.proofreadOnly,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setState(() => _result = null),
-                      child: Text(l.retry),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        // print('[AI-SHEET] Appliquer pressed! result keys: ${_result?.keys}');
-                        Navigator.of(context).pop(_result);
-                      },
-                      icon: const Icon(Icons.check_rounded),
-                      label: Text(l.apply),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ..._buildResult(context),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
-}
 
-class _AiConsentNotice extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool?> onChanged;
-
-  const _AiConsentNotice({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  List<Widget> _buildForm(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.14)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(value: value, onChanged: onChanged),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              l.aiConsent,
-              style: TextStyle(
-                fontSize: 12,
-                height: 1.35,
-                color: colorScheme.onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Tile niveau ──────────────────────────────────────────────────
-
-class _LevelInfo {
-  final String id;
-  final String label;
-  final String description;
-  final IconData icon;
-  final Color color;
-
-  const _LevelInfo({
-    required this.id,
-    required this.label,
-    required this.description,
-    required this.icon,
-    required this.color,
-  });
-}
-
-class _LevelTile extends StatelessWidget {
-  final _LevelInfo info;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _LevelTile({
-    required this.info,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: selected
-                ? info.color
-                : colorScheme.outline.withValues(alpha: 0.25),
-            width: selected ? 2 : 1,
-          ),
-          color: selected ? info.color.withValues(alpha: 0.05) : null,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: info.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(info.icon, color: info.color, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    info.label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: selected ? info.color : null,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    info.description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurface.withValues(alpha: 0.55),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (selected)
-              Icon(Icons.check_circle_rounded, color: info.color, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Resultat avant/apres ────────────────────────────────────────
-
-class _ResultSection extends StatelessWidget {
-  final Map<String, dynamic> result;
-  final Cv cv;
-  final bool proofreadOnly;
-
-  const _ResultSection({
-    required this.result,
-    required this.cv,
-    required this.proofreadOnly,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (proofreadOnly) {
-      return _ProofreadingResult(result: result, cv: cv);
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final aiGenerated = result['aiGenerated'] == true;
-    final l = AppLocalizations.of(context)!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              aiGenerated
-                  ? Icons.auto_awesome_rounded
-                  : Icons.warning_amber_rounded,
-              size: 16,
-              color: aiGenerated ? AppColors.success : colorScheme.error,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              aiGenerated ? l.enhancementGenerated : l.fallbackResult,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: aiGenerated ? AppColors.success : AppColors.warning,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Titre du poste
-        if (result['titrePoste'] != null &&
-            (result['titrePoste'] as String).isNotEmpty) ...[
-          _sectionLabel(context, l.jobTitle),
-          _BeforeAfter(
-            before: cv.personalInfo?.titrePoste ?? '',
-            after: result['titrePoste'] as String,
-          ),
-          const SizedBox(height: 10),
-        ],
-
-        // Resume professionnel
-        if (result['resumeProfessionnel'] != null) ...[
-          _sectionLabel(context, l.professionalSummary),
-          _BeforeAfter(
-            before: cv.personalInfo?.resumeProfessionnel ?? '',
-            after: result['resumeProfessionnel'] as String,
-          ),
-          const SizedBox(height: 10),
-        ],
-
-        // Experiences
-        if (result['experiences'] != null) ...[
-          _sectionLabel(context, l.experiences),
-          ...List.generate((result['experiences'] as List<dynamic>).length, (
-            i,
-          ) {
-            final e = (result['experiences'] as List<dynamic>)[i];
-            final enhanced = e['description'] as String? ?? '';
-            final original = i < cv.experiences.length
-                ? cv.experiences[i].description ?? ''
-                : '';
-            return _BeforeAfter(before: original, after: enhanced);
-          }),
-          const SizedBox(height: 10),
-        ],
-
-        // Formations
-        if (result['educations'] != null &&
-            (result['educations'] as List).isNotEmpty) ...[
-          _sectionLabel(context, l.education),
-          ...List.generate((result['educations'] as List<dynamic>).length, (i) {
-            final e = (result['educations'] as List<dynamic>)[i];
-            final enhanced = e['description'] as String? ?? '';
-            final original = i < cv.educations.length
-                ? cv.educations[i].description ?? ''
-                : '';
-            return _BeforeAfter(before: original, after: enhanced);
-          }),
-          const SizedBox(height: 10),
-        ],
-
-        // Competences
-        if (result['skills'] != null &&
-            (result['skills'] as List).isNotEmpty) ...[
-          _sectionLabel(context, l.skills),
-          _BeforeAfter(
-            before: cv.skills.map((s) => s.nom ?? '').join(', '),
-            after: (result['skills'] as List<dynamic>)
-                .map((s) => s['nom'] as String? ?? '')
-                .join(', '),
-          ),
-          const SizedBox(height: 10),
-        ],
-
-        // Projets
-        if (result['projects'] != null &&
-            (result['projects'] as List).isNotEmpty) ...[
-          _sectionLabel(context, l.projects),
-          ...List.generate((result['projects'] as List<dynamic>).length, (i) {
-            final p = (result['projects'] as List<dynamic>)[i];
-            final enhanced = p['description'] as String? ?? '';
-            final original =
-                i < cv.projects.length ? cv.projects[i].description ?? '' : '';
-            return _BeforeAfter(before: original, after: enhanced);
-          }),
-        ],
-      ],
-    );
-  }
-}
-
-class _ProofreadingResult extends StatelessWidget {
-  final Map<String, dynamic> result;
-  final Cv cv;
-
-  const _ProofreadingResult({required this.result, required this.cv});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l = AppLocalizations.of(context)!;
-    final changes = <_ReviewChange>[];
-
-    void addChange(String section, String? before, String? after) {
-      final original = before ?? '';
-      final corrected = after ?? '';
-      if (corrected.isNotEmpty && corrected != original) {
-        changes.add(_ReviewChange(section, original, corrected));
-      }
-    }
-
-    List<Map<String, dynamic>> items(String key) {
-      final raw = result[key] as List<dynamic>? ?? const [];
-      return raw
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-
-    addChange(
-      l.jobTitle,
-      cv.personalInfo?.titrePoste,
-      result['titrePoste'] as String?,
-    );
-    addChange(
-      l.professionalSummary,
-      cv.personalInfo?.resumeProfessionnel,
-      result['resumeProfessionnel'] as String?,
-    );
-
-    final experiences = items('experiences');
-    for (int i = 0; i < experiences.length && i < cv.experiences.length; i++) {
-      addChange(
-        '${l.experiences} ${i + 1} - ${l.jobTitle}',
-        cv.experiences[i].poste,
-        experiences[i]['poste'] as String?,
-      );
-      addChange(
-        '${l.experiences} ${i + 1} - ${l.description}',
-        cv.experiences[i].description,
-        experiences[i]['description'] as String?,
-      );
-    }
-
-    final educations = items('educations');
-    for (int i = 0; i < educations.length && i < cv.educations.length; i++) {
-      addChange(
-        '${l.education} ${i + 1} - ${l.establishment}',
-        cv.educations[i].etablissement,
-        educations[i]['etablissement'] as String?,
-      );
-      addChange(
-        '${l.education} ${i + 1} - ${l.degree}',
-        cv.educations[i].diplome,
-        educations[i]['diplome'] as String?,
-      );
-      addChange(
-        '${l.education} ${i + 1} - ${l.fieldOfStudy}',
-        cv.educations[i].domaine,
-        educations[i]['domaine'] as String?,
-      );
-      addChange(
-        '${l.education} ${i + 1} - ${l.description}',
-        cv.educations[i].description,
-        educations[i]['description'] as String?,
-      );
-    }
-
-    final skills = items('skills');
-    for (int i = 0; i < skills.length && i < cv.skills.length; i++) {
-      addChange(
-        '${l.skills} ${i + 1}',
-        cv.skills[i].nom,
-        skills[i]['nom'] as String?,
-      );
-    }
-
-    final languages = items('languages');
-    for (int i = 0; i < languages.length && i < cv.languages.length; i++) {
-      addChange(
-        '${l.languages} ${i + 1}',
-        cv.languages[i].langue,
-        languages[i]['langue'] as String?,
-      );
-    }
-
-    final certifications = items('certifications');
-    for (int i = 0;
-        i < certifications.length && i < cv.certifications.length;
-        i++) {
-      addChange(
-        '${l.certifications} ${i + 1}',
-        cv.certifications[i].nom,
-        certifications[i]['nom'] as String?,
-      );
-      addChange(
-        '${l.certifications} ${i + 1} - ${l.organization}',
-        cv.certifications[i].organisme,
-        certifications[i]['organisme'] as String?,
-      );
-    }
-
-    final projects = items('projects');
-    for (int i = 0; i < projects.length && i < cv.projects.length; i++) {
-      addChange(
-        '${l.projects} ${i + 1} - ${l.name}',
-        cv.projects[i].nom,
-        projects[i]['nom'] as String?,
-      );
-      addChange(
-        '${l.projects} ${i + 1} - ${l.technologies}',
-        cv.projects[i].technologies,
-        projects[i]['technologies'] as String?,
-      );
-      addChange(
-        '${l.projects} ${i + 1} - ${l.description}',
-        cv.projects[i].description,
-        projects[i]['description'] as String?,
-      );
-    }
-
-    final correctionCount =
-        (result['correctionCount'] as num?)?.toInt() ?? changes.length;
-    final warnings = (result['warnings'] as List<dynamic>? ?? const [])
-        .map((warning) => warning.toString())
-        .where((warning) => warning.isNotEmpty)
-        .toList();
-    final aiGenerated = result['aiGenerated'] == true;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return [
+      if (widget.proofreadOnly)
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -706,200 +107,73 @@ class _ProofreadingResult extends StatelessWidget {
             color: AppColors.success.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.spellcheck_rounded,
-                color: AppColors.success,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      aiGenerated
-                          ? l.aiProofreadingComplete
-                          : l.localProofreadingComplete,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                    Text(
-                      correctionCount == 0
-                          ? l.noCertainCorrection
-                          : l.correctedFields(correctionCount),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurface.withValues(alpha: 0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: Text(l.proofreadingGuarantee,
+              style: const TextStyle(fontSize: 12, height: 1.35)),
+        )
+      else
+        LevelSelector(
+          selected: _controller.level,
+          enabled: !_controller.loading,
+          onSelected: _controller.selectLevel,
         ),
-        const SizedBox(height: 14),
-        if (changes.isEmpty)
-          Text(
-            l.textCanBeApplied,
-            style: TextStyle(
-              fontSize: 12,
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          )
-        else
-          ...changes.expand(
-            (change) => [
-              _sectionLabel(context, change.section),
-              _BeforeAfter(before: change.before, after: change.after),
-              const SizedBox(height: 2),
-            ],
-          ),
-        if (warnings.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Text(
-            l.pointsToClarify,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: warnings
-                  .map(
-                    (warning) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.info_outline_rounded,
-                            size: 16,
-                            color: AppColors.amberStrong,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              warning,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                height: 1.35,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ],
+      const SizedBox(height: 16),
+      ConsentNotice(
+        accepted: _controller.consentAccepted,
+        onChanged: _controller.setConsent,
+      ),
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        child: AiButton(
+          onPressed: _controller.enhance,
+          enabled: _controller.canEnhance,
+          loading: _controller.loading,
+          icon: Icon(widget.proofreadOnly
+              ? Icons.spellcheck_rounded
+              : Icons.auto_awesome_rounded),
+          label: _controller.loading
+              ? l.proofreadingInProgress
+              : widget.proofreadOnly
+                  ? l.proofreadCv
+                  : l.improve,
+          style: FilledButton.styleFrom(backgroundColor: AppColors.violet),
+        ),
+      ),
+      if (_controller.error != null) ...[
+        const SizedBox(height: 12),
+        EnhancementErrorBanner(message: _controller.error!.message),
       ],
-    );
+    ];
   }
-}
 
-class _ReviewChange {
-  final String section;
-  final String before;
-  final String after;
-
-  const _ReviewChange(this.section, this.before, this.after);
-}
-
-Widget _sectionLabel(BuildContext context, String text) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-    ),
-  );
-}
-
-class _BeforeAfter extends StatelessWidget {
-  final String before;
-  final String after;
-
-  const _BeforeAfter({required this.before, required this.after});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  List<Widget> _buildResult(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final result = _controller.result!;
+    return [
+      StatusBanner(aiGenerated: result.aiGenerated),
+      const SizedBox(height: 12),
+      EnhancementResultList(changes: _controller.changes),
+      const SizedBox(height: 16),
+      Row(
         children: [
-          if (before.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l.before,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    before,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                  ),
-                ],
-              ),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _controller.enhance, // retry / regenerer
+              child: Text(l.retry),
             ),
-          Divider(
-            height: 1,
-            color: colorScheme.outline.withValues(alpha: 0.15),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l.after,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.success,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(after, style: const TextStyle(fontSize: 12)),
-              ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop<EnhancedCv>(result),
+              icon: const Icon(Icons.check_rounded),
+              label: Text(l.apply),
+              style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.success),
             ),
           ),
         ],
       ),
-    );
+    ];
   }
 }

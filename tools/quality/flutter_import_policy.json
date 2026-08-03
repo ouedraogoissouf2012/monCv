@@ -43,11 +43,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/widgets/ai_enhance_sheet.dart",
-      "issue": "#244",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/widgets/secure_photo.dart",
       "issue": "#237",
       "expires_on": "2027-01-31"
