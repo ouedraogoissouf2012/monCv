@@ -3,10 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'fake_token_store.dart';
 
 void main() {
-  group('SecureTokenStore (web / memoire process)', () {
+  group('TokenStore (contrat)', () {
     // En test, kIsWeb est false : on ne peut pas exercer FlutterSecureStorage
     // sans plugin. On valide donc le contrat via le fake, qui partage la meme
-    // interface, et on documente que l'adapter web utilise la meme semantique.
+    // interface. La persistance web reelle (localStorage) est couverte par
+    // web_token_persistence_test.dart.
     late TokenStore store;
 
     setUp(() => store = FakeTokenStore());
