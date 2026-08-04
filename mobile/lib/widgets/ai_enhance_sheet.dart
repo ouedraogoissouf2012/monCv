@@ -29,11 +29,17 @@ class AiEnhanceSheet extends StatefulWidget {
     required this.cv,
     this.initialLevel = EnhancementLevel.medium,
     this.proofreadOnly = false,
+    this.scrollController,
   });
 
   final Cv cv;
   final EnhancementLevel initialLevel;
   final bool proofreadOnly;
+
+  /// Controleur fourni par un [DraggableScrollableSheet] parent : quand il est
+  /// present, le scroll interne est pilote par le drag de la feuille (evite un
+  /// conflit de defilement et le debordement en bas d'ecran sur web).
+  final ScrollController? scrollController;
 
   @override
   State<AiEnhanceSheet> createState() => _AiEnhanceSheetState();
@@ -75,6 +81,7 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
       padding: EdgeInsets.fromLTRB(
           20, 12, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
+        controller: widget.scrollController,
         child: ListenableBuilder(
           listenable: _controller,
           builder: (context, _) => Column(

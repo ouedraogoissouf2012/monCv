@@ -45,7 +45,7 @@
     },
     {
       "path": "mobile/lib/screens/cv/cv_detail_screen.dart",
-      "baseline_lines": 741,
+      "baseline_lines": 734,
       "issue": "#247",
       "expires_on": "2027-01-31"
     },
