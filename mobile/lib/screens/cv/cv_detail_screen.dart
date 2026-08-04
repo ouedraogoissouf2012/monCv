@@ -10,6 +10,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/cv_preview.dart';
 import '../../features/ai/domain/entities/enhanced_cv.dart';
 import '../../widgets/ai_enhance_sheet.dart';
+import '../../widgets/draggable_bottom_sheet.dart';
 import '../../widgets/job_match_sheet.dart';
 
 class CvDetailScreen extends StatefulWidget {
@@ -93,13 +94,12 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
     final l = AppLocalizations.of(context)!;
     final provider = context.read<CvProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    final result = await showModalBottomSheet<EnhancedCv>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => AiEnhanceSheet(
+    final result = await showDraggableBottomSheet<EnhancedCv>(
+      context,
+      (sc) => AiEnhanceSheet(
         cv: cv,
         proofreadOnly: proofreadOnly,
+        scrollController: sc,
       ),
     );
     if (result == null || !mounted) return;
@@ -172,16 +172,9 @@ class _CvDetailScreenState extends State<CvDetailScreen> {
                 tooltip: l.adaptToJob,
                 onPressed: () async {
                   final adapted =
-                      await showModalBottomSheet<Map<String, dynamic>>(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => DraggableScrollableSheet(
-                      initialChildSize: 0.85,
-                      minChildSize: 0.5,
-                      maxChildSize: 0.95,
-                      builder: (ctx, sc) => JobMatchSheet(cvId: cv.id!),
-                    ),
+                      await showDraggableBottomSheet<Map<String, dynamic>>(
+                    context,
+                    (_) => JobMatchSheet(cvId: cv.id!),
                   );
                   if (!context.mounted) return; // Le dialogue est asynchrone.
                   if (adapted != null) {
