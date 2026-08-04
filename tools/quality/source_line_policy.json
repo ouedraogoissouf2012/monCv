@@ -80,12 +80,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/widgets/application_messages_sheet.dart",
-      "baseline_lines": 325,
-      "issue": "#245",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/widgets/cv_card.dart",
       "baseline_lines": 350,
       "issue": "#249",
