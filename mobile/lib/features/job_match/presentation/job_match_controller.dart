@@ -134,6 +134,18 @@ class JobMatchController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reinitialise l'etat pour analyser une nouvelle offre : efface le rapport,
+  /// l'erreur et l'etat de variante. L'historique de scores est conserve (il
+  /// couvre la session). L'offre saisie et le consentement restent inchanges.
+  void reset() {
+    _report = null;
+    _error = null;
+    _variant = null;
+    _variantError = null;
+    _variantCreated = false;
+    notifyListeners();
+  }
+
   /// Cree une variante du CV adaptee a l'offre, via le use case existant.
   ///
   /// Sans effet si [canCreateVariant] est faux : en particulier, l'invariant

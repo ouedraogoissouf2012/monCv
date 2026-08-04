@@ -90,12 +90,6 @@
       "baseline_lines": 350,
       "issue": "#249",
       "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/lib/widgets/job_match_sheet.dart",
-      "baseline_lines": 1018,
-      "issue": "#245",
-      "expires_on": "2027-01-31"
     }
   ],
   "generated_files": [
