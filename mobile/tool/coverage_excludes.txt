@@ -16,7 +16,6 @@ lib/models/user.dart
 lib/providers/job_application_provider.dart
 lib/providers/notification_provider.dart
 lib/repositories/cv_repository.dart
-lib/screens/applications/applications_screen.dart
 lib/screens/cv/cv_detail_screen.dart
 lib/screens/cv/sections/certifications_section.dart
 lib/screens/cv/sections/education_section.dart

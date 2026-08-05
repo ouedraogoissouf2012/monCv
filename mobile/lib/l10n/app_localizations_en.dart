@@ -1491,6 +1491,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requiredField => 'Required field';
 
   @override
+  String get invalidUrl => 'Invalid link (http or https expected)';
+
+  @override
+  String get couldNotOpenLink => 'Could not open the link';
+
+  @override
+  String get followUpBeforeSent => 'Follow-up cannot precede the sent date';
+
+  @override
   String get applicationDraft => 'Draft';
 
   @override

@@ -45,7 +45,15 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../providers/job_application_provider.dart';
+import '../../features/applications/application/delete_application.dart';
+import '../../features/applications/application/list_applications.dart';
+import '../../features/applications/application/save_application.dart';
+import '../../features/applications/data/application_remote_data_source.dart';
+import '../../features/applications/data/application_repository_impl.dart';
+import '../../features/applications/data/url_launcher_link_launcher.dart';
+import '../../features/applications/domain/application_repository.dart';
+import '../../features/applications/domain/external_link_launcher.dart';
+import '../../features/applications/presentation/application_list_controller.dart';
 import '../../providers/ai_status_provider.dart';
 import '../../services/push_notification_service.dart';
 import '../../services/sync_queue.dart';
@@ -164,6 +172,21 @@ Future<void> initDependencies() async {
       () => AiStatusProvider(getAiStatus: sl<GetAiStatusUseCase>()));
   sl.registerFactory<NotificationProvider>(
       () => NotificationProvider(sl<IApiClient>()));
-  sl.registerFactory<JobApplicationProvider>(
-      () => JobApplicationProvider(sl<IApiClient>()));
+  // Candidatures (issue #246) : Clean Architecture, remplace
+  // JobApplicationProvider (transport direct + etat mutable).
+  sl.registerLazySingleton<ExternalLinkLauncher>(
+      () => const UrlLauncherLinkLauncher());
+  sl.registerFactory<ApplicationRemoteDataSource>(
+      () => HttpApplicationRemoteDataSource(sl<ApiTransport>()));
+  sl.registerFactory<ApplicationRepository>(
+      () => ApplicationRepositoryImpl(sl<ApplicationRemoteDataSource>()));
+  sl.registerFactory<ApplicationListController>(
+      () => ApplicationListController(
+            listApplications:
+                ListApplicationsUseCase(sl<ApplicationRepository>()),
+            saveApplication:
+                SaveApplicationUseCase(sl<ApplicationRepository>()),
+            deleteApplication:
+                DeleteApplicationUseCase(sl<ApplicationRepository>()),
+          ));
 }
