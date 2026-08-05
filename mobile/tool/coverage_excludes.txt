@@ -13,7 +13,6 @@ lib/utils/pdf_saver_io.dart
 # Legacy baseline. Remove each path when dedicated tests reach 65%.
 lib/models/notification_preferences.dart
 lib/models/user.dart
-lib/providers/job_application_provider.dart
 lib/providers/notification_provider.dart
 lib/repositories/cv_repository.dart
 lib/screens/cv/cv_detail_screen.dart
