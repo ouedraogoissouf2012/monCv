@@ -204,4 +204,30 @@ void main() {
       expect(find.text('PROJETS'), findsNothing);
     });
   });
+
+  group('CvPreviewWidget - papier blanc quel que soit le theme', () {
+    testWidgets('sous un theme SOMBRE, le papier du CV reste blanc',
+        (tester) async {
+      // Reproduit le theme Premium (Brightness.dark) : le document ne doit PAS
+      // heriter d'un fond sombre, sinon le texte fonce devient illisible.
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData.dark(useMaterial3: true),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: Scaffold(body: CvPreviewWidget(cv: _fullCv())),
+      ));
+      await tester.pump();
+
+      // Le Material qui porte le document a une couleur blanche explicite.
+      final paper = tester.widgetList<Material>(find.byType(Material)).firstWhere(
+            (m) => m.color == Colors.white,
+            orElse: () => throw TestFailure(
+                'Aucun Material blanc : le papier du CV herite du theme sombre'),
+          );
+      expect(paper.color, Colors.white);
+      // Le nom reste rendu (le texte n'a pas disparu).
+      expect(find.text('JEAN DUPONT'), findsOneWidget);
+    });
+  });
 }
