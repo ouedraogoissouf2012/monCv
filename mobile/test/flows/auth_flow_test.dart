@@ -6,7 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
-import 'package:cv_mobile/screens/auth/login_screen.dart';
+import 'package:cv_mobile/features/auth/presentation/login/login_screen.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
 
 import 'helpers/mock_definitions.dart';

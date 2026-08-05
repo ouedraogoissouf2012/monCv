@@ -1,4 +1,6 @@
 @Tags(['widget'])
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -7,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/screens/auth/login_screen.dart';
+import 'package:cv_mobile/features/auth/presentation/login/login_screen.dart';
 
 class MockAuthProvider extends Mock implements AuthProvider {}
 
@@ -87,18 +89,35 @@ void main() {
       expect(find.text('Champ requis'), findsWidgets);
     });
 
-    testWidgets('affiche indicateur de chargement', (tester) async {
+    testWidgets('affiche un indicateur pendant la soumission', (tester) async {
       _setScreenSize(tester);
       addTearDown(tester.view.resetPhysicalSize);
 
-      when(() => mockAuth.isLoading).thenReturn(true);
+      // Le bouton reflete l'etat du LoginController : le spinner apparait
+      // pendant l'appel `login` (en attente), pas via AuthProvider.isLoading.
+      final gate = Completer<bool>();
+      when(() => mockAuth.login(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenAnswer((_) => gate.future);
 
       await tester.pumpWidget(_buildSubject(mockAuth));
       for (int i = 0; i < 10; i++) {
         await tester.pump(const Duration(seconds: 1));
       }
+      await tester.enterText(
+          find.widgetWithText(TextFormField, 'vous@exemple.com'),
+          'user@test.com');
+      await tester.enterText(
+          find.widgetWithText(TextFormField,
+              '••••••••'),
+          'password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Se connecter'));
+      await tester.pump(); // soumission en cours
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      gate.complete(true); // libere le Future
+      await tester.pump();
     });
 
     testWidgets('appelle login avec les bonnes valeurs', (tester) async {

@@ -32,6 +32,14 @@ class AuthShell extends StatelessWidget {
         delay: 6),
   ];
 
+  /// Jeu a 2 orbes (variante register).
+  static const List<Widget> twoOrbs = [
+    AuthFloatingOrb(
+        size: 500, color: AuthPalette.blue, opacity: 0.10, top: -100, right: -100, delay: 0),
+    AuthFloatingOrb(
+        size: 400, color: AuthPalette.blue, opacity: 0.06, bottom: -80, left: -80, delay: 3),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
