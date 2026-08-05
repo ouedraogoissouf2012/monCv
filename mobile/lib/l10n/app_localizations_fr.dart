@@ -1476,6 +1476,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get variant => 'Variante';
 
   @override
+  String get pendingSync => 'En attente de sync';
+
+  @override
   String get openOffer => 'Ouvrir l\'offre';
 
   @override

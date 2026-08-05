@@ -460,6 +460,7 @@
   "@followUpsDue": { "placeholders": { "count": { "type": "int" } } },
   "nextFollowUp": "Next follow-up",
   "variant": "Variant",
+  "pendingSync": "Pending sync",
   "openOffer": "Open job offer",
   "company": "Company",
   "position": "Position",
