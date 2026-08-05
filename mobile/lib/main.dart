@@ -16,7 +16,6 @@ import 'providers/cv_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
-import 'providers/job_application_provider.dart';
 import 'features/ai/compat/ai_service_facade.dart';
 import 'services/i_api_client.dart';
 import 'services/pdf_service.dart';
@@ -86,7 +85,6 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(
             create: (_) => sl<AiStatusProvider>()..refresh()),
         ChangeNotifierProvider(create: (_) => sl<NotificationProvider>()),
-        ChangeNotifierProvider(create: (_) => sl<JobApplicationProvider>()),
       ],
       child: Consumer3<ThemeProvider, LocaleProvider, AuthProvider>(
         builder: (context, themeProvider, localeProvider, authProvider, _) {

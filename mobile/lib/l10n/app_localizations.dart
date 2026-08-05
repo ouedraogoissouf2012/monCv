@@ -2834,6 +2834,24 @@ abstract class AppLocalizations {
   /// **'Champ obligatoire'**
   String get requiredField;
 
+  /// No description provided for @invalidUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien invalide (http ou https attendu)'**
+  String get invalidUrl;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir le lien'**
+  String get couldNotOpenLink;
+
+  /// No description provided for @followUpBeforeSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'La relance ne peut pas preceder l\'envoi'**
+  String get followUpBeforeSent;
+
   /// No description provided for @applicationDraft.
   ///
   /// In fr, this message translates to:

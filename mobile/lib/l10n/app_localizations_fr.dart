@@ -1506,6 +1506,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get requiredField => 'Champ obligatoire';
 
   @override
+  String get invalidUrl => 'Lien invalide (http ou https attendu)';
+
+  @override
+  String get couldNotOpenLink => 'Impossible d\'ouvrir le lien';
+
+  @override
+  String get followUpBeforeSent => 'La relance ne peut pas preceder l\'envoi';
+
+  @override
   String get applicationDraft => 'Brouillon';
 
   @override
