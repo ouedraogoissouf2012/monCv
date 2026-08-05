@@ -1,12 +1,19 @@
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import 'core/error/result.dart';
+import 'features/cv_detail/presentation/cv_detail_controller.dart';
+import 'features/cv_detail/presentation/cv_detail_screen.dart';
+import 'features/cv_export/application/export_cv_pdf.dart';
+import 'features/cv_style/presentation/cv_style_controller.dart';
+import 'features/cv_style/presentation/cv_style_editor_screen.dart';
 import 'models/cv.dart';
+import 'providers/cv_provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/cv/cv_detail_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
@@ -89,7 +96,10 @@ class AppRouter {
           path: '/cvs/:id',
           builder: (context, state) {
             final id = int.parse(state.pathParameters['id']!);
-            return CvDetailScreen(cvId: id);
+            return CvDetailScreen(
+              cvId: id,
+              controller: sl<CvDetailController>(),
+            );
           },
         ),
         GoRoute(
@@ -97,6 +107,27 @@ class AppRouter {
           builder: (context, state) {
             final cv = state.extra as Cv;
             return CvFormScreen(cv: cv);
+          },
+        ),
+        GoRoute(
+          path: '/cvs/:id/style',
+          builder: (context, state) {
+            final cv = state.extra as Cv;
+            final cvProvider = context.read<CvProvider>();
+            return CvStyleEditorScreen(
+              cv: cv,
+              exportPdf: sl<ExportCvPdfUseCase>(),
+              controller: CvStyleController(
+                initial: cv.style,
+                // Adapte le save legacy (bool) vers Result typé.
+                save: (style) async {
+                  final ok = await cvProvider.updateCvStyle(cv.id!, style);
+                  return ok
+                      ? const Result.success(null)
+                      : const Result.failure(ServerException());
+                },
+              ),
+            );
           },
         ),
         GoRoute(
