@@ -14,7 +14,7 @@ import 'package:cv_mobile/features/cv_detail/presentation/cv_detail_screen.dart'
 import 'package:cv_mobile/features/cv_export/application/export_cv_docx.dart';
 import 'package:cv_mobile/features/cv_export/application/export_cv_pdf.dart';
 import 'package:cv_mobile/services/pdf_service.dart';
-import 'package:cv_mobile/screens/auth/login_screen.dart';
+import 'package:cv_mobile/features/auth/presentation/login/login_screen.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
 
 /// Construit l'app de test avec les vrais Providers et un GoRouter simplifie.

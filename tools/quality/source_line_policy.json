@@ -26,18 +26,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/auth/login_screen.dart",
-      "baseline_lines": 560,
-      "issue": "#248",
-      "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/lib/screens/auth/register_screen.dart",
-      "baseline_lines": 667,
-      "issue": "#248",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/home/home_screen.dart",
       "baseline_lines": 350,
       "issue": "#249",
