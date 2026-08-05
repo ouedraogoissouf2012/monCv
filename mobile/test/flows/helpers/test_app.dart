@@ -7,9 +7,15 @@ import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/providers/theme_provider.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
+import 'package:mocktail/mocktail.dart';
+
+import 'package:cv_mobile/features/cv_detail/presentation/cv_detail_controller.dart';
+import 'package:cv_mobile/features/cv_detail/presentation/cv_detail_screen.dart';
+import 'package:cv_mobile/features/cv_export/application/export_cv_docx.dart';
+import 'package:cv_mobile/features/cv_export/application/export_cv_pdf.dart';
+import 'package:cv_mobile/services/pdf_service.dart';
 import 'package:cv_mobile/screens/auth/login_screen.dart';
 import 'package:cv_mobile/screens/home/home_screen.dart';
-import 'package:cv_mobile/screens/cv/cv_detail_screen.dart';
 
 /// Construit l'app de test avec les vrais Providers et un GoRouter simplifie.
 /// Le router utilise les memes routes que l'app reelle mais sans kIsWeb.
@@ -37,7 +43,14 @@ Widget buildTestApp({
         path: '/cvs/:id',
         builder: (_, state) {
           final id = int.parse(state.pathParameters['id']!);
-          return CvDetailScreen(cvId: id);
+          final pdf = _FakePdfService();
+          return CvDetailScreen(
+            cvId: id,
+            controller: CvDetailController(
+              exportPdf: ExportCvPdfUseCase(pdf),
+              exportDocx: ExportCvDocxUseCase(pdf),
+            ),
+          );
         },
       ),
     ],
@@ -57,6 +70,10 @@ Widget buildTestApp({
     ),
   );
 }
+
+/// PdfService factice pour les flows : les exports ne sont pas exerces ici
+/// (couverts par les tests de CvDetailController). Evite un vrai IApiClient.
+class _FakePdfService extends Mock implements PdfService {}
 
 /// Pump suffisamment de frames pour passer les animations LoginScreen.
 /// LoginScreen a des AnimationController.repeat() et Future.delayed(0s, 3s, 6s).
