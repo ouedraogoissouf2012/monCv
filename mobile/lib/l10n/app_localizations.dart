@@ -2780,6 +2780,30 @@ abstract class AppLocalizations {
   /// **'En attente de sync'**
   String get pendingSync;
 
+  /// No description provided for @importInvalidExtension.
+  ///
+  /// In fr, this message translates to:
+  /// **'Format non supporte (PDF ou DOCX attendu)'**
+  String get importInvalidExtension;
+
+  /// No description provided for @importInvalidContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le contenu du fichier ne correspond pas a son extension'**
+  String get importInvalidContent;
+
+  /// No description provided for @importEmptyFile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichier vide'**
+  String get importEmptyFile;
+
+  /// No description provided for @importTooLarge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichier trop volumineux (max 10 Mo)'**
+  String get importTooLarge;
+
   /// No description provided for @openOffer.
   ///
   /// In fr, this message translates to:

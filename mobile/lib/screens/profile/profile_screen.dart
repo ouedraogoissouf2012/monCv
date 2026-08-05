@@ -10,8 +10,8 @@ import '../../providers/cv_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../services/i_api_client.dart';
+import '../../core/navigation/app_shell.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/app_scaffold.dart';
 import '../../widgets/theme_selector.dart';
 import '../../widgets/google_account_link_section.dart';
 
@@ -26,7 +26,7 @@ class ProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final cvCount = cvProvider.cvs.length;
 
-    return AppScaffold(
+    return AppShell(
       currentIndex: 3,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

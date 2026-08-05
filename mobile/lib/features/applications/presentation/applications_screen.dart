@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/cv_provider.dart';
+import '../../../core/navigation/app_shell.dart';
 import '../../../utils/responsive.dart';
-import '../../../widgets/app_scaffold.dart';
 import '../domain/external_link_launcher.dart';
 import '../domain/job_application.dart';
 import 'application_form/application_form_sheet.dart';
@@ -85,7 +85,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final isDesktop = Responsive.isDesktop(context);
-    return AppScaffold(
+    return AppShell(
       currentIndex: 2,
       title: l.applications,
       actions: isDesktop

@@ -7,15 +7,17 @@ import 'core/error/result.dart';
 import 'features/cv_detail/presentation/cv_detail_controller.dart';
 import 'features/cv_detail/presentation/cv_detail_screen.dart';
 import 'features/cv_export/application/export_cv_pdf.dart';
+import 'features/cv_list/application/import_cv.dart';
+import 'features/cv_list/presentation/cv_list_screen.dart';
 import 'features/cv_style/presentation/cv_style_controller.dart';
 import 'features/cv_style/presentation/cv_style_editor_screen.dart';
 import 'models/cv.dart';
 import 'providers/cv_provider.dart';
 import 'providers/auth_provider.dart';
+import 'services/i_api_client.dart';
 import 'features/auth/presentation/login/login_screen.dart';
 import 'features/auth/presentation/register/register_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
-import 'screens/home/home_screen.dart';
 import 'screens/landing/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -86,7 +88,8 @@ class AppRouter {
         ),
         GoRoute(
           path: '/home',
-          builder: (context, state) => const HomeScreen(),
+          builder: (context, state) =>
+              CvListScreen(importCv: ImportCvUseCase(sl<IApiClient>().importCv)),
         ),
         GoRoute(
           path: '/cvs/create',

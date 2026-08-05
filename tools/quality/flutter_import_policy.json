@@ -18,11 +18,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/home/home_screen.dart",
-      "issue": "#249",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/profile/profile_screen.dart",
       "issue": "#250",
       "expires_on": "2027-01-31"
