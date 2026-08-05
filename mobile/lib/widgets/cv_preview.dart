@@ -31,7 +31,12 @@ class CvPreviewWidget extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680),
+          // Le CV est un DOCUMENT : son "papier" reste toujours blanc, quel que
+          // soit le theme de l'application. Sans cela, en theme sombre (Premium),
+          // le Material heritait de `cardColor` fonce et le texte du document
+          // (couleurs fixes foncees de CvDocumentTheme) devenait illisible.
           child: Material(
+            color: Colors.white,
             elevation: 6,
             borderRadius: BorderRadius.circular(4),
             child: template.build(context, document),
