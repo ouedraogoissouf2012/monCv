@@ -15,7 +15,8 @@ import 'package:cv_mobile/features/cv_export/application/export_cv_docx.dart';
 import 'package:cv_mobile/features/cv_export/application/export_cv_pdf.dart';
 import 'package:cv_mobile/services/pdf_service.dart';
 import 'package:cv_mobile/features/auth/presentation/login/login_screen.dart';
-import 'package:cv_mobile/screens/home/home_screen.dart';
+import 'package:cv_mobile/features/cv_list/application/import_cv.dart';
+import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 
 /// Construit l'app de test avec les vrais Providers et un GoRouter simplifie.
 /// Le router utilise les memes routes que l'app reelle mais sans kIsWeb.
@@ -38,7 +39,13 @@ Widget buildTestApp({
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+      GoRoute(
+          path: '/home',
+          builder: (_, __) => CvListScreen(
+                // Import non exerce dans les flows : gateway factice.
+                importCv: ImportCvUseCase(
+                    (bytes, filename) => throw UnimplementedError()),
+              )),
       GoRoute(
         path: '/cvs/:id',
         builder: (_, state) {

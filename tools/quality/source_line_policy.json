@@ -26,12 +26,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/home/home_screen.dart",
-      "baseline_lines": 350,
-      "issue": "#249",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/landing/landing_screen.dart",
       "baseline_lines": 563,
       "issue": "#251",
@@ -47,18 +41,6 @@
       "path": "mobile/lib/services/api_service.dart",
       "baseline_lines": 698,
       "issue": "#237",
-      "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/lib/widgets/app_scaffold.dart",
-      "baseline_lines": 307,
-      "issue": "#249",
-      "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/lib/widgets/cv_card.dart",
-      "baseline_lines": 350,
-      "issue": "#249",
       "expires_on": "2027-01-31"
     }
   ],

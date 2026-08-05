@@ -4,15 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cv_mobile/features/cv_list/application/import_cv.dart';
+import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-
 import 'package:cv_mobile/models/cv.dart';
-import 'package:cv_mobile/models/user.dart';
-import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
-import 'package:cv_mobile/screens/home/home_screen.dart';
-
-class MockAuthProvider extends Mock implements AuthProvider {}
 
 class MockCvProvider extends Mock implements CvProvider {}
 
@@ -25,31 +21,25 @@ Cv _fakeCv({int id = 1, String titre = 'CV Test'}) => Cv(
       languages: const [],
     );
 
-User _fakeUser() => User(
-      id: 1,
-      email: 'user@test.com',
-      nom: 'Doe',
-      prenom: 'John',
-      role: 'USER',
-    );
-
 void _setMobileViewport(WidgetTester tester) {
   tester.view.physicalSize = const Size(430, 900);
   tester.view.devicePixelRatio = 1.0;
 }
 
-Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
+/// Use case d'import factice : l'import n'est pas exerce dans ces tests d'ecran
+/// (couvert par import_cv_test / cv_list_controller_test).
+ImportCvUseCase _fakeImport() =>
+    ImportCvUseCase((bytes, filename) => throw UnimplementedError());
+
+Widget _buildSubject(CvProvider cvProvider) {
   final router = GoRouter(
     initialLocation: '/home',
     routes: [
       GoRoute(
         path: '/home',
-        builder: (context, state) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-            ChangeNotifierProvider<CvProvider>.value(value: cvProvider),
-          ],
-          child: const HomeScreen(),
+        builder: (context, state) => ChangeNotifierProvider<CvProvider>.value(
+          value: cvProvider,
+          child: CvListScreen(importCv: _fakeImport()),
         ),
       ),
       GoRoute(
@@ -77,17 +67,10 @@ Widget _buildSubject(AuthProvider authProvider, CvProvider cvProvider) {
 }
 
 void main() {
-  late MockAuthProvider mockAuth;
   late MockCvProvider mockCv;
 
   setUp(() {
-    mockAuth = MockAuthProvider();
     mockCv = MockCvProvider();
-
-    when(() => mockAuth.user).thenReturn(_fakeUser());
-    when(() => mockAuth.isLoading).thenReturn(false);
-    when(() => mockAuth.addListener(any())).thenReturn(null);
-    when(() => mockAuth.removeListener(any())).thenReturn(null);
 
     when(() => mockCv.cvs).thenReturn([]);
     when(() => mockCv.isLoading).thenReturn(false);
@@ -98,19 +81,20 @@ void main() {
     when(() => mockCv.removeListener(any())).thenReturn(null);
   });
 
-  group('HomeScreen', () {
+  group('CvListScreen (#249 D4)', () {
     testWidgets('affiche le titre Mes CVs dans l\'AppBar', (tester) async {
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pumpAndSettle();
 
+      expect(find.byType(CvListScreen), findsOneWidget);
       expect(find.text('Mes CVs'), findsWidgets);
     });
 
-    testWidgets('affiche l\'état vide quand il n\'y a pas de CVs',
+    testWidgets('affiche l\'etat vide quand il n\'y a pas de CVs',
         (tester) async {
       when(() => mockCv.cvs).thenReturn([]);
 
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pumpAndSettle();
 
       expect(find.text('Aucun CV pour l\'instant'), findsOneWidget);
@@ -123,7 +107,7 @@ void main() {
         _fakeCv(id: 2, titre: 'CV Designer'),
       ]);
 
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pumpAndSettle();
 
       expect(find.text('CV Développeur'), findsOneWidget);
@@ -139,7 +123,7 @@ void main() {
         _fakeCv(id: 1, titre: 'Architecte QA Web'),
       ]);
 
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pumpAndSettle();
 
       expect(find.byType(ListView), findsOneWidget);
@@ -152,15 +136,15 @@ void main() {
       when(() => mockCv.isLoading).thenReturn(true);
       when(() => mockCv.cvs).thenReturn([]);
 
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('affiche le FAB Nouveau CV quand la liste est vide',
+    testWidgets('affiche le bouton Nouveau CV quand la liste est vide',
         (tester) async {
-      await tester.pumpWidget(_buildSubject(mockAuth, mockCv));
+      await tester.pumpWidget(_buildSubject(mockCv));
       await tester.pumpAndSettle();
 
       expect(find.text('Nouveau CV'), findsWidgets);

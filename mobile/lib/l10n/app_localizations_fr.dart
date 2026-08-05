@@ -1479,6 +1479,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pendingSync => 'En attente de sync';
 
   @override
+  String get importInvalidExtension =>
+      'Format non supporte (PDF ou DOCX attendu)';
+
+  @override
+  String get importInvalidContent =>
+      'Le contenu du fichier ne correspond pas a son extension';
+
+  @override
+  String get importEmptyFile => 'Fichier vide';
+
+  @override
+  String get importTooLarge => 'Fichier trop volumineux (max 10 Mo)';
+
+  @override
   String get openOffer => 'Ouvrir l\'offre';
 
   @override

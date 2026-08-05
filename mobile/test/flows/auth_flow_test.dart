@@ -7,7 +7,7 @@ import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/features/auth/presentation/login/login_screen.dart';
-import 'package:cv_mobile/screens/home/home_screen.dart';
+import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 
 import 'helpers/mock_definitions.dart';
 import 'helpers/fake_data.dart';
@@ -133,8 +133,8 @@ void main() {
       // Attendre la navigation vers home
       await tester.pumpAndSettle();
 
-      // Verifier qu'on est sur HomeScreen
-      expect(find.byType(HomeScreen), findsOneWidget);
+      // Verifier qu'on est sur l'ecran liste des CV
+      expect(find.byType(CvListScreen), findsOneWidget);
 
       // Verifier que les CVs sont affiches
       expect(find.text('CV Developpeur'), findsOneWidget);
@@ -183,7 +183,7 @@ void main() {
 
       // Toujours sur LoginScreen
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
+      expect(find.byType(CvListScreen), findsNothing);
 
       // Provider en etat erreur
       expect(authProvider.isAuthenticated, false);
