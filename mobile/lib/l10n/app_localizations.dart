@@ -2774,6 +2774,12 @@ abstract class AppLocalizations {
   /// **'Variante'**
   String get variant;
 
+  /// No description provided for @pendingSync.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de sync'**
+  String get pendingSync;
+
   /// No description provided for @openOffer.
   ///
   /// In fr, this message translates to:

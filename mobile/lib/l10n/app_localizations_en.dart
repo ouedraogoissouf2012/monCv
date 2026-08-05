@@ -1461,6 +1461,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get variant => 'Variant';
 
   @override
+  String get pendingSync => 'Pending sync';
+
+  @override
   String get openOffer => 'Open job offer';
 
   @override

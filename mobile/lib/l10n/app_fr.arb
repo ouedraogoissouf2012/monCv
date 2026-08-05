@@ -492,6 +492,7 @@
   "@followUpsDue": { "placeholders": { "count": { "type": "int" } } },
   "nextFollowUp": "Prochaine relance",
   "variant": "Variante",
+  "pendingSync": "En attente de sync",
   "openOffer": "Ouvrir l'offre",
   "company": "Entreprise",
   "position": "Poste",
