@@ -46,6 +46,8 @@ import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../features/applications/application/delete_application.dart';
+import '../../features/cv_export/application/export_cv_docx.dart';
+import '../../features/cv_export/application/export_cv_pdf.dart';
 import '../../features/applications/application/list_applications.dart';
 import '../../features/applications/application/save_application.dart';
 import '../../features/applications/data/application_remote_data_source.dart';
@@ -87,6 +89,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AiCvService>(
       () => AiCvService(sl<AiRemoteDataSource>()));
   sl.registerLazySingleton<PdfService>(() => PdfService(sl<IApiClient>()));
+  // Exports CV typés (issue #247).
+  sl.registerFactory(() => ExportCvPdfUseCase(sl<PdfService>()));
+  sl.registerFactory(() => ExportCvDocxUseCase(sl<PdfService>()));
   sl.registerLazySingleton<ShareService>(() => ShareService(sl<IApiClient>()));
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
   sl.registerLazySingleton<PushNotificationService>(
