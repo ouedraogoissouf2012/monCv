@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../utils/app_colors.dart';
 
 /// Feuille de suggestions IA : liste des propositions, chaque tap ajoute la
 /// suggestion (en puce) au [controller] fourni puis ferme la feuille
@@ -35,7 +36,7 @@ Future<void> showSuggestionsSheet(
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppColors.neutral300,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -59,7 +60,7 @@ Future<void> showSuggestionsSheet(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               l.tapSuggestion,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: const TextStyle(fontSize: 12, color: AppColors.neutral450),
             ),
           ),
           const Divider(height: 20),
@@ -81,7 +82,7 @@ Future<void> showSuggestionsSheet(
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: AppColors.neutral100),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text('• ${suggestions[i]}',
