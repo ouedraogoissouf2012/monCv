@@ -2,12 +2,6 @@
   "version": 1,
   "legacy_files": [
     {
-      "path": "backend/src/main/java/com/cvmobile/service/CvService.java",
-      "baseline_lines": 531,
-      "issue": "#254",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "backend/src/main/java/com/cvmobile/service/ai/EnhancementServiceImpl.java",
       "baseline_lines": 410,
       "issue": "#256",
