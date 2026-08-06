@@ -23,7 +23,6 @@ lib/screens/cv/sections/skills_section.dart
 lib/screens/cv/widgets/cv_form_actions.dart
 lib/screens/cv/widgets/cv_form_desktop_layout.dart
 lib/screens/privacy/privacy_screen.dart
-lib/screens/profile/profile_screen.dart
 lib/screens/share/public_portfolio_screen.dart
 lib/screens/share/share_portfolio_dialog.dart
 lib/services/accent_corrector.dart
