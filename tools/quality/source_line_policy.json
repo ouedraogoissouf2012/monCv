@@ -1,13 +1,6 @@
 {
   "version": 1,
-  "legacy_files": [
-    {
-      "path": "mobile/lib/services/api_service.dart",
-      "baseline_lines": 698,
-      "issue": "#237",
-      "expires_on": "2027-01-31"
-    }
-  ],
+  "legacy_files": [],
   "generated_files": [
     "mobile/lib/l10n/app_localizations.dart",
     "mobile/lib/l10n/app_localizations_en.dart",
