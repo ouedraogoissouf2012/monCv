@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../utils/app_colors.dart';
+
 /// Primitives visuelles reutilisables des sections CV (issue #239).
 ///
 /// Extraites de l'ancien monolithe `screens/cv/sections/form_sheet.dart` (depuis
@@ -123,7 +125,7 @@ class SectionItemTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: (badgeColor ?? Colors.green)
+                        color: (badgeColor ?? AppColors.green)
                             .withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -131,7 +133,7 @@ class SectionItemTile extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: badgeColor ?? Colors.green)),
+                              color: badgeColor ?? AppColors.green)),
                     ),
                   ],
                 ],

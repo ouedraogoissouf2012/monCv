@@ -45,7 +45,7 @@ class CvStylePreviewPane extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(l.livePreview,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    style: const TextStyle(fontSize: 12, color: AppColors.neutral450)),
               ],
             ),
           ),
