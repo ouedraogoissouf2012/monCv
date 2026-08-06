@@ -47,14 +47,15 @@ class EnhancementServiceImplTest {
         CvQualityProperties qualityProperties = new CvQualityProperties(
                 100, 20, 10, 5, 5, 100, 80, 10
         );
+        CvQualityService qualityService = new CvQualityService(
+                new CvTextCleaner(), new CvReviewAnalyzer(qualityProperties));
         service = new EnhancementServiceImpl(
                 aiClient,
                 cvOwnershipService,
-                new CvQualityService(
-                        new CvTextCleaner(), new CvReviewAnalyzer(qualityProperties)),
                 mock(NotificationService.class),
                 new AiEnhancementProperties(3000),
-                qualityProperties
+                new CvPromptBuilder(),
+                new EnhanceResponseParser(qualityService, qualityProperties, new CorrectionCounter())
         );
     }
 
