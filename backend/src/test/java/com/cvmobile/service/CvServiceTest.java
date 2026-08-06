@@ -1,15 +1,17 @@
 package com.cvmobile.service;
 
-import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.CvRequest;
-import com.cvmobile.dto.EnhanceCvResponse;
+import com.cvmobile.dto.CvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
-import com.cvmobile.model.*;
+import com.cvmobile.model.Cv;
+import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
-import com.cvmobile.security.PublicShareTokenCodec;
-import com.cvmobile.service.ai.IEnhancementService;
+import com.cvmobile.service.cv.CvCollectionMerger;
+import com.cvmobile.service.cv.CvFinder;
+import com.cvmobile.service.cv.CvShareService;
+import com.cvmobile.service.cv.CvVariantService;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,24 +20,32 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+/**
+ * Teste la facade CRUD {@link CvService} : operations propres (lecture,
+ * creation, mise a jour, suppression) et delegation aux collaborateurs
+ * (variantes, partage). Les logiques deleguees sont testees dans leurs propres
+ * classes de test.
+ */
 @ExtendWith(MockitoExtension.class)
 class CvServiceTest {
 
     @Mock private CvRepository cvRepository;
     @Mock private IUserService userService;
     @Mock private CvMapper cvMapper;
-    @Mock private IEnhancementService enhancementService;
     @Mock private BusinessMetrics businessMetrics;
-    @Mock private PublicShareTokenCodec publicShareTokenCodec;
+    @Mock private CvFinder cvFinder;
+    @Mock private CvCollectionMerger collectionMerger;
+    @Mock private CvShareService shareService;
+    @Mock private CvVariantService variantService;
 
     @InjectMocks
     private CvService cvService;
@@ -52,7 +62,7 @@ class CvServiceTest {
         return CvResponse.builder().id(10L).titre("Mon CV").build();
     }
 
-    // ── Tests existants ─────────────────────────────────────────
+    // ── Lecture ─────────────────────────────────────────────────
 
     @Test
     void getAllCvsByUserId_devraitRetournerLaListeDesCvs() {
@@ -70,12 +80,30 @@ class CvServiceTest {
     }
 
     @Test
+    void getAllCvsByUserId_devraitInclureVariantCount() {
+        User user = buildUser();
+        Cv parent = buildCv(user);
+        CvResponse parentResponse = CvResponse.builder().id(10L).titre("Mon CV").build();
+
+        when(cvRepository.findByUserIdWithDetails(1L)).thenReturn(List.of(parent));
+        when(cvMapper.toResponse(parent)).thenReturn(parentResponse);
+        List<Object[]> counts = new java.util.ArrayList<>();
+        counts.add(new Object[]{10L, 3L});
+        when(cvRepository.countVariantsByParentIds(List.of(10L))).thenReturn(counts);
+
+        List<CvResponse> result = cvService.getAllCvsByUserId(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getVariantCount()).isEqualTo(3);
+    }
+
+    @Test
     void getCvById_avecIdValide_devraitRetournerLeCv() {
         User user = buildUser();
         Cv cv = buildCv(user);
         CvResponse response = buildCvResponse();
 
-        when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(cv));
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(cv);
         when(cvMapper.toResponse(cv)).thenReturn(response);
 
         CvResponse result = cvService.getCvById(10L, 1L);
@@ -85,13 +113,16 @@ class CvServiceTest {
     }
 
     @Test
-    void getCvById_avecIdInconnu_devraitLeverException() {
-        when(cvRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
+    void getCvById_avecIdInconnu_devraitPropagerException() {
+        when(cvFinder.findByIdAndUserId(99L, 1L))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 99L));
 
         assertThatThrownBy(() -> cvService.getCvById(99L, 1L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("non trouve");
     }
+
+    // ── Creation / mise a jour / suppression ────────────────────
 
     @Test
     void createCv_devraitSauvegarderEtRetournerLeCv() {
@@ -115,6 +146,26 @@ class CvServiceTest {
     }
 
     @Test
+    void updateCv_devraitFusionnerLesCollectionsEtSauvegarder() {
+        User user = buildUser();
+        Cv cv = buildCv(user);
+        CvRequest request = new CvRequest();
+        request.setTitre("CV mis a jour");
+        CvResponse response = CvResponse.builder().id(10L).titre("CV mis a jour").build();
+
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(cv);
+        when(cvRepository.save(cv)).thenReturn(cv);
+        when(cvMapper.toResponse(cv)).thenReturn(response);
+
+        CvResponse result = cvService.updateCv(10L, request, 1L);
+
+        assertThat(result.getTitre()).isEqualTo("CV mis a jour");
+        assertThat(cv.getTitre()).isEqualTo("CV mis a jour");
+        verify(collectionMerger).mergeCollections(cv, request);
+        verify(cvRepository).save(cv);
+    }
+
+    @Test
     void deleteCv_avecIdValide_devraitSupprimerLeCv() {
         when(cvRepository.existsByIdAndUserId(10L, 1L)).thenReturn(true);
 
@@ -134,121 +185,27 @@ class CvServiceTest {
         verify(cvRepository, never()).deleteById(any());
     }
 
-    // -- Tests variantes -----------------------------------------
+    // ── Delegation ──────────────────────────────────────────────
 
-    private EnhanceCvResponse buildAdaptedResponse() {
-        return EnhanceCvResponse.builder()
-                .titrePoste("Developpeur Backend Senior")
-                .resumeProfessionnel("Resume adapte pour l'offre")
-                .titreOffre("Developpeur Backend Java — Sopra Steria")
-                .experiences(List.of())
-                .educations(List.of())
-                .skills(List.of(EnhanceCvResponse.SkillEnhancement.builder().nom("Java").niveau(5).build()))
-                .projects(List.of())
-                .aiGenerated(true)
-                .level("MAX")
-                .build();
+    @Test
+    void createVariant_devraitDeleguerAuServiceDeVariantes() {
+        CvResponse response = CvResponse.builder().id(20L).titre("Variante").build();
+        when(variantService.createVariant(10L, "Offre", "Label", 1L)).thenReturn(response);
+
+        CvResponse result = cvService.createVariant(10L, "Offre", "Label", 1L);
+
+        assertThat(result).isSameAs(response);
+        verify(variantService).createVariant(10L, "Offre", "Label", 1L);
     }
 
     @Test
-    void createVariant_devraitDupliquerEtAppliquerContenuIA() {
-        User user = buildUser();
-        Cv original = buildCv(user);
-        original.setPersonalInfo(PersonalInfo.builder().titrePoste("Dev").resumeProfessionnel("Resume original").build());
-        EnhanceCvResponse adapted = buildAdaptedResponse();
-        CvResponse expectedResponse = CvResponse.builder()
-                .id(20L).titre("Mon CV — Developpeur Backend Java — Sopra Steria")
-                .varianteLabel("Developpeur Backend Java — Sopra Steria").parentCvId(10L).build();
+    void generateShareToken_devraitDeleguerAuServiceDePartage() {
+        CvResponse response = CvResponse.builder().id(10L).publicToken("tok").build();
+        when(shareService.generateShareToken(10L, 1L)).thenReturn(response);
 
-        when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(original));
-        when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Offre d'emploi")).thenReturn(adapted);
-        when(cvMapper.clonePersonalInfo(any())).thenReturn(
-                PersonalInfo.builder().titrePoste("Dev").resumeProfessionnel("Resume original").build());
-        when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> {
-            Cv cv = inv.getArgument(0);
-            cv.setId(20L);
-            return cv;
-        });
-        when(cvMapper.toResponse(any(Cv.class))).thenReturn(expectedResponse);
+        CvResponse result = cvService.generateShareToken(10L, 1L);
 
-        CvResponse result = cvService.createVariant(10L, "Offre d'emploi", null, 1L);
-
-        assertThat(result.getVarianteLabel()).isEqualTo("Developpeur Backend Java — Sopra Steria");
-        assertThat(result.getParentCvId()).isEqualTo(10L);
-        verify(enhancementService).adaptCvToJob(10L, 1L, "Offre d'emploi");
-        verify(cvRepository, times(2)).save(any(Cv.class));
-    }
-
-    @Test
-    void createVariant_avecLabelCustom_devraitUtiliserLabelFourni() {
-        User user = buildUser();
-        Cv original = buildCv(user);
-        EnhanceCvResponse adapted = buildAdaptedResponse();
-        CvResponse expectedResponse = CvResponse.builder()
-                .id(20L).titre("Mon CV — Mon label custom").varianteLabel("Mon label custom").build();
-
-        when(cvRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(original));
-        when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
-        when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(cvMapper.toResponse(any(Cv.class))).thenReturn(expectedResponse);
-
-        CvResponse result = cvService.createVariant(10L, "Offre", "Mon label custom", 1L);
-
-        assertThat(result.getVarianteLabel()).isEqualTo("Mon label custom");
-    }
-
-    @Test
-    void createVariant_cvInexistant_devraitLeverException() {
-        when(cvRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> cvService.createVariant(99L, "Offre", null, 1L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("non trouve");
-    }
-
-    @Test
-    void createVariant_mauvaisUser_devraitLeverException() {
-        when(cvRepository.findByIdAndUserId(10L, 2L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> cvService.createVariant(10L, "Offre", null, 2L))
-                .isInstanceOf(ResourceNotFoundException.class);
-        verifyNoInteractions(enhancementService);
-    }
-
-    @Test
-    void getVariantsByParentId_devraitRetournerUniquementVariantes() {
-        Cv variant1 = Cv.builder().id(20L).titre("Variante 1").build();
-        Cv variant2 = Cv.builder().id(21L).titre("Variante 2").build();
-        CvResponse r1 = CvResponse.builder().id(20L).titre("Variante 1").build();
-        CvResponse r2 = CvResponse.builder().id(21L).titre("Variante 2").build();
-
-        when(cvRepository.findByParentIdAndUserId(10L, 1L)).thenReturn(List.of(variant1, variant2));
-        when(cvMapper.toResponse(variant1)).thenReturn(r1);
-        when(cvMapper.toResponse(variant2)).thenReturn(r2);
-
-        List<CvResponse> result = cvService.getVariantsByParentId(10L, 1L);
-
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getTitre()).isEqualTo("Variante 1");
-    }
-
-    @Test
-    void getAllCvsByUserId_devraitInclureVariantCount() {
-        User user = buildUser();
-        Cv parent = buildCv(user);
-        CvResponse parentResponse = CvResponse.builder().id(10L).titre("Mon CV").build();
-
-        when(cvRepository.findByUserIdWithDetails(1L)).thenReturn(List.of(parent));
-        when(cvMapper.toResponse(parent)).thenReturn(parentResponse);
-        List<Object[]> counts = new java.util.ArrayList<>();
-        counts.add(new Object[]{10L, 3L});
-        when(cvRepository.countVariantsByParentIds(List.of(10L))).thenReturn(counts);
-
-        List<CvResponse> result = cvService.getAllCvsByUserId(1L);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getVariantCount()).isEqualTo(3);
+        assertThat(result.getPublicToken()).isEqualTo("tok");
+        verify(shareService).generateShareToken(10L, 1L);
     }
 }
