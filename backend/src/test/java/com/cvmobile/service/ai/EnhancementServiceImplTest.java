@@ -14,6 +14,8 @@ import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
 import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.quality.CvReviewAnalyzer;
+import com.cvmobile.service.quality.CvTextCleaner;
 import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.notification.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +50,8 @@ class EnhancementServiceImplTest {
         service = new EnhancementServiceImpl(
                 aiClient,
                 cvOwnershipService,
-                new CvQualityService(qualityProperties),
+                new CvQualityService(
+                        new CvTextCleaner(), new CvReviewAnalyzer(qualityProperties)),
                 mock(NotificationService.class),
                 new AiEnhancementProperties(3000),
                 qualityProperties

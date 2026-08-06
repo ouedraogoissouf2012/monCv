@@ -4,6 +4,8 @@ import com.cvmobile.config.CvQualityProperties;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Experience;
 import com.cvmobile.model.PersonalInfo;
+import com.cvmobile.service.quality.CvReviewAnalyzer;
+import com.cvmobile.service.quality.CvTextCleaner;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,9 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CvQualityServiceTest {
 
-    private final CvQualityService service = new CvQualityService(new CvQualityProperties(
-            100, 20, 10, 5, 5, 100, 80, 10
-    ));
+    private final CvQualityService service = new CvQualityService(
+            new CvTextCleaner(),
+            new CvReviewAnalyzer(new CvQualityProperties(100, 20, 10, 5, 5, 100, 80, 10))
+    );
 
     @Test
     void cleanCorrigeLesErreursFiablesSansModifierLesSousChaines() {
