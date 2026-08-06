@@ -14,16 +14,24 @@ class LandingSection extends StatelessWidget {
     required this.child,
     this.background,
     this.verticalPadding = LandingMetrics.sectionVerticalPadding,
+    this.horizontalPadding,
   });
 
   final Widget child;
   final Color? background;
   final double verticalPadding;
 
+  /// Padding horizontal fixe. Si `null` (defaut), une gouttiere responsive est
+  /// appliquee (large sur desktop, etroite sur mobile). Les sections a largeur
+  /// constante (CTA, footer, preuve sociale) fournissent une valeur fixe.
+  final double? horizontalPadding;
+
   @override
   Widget build(BuildContext context) {
-    final horizontal =
-        LandingMetrics.isWide(context) ? AppSpacing.gutterWide : AppSpacing.xxl;
+    final horizontal = horizontalPadding ??
+        (LandingMetrics.isWide(context)
+            ? AppSpacing.gutterWide
+            : AppSpacing.xxl);
     return Container(
       width: double.infinity,
       color: background,
