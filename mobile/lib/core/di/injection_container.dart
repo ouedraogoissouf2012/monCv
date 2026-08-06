@@ -4,6 +4,10 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/account/application/delete_account.dart';
+import '../../features/account/application/export_account_data.dart';
+import '../../features/account/data/http_account_repository.dart';
+import '../../features/account/domain/account_repository.dart';
 import '../../features/ai/application/enhance_cv_usecase.dart';
 import '../../features/cv/application/upload_profile_photo_usecase.dart';
 import '../../features/cv/data/http_profile_photo_repository.dart';
@@ -121,6 +125,9 @@ Future<void> initDependencies() async {
       mediaBaseUrl: ApiConstants.baseUrl.replaceAll('/api', ''),
     ),
   );
+  sl.registerLazySingleton<AccountRepository>(
+    () => HttpAccountRepository(sl<IApiClient>()),
+  );
 
   // ── Use Cases: Auth ───────────────────────────────────────────
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
@@ -128,6 +135,10 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => LogoutUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => GetCurrentUserUseCase(sl<AuthRepository>()));
   sl.registerFactory(() => UpdateProfileUseCase(sl<AuthRepository>()));
+
+  // ── Use Cases: Account (issue #250) ──────────────────────────
+  sl.registerFactory(() => ExportAccountDataUseCase(sl<AccountRepository>()));
+  sl.registerFactory(() => DeleteAccountUseCase(sl<AccountRepository>()));
 
   // ── Use Cases: CV ─────────────────────────────────────────────
   sl.registerFactory(() => GetAllCvsUseCase(sl<CvRepository>()));

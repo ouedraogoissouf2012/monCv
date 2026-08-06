@@ -20,10 +20,12 @@ import 'features/auth/presentation/register/register_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'screens/landing/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
-import 'screens/profile/profile_screen.dart';
 import 'screens/share/public_portfolio_screen.dart';
 import 'core/di/injection_container.dart';
+import 'features/account/application/delete_account.dart';
+import 'features/account/application/export_account_data.dart';
 import 'features/applications/domain/external_link_launcher.dart';
+import 'features/profile/presentation/profile_screen.dart';
 import 'features/applications/presentation/application_list_controller.dart';
 import 'features/applications/presentation/applications_screen.dart';
 
@@ -135,7 +137,10 @@ class AppRouter {
         ),
         GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen()),
+            builder: (context, state) => ProfileScreen(
+                  exportData: sl<ExportAccountDataUseCase>(),
+                  deleteAccount: sl<DeleteAccountUseCase>(),
+                )),
         GoRoute(
             path: '/applications',
             builder: (context, state) => ApplicationsScreen(
