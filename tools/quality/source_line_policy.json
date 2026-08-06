@@ -2,12 +2,6 @@
   "version": 1,
   "legacy_files": [
     {
-      "path": "backend/src/main/java/com/cvmobile/service/ai/JobMatchServiceImpl.java",
-      "baseline_lines": 871,
-      "issue": "#257",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/services/api_service.dart",
       "baseline_lines": 698,
       "issue": "#237",

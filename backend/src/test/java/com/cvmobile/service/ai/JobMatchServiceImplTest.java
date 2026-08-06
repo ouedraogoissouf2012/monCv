@@ -45,11 +45,18 @@ class JobMatchServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        JobMatchProperties properties = new JobMatchProperties(50, 14, 6, 5, 5, 100, 1800);
+        JobMatchTextAnalyzer text = new JobMatchTextAnalyzer();
         service = new JobMatchServiceImpl(
                 aiClient,
                 cvOwnershipService,
                 cvQualityService,
-                new JobMatchProperties(50, 14, 6, 5, 5, 100, 1800)
+                properties,
+                text,
+                new JobMatchScorer(text, properties),
+                new JobMatchFormatChecker(text, properties),
+                new JobMatchRecommender(text, properties),
+                new JobMatchPromptBuilder(text)
         );
         cv = Cv.builder()
                 .id(22L)
