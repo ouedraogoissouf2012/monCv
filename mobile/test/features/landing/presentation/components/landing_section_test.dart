@@ -39,6 +39,18 @@ void main() {
       expect(_sectionPadding(tester).left, AppSpacing.xxl);
     });
 
+    testWidgets('horizontalPadding fixe ignore le breakpoint', (tester) async {
+      await _pump(
+        tester,
+        const LandingSection(
+            horizontalPadding: AppSpacing.xxl, child: Text('c')),
+        width: 1400,
+      );
+
+      // Meme sur tres large, la gouttiere reste la valeur fixe fournie.
+      expect(_sectionPadding(tester).left, AppSpacing.xxl);
+    });
+
     testWidgets('applique la couleur de fond fournie', (tester) async {
       await _pump(
         tester,
