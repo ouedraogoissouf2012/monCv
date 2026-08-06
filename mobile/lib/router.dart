@@ -18,7 +18,7 @@ import 'services/i_api_client.dart';
 import 'features/auth/presentation/login/login_screen.dart';
 import 'features/auth/presentation/register/register_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
-import 'screens/landing/landing_screen.dart';
+import 'features/landing/presentation/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
 import 'screens/share/public_portfolio_screen.dart';
 import 'core/di/injection_container.dart';

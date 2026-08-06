@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/features/auth/presentation/register/register_screen.dart';
-import 'package:cv_mobile/screens/landing/landing_screen.dart';
+import 'package:cv_mobile/features/landing/presentation/landing_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 
 class MockAuthProvider extends Mock implements AuthProvider {}
