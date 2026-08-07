@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/public_portfolio/domain/public_portfolio_repository.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/share/public_portfolio_screen.dart';
@@ -12,27 +14,30 @@ import 'package:provider/provider.dart';
 
 class _MockApiClient extends Mock implements IApiClient {}
 
+class _MockPublicPortfolioRepository extends Mock
+    implements PublicPortfolioRepository {}
+
 void main() {
   testWidgets(
     'une ancienne requete lente ne remplace pas le nouveau portfolio',
     (tester) async {
       const firstToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       const secondToken = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-      final first = Completer<Cv>();
-      final second = Completer<Cv>();
-      final api = _MockApiClient();
-      when(() => api.getPublicCv(firstToken)).thenAnswer((_) => first.future);
-      when(() => api.getPublicCv(secondToken)).thenAnswer((_) => second.future);
+      final first = Completer<Result<Cv>>();
+      final second = Completer<Result<Cv>>();
+      final repo = _MockPublicPortfolioRepository();
+      when(() => repo.getPortfolio(firstToken)).thenAnswer((_) => first.future);
+      when(() => repo.getPortfolio(secondToken)).thenAnswer((_) => second.future);
 
-      await tester.pumpWidget(_app(api, firstToken));
-      await tester.pumpWidget(_app(api, secondToken));
+      await tester.pumpWidget(_app(repo, firstToken));
+      await tester.pumpWidget(_app(repo, secondToken));
 
-      second.complete(Cv(titre: 'Portfolio recent'));
+      second.complete(Result.success(Cv(titre: 'Portfolio recent')));
       await tester.pump();
       await tester.pump();
       expect(find.text('Portfolio recent'), findsOneWidget);
 
-      first.complete(Cv(titre: 'Portfolio obsolete'));
+      first.complete(Result.success(Cv(titre: 'Portfolio obsolete')));
       await tester.pump();
       await tester.pump();
       expect(find.text('Portfolio recent'), findsOneWidget);
@@ -41,11 +46,12 @@ void main() {
   );
 }
 
-Widget _app(IApiClient api, String token) {
+Widget _app(PublicPortfolioRepository repo, String token) {
   return MultiProvider(
     providers: [
-      Provider<IApiClient>.value(value: api),
-      Provider<ShareService>.value(value: ShareService(api)),
+      // ShareService n'est pas sollicite dans ce test (pas de partage/QR) ;
+      // fourni avec un client mock inerte juste pour satisfaire le lookup.
+      Provider<ShareService>.value(value: ShareService(_MockApiClient())),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -53,6 +59,7 @@ Widget _app(IApiClient api, String token) {
       home: PublicPortfolioScreen(
         key: const ValueKey('public-portfolio'),
         token: token,
+        repository: repo,
       ),
     ),
   );
