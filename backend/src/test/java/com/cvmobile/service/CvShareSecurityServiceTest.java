@@ -4,11 +4,10 @@ import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.PublicShareSettingsRequest;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.Cv;
-import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.security.PublicShareTokenCodec;
-import com.cvmobile.service.ai.IEnhancementService;
-import com.cvmobile.service.user.IUserService;
+import com.cvmobile.service.cv.CvFinder;
+import com.cvmobile.service.cv.CvShareService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,20 +20,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Verifie les invariants de securite du partage public : le token clair n'est
+ * jamais persiste (seuls le chiffre et l'empreinte le sont), la desactivation
+ * revoque les deux, et couper le partage-contact coupe aussi les telechargements.
+ *
+ * Cible {@link CvShareService} — proprietaire de cette logique depuis la
+ * decomposition de {@code CvService} (issue #254) — via ses collaborateurs
+ * mockes, le lookup passant par {@link CvFinder}.
+ */
 @ExtendWith(MockitoExtension.class)
 class CvShareSecurityServiceTest {
     @Mock CvRepository cvRepository;
-    @Mock IUserService userService;
     @Mock CvMapper cvMapper;
-    @Mock IEnhancementService enhancementService;
-    @Mock BusinessMetrics businessMetrics;
     @Mock PublicShareTokenCodec tokenCodec;
-    @InjectMocks CvService service;
+    @Mock CvFinder cvFinder;
+    @InjectMocks CvShareService service;
 
     @Test
     void storesOnlyEncryptedAndHashedRepresentationsOfANewToken() {
         Cv cv = Cv.builder().id(12L).titre("CV").build();
-        when(cvRepository.findByIdAndUserId(12L, 4L)).thenReturn(Optional.of(cv));
+        when(cvFinder.findByIdAndUserId(12L, 4L)).thenReturn(cv);
         when(tokenCodec.generate()).thenReturn("raw-token");
         when(tokenCodec.digest("raw-token")).thenReturn("token-digest");
         when(tokenCodec.encrypt("raw-token")).thenReturn("encrypted-token");
@@ -52,7 +58,7 @@ class CvShareSecurityServiceTest {
     void reusesAnAuthenticatedEncryptedTokenWithoutRotatingTheLink() {
         Cv cv = Cv.builder().id(12L).titre("CV")
                 .publicToken("encrypted-token").publicTokenHash("token-digest").build();
-        when(cvRepository.findByIdAndUserId(12L, 4L)).thenReturn(Optional.of(cv));
+        when(cvFinder.findByIdAndUserId(12L, 4L)).thenReturn(cv);
         when(tokenCodec.decrypt("encrypted-token")).thenReturn(Optional.of("raw-token"));
         when(tokenCodec.matchesDigest("raw-token", "token-digest")).thenReturn(true);
         when(cvRepository.save(cv)).thenReturn(cv);
@@ -68,7 +74,7 @@ class CvShareSecurityServiceTest {
     void deactivationRevokesBothLookupAndRecoveryMaterial() {
         Cv cv = Cv.builder().id(12L).titre("CV")
                 .publicToken("encrypted-token").publicTokenHash("token-digest").build();
-        when(cvRepository.findByIdAndUserId(12L, 4L)).thenReturn(Optional.of(cv));
+        when(cvFinder.findByIdAndUserId(12L, 4L)).thenReturn(cv);
         when(cvRepository.save(cv)).thenReturn(cv);
         when(cvMapper.toResponse(cv)).thenReturn(CvResponse.builder().build());
 
@@ -85,7 +91,7 @@ class CvShareSecurityServiceTest {
         PublicShareSettingsRequest request = new PublicShareSettingsRequest();
         request.setContactEnabled(false);
         request.setDownloadsEnabled(true);
-        when(cvRepository.findByIdAndUserId(12L, 4L)).thenReturn(Optional.of(cv));
+        when(cvFinder.findByIdAndUserId(12L, 4L)).thenReturn(cv);
         when(tokenCodec.decrypt("encrypted-token")).thenReturn(Optional.of("raw-token"));
         when(tokenCodec.matchesDigest("raw-token", "token-digest")).thenReturn(true);
         when(cvRepository.save(cv)).thenReturn(cv);
