@@ -56,4 +56,41 @@ class CvShareServiceTest {
         assertThat(cv.getPublicToken()).isNull();
         assertThat(cv.getPublicTokenHash()).isNull();
     }
+
+    @Test
+    void regenerateShareToken_remplaceToujoursParUnNouveauToken() {
+        Cv cv = Cv.builder().id(10L).titre("CV")
+                .publicToken("old-encrypted").publicTokenHash("old-hash").build();
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(cv);
+        when(publicShareTokenCodec.generate()).thenReturn("new-raw");
+        when(publicShareTokenCodec.digest("new-raw")).thenReturn("new-hash");
+        when(publicShareTokenCodec.encrypt("new-raw")).thenReturn("new-encrypted");
+        when(cvRepository.save(cv)).thenReturn(cv);
+        when(cvMapper.toResponse(cv)).thenReturn(CvResponse.builder().id(10L).build());
+
+        CvResponse result = shareService.regenerateShareToken(10L, 1L);
+
+        assertThat(result.getPublicToken()).isEqualTo("new-raw");
+        assertThat(cv.getPublicToken()).isEqualTo("new-encrypted");
+        assertThat(cv.getPublicTokenHash()).isEqualTo("new-hash");
+    }
+
+    @Test
+    void generateShareToken_migreUnAncienTokenEnClairVersChiffreEtHash() {
+        // Token legacy : stocke en clair sans hash. Doit etre chiffre + hashe
+        // sans rotation (le lien public existant reste valide).
+        Cv cv = Cv.builder().id(10L).titre("CV").publicToken("legacy-plain").build();
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(cv);
+        when(publicShareTokenCodec.isLegacy("legacy-plain")).thenReturn(true);
+        when(publicShareTokenCodec.digest("legacy-plain")).thenReturn("legacy-hash");
+        when(publicShareTokenCodec.encrypt("legacy-plain")).thenReturn("legacy-encrypted");
+        when(cvRepository.save(cv)).thenReturn(cv);
+        when(cvMapper.toResponse(cv)).thenReturn(CvResponse.builder().id(10L).build());
+
+        CvResponse result = shareService.generateShareToken(10L, 1L);
+
+        assertThat(result.getPublicToken()).isEqualTo("legacy-plain");
+        assertThat(cv.getPublicToken()).isEqualTo("legacy-encrypted");
+        assertThat(cv.getPublicTokenHash()).isEqualTo("legacy-hash");
+    }
 }

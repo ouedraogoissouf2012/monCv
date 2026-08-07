@@ -155,6 +155,30 @@ class EnhancementServiceImplTest {
     }
 
     @Test
+    void adaptCvToJob_appelleIaAvecLeProfilCibleEtParseLaReponse() {
+        Cv cv = Cv.builder().id(42L)
+                .personalInfo(PersonalInfo.builder().titrePoste("Developpeur").build())
+                .experiences(List.of()).educations(List.of()).skills(List.of())
+                .languages(List.of()).certifications(List.of()).projects(List.of()).build();
+        when(cvOwnershipService.requireOwnedCv(42L, 7L)).thenReturn(cv);
+        when(aiClient.complete(anyString(), anyInt())).thenReturn("""
+                TITRE_POSTE:
+                Developpeur Backend Java
+                RESUME:
+                Profil aligne sur l'offre visee.
+                COMPETENCES:
+                """);
+
+        EnhanceCvResponse response = service.adaptCvToJob(42L, 7L, "Offre backend Java");
+
+        assertThat(response).isNotNull();
+        assertThat(response.isAiGenerated()).isTrue();
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(aiClient).complete(prompt.capture(), anyInt());
+        assertThat(prompt.getValue()).contains("Offre backend Java");
+    }
+
+    @Test
     void enhanceCvConserveLeMetierQuandIaProposeUnPosteSansRapport() {
         Cv cv = Cv.builder().id(42L)
                 .personalInfo(PersonalInfo.builder().titrePoste("Agent de fromation continue").build())
