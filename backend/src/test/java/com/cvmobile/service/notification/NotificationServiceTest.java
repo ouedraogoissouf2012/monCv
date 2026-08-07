@@ -95,4 +95,40 @@ class NotificationServiceTest {
             argThat(data -> data.get("route").equals("/applications")));
         verify(deliveries).save(argThat(d -> d.getNotificationType().equals("APPLICATION_FOLLOW_UP")));
     }
+
+    @Test void enregistreUnNouvelAppareilPourLUtilisateur() {
+        when(tokens.findByToken("device-token")).thenReturn(Optional.empty());
+
+        service.registerDevice(user,
+            new NotificationDtos.DeviceTokenRequest("device-token", "android"));
+
+        verify(tokens).save(argThat(d ->
+            d.getToken().equals("device-token") && d.getUser() == user));
+    }
+
+    @Test void desenregistreUnAppareilParTokenEtUtilisateur() {
+        service.unregisterDevice(user, "device-token");
+
+        verify(tokens).deleteByTokenAndUserId("device-token", 1L);
+    }
+
+    @Test void notifieLesConseilsIaQuandDesAmeliorationsExistent() {
+        when(preferences.findById(1L)).thenReturn(Optional.empty());
+        when(deliveries.existsByDeduplicationKey(anyString())).thenReturn(false);
+        when(tokens.findByUserId(1L)).thenReturn(
+            List.of(DeviceToken.builder().token("token").user(user).build()));
+        when(gateway.send(anyString(), anyString(), anyString(), anyMap())).thenReturn(true);
+
+        service.notifyAiTips(cv, 3);
+
+        verify(gateway).send(eq("token"), contains("progresser"),
+            contains("3 ameliorations"), anyMap());
+        verify(deliveries).save(argThat(d -> d.getNotificationType().equals("AI_TIPS")));
+    }
+
+    @Test void neNotifiePasDeConseilsIaSansAmelioration() {
+        service.notifyAiTips(cv, 0);
+
+        verifyNoInteractions(gateway, deliveries);
+    }
 }
