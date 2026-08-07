@@ -1,10 +1,17 @@
 import 'package:flutter/foundation.dart';
-import '../models/notification_preferences.dart';
-import '../services/i_api_client.dart';
 
+import '../core/error/result.dart';
+import '../features/notifications/domain/notification_settings_repository.dart';
+import '../models/notification_preferences.dart';
+
+/// Etat des preferences de notification.
+///
+/// Depend du port [NotificationSettingsRepository] (issue #258) et non plus du
+/// transport reseau : la presentation ne connait plus `IApiClient`. Les erreurs
+/// remontent typees ([AppException.message]) au lieu d'un `toString()` brut.
 class NotificationProvider extends ChangeNotifier {
-  final IApiClient api;
-  NotificationProvider(this.api);
+  final NotificationSettingsRepository repository;
+  NotificationProvider(this.repository);
 
   NotificationPreferences value = const NotificationPreferences();
   bool isLoading = false;
@@ -14,25 +21,26 @@ class NotificationProvider extends ChangeNotifier {
     isLoading = true;
     error = null;
     notifyListeners();
-    try {
-      value = await api.getNotificationPreferences();
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+    switch (await repository.getPreferences()) {
+      case Success(:final data):
+        value = data;
+      case Failure(:final exception):
+        error = exception.message;
     }
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> update(NotificationPreferences next) async {
     final previous = value;
     value = next;
     notifyListeners();
-    try {
-      value = await api.updateNotificationPreferences(next);
-    } catch (e) {
-      value = previous;
-      error = e.toString();
+    switch (await repository.updatePreferences(next)) {
+      case Success(:final data):
+        value = data;
+      case Failure(:final exception):
+        value = previous;
+        error = exception.message;
     }
     notifyListeners();
   }

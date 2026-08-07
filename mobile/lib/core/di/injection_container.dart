@@ -8,6 +8,8 @@ import '../../features/account/application/delete_account.dart';
 import '../../features/account/application/export_account_data.dart';
 import '../../features/account/data/http_account_repository.dart';
 import '../../features/account/domain/account_repository.dart';
+import '../../features/notifications/data/http_notification_settings_repository.dart';
+import '../../features/notifications/domain/notification_settings_repository.dart';
 import '../../features/ai/application/enhance_cv_usecase.dart';
 import '../../features/cv/application/upload_profile_photo_usecase.dart';
 import '../../features/cv/data/http_profile_photo_repository.dart';
@@ -128,6 +130,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AccountRepository>(
     () => HttpAccountRepository(sl<IApiClient>()),
   );
+  sl.registerLazySingleton<NotificationSettingsRepository>(
+    () => HttpNotificationSettingsRepository(sl<IApiClient>()),
+  );
 
   // ── Use Cases: Auth ───────────────────────────────────────────
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
@@ -192,7 +197,7 @@ Future<void> initDependencies() async {
   sl.registerFactory<AiStatusProvider>(
       () => AiStatusProvider(getAiStatus: sl<GetAiStatusUseCase>()));
   sl.registerFactory<NotificationProvider>(
-      () => NotificationProvider(sl<IApiClient>()));
+      () => NotificationProvider(sl<NotificationSettingsRepository>()));
   // Candidatures (issue #246) : Clean Architecture, remplace
   // JobApplicationProvider (transport direct + etat mutable).
   sl.registerLazySingleton<ExternalLinkLauncher>(
