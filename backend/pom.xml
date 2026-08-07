@@ -392,7 +392,6 @@
                                         <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>
                                         <exclude>com.cvmobile.service.notification.FirebasePushGateway</exclude>
                                         <exclude>com.cvmobile.service.notification.LoggingPushGateway</exclude>
-                                        <exclude>com.cvmobile.service.notification.NotificationService</exclude>
                                         <exclude>com.cvmobile.service.pdf.template.AbstractPdfTemplate</exclude>
                                     </excludes>
                                     <limits>
