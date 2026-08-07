@@ -387,12 +387,8 @@
                                         <exclude>com.cvmobile.service.DocxGenerationService</exclude>
                                         <exclude>com.cvmobile.service.FileStorageService</exclude>
                                         <exclude>com.cvmobile.service.UserService</exclude>
-                                        <exclude>com.cvmobile.service.ai.AiResponseParser</exclude>
-                                        <exclude>com.cvmobile.service.ai.ResumeGeneratorServiceImpl</exclude>
                                         <exclude>com.cvmobile.service.ai.SuggestionServiceImpl</exclude>
                                         <exclude>com.cvmobile.service.ai.client.IAiClient</exclude>
-                                        <exclude>com.cvmobile.service.ai.client.MockAiClient</exclude>
-                                        <exclude>com.cvmobile.service.ai.client.ResilientAiClient</exclude>
                                         <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>
                                         <exclude>com.cvmobile.service.notification.FirebasePushGateway</exclude>
                                         <exclude>com.cvmobile.service.notification.LoggingPushGateway</exclude>
