@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/ai/application/suggest_bullets_usecase.dart';
+import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
 import 'package:cv_mobile/models/cv.dart';
 import 'package:cv_mobile/screens/cv/sections/experience_section.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockAiRepository extends Mock implements AiRepository {}
 
 Widget _wrap(Widget child) => MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -189,6 +195,75 @@ void main() {
       await tester.tap(find.text('• Deuxième point'));
       await tester.pumpAndSettle();
       expect(ctrl.text, 'Première ligne\n• Deuxième point');
+    });
+  });
+
+  group('AiSuggestButton via use case (issue #332)', () {
+    Future<void> openEditorAndTapAi(
+      WidgetTester tester,
+      SuggestBulletsUseCase useCase,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_wrap(ExperienceSection(
+        experiences: const [],
+        onChanged: (_) {},
+        suggestBullets: useCase,
+      )));
+      await tester.tap(find.text('Ajouter une expérience'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Suggestions IA'));
+      await tester.tap(find.text('Suggestions IA'));
+    }
+
+    testWidgets('succès : la section délègue au use case et affiche la sheet',
+        (tester) async {
+      final repo = _MockAiRepository();
+      when(() => repo.getSuggestions(
+            poste: any(named: 'poste'),
+            entreprise: any(named: 'entreprise'),
+            description: any(named: 'description'),
+          )).thenAnswer(
+        (_) async => const Result.success(['Piloté une migration cloud']),
+      );
+
+      await openEditorAndTapAi(tester, SuggestBulletsUseCase(repo));
+      // Pas de pumpAndSettle : le bouton reste en loading (spinner) tant que la
+      // sheet de suggestions est ouverte -> on avance par pas explicites.
+      await tester.pump(); // resout le future du use case
+      await tester.pump(const Duration(milliseconds: 400)); // ouvre la sheet
+
+      expect(find.text('• Piloté une migration cloud'), findsOneWidget);
+      verify(() => repo.getSuggestions(
+            poste: any(named: 'poste'),
+            entreprise: any(named: 'entreprise'),
+            description: any(named: 'description'),
+          )).called(1);
+    });
+
+    testWidgets('échec : affiche un snackbar et ne plante pas', (tester) async {
+      final repo = _MockAiRepository();
+      when(() => repo.getSuggestions(
+            poste: any(named: 'poste'),
+            entreprise: any(named: 'entreprise'),
+            description: any(named: 'description'),
+          )).thenAnswer((_) async => const Result.failure(NetworkException()));
+
+      await openEditorAndTapAi(tester, SuggestBulletsUseCase(repo));
+      await tester.pump(); // microtache du use case
+      await tester.pump(const Duration(milliseconds: 300)); // entree snackbar
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      // Aucune sheet de suggestions n'a ete ouverte.
+      expect(find.textContaining('• '), findsNothing);
+
+      // Laisse le timer d'auto-dismiss du SnackBar s'ecouler (evite un
+      // "pending timer" en fin de test).
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
     });
   });
 }
