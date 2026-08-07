@@ -4,14 +4,21 @@ import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
+import com.cvmobile.model.Certification;
 import com.cvmobile.model.Cv;
+import com.cvmobile.model.Education;
+import com.cvmobile.model.Experience;
+import com.cvmobile.model.Language;
 import com.cvmobile.model.PersonalInfo;
+import com.cvmobile.model.Project;
+import com.cvmobile.model.Skill;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -144,5 +151,89 @@ class CvVariantServiceTest {
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTitre()).isEqualTo("Variante 1");
+    }
+
+    @Test
+    void createVariant_copieToutesLesSectionsEtDeduitLeLabelDeLOffre() {
+        // Sans label utilisateur ni titre d'offre IA, le label retombe sur la
+        // premiere ligne de l'offre ; sans competences adaptees, les originales
+        // sont copiees ; chaque section originale est dupliquee.
+        User user = buildUser();
+        Cv original = Cv.builder().id(10L).titre("Mon CV").user(user)
+                .experiences(List.of(Experience.builder().poste("Dev").entreprise("A").description("orig").build()))
+                .educations(List.of(Education.builder().etablissement("U").diplome("M").build()))
+                .projects(List.of(Project.builder().nom("P").build()))
+                .skills(List.of(Skill.builder().nom("Java").niveau(4).build()))
+                .languages(List.of(Language.builder().langue("Francais").niveau(Language.NiveauLangue.NATIF).build()))
+                .certifications(List.of(Certification.builder().nom("C").organisme("O").build()))
+                .build();
+        EnhanceCvResponse adapted = EnhanceCvResponse.builder()
+                .experiences(List.of()).educations(List.of()).projects(List.of())
+                .skills(List.of()).build();
+
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
+        when(userService.findById(1L)).thenReturn(user);
+        when(enhancementService.adaptCvToJob(10L, 1L, "Ingenieur logiciel\nParis")).thenReturn(adapted);
+        when(cvMapper.cloneExperience(any())).thenReturn(Experience.builder().poste("Dev").build());
+        when(cvMapper.cloneEducation(any())).thenReturn(Education.builder().etablissement("U").build());
+        when(cvMapper.cloneProject(any())).thenReturn(Project.builder().nom("P").build());
+        when(cvMapper.cloneSkill(any())).thenReturn(Skill.builder().nom("Java").niveau(4).build());
+        when(cvMapper.cloneLanguage(any())).thenReturn(
+                Language.builder().langue("Francais").niveau(Language.NiveauLangue.NATIF).build());
+        when(cvMapper.cloneCertification(any())).thenReturn(Certification.builder().nom("C").build());
+        when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cvMapper.toResponse(any(Cv.class))).thenReturn(CvResponse.builder().id(20L).build());
+
+        variantService.createVariant(10L, "Ingenieur logiciel\nParis", null, 1L);
+
+        ArgumentCaptor<Cv> saved = ArgumentCaptor.forClass(Cv.class);
+        verify(cvRepository, times(2)).save(saved.capture());
+        Cv variant = saved.getAllValues().get(0);
+        assertThat(variant.getVarianteLabel()).isEqualTo("Ingenieur logiciel");
+        assertThat(variant.getExperiences()).hasSize(1);
+        assertThat(variant.getEducations()).hasSize(1);
+        assertThat(variant.getProjects()).hasSize(1);
+        assertThat(variant.getSkills()).hasSize(1);
+        assertThat(variant.getLanguages()).hasSize(1);
+        assertThat(variant.getCertifications()).hasSize(1);
+    }
+
+    @Test
+    void createVariant_appliqueLesDescriptionsAdapteesParLIa() {
+        User user = buildUser();
+        Cv original = Cv.builder().id(10L).titre("Mon CV").user(user)
+                .experiences(List.of(Experience.builder().poste("Dev").description("orig").build()))
+                .educations(List.of(Education.builder().etablissement("U").description("orig").build()))
+                .projects(List.of(Project.builder().nom("P").description("orig").build()))
+                .build();
+        EnhanceCvResponse adapted = EnhanceCvResponse.builder()
+                .titreOffre("Backend Java")
+                .experiences(List.of(EnhanceCvResponse.ExperienceEnhancement.builder()
+                        .description("exp adaptee").build()))
+                .educations(List.of(EnhanceCvResponse.EducationEnhancement.builder()
+                        .description("edu adaptee").build()))
+                .projects(List.of(EnhanceCvResponse.ProjectEnhancement.builder()
+                        .description("proj adaptee").build()))
+                .skills(List.of(EnhanceCvResponse.SkillEnhancement.builder().nom("Java").niveau(5).build()))
+                .build();
+
+        Experience expClone = Experience.builder().poste("Dev").build();
+        Education eduClone = Education.builder().etablissement("U").build();
+        Project projClone = Project.builder().nom("P").build();
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
+        when(userService.findById(1L)).thenReturn(user);
+        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
+        when(cvMapper.cloneExperience(any())).thenReturn(expClone);
+        when(cvMapper.cloneEducation(any())).thenReturn(eduClone);
+        when(cvMapper.cloneProject(any())).thenReturn(projClone);
+        when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cvMapper.toResponse(any(Cv.class))).thenReturn(CvResponse.builder().id(20L).build());
+
+        variantService.createVariant(10L, "Offre", null, 1L);
+
+        // Les descriptions IA remplacent celles des clones.
+        assertThat(expClone.getDescription()).isEqualTo("exp adaptee");
+        assertThat(eduClone.getDescription()).isEqualTo("edu adaptee");
+        assertThat(projClone.getDescription()).isEqualTo("proj adaptee");
     }
 }
