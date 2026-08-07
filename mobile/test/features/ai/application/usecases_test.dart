@@ -97,6 +97,36 @@ void main() {
     expect(result.getOrThrow(), ['a', 'b']);
   });
 
+  test('SuggestBulletsUseCase propage un echec reseau sans le transformer',
+      () async {
+    when(() => repo.getSuggestions(
+          poste: 'Dev',
+          entreprise: null,
+          description: null,
+        )).thenAnswer((_) async => const Result.failure(NetworkException()));
+
+    final result = await SuggestBulletsUseCase(repo)
+        .call(const SuggestBulletsParams(poste: 'Dev'));
+
+    expect(result.isFailure, isTrue);
+    expect((result as Failure).exception, isA<NetworkException>());
+  });
+
+  test('SuggestBulletsUseCase propage une erreur IA typee du port', () async {
+    when(() => repo.getSuggestions(
+          poste: 'Dev',
+          entreprise: null,
+          description: null,
+        )).thenAnswer((_) async => const Result.failure(
+          AiException(code: 'AI_QUOTA_EXCEEDED', message: 'Quota IA atteint'),
+        ));
+
+    final result = await SuggestBulletsUseCase(repo)
+        .call(const SuggestBulletsParams(poste: 'Dev'));
+
+    expect((result as Failure).exception, isA<AiException>());
+  });
+
   test('GetAiStatusUseCase delegue a getStatus', () async {
     when(() => repo.getStatus())
         .thenAnswer((_) async => const Result.success(AiStatus.unknown()));

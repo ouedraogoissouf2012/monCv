@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
+import '../../../core/di/injection_container.dart';
+import '../../../core/error/result.dart';
+import '../../../features/ai/application/suggest_bullets_usecase.dart';
 import '../../../features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
 import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
 import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
@@ -8,16 +10,20 @@ import '../../../features/cv/presentation/section_editor/section_form_fields.dar
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/cv.dart';
-import '../../../services/i_api_client.dart';
 
 class ProjectsSection extends StatelessWidget {
   final List<Project> projects;
   final Function(List<Project>) onChanged;
 
+  /// Use case de suggestions IA (issue #332). Injectable pour les tests ;
+  /// par defaut resolu via le service locator, jamais le transport direct.
+  final SuggestBulletsUseCase? suggestBullets;
+
   const ProjectsSection({
     super.key,
     required this.projects,
     required this.onChanged,
+    this.suggestBullets,
   });
 
   /// Ouvre l'editeur de projet et retourne la valeur saisie (ou `null` si
@@ -119,27 +125,25 @@ class ProjectsSection extends StatelessWidget {
             isLoading: isLoadingAi,
             onPressed: () async {
               setState(() => isLoadingAi = true);
-              try {
-                final suggestions =
-                    await ctx.read<IApiClient>().getAiSuggestions(
-                          poste: nomCtrl.text,
-                          entreprise:
-                              techCtrl.text.isNotEmpty ? techCtrl.text : null,
-                          description: descCtrl.text,
-                        );
-                if (!ctx.mounted) return;
-                await showSuggestionsSheet(ctx, suggestions, descCtrl);
-              } catch (_) {
-                if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(
-                    content: Text(l.suggestionsGenerationFailed),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } finally {
-                if (ctx.mounted) setState(() => isLoadingAi = false);
+              final suggest = suggestBullets ?? sl<SuggestBulletsUseCase>();
+              final result = await suggest(SuggestBulletsParams(
+                poste: nomCtrl.text,
+                entreprise: techCtrl.text.isNotEmpty ? techCtrl.text : null,
+                description: descCtrl.text,
+              ));
+              if (!ctx.mounted) return;
+              switch (result) {
+                case Success(:final data):
+                  await showSuggestionsSheet(ctx, data, descCtrl);
+                case Failure():
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(l.suggestionsGenerationFailed),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
               }
+              if (ctx.mounted) setState(() => isLoadingAi = false);
             },
           ),
         ],

@@ -8,16 +8,6 @@
       "expires_on": "2027-01-31"
     },
     {
-      "path": "mobile/lib/screens/cv/sections/experience_section.dart",
-      "issue": "#239",
-      "expires_on": "2027-01-31"
-    },
-    {
-      "path": "mobile/lib/screens/cv/sections/projects_section.dart",
-      "issue": "#239",
-      "expires_on": "2027-01-31"
-    },
-    {
       "path": "mobile/lib/screens/share/public_portfolio_screen.dart",
       "issue": "#237",
       "expires_on": "2027-01-31"
