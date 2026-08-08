@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/di/injection_container.dart';
+import '../../core/error/result.dart';
+import '../../features/cv_share/domain/cv_share_repository.dart';
+import '../../features/public_portfolio/domain/public_portfolio_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cv.dart';
-import '../../services/i_api_client.dart';
 import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/public_qr_code.dart';
@@ -12,7 +15,17 @@ import 'widgets/share_metric.dart';
 class SharePortfolioDialog extends StatefulWidget {
   final Cv cv;
 
-  const SharePortfolioDialog({super.key, required this.cv});
+  /// Ports d'acces (issue #258). Injectables pour les tests ; par defaut
+  /// resolus via le service locator, jamais le transport direct.
+  final CvShareRepository? shareRepository;
+  final PublicPortfolioRepository? publicPortfolioRepository;
+
+  const SharePortfolioDialog({
+    super.key,
+    required this.cv,
+    this.shareRepository,
+    this.publicPortfolioRepository,
+  });
 
   @override
   State<SharePortfolioDialog> createState() => _SharePortfolioDialogState();
@@ -24,6 +37,11 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
   bool _saving = false;
   bool _sharing = false;
   String? _error;
+
+  late final CvShareRepository _shareRepo =
+      widget.shareRepository ?? sl<CvShareRepository>();
+  late final PublicPortfolioRepository _publicPortfolio =
+      widget.publicPortfolioRepository ?? sl<PublicPortfolioRepository>();
 
   String? get _url {
     final token = _cv?.shareToken;
@@ -39,18 +57,16 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
   }
 
   Future<void> _activate() async {
-    try {
-      final cv =
-          await context.read<IApiClient>().generateShareLink(widget.cv.id!);
-      if (mounted) setState(() => _cv = cv);
-    } catch (_) {
-      if (mounted) {
-        final l = AppLocalizations.of(context)!;
-        setState(() => _error = l.publicLinkActivationFailed);
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final result = await _shareRepo.generateLink(widget.cv.id!);
+    if (!mounted) return;
+    switch (result) {
+      case Success(:final data):
+        setState(() => _cv = data);
+      case Failure():
+        setState(() =>
+            _error = AppLocalizations.of(context)!.publicLinkActivationFailed);
     }
+    setState(() => _loading = false);
   }
 
   Future<void> _updateSettings({bool? contact, bool? downloads}) async {
@@ -59,49 +75,49 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
     final contactEnabled = contact ?? current.publicContactEnabled;
     final downloadsEnabled = downloads ?? current.publicDownloadsEnabled;
     setState(() => _saving = true);
-    try {
-      final cv = await context.read<IApiClient>().updateShareSettings(
-            current.id!,
-            contactEnabled: contactEnabled,
-            downloadsEnabled: downloadsEnabled,
-          );
-      if (mounted) setState(() => _cv = cv);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+    final result = await _shareRepo.updateSettings(
+      current.id!,
+      contactEnabled: contactEnabled,
+      downloadsEnabled: downloadsEnabled,
+    );
+    if (!mounted) return;
+    if (result case Success(:final data)) setState(() => _cv = data);
+    setState(() => _saving = false);
   }
 
   Future<void> _regenerate() async {
     if (_cv == null || _saving) return;
     setState(() => _saving = true);
-    try {
-      final cv = await context.read<IApiClient>().regenerateShareLink(_cv!.id!);
-      if (mounted) setState(() => _cv = cv);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+    final result = await _shareRepo.regenerateLink(_cv!.id!);
+    if (!mounted) return;
+    if (result case Success(:final data)) setState(() => _cv = data);
+    setState(() => _saving = false);
   }
 
   Future<void> _deactivate() async {
     if (_cv == null || _saving) return;
     final navigator = Navigator.of(context);
-    final api = context.read<IApiClient>();
     setState(() => _saving = true);
-    await api.deactivateShareLink(_cv!.id!);
-    if (mounted) navigator.pop(true);
+    final result = await _shareRepo.deactivateLink(_cv!.id!);
+    if (!mounted) return;
+    if (result.isSuccess) {
+      navigator.pop(true);
+    } else {
+      setState(() => _saving = false);
+    }
   }
 
   Future<void> _shareWhatsApp() async {
     final url = _url;
     final cv = _cv;
     if (url == null || cv?.shareToken == null || _sharing) return;
-    final api = context.read<IApiClient>();
     final shareService = context.read<ShareService>();
     setState(() => _sharing = true);
     try {
       final launched =
           await shareService.shareToWhatsApp(url, title: cv!.titre);
-      if (launched) await _trackShareBestEffort(api, cv.shareToken!);
+      // trackShare est best-effort : le port absorbe toute erreur de metrique.
+      if (launched) await _publicPortfolio.trackShare(cv.shareToken!);
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -111,22 +127,13 @@ class _SharePortfolioDialogState extends State<SharePortfolioDialog> {
     final url = _url;
     final token = _cv?.shareToken;
     if (url == null || token == null || _sharing) return;
-    final api = context.read<IApiClient>();
     final shareService = context.read<ShareService>();
     setState(() => _sharing = true);
     try {
       final launched = await shareService.shareToLinkedIn(url);
-      if (launched) await _trackShareBestEffort(api, token);
+      if (launched) await _publicPortfolio.trackShare(token);
     } finally {
       if (mounted) setState(() => _sharing = false);
-    }
-  }
-
-  Future<void> _trackShareBestEffort(IApiClient api, String token) async {
-    try {
-      await api.trackPublicShare(token);
-    } catch (_) {
-      // Une metrique ne doit jamais empecher le partage demande par l'utilisateur.
     }
   }
 
