@@ -12,6 +12,8 @@ import '../../features/notifications/data/http_notification_settings_repository.
 import '../../features/notifications/domain/notification_settings_repository.dart';
 import '../../features/cv_share/data/http_cv_share_repository.dart';
 import '../../features/cv_share/domain/cv_share_repository.dart';
+import '../../features/media/data/http_secure_photo_repository.dart';
+import '../../features/media/domain/secure_photo_repository.dart';
 import '../../features/public_portfolio/data/http_public_portfolio_repository.dart';
 import '../../features/public_portfolio/domain/public_portfolio_repository.dart';
 import '../../features/ai/application/enhance_cv_usecase.dart';
@@ -142,6 +144,9 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<CvShareRepository>(
     () => HttpCvShareRepository(sl<IApiClient>()),
+  );
+  sl.registerLazySingleton<SecurePhotoRepository>(
+    () => HttpSecurePhotoRepository(sl<IApiClient>()),
   );
 
   // ── Use Cases: Auth ───────────────────────────────────────────

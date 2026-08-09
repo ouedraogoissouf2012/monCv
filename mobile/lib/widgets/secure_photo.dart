@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../services/i_api_client.dart';
+import '../core/di/injection_container.dart';
+import '../features/media/domain/secure_photo_repository.dart';
 
 class SecurePhoto extends StatefulWidget {
   const SecurePhoto({
@@ -13,6 +13,7 @@ class SecurePhoto extends StatefulWidget {
     this.width,
     this.height,
     this.fit = BoxFit.cover,
+    this.repository,
   });
 
   final String url;
@@ -21,29 +22,30 @@ class SecurePhoto extends StatefulWidget {
   final double? height;
   final BoxFit fit;
 
+  /// Port de chargement d'image (issue #258). Injectable pour les tests ; par
+  /// defaut resolu via le service locator, jamais le transport direct.
+  final SecurePhotoRepository? repository;
+
   @override
   State<SecurePhoto> createState() => _SecurePhotoState();
 }
 
 class _SecurePhotoState extends State<SecurePhoto> {
+  late final SecurePhotoRepository _repo =
+      widget.repository ?? sl<SecurePhotoRepository>();
   Future<Uint8List?>? _photo;
-  IApiClient? _api;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final api = context.read<IApiClient>();
-    if (_api != api || _photo == null) {
-      _api = api;
-      _photo = api.loadPhoto(widget.url);
-    }
+  void initState() {
+    super.initState();
+    _photo = _repo.load(widget.url);
   }
 
   @override
   void didUpdateWidget(covariant SecurePhoto oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url && _api != null) {
-      _photo = _api!.loadPhoto(widget.url);
+    if (oldWidget.url != widget.url) {
+      _photo = _repo.load(widget.url);
     }
   }
 
