@@ -284,6 +284,78 @@ abstract class AppLocalizations {
   /// **'Erreur d\'inscription'**
   String get registerError;
 
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublié'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre email : nous vous enverrons un lien de réinitialisation.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @sendResetLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer le lien'**
+  String get sendResetLink;
+
+  /// No description provided for @forgotPasswordSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si un compte existe pour cet email, un lien de réinitialisation vient d\'être envoyé.'**
+  String get forgotPasswordSent;
+
+  /// No description provided for @resetLinkError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi impossible. Vérifiez votre connexion et réessayez.'**
+  String get resetLinkError;
+
+  /// No description provided for @rememberedPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous vous en souvenez ?'**
+  String get rememberedPassword;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un nouveau mot de passe pour votre compte.'**
+  String get resetPasswordSubtitle;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get newPassword;
+
+  /// No description provided for @resetPasswordButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get resetPasswordButton;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe réinitialisé. Vous pouvez vous connecter.'**
+  String get resetPasswordSuccess;
+
+  /// No description provided for @resetPasswordError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien invalide ou expiré. Redemandez un lien.'**
+  String get resetPasswordError;
+
   /// No description provided for @createMyAccount.
   ///
   /// In fr, this message translates to:

@@ -20,8 +20,8 @@ import '../controllers/login_controller.dart';
 /// Ecran de connexion (issue #248, C4).
 ///
 /// Orchestrateur mince sur les composants partages (C2) et [LoginController]
-/// (C3). Remplace le monolithe de 560 lignes. Le bouton "mot de passe oublie"
-/// (inoperrant) est RETIRE ; le vrai flow est trace dans l'issue #381.
+/// (C3). Remplace le monolithe de 560 lignes. Le lien "mot de passe oublie"
+/// pointe vers le flux de reinitialisation (issue #381).
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -108,6 +108,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 validator: (v) =>
                     (v == null || v.isEmpty) ? l.fieldRequired : null,
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () => context.go('/forgot-password'),
+                  child: Text(l.forgotPassword,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: AuthPalette.blue,
+                          fontWeight: FontWeight.w600)),
+                ),
               ),
               const SizedBox(height: 20),
               ListenableBuilder(
