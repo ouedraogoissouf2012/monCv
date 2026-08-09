@@ -16,6 +16,22 @@ from .browser_flow import BrowserSmokeFlow
 from .smoke_api import SmokeApi
 
 
+# Message console generique du navigateur lorsqu'un sous-chargement renvoie 401 :
+# bruit transitoire et non deterministe (ex. poll /api/ai/status avant obtention
+# du jeton, ou rafraichissement post-logout). Les scenarios fonctionnels valident
+# deja que l'authentification marche, donc ce message n'est pas bloquant (#348).
+_TRANSIENT_CONSOLE_NOISE = (
+    "Failed to load resource: the server responded with a status of 401",
+)
+
+
+def _describe_console(message: ConsoleMessage, text: str) -> str:
+    """Annexe l'URL de la ressource fautive quand Playwright la fournit (#348)."""
+    location = getattr(message, "location", None)
+    url = location.get("url") if isinstance(location, dict) else None
+    return f"{text} ({url})" if url else text
+
+
 class BrowserDiagnostics:
     def __init__(self, application_origin: str) -> None:
         self.application_origin = application_origin
@@ -45,8 +61,12 @@ class BrowserDiagnostics:
         }
 
     def _on_console(self, message: ConsoleMessage) -> None:
-        if message.type == "error":
-            self.console_errors.append(message.text)
+        if message.type != "error":
+            return
+        text = message.text
+        if any(noise in text for noise in _TRANSIENT_CONSOLE_NOISE):
+            return
+        self.console_errors.append(_describe_console(message, text))
 
     def _on_request_failed(self, request: Request) -> None:
         parsed = urlparse(request.url)
