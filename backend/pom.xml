@@ -385,7 +385,6 @@
                                         <exclude>com.cvmobile.service.CvQualityService*</exclude>
                                         <exclude>com.cvmobile.service.CvService</exclude>
                                         <exclude>com.cvmobile.service.DocxGenerationService</exclude>
-                                        <exclude>com.cvmobile.service.FileStorageService</exclude>
                                         <exclude>com.cvmobile.service.ai.SuggestionServiceImpl</exclude>
                                         <exclude>com.cvmobile.service.ai.client.IAiClient</exclude>
                                         <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>
