@@ -1,11 +1,14 @@
 package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
+import com.cvmobile.dto.ForgotPasswordRequest;
 import com.cvmobile.dto.LoginRequest;
 import com.cvmobile.dto.RegisterRequest;
+import com.cvmobile.dto.ResetPasswordRequest;
 import com.cvmobile.dto.GoogleAuthRequest;
 import com.cvmobile.model.User;
 import com.cvmobile.service.auth.IAuthService;
+import com.cvmobile.service.auth.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,6 +27,7 @@ import java.util.Map;
 public class AuthController {
 
     private final IAuthService authService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     @Operation(summary = "Inscription d'un nouvel utilisateur")
@@ -62,5 +66,22 @@ public class AuthController {
         }
         AuthResponse response = authService.refreshToken(refreshToken);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Demander un lien de reinitialisation de mot de passe")
+    public ResponseEntity<Void> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        // Toujours 200 : ne revele jamais si l'email existe (anti-enumeration).
+        passwordResetService.requestReset(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reinitialiser le mot de passe via un jeton")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
     }
 }

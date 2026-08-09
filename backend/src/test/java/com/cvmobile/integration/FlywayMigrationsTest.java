@@ -38,7 +38,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
         long versionedMigrations = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .count();
-        assertThat(versionedMigrations).isEqualTo(14);
+        assertThat(versionedMigrations).isEqualTo(15);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -47,6 +47,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
             assertThat(tableExists(connection, SCHEMA, "certifications")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "job_applications")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "uploaded_photos")).isTrue();
+            assertThat(tableExists(connection, SCHEMA, "password_reset_token")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "cv_views")).isFalse();
             assertThat(columnExists(connection, SCHEMA, "cvs", "public_token_hash")).isTrue();
         }
