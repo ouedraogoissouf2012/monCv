@@ -20,6 +20,32 @@ class BrowserDiagnosticsTest(unittest.TestCase):
 
         self.assertEqual(self.diagnostics.console_errors, ["broken"])
 
+    def test_transient_401_resource_console_noise_is_ignored(self) -> None:
+        noisy = Mock(
+            type="error",
+            text="Failed to load resource: the server responded "
+            "with a status of 401 ()",
+        )
+
+        self.diagnostics._on_console(noisy)
+
+        self.assertEqual(self.diagnostics.console_errors, [])
+        self.diagnostics.assert_clean()  # ne doit pas lever
+
+    def test_console_error_annexes_resource_url_when_available(self) -> None:
+        error = Mock(
+            type="error",
+            text="TypeError: boom",
+            location={"url": "http://127.0.0.1:49152/main.dart.js"},
+        )
+
+        self.diagnostics._on_console(error)
+
+        self.assertEqual(
+            self.diagnostics.console_errors,
+            ["TypeError: boom (http://127.0.0.1:49152/main.dart.js)"],
+        )
+
     def test_cross_origin_request_failures_are_ignored(self) -> None:
         request = Mock(
             url="https://fonts.example/font.woff2",
