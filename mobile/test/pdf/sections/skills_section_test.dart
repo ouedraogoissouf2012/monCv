@@ -7,7 +7,7 @@ import 'section_test_helpers.dart';
 void main() {
   test('SkillsSection conserve les niveaux', () async {
     final bytes = await renderSection(
-      SkillsSection.build([Skill(nom: 'Flutter', niveau: 4)], sectionAccent),
+      SkillsSection.build([const Skill(nom: 'Flutter', niveau: 4)], sectionAccent),
     );
     expect(bytes.length, greaterThan(500));
   });

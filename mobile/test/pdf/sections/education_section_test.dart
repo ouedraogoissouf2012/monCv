@@ -8,7 +8,7 @@ void main() {
   test('EducationSection produit un bloc PDF', () async {
     final bytes = await renderSection(
       EducationSection.build(
-        Education(diplome: 'Master', etablissement: 'Universite'),
+        const Education(diplome: 'Master', etablissement: 'Universite'),
         sectionAccent,
       ),
     );

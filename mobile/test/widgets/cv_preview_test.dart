@@ -8,7 +8,7 @@ import 'package:cv_mobile/l10n/app_localizations.dart';
 Cv _fullCv() => Cv(
       id: 1,
       titre: 'Développeur Full Stack',
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         nom: 'Dupont',
         prenom: 'Jean',
         email: 'jean@example.com',
@@ -19,7 +19,7 @@ Cv _fullCv() => Cv(
         resumeProfessionnel: 'Expert Flutter avec 5 ans d\'expérience.',
       ),
       experiences: [
-        Experience(
+        const Experience(
           poste: 'Développeur Mobile',
           entreprise: 'TechCorp',
           lieu: 'Paris',
@@ -27,18 +27,18 @@ Cv _fullCv() => Cv(
         ),
       ],
       educations: [
-        Education(
+        const Education(
           diplome: 'Master Informatique',
           etablissement: 'Université Paris',
         ),
       ],
       skills: [
-        Skill(nom: 'Flutter', niveau: 5),
-        Skill(nom: 'Dart', niveau: 4),
+        const Skill(nom: 'Flutter', niveau: 5),
+        const Skill(nom: 'Dart', niveau: 4),
       ],
       languages: [
-        Language(langue: 'Français', niveau: 'NATIF'),
-        Language(langue: 'Anglais', niveau: 'C1'),
+        const Language(langue: 'Français', niveau: 'NATIF'),
+        const Language(langue: 'Anglais', niveau: 'C1'),
       ],
     );
 
@@ -181,7 +181,7 @@ void main() {
 
     testWidgets('affiche la section PROJETS', (tester) async {
       final cv = _fullCv().copyWith(projects: [
-        Project(
+        const Project(
           nom: 'MonCV App',
           technologies: 'Flutter, Dart',
           description: 'Application de creation de CV.',

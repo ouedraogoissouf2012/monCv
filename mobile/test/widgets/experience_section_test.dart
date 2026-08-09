@@ -19,7 +19,7 @@ Widget _wrap(Widget child) => MaterialApp(
     );
 
 List<Experience> _fakeExperiences() => [
-      Experience(
+      const Experience(
         poste: 'Développeur Flutter',
         entreprise: 'TechCorp',
         lieu: 'Paris',

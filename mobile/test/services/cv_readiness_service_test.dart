@@ -10,7 +10,7 @@ void main() {
   Cv readyCv() => Cv(
         titre: 'Développeur Flutter mobile',
         style: const CvStyle(templateId: 'ats'),
-        personalInfo: PersonalInfo(
+        personalInfo: const PersonalInfo(
           prenom: 'Awa',
           nom: 'Kone',
           email: 'awa@example.com',
@@ -39,7 +39,7 @@ void main() {
             dateFin: DateTime(2021, 6),
           ),
         ],
-        skills: [Skill(nom: 'Flutter'), Skill(nom: 'Dart')],
+        skills: [const Skill(nom: 'Flutter'), const Skill(nom: 'Dart')],
       );
 
   test('un CV factuel et ATS obtient un score de preparation eleve', () {
@@ -53,12 +53,12 @@ void main() {
   test('detecte le titre vague, le texte generique et les dates suspectes', () {
     final report = service.evaluate(Cv(
       titre: 'Concours',
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         titrePoste: 'Concours',
         resumeProfessionnel:
             "Candidat motivé, sérieux, rigoureux et passionné souhaitant intégrer l'armé.",
       ),
-      experiences: [Experience(poste: 'Vendeur', entreprise: 'SK')],
+      experiences: [const Experience(poste: 'Vendeur', entreprise: 'SK')],
       educations: [
         Education(
           etablissement: 'Académie',
@@ -67,7 +67,7 @@ void main() {
           dateFin: DateTime(2024, 7, 4),
         ),
       ],
-      skills: [Skill(nom: 'Motivation')],
+      skills: [const Skill(nom: 'Motivation')],
     ));
 
     expect(report.score, lessThan(50));

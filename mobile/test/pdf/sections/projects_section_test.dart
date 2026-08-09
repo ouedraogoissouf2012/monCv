@@ -8,7 +8,7 @@ void main() {
   test('ProjectsSection produit un bloc PDF', () async {
     final bytes = await renderSection(
       ProjectsSection.build(
-        Project(nom: 'MonCV', description: 'Generateur de CV'),
+        const Project(nom: 'MonCV', description: 'Generateur de CV'),
         sectionAccent,
       ),
     );

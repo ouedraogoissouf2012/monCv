@@ -40,7 +40,7 @@ void main() {
   testWidgets('la ville propose Abidjan selon le pays', (tester) async {
     PersonalInfo? latest;
     await tester.pumpWidget(_wrap(PersonalInfoSection(
-      personalInfo: PersonalInfo(pays: "Côte d'Ivoire"),
+      personalInfo: const PersonalInfo(pays: "Côte d'Ivoire"),
       onChanged: (value) => latest = value,
       uploadPhoto: _uploadUseCase(),
       generateResume: _resumeUseCase(),
@@ -59,7 +59,7 @@ void main() {
   testWidgets('la ville reste libre pour un pays non couvert', (tester) async {
     PersonalInfo? latest;
     await tester.pumpWidget(_wrap(PersonalInfoSection(
-      personalInfo: PersonalInfo(pays: 'Japon'),
+      personalInfo: const PersonalInfo(pays: 'Japon'),
       onChanged: (value) => latest = value,
       uploadPhoto: _uploadUseCase(),
       generateResume: _resumeUseCase(),

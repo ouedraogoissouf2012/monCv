@@ -37,15 +37,15 @@ void main() {
   });
 
   test('met a jour toutes les sections et la completion', () {
-    controller.updatePersonalInfo(PersonalInfo(
+    controller.updatePersonalInfo(const PersonalInfo(
       prenom: 'Awa',
       nom: 'Kone',
       email: 'awa@example.com',
     ));
-    controller.addExperience(Experience(poste: 'Dev'));
-    controller.addEducation(Education(diplome: 'Master'));
-    controller.addSkill(Skill(nom: 'Flutter', niveau: 4));
-    controller.addProject(Project(nom: 'MonCV'));
+    controller.addExperience(const Experience(poste: 'Dev'));
+    controller.addEducation(const Education(diplome: 'Master'));
+    controller.addSkill(const Skill(nom: 'Flutter', niveau: 4));
+    controller.addProject(const Project(nom: 'MonCV'));
 
     expect(controller.currentCv.titre, 'CV de Awa Kone');
     expect(
@@ -66,7 +66,7 @@ void main() {
   });
 
   test('creation sauvegardee via repository injecte', () async {
-    controller.updatePersonalInfo(PersonalInfo(
+    controller.updatePersonalInfo(const PersonalInfo(
       prenom: 'Awa',
       nom: 'Kone',
       email: 'awa@example.com',

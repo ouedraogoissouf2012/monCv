@@ -8,7 +8,7 @@ void main() {
   test('LanguagesSection conserve le niveau', () async {
     final bytes = await renderSection(
       LanguagesSection.build(
-        [Language(langue: 'Francais', niveau: 'C2')],
+        [const Language(langue: 'Francais', niveau: 'C2')],
         sectionAccent,
       ),
     );
