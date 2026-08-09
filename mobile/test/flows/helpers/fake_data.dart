@@ -20,7 +20,7 @@ AuthResponse fakeAuthResponse() => AuthResponse(
 Cv fakeCv({int id = 1, String titre = 'CV Developpeur'}) => Cv(
       id: id,
       titre: titre,
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         nom: 'Dupont',
         prenom: 'Jean',
         email: 'jean@example.com',
@@ -50,15 +50,15 @@ Cv fakeCv({int id = 1, String titre = 'CV Developpeur'}) => Cv(
         ),
       ],
       skills: [
-        Skill(nom: 'Flutter', niveau: 4),
-        Skill(nom: 'Dart', niveau: 4),
+        const Skill(nom: 'Flutter', niveau: 4),
+        const Skill(nom: 'Dart', niveau: 4),
       ],
       languages: [
-        Language(langue: 'Francais', niveau: 'C2'),
+        const Language(langue: 'Francais', niveau: 'C2'),
       ],
       certifications: [],
       projects: [
-        Project(
+        const Project(
           id: 1,
           nom: 'MonApp',
           description: 'Application mobile',

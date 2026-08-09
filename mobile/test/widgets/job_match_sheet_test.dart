@@ -53,11 +53,11 @@ void main() {
             create: (_) => AiStatusProvider(getAiStatus: getAiStatus),
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('fr'),
-          home: const Scaffold(body: JobMatchSheet(cvId: 42)),
+          locale: Locale('fr'),
+          home: Scaffold(body: JobMatchSheet(cvId: 42)),
         ),
       );
 

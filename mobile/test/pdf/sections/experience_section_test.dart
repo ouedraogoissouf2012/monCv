@@ -8,7 +8,7 @@ void main() {
   test('ExperienceSection produit un bloc PDF', () async {
     final bytes = await renderSection(
       ExperienceSection.build(
-        Experience(poste: 'Developpeuse', entreprise: 'MonCV'),
+        const Experience(poste: 'Developpeuse', entreprise: 'MonCV'),
         sectionAccent,
       ),
     );

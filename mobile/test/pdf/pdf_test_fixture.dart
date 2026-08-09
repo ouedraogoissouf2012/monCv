@@ -9,7 +9,7 @@ Cv professionalCv({String templateId = 'moderne'}) => Cv(
         templateId: templateId,
         primaryColor: const Color(0xFF2563EB),
       ),
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         prenom: 'Aminata',
         nom: 'Traore',
         email: 'aminata@example.com',
@@ -43,13 +43,13 @@ Cv professionalCv({String templateId = 'moderne'}) => Cv(
         ),
       ],
       skills: [
-        Skill(nom: 'Java', niveau: 5, categorie: 'Backend'),
-        Skill(nom: 'Flutter', niveau: 4, categorie: 'Mobile'),
-        Skill(nom: 'PostgreSQL', niveau: 4, categorie: 'Donnees'),
+        const Skill(nom: 'Java', niveau: 5, categorie: 'Backend'),
+        const Skill(nom: 'Flutter', niveau: 4, categorie: 'Mobile'),
+        const Skill(nom: 'PostgreSQL', niveau: 4, categorie: 'Donnees'),
       ],
       languages: [
-        Language(langue: 'Francais', niveau: 'C2'),
-        Language(langue: 'Anglais', niveau: 'B2'),
+        const Language(langue: 'Francais', niveau: 'C2'),
+        const Language(langue: 'Anglais', niveau: 'B2'),
       ],
       certifications: [
         Certification(
@@ -59,7 +59,7 @@ Cv professionalCv({String templateId = 'moderne'}) => Cv(
         ),
       ],
       projects: [
-        Project(
+        const Project(
           nom: 'Plateforme de paiement',
           technologies: 'Java, PostgreSQL, Docker',
           description: 'Architecture et mise en production multi-pays.',

@@ -15,7 +15,7 @@ class _MockPdf extends Mock implements PdfService {}
 
 void main() {
   late _MockPdf pdf;
-  final cv = Cv(id: 1, titre: 'Dev', personalInfo: PersonalInfo(nom: 'X'));
+  final cv = Cv(id: 1, titre: 'Dev', personalInfo: const PersonalInfo(nom: 'X'));
 
   setUpAll(() => registerFallbackValue(Cv(titre: 'x')));
   setUp(() => pdf = _MockPdf());

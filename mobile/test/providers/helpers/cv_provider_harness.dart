@@ -105,27 +105,27 @@ Cv minimalCv({
 Cv aiReviewCv() => Cv(
       id: 42,
       titre: 'CV test',
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         titrePoste: 'Comminoty manager',
         resumeProfessionnel: 'Developpeur de contenus',
       ),
       experiences: [
-        Experience(id: 1, poste: 'Comminoty manager', description: 'Texte'),
+        const Experience(id: 1, poste: 'Comminoty manager', description: 'Texte'),
       ],
       educations: [
-        Education(
+        const Education(
           id: 2,
           etablissement: 'lyce municipal',
           diplome: 'Baccalaureat',
         ),
       ],
-      skills: [Skill(id: 3, nom: 'world', niveau: 1)],
-      languages: [Language(id: 4, langue: 'Francais', niveau: 'NATIF')],
+      skills: [const Skill(id: 3, nom: 'world', niveau: 1)],
+      languages: [const Language(id: 4, langue: 'Francais', niveau: 'NATIF')],
       certifications: [
-        Certification(id: 5, nom: 'Certificat', organisme: 'Universite'),
+        const Certification(id: 5, nom: 'Certificat', organisme: 'Universite'),
       ],
       projects: [
-        Project(id: 6, nom: 'Creation', technologies: 'excel, canva'),
+        const Project(id: 6, nom: 'Creation', technologies: 'excel, canva'),
       ],
     );
 

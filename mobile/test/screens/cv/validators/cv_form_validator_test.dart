@@ -8,13 +8,13 @@ void main() {
     expect(CvFormValidator.isPersonalInfoValid(null), false);
     expect(
       CvFormValidator.isPersonalInfoValid(
-        PersonalInfo(prenom: 'Awa', nom: 'Kone', email: 'invalide'),
+        const PersonalInfo(prenom: 'Awa', nom: 'Kone', email: 'invalide'),
       ),
       false,
     );
     expect(
       CvFormValidator.isPersonalInfoValid(
-        PersonalInfo(
+        const PersonalInfo(
           prenom: 'Awa',
           nom: 'Kone',
           email: 'awa@example.com',
@@ -27,15 +27,15 @@ void main() {
   test('completion reflete les cinq sections', () {
     final cv = Cv(
       titre: 'CV',
-      personalInfo: PersonalInfo(
+      personalInfo: const PersonalInfo(
         prenom: 'Awa',
         nom: 'Kone',
         email: 'awa@example.com',
       ),
-      experiences: [Experience(poste: 'Dev')],
-      educations: [Education(diplome: 'Master')],
-      skills: [Skill(nom: 'Flutter')],
-      projects: [Project(nom: 'MonCV')],
+      experiences: [const Experience(poste: 'Dev')],
+      educations: [const Education(diplome: 'Master')],
+      skills: [const Skill(nom: 'Flutter')],
+      projects: [const Project(nom: 'MonCV')],
     );
 
     expect(
