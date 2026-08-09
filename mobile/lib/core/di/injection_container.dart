@@ -16,6 +16,10 @@ import '../../features/media/data/http_secure_photo_repository.dart';
 import '../../features/media/domain/secure_photo_repository.dart';
 import '../../features/public_portfolio/data/http_public_portfolio_repository.dart';
 import '../../features/public_portfolio/domain/public_portfolio_repository.dart';
+import '../../features/password_reset/application/confirm_password_reset.dart';
+import '../../features/password_reset/application/request_password_reset.dart';
+import '../../features/password_reset/data/http_password_reset_repository.dart';
+import '../../features/password_reset/domain/password_reset_repository.dart';
 import '../../features/ai/application/enhance_cv_usecase.dart';
 import '../../features/cv/application/upload_profile_photo_usecase.dart';
 import '../../features/cv/data/http_profile_photo_repository.dart';
@@ -148,6 +152,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<SecurePhotoRepository>(
     () => HttpSecurePhotoRepository(sl<IApiClient>()),
   );
+  sl.registerLazySingleton<PasswordResetRepository>(
+    () => HttpPasswordResetRepository(sl<ApiTransport>()),
+  );
 
   // ── Use Cases: Auth ───────────────────────────────────────────
   sl.registerFactory(() => LoginUseCase(sl<AuthRepository>()));
@@ -159,6 +166,12 @@ Future<void> initDependencies() async {
   // ── Use Cases: Account (issue #250) ──────────────────────────
   sl.registerFactory(() => ExportAccountDataUseCase(sl<AccountRepository>()));
   sl.registerFactory(() => DeleteAccountUseCase(sl<AccountRepository>()));
+
+  // ── Use Cases: Reinitialisation mot de passe (issue #381) ────
+  sl.registerFactory(
+      () => RequestPasswordResetUseCase(sl<PasswordResetRepository>()));
+  sl.registerFactory(
+      () => ConfirmPasswordResetUseCase(sl<PasswordResetRepository>()));
 
   // ── Use Cases: CV ─────────────────────────────────────────────
   sl.registerFactory(() => GetAllCvsUseCase(sl<CvRepository>()));
