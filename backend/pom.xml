@@ -378,8 +378,6 @@
                                         <exclude>com.cvmobile.controller.AiController</exclude>
                                         <exclude>com.cvmobile.controller.AuthController</exclude>
                                         <exclude>com.cvmobile.controller.CvController</exclude>
-                                        <exclude>com.cvmobile.controller.JobApplicationController</exclude>
-                                        <exclude>com.cvmobile.controller.NotificationController</exclude>
                                         <exclude>com.cvmobile.controller.UserController</exclude>
                                         <exclude>com.cvmobile.service.CvService</exclude>
                                         <exclude>com.cvmobile.service.DocxGenerationService</exclude>
