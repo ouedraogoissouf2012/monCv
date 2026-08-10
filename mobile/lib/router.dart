@@ -17,6 +17,10 @@ import 'providers/auth_provider.dart';
 import 'services/i_api_client.dart';
 import 'features/auth/presentation/login/login_screen.dart';
 import 'features/auth/presentation/register/register_screen.dart';
+import 'features/password_reset/application/confirm_password_reset.dart';
+import 'features/password_reset/application/request_password_reset.dart';
+import 'features/password_reset/presentation/forgot_password_screen.dart';
+import 'features/password_reset/presentation/reset_password_screen.dart';
 import 'screens/cv/cv_form_screen.dart';
 import 'features/landing/presentation/landing_screen.dart';
 import 'screens/privacy/privacy_screen.dart';
@@ -40,10 +44,15 @@ class AppRouter {
     if (isCheckingAuth) return null;
 
     final isPublicPortfolio = location.startsWith('/public/cv/');
+    // Reinitialisation de mot de passe (issue #381) : accessible sans session
+    // (l'utilisateur a justement perdu l'acces a son compte).
+    final isPasswordReset = location == '/forgot-password' ||
+        location.startsWith('/reset-password');
     final isPublic = location == '/login' ||
         location == '/register' ||
         location == '/privacy' ||
         location == '/landing' ||
+        isPasswordReset ||
         isPublicPortfolio;
 
     if (!isAuthenticated && !isPublic) {
@@ -77,6 +86,19 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/forgot-password',
+          builder: (context, state) => ForgotPasswordScreen(
+            requestReset: sl<RequestPasswordResetUseCase>(),
+          ),
+        ),
+        GoRoute(
+          path: '/reset-password/:token',
+          builder: (context, state) => ResetPasswordScreen(
+            token: state.pathParameters['token']!,
+            confirmReset: sl<ConfirmPasswordResetUseCase>(),
+          ),
         ),
         GoRoute(
           path: '/privacy',
