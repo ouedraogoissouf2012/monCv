@@ -377,7 +377,6 @@
                                     <excludes>
                                         <exclude>com.cvmobile.service.CvService</exclude>
                                         <exclude>com.cvmobile.service.DocxGenerationService</exclude>
-                                        <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
