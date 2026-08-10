@@ -375,7 +375,6 @@
                                     </includes>
                                     <!-- Legacy baseline: remove an entry as soon as its tests reach 80%. -->
                                     <excludes>
-                                        <exclude>com.cvmobile.controller.CvController</exclude>
                                         <exclude>com.cvmobile.service.CvService</exclude>
                                         <exclude>com.cvmobile.service.DocxGenerationService</exclude>
                                         <exclude>com.cvmobile.service.notification.FirebaseConfig</exclude>

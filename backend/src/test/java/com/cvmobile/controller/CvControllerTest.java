@@ -30,7 +30,10 @@ import org.springframework.http.ResponseEntity;
 /**
  * Contrat HTTP des endpoints CRUD de {@link CvController} apres bascule sur les
  * use cases du module CV (issue #255). Collaborateurs mockes : les use cases,
- * le mapper d'entree et l'assembleur de reponse.
+ * le mapper d'entree et l'assembleur de reponse. Les endpoints
+ * partage/PDF/DOCX/variantes/import sont testes dans
+ * {@link CvControllerAdditionalOperationsTest} (issue #258, fichier separe pour
+ * respecter la limite de 300 lignes).
  */
 @ExtendWith(MockitoExtension.class)
 class CvControllerTest {
@@ -42,7 +45,8 @@ class CvControllerTest {
     @Mock private CvWebMapper cvWebMapper;
     @Mock private CvResponseAssembler cvResponseAssembler;
 
-    // Collaborateurs restant pour partage/PDF/variantes/import (non exerces ici).
+    // Collaborateurs pour partage/PDF/variantes/import : requis par le
+    // constructeur mais non exerces ici (cf. CvControllerAdditionalOperationsTest).
     @Mock private com.cvmobile.service.cv.ICvService cvService;
     @Mock private com.cvmobile.service.pdf.PdfGenerationService pdfGenerationService;
     @Mock private com.cvmobile.service.DocxGenerationService docxGenerationService;
