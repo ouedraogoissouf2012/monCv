@@ -129,6 +129,21 @@ class RateLimitFilterTest {
         verify(rateLimitService, never()).consume(any(), anyLong(), any());
     }
 
+    @Test
+    void limiteLaGenerationDocumentAuthentifieeParUtilisateur() throws Exception {
+        // La generation PDF/DOCX authentifiee (couteuse) doit etre limitee par
+        // utilisateur, sinon un seul compte peut epuiser les ressources (M-11).
+        authenticate(User.Role.USER, 77L);
+        when(rateLimitService.consume("cv-document:user:77", 6, Duration.ofMinutes(1)))
+                .thenReturn(RateLimitResult.rejected(Duration.ofSeconds(12)));
+
+        MockHttpServletResponse response = execute("GET", "/api/cvs/5/pdf", "203.0.113.10");
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        assertThat(response.getHeader("Retry-After")).isEqualTo("12");
+        verify(rateLimitService).consume("cv-document:user:77", 6, Duration.ofMinutes(1));
+    }
+
     private MockHttpServletResponse execute(String method, String path, String ip) throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
         filter.doFilter(request(method, path, ip), response, new MockFilterChain());
