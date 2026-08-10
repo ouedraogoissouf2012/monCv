@@ -36,4 +36,29 @@ class SuggestionServiceImplTest {
                 .contains("Ne change jamais de métier");
         assertThat(response.getSuggestions()).containsExactly("Premier", "Deuxieme", "Troisieme");
     }
+
+    @Test
+    void entrepriseVideEtDescriptionNulle_utiliseLesReplisEtRefleteLeFallback() {
+        IAiClient aiClient = mock(IAiClient.class);
+        SuggestionServiceImpl service = new SuggestionServiceImpl(
+                aiClient,
+                new AiSuggestionProperties(2, 100)
+        );
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("Un\nDeux");
+        when(aiClient.isFallbackResult()).thenReturn(true);
+
+        var response = service.generateSuggestions("Vendeur", "   ", null);
+
+        ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
+        verify(aiClient).complete(prompt.capture(), org.mockito.ArgumentMatchers.eq(100));
+        assertThat(prompt.getValue())
+                .doesNotContain(" chez ") // entreprise blanche -> aucun contexte entreprise
+                .contains("(aucune description fournie)"); // description nulle -> repli
+        // Un resultat de repli n'est jamais presente comme genere par l'IA.
+        assertThat(response.isFallback()).isTrue();
+        assertThat(response.isAiGenerated()).isFalse();
+        assertThat(response.getSuggestions()).containsExactly("Un", "Deux");
+    }
 }
