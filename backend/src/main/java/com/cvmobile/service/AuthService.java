@@ -38,11 +38,13 @@ public class AuthService implements IAuthService {
     private long jwtExpiration;
 
     public AuthResponse register(RegisterRequest request) {
-        if (userService.existsByEmail(request.getEmail())) {
-            throw new DuplicateEmailException(request.getEmail());
+        String email = normalizeEmail(request.getEmail());
+        if (userService.existsByEmail(email)) {
+            throw new DuplicateEmailException(email);
         }
 
         User user = userMapper.toUser(request);
+        user.setEmail(email); // stockage canonique en minuscules (M-10)
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         try {
@@ -100,8 +102,14 @@ public class AuthService implements IAuthService {
         return issueTokens(userService.save(currentUser));
     }
 
+    /** Canonicalise un email (unicite insensible a la casse, coherente entre
+     * inscription classique et Google — M-10). */
+    private static String normalizeEmail(String email) {
+        return email == null ? null : email.strip().toLowerCase(Locale.ROOT);
+    }
+
     private User createGoogleUser(GoogleIdentity identity) {
-        String email = identity.email().strip().toLowerCase(Locale.ROOT);
+        String email = normalizeEmail(identity.email());
         if (userService.findOptionalByEmail(email).isPresent()) {
             throw new com.cvmobile.exception.GoogleAuthException(
                     "GOOGLE_LINK_REQUIRED",

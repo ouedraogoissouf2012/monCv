@@ -28,17 +28,17 @@ public class UserService implements IUserService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouve avec l'email: " + email));
     }
 
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouve avec l'email: " + email));
     }
 
     public Optional<User> findOptionalByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmailIgnoreCase(email);
     }
 
     public Optional<User> findByGoogleSubject(String googleSubject) {
@@ -51,7 +51,7 @@ public class UserService implements IUserService {
     }
 
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return userRepository.existsByEmailIgnoreCase(email);
     }
 
     public User save(User user) {

@@ -39,7 +39,7 @@ class UserServiceTest {
 
     @Test
     void loadUserByUsername_retourneLUtilisateur() {
-        when(userRepository.findByEmail("test@example.com"))
+        when(userRepository.findByEmailIgnoreCase("test@example.com"))
                 .thenReturn(Optional.of(user()));
 
         UserDetails details = service.loadUserByUsername("test@example.com");
@@ -49,7 +49,7 @@ class UserServiceTest {
 
     @Test
     void loadUserByUsername_leveQuandInconnu() {
-        when(userRepository.findByEmail("absent@example.com"))
+        when(userRepository.findByEmailIgnoreCase("absent@example.com"))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.loadUserByUsername("absent@example.com"))
@@ -67,10 +67,10 @@ class UserServiceTest {
     @Test
     void lecturesSimples_deleguentAuRepository() {
         User u = user();
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(u));
+        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(u));
         when(userRepository.findByGoogleSubject("sub")).thenReturn(Optional.of(u));
         when(userRepository.findById(1L)).thenReturn(Optional.of(u));
-        when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
+        when(userRepository.existsByEmailIgnoreCase("test@example.com")).thenReturn(true);
         when(userRepository.save(u)).thenReturn(u);
 
         assertThat(service.findByEmail("test@example.com")).isSameAs(u);
