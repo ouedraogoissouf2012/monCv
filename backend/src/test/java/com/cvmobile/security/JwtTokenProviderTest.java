@@ -1,5 +1,7 @@
 package com.cvmobile.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -98,5 +100,54 @@ class JwtTokenProviderTest {
         assertThat(jwtTokenProvider.getEmailFromToken(refreshToken)).isEqualTo(email);
         assertThat(jwtTokenProvider.validateRefreshToken(refreshToken)).isTrue();
         assertThat(jwtTokenProvider.validateAccessToken(refreshToken)).isFalse();
+    }
+
+    // ── Expiration & signature (T-1) ────────────────────────────────
+    // Chemin de securite critique : un jeton perime ou mal signe DOIT etre
+    // rejete. On force une expiration passee via une duree negative.
+
+    @Test
+    void validateToken_avecAccessTokenExpire_devraitRetournerFalse() {
+        ReflectionTestUtils.setField(jwtTokenProvider, "jwtExpiration", -1000L);
+        String expired = jwtTokenProvider.generateToken("user@example.com");
+
+        assertThat(jwtTokenProvider.validateToken(expired)).isFalse();
+        assertThat(jwtTokenProvider.validateAccessToken(expired)).isFalse();
+        assertThat(jwtTokenProvider.validateRefreshToken(expired)).isFalse();
+    }
+
+    @Test
+    void validateRefreshToken_avecRefreshExpire_devraitRetournerFalse() {
+        ReflectionTestUtils.setField(jwtTokenProvider, "refreshExpiration", -1000L);
+        String expired = jwtTokenProvider.generateRefreshToken("user@example.com");
+
+        assertThat(jwtTokenProvider.validateRefreshToken(expired)).isFalse();
+        assertThat(jwtTokenProvider.validateToken(expired)).isFalse();
+    }
+
+    @Test
+    void getEmailFromToken_avecTokenExpire_devraitLeverExpiredJwtException() {
+        ReflectionTestUtils.setField(jwtTokenProvider, "jwtExpiration", -1000L);
+        String expired = jwtTokenProvider.generateToken("user@example.com");
+
+        assertThatThrownBy(() -> jwtTokenProvider.getEmailFromToken(expired))
+                .isInstanceOf(ExpiredJwtException.class);
+    }
+
+    @Test
+    void validateToken_avecMauvaiseSignature_devraitRetournerFalse() {
+        String token = jwtTokenProvider.generateToken("user@example.com");
+
+        // Meme email, mais un secret different -> signature invalide.
+        JwtTokenProvider other = new JwtTokenProvider();
+        ReflectionTestUtils.setField(other, "jwtSecret",
+                "OtherKey-Z9yP2mK7xR4pL8vN1sT6wY3cD5fH0jU9eB2gM7qX4kP1rV8nC6sD3wZ5kP0");
+        ReflectionTestUtils.setField(other, "jwtExpiration", 3600000L);
+        ReflectionTestUtils.setField(other, "refreshExpiration", 86400000L);
+
+        assertThat(other.validateToken(token)).isFalse();
+        assertThat(other.validateAccessToken(token)).isFalse();
+        assertThatThrownBy(() -> other.getEmailFromToken(token))
+                .isInstanceOf(JwtException.class);
     }
 }
