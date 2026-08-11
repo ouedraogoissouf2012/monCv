@@ -1,5 +1,6 @@
 package com.cvmobile.service;
 
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.UserRepository;
 import com.cvmobile.repository.UploadedPhotoRepository;
@@ -47,7 +48,7 @@ public class UserService implements IUserService {
 
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouve avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur", "id", id));
     }
 
     public boolean existsByEmail(String email) {
