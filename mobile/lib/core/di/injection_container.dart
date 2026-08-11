@@ -100,8 +100,11 @@ Future<void> initDependencies() async {
         sl<TokenStore>(),
         refresher: sl<SessionRefresher>(),
       ));
-  sl.registerLazySingleton<MultipartTransport>(
-      () => MultipartTransport(sl<http.Client>(), sl<TokenStore>()));
+  sl.registerLazySingleton<MultipartTransport>(() => MultipartTransport(
+        sl<http.Client>(),
+        sl<TokenStore>(),
+        refresher: sl<SessionRefresher>(),
+      ));
 
   // ── Feature AI (issue #237) ───────────────────────────────────
   sl.registerLazySingleton<AiRemoteDataSource>(

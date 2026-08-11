@@ -8,6 +8,7 @@ import '../error/error_mapper.dart';
 import '../error/result.dart';
 import 'api_request.dart';
 import 'api_response.dart';
+import 'session_refresher.dart';
 import 'token_store.dart';
 
 /// Contenu d'un upload multipart : soit un fichier sur disque, soit des octets
@@ -43,11 +44,18 @@ class MultipartTransport {
   MultipartTransport(
     this._client,
     this._tokens, {
+    SessionRefresher? refresher,
     Duration timeout = const Duration(seconds: 20),
-  }) : _timeout = timeout;
+  })  : _refresher = refresher,
+        _timeout = timeout;
 
   final http.Client _client;
   final TokenStore _tokens;
+
+  /// Rafraichisseur de session, invoque sur un 401 authentifie (M-7). `null`
+  /// desactive l'interception (comportement historique preserve).
+  final SessionRefresher? _refresher;
+
   final Duration _timeout;
 
   /// Envoie [payload] en multipart/form-data sous le champ [field] et retourne
@@ -59,6 +67,38 @@ class MultipartTransport {
     HttpMethod method = HttpMethod.post,
     String field = 'file',
     bool withAuth = true,
+  }) async {
+    var response = await _sendOnce(
+        path: path,
+        payload: payload,
+        method: method,
+        field: field,
+        withAuth: withAuth);
+
+    // 401 sur un upload authentifie : refresh (single-flight cote
+    // [SessionRefresher]) puis rejeu UNE fois avec le nouveau jeton (M-7).
+    // Memes garde-fous que ApiTransport ; la requete multipart est reconstruite
+    // (un MultipartRequest n'est pas rejouable).
+    if (response.statusCode == 401 && withAuth && _refresher != null) {
+      final refreshed = await _refresher!.refresh();
+      if (refreshed) {
+        response = await _sendOnce(
+            path: path,
+            payload: payload,
+            method: method,
+            field: field,
+            withAuth: withAuth);
+      }
+    }
+    return response;
+  }
+
+  Future<ApiResponse> _sendOnce({
+    required String path,
+    required MultipartPayload payload,
+    required HttpMethod method,
+    required String field,
+    required bool withAuth,
   }) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}$path');
     final request = http.MultipartRequest(_methodName(method), uri);
