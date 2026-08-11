@@ -24,29 +24,31 @@ void main() {
   setUp(() => repo = _MockAiRepository());
 
   test('EnhanceCvUseCase transmet cvId/level et propage le Result', () async {
-    when(() => repo.enhanceCv(9, 'MAX')).thenAnswer(
+    when(() => repo.enhanceCv(9, 'MAX', consentAccepted: true)).thenAnswer(
       (_) async => const Result.success(EnhancedCv(aiGenerated: true)),
     );
 
     final result = await EnhanceCvUseCase(repo)
-        .call(const EnhanceCvParams(cvId: 9, level: 'MAX'));
+        .call(const EnhanceCvParams(
+            cvId: 9, level: 'MAX', consentAccepted: true));
 
     expect(result.getOrThrow().aiGenerated, isTrue);
-    verify(() => repo.enhanceCv(9, 'MAX')).called(1);
+    verify(() => repo.enhanceCv(9, 'MAX', consentAccepted: true)).called(1);
   });
 
   test('MatchJobUseCase transmet cvId/jobDescription', () async {
-    when(() => repo.matchJob(3, 'Offre'))
+    when(() => repo.matchJob(3, 'Offre', consentAccepted: true))
         .thenAnswer((_) async => const Result.success(JobMatch(score: 70)));
 
     final result =
         await MatchJobUseCase(repo).call(const MatchJobParams(
       cvId: 3,
       jobDescription: 'Offre',
+      consentAccepted: true,
     ));
 
     expect(result.getOrThrow().score, 70);
-    verify(() => repo.matchJob(3, 'Offre')).called(1);
+    verify(() => repo.matchJob(3, 'Offre', consentAccepted: true)).called(1);
   });
 
   test('GenerateApplicationMessagesUseCase transmet les 3 parametres', () async {
@@ -138,12 +140,12 @@ void main() {
   });
 
   test('un Result.failure du port est propage sans transformation', () async {
-    when(() => repo.enhanceCv(1, 'MAX')).thenAnswer(
+    when(() => repo.enhanceCv(1, 'MAX', consentAccepted: true)).thenAnswer(
       (_) async => const Result.failure(NotFoundException()),
     );
 
-    final result = await EnhanceCvUseCase(repo)
-        .call(const EnhanceCvParams(cvId: 1, level: 'MAX'));
+    final result = await EnhanceCvUseCase(repo).call(
+        const EnhanceCvParams(cvId: 1, level: 'MAX', consentAccepted: true));
 
     expect(result, isA<Failure>());
   });

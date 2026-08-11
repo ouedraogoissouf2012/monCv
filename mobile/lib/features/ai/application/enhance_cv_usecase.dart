@@ -6,7 +6,12 @@ import '../domain/repositories/ai_repository.dart';
 class EnhanceCvParams {
   final int cvId;
   final String level;
-  const EnhanceCvParams({required this.cvId, required this.level});
+  final bool consentAccepted;
+  const EnhanceCvParams({
+    required this.cvId,
+    required this.level,
+    required this.consentAccepted,
+  });
 }
 
 /// Ameliore un CV via le port [AiRepository]. Retourne une entité typee
@@ -17,5 +22,6 @@ class EnhanceCvUseCase implements UseCase<EnhancedCv, EnhanceCvParams> {
 
   @override
   Future<Result<EnhancedCv>> call(EnhanceCvParams params) =>
-      _repository.enhanceCv(params.cvId, params.level);
+      _repository.enhanceCv(params.cvId, params.level,
+          consentAccepted: params.consentAccepted);
 }

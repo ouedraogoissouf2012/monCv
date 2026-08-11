@@ -67,11 +67,11 @@ void main() {
         ..setConsent(true)
         ..setJobDescription('court');
       await c.analyze();
-      verifyNever(() => repo.matchJob(any(), any()));
+      verifyNever(() => repo.matchJob(any(), any(), consentAccepted: any(named: 'consentAccepted')));
     });
 
     test('succes -> report typé + score ajoute a l historique', () async {
-      when(() => repo.matchJob(42, any()))
+      when(() => repo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.success(okReport));
       final c = controller()
         ..setConsent(true)
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('re-analyse -> 2e entree marquee isRerun', () async {
-      when(() => repo.matchJob(42, any()))
+      when(() => repo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.success(okReport));
       final c = controller()
         ..setConsent(true)
@@ -107,7 +107,7 @@ void main() {
     test('erreur IA typee -> exposee + onAiError notifie', () async {
       const aiError =
           AiException(code: 'AI_PROVIDER_DOWN', message: 'indisponible');
-      when(() => repo.matchJob(any(), any()))
+      when(() => repo.matchJob(any(), any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.failure(aiError));
       AiException? received;
       final c = JobMatchController(
@@ -132,7 +132,7 @@ void main() {
         const Result.failure(NetworkException()),
         const Result.success(okReport),
       ];
-      when(() => repo.matchJob(any(), any()))
+      when(() => repo.matchJob(any(), any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => answers.removeAt(0));
       final c = controller()
         ..setConsent(true)
@@ -151,7 +151,7 @@ void main() {
     // Prepare un controller avec une analyse deja aboutie (report non nul),
     // condition prealable a la creation de variante.
     Future<JobMatchController> analyzed() async {
-      when(() => repo.matchJob(42, any()))
+      when(() => repo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.success(okReport));
       final c = controller()
         ..setConsent(true)
@@ -225,7 +225,7 @@ void main() {
       )
         ..setConsent(true)
         ..setJobDescription('Une offre suffisamment longue pour analyse.');
-      when(() => repo.matchJob(42, any()))
+      when(() => repo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.success(okReport));
       await c2.analyze();
 

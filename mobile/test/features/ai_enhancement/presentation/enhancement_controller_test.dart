@@ -57,7 +57,7 @@ void main() {
       final c = controller();
       expect(c.canEnhance, isFalse);
       await c.enhance();
-      verifyNever(() => repo.enhanceCv(any(), any()));
+      verifyNever(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted')));
     });
 
     test('CV non persiste (id null) -> canEnhance faux', () {
@@ -68,7 +68,8 @@ void main() {
 
   group('EnhancementController - succes (#244 F2)', () {
     test('resultat typee + diff construits, loading retombe', () async {
-      when(() => repo.enhanceCv(42, 'MEDIUM')).thenAnswer(
+      when(() => repo.enhanceCv(42, 'MEDIUM', consentAccepted: true))
+          .thenAnswer(
         (_) async => const Result.success(
             EnhancedCv(titrePoste: 'Developpeur Senior', aiGenerated: true)),
       );
@@ -87,13 +88,13 @@ void main() {
     });
 
     test('le niveau selectionne est transmis au contrat backend', () async {
-      when(() => repo.enhanceCv(42, 'MAX')).thenAnswer(
+      when(() => repo.enhanceCv(42, 'MAX', consentAccepted: true)).thenAnswer(
           (_) async => const Result.success(EnhancedCv()));
       final c = controller()
         ..setConsent(true)
         ..selectLevel(EnhancementLevel.max);
       await c.enhance();
-      verify(() => repo.enhanceCv(42, 'MAX')).called(1);
+      verify(() => repo.enhanceCv(42, 'MAX', consentAccepted: true)).called(1);
     });
   });
 
@@ -101,7 +102,7 @@ void main() {
     test('erreur IA typee -> exposee + onAiError notifie', () async {
       const aiError = AiException(
           code: 'AI_PROVIDER_DOWN', message: 'indisponible');
-      when(() => repo.enhanceCv(any(), any()))
+      when(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => const Result.failure(aiError));
       AiException? received;
       final c = controller(onAiError: (e) => received = e)..setConsent(true);
@@ -114,7 +115,7 @@ void main() {
     });
 
     test('erreur reseau generique -> exposee, sans callback IA', () async {
-      when(() => repo.enhanceCv(any(), any())).thenAnswer(
+      when(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted'))).thenAnswer(
           (_) async => const Result.failure(NetworkException()));
       AiException? received;
       final c = controller(onAiError: (e) => received = e)..setConsent(true);
@@ -130,7 +131,7 @@ void main() {
         const Result.failure(NetworkException()),
         const Result.success(EnhancedCv(titrePoste: 'Mieux')),
       ];
-      when(() => repo.enhanceCv(any(), any()))
+      when(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted')))
           .thenAnswer((_) async => answers.removeAt(0));
       final c = controller()..setConsent(true);
 
@@ -140,7 +141,7 @@ void main() {
       await c.enhance(); // retry
       expect(c.error, isNull);
       expect(c.result?.titrePoste, 'Mieux');
-      verify(() => repo.enhanceCv(any(), any())).called(2);
+      verify(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted'))).called(2);
     });
   });
 }

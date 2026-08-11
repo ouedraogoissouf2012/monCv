@@ -12,10 +12,12 @@ import '../entities/job_match.dart';
 /// levee, elle y est convertie en [Result.failure].
 abstract interface class AiRepository {
   /// Ameliore un CV complet (niveaux LITE / MEDIUM / MAX).
-  Future<Result<EnhancedCv>> enhanceCv(int cvId, String level);
+  Future<Result<EnhancedCv>> enhanceCv(int cvId, String level,
+      {required bool consentAccepted});
 
   /// Analyse la correspondance entre un CV et une offre d'emploi.
-  Future<Result<JobMatch>> matchJob(int cvId, String jobDescription);
+  Future<Result<JobMatch>> matchJob(int cvId, String jobDescription,
+      {required bool consentAccepted});
 
   /// Genere les textes de candidature adaptes au CV et a l'offre.
   Future<Result<ApplicationMessages>> generateApplicationMessages(

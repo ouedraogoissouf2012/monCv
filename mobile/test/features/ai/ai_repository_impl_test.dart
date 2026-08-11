@@ -21,31 +21,31 @@ void main() {
   });
 
   test('succes du data source -> Result.success typé', () async {
-    when(() => dataSource.enhanceCv(1, 'MAX'))
+    when(() => dataSource.enhanceCv(1, 'MAX', consentAccepted: true))
         .thenAnswer((_) async => const EnhancedCv(aiGenerated: true));
 
-    final result = await repository.enhanceCv(1, 'MAX');
+    final result = await repository.enhanceCv(1, 'MAX', consentAccepted: true);
 
     expect(result, isA<Success<EnhancedCv>>());
     expect(result.getOrThrow().aiGenerated, isTrue);
   });
 
   test('AppException du data source -> Result.failure', () async {
-    when(() => dataSource.matchJob(1, 'x'))
+    when(() => dataSource.matchJob(1, 'x', consentAccepted: true))
         .thenThrow(const NotFoundException());
 
-    final result = await repository.matchJob(1, 'x');
+    final result = await repository.matchJob(1, 'x', consentAccepted: true);
 
     expect(result, isA<Failure>());
     expect((result as Failure).exception, isA<NotFoundException>());
   });
 
   test('AiException est propagee telle quelle dans Result.failure', () async {
-    when(() => dataSource.enhanceCv(1, 'MAX')).thenThrow(
+    when(() => dataSource.enhanceCv(1, 'MAX', consentAccepted: true)).thenThrow(
       const AiException(code: 'AI_TIMEOUT', message: 'timeout'),
     );
 
-    final result = await repository.enhanceCv(1, 'MAX');
+    final result = await repository.enhanceCv(1, 'MAX', consentAccepted: true);
 
     expect((result as Failure).exception, isA<AiException>());
   });
@@ -61,9 +61,9 @@ void main() {
   });
 
   test('matchJob succes -> Result.success<JobMatch>', () async {
-    when(() => dataSource.matchJob(1, 'x'))
+    when(() => dataSource.matchJob(1, 'x', consentAccepted: true))
         .thenAnswer((_) async => const JobMatch(score: 42));
-    final result = await repository.matchJob(1, 'x');
+    final result = await repository.matchJob(1, 'x', consentAccepted: true);
     expect(result.getOrThrow().score, 42);
   });
 

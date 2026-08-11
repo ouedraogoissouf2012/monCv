@@ -47,14 +47,15 @@ void main() {
         return json(enhanceCvResponseJson, 200);
       });
 
-      await ds.enhanceCv(42, 'MAX');
+      // Le consentement REEL transmis est envoye, pas une constante (M-1).
+      await ds.enhanceCv(42, 'MAX', consentAccepted: false);
 
       expect(captured.method, 'POST');
       expect(captured.url.path, endsWith('/ai/enhance-cv'));
       expect(jsonDecode(captured.body), {
         'cvId': 42,
         'level': 'MAX',
-        'aiConsentAccepted': true,
+        'aiConsentAccepted': false,
       });
     });
 
@@ -65,13 +66,13 @@ void main() {
         return json(jobMatchResponseJson, 200);
       });
 
-      await ds.matchJob(7, 'Dev Flutter');
+      await ds.matchJob(7, 'Dev Flutter', consentAccepted: false);
 
       expect(captured.url.path, endsWith('/ai/match-job'));
       expect(jsonDecode(captured.body), {
         'cvId': 7,
         'jobDescription': 'Dev Flutter',
-        'aiConsentAccepted': true,
+        'aiConsentAccepted': false,
       });
     });
 
@@ -160,7 +161,7 @@ void main() {
   group('retourne des entités typees (aucun Map ne sort)', () {
     test('enhanceCv mappe tous les champs imbriques', () async {
       final ds = build((_) => json(enhanceCvResponseJson, 200));
-      final cv = await ds.enhanceCv(1, 'MAX');
+      final cv = await ds.enhanceCv(1, 'MAX', consentAccepted: true);
 
       expect(cv.titrePoste, 'Developpeur Flutter');
       expect(cv.aiGenerated, isTrue);
@@ -174,7 +175,7 @@ void main() {
 
     test('matchJob mappe categories et recommandations', () async {
       final ds = build((_) => json(jobMatchResponseJson, 200));
-      final match = await ds.matchJob(1, 'x');
+      final match = await ds.matchJob(1, 'x', consentAccepted: true);
 
       expect(match.score, 82);
       expect(match.categories.single.label, 'Competences');
@@ -198,7 +199,8 @@ void main() {
   group('mapping d erreurs identique', () {
     test('enhanceCv 404 -> NotFoundException', () async {
       final ds = build((_) => json({'message': 'x'}, 404));
-      await expectLater(ds.enhanceCv(1, 'MAX'), throwsA(isA<NotFoundException>()));
+      await expectLater(ds.enhanceCv(1, 'MAX', consentAccepted: true),
+          throwsA(isA<NotFoundException>()));
     });
 
     test('matchJob 502 AI_QUOTA_EXCEEDED -> AiException', () async {
@@ -208,7 +210,8 @@ void main() {
           'details': {'retryAfter': 30},
         }, 502),
       );
-      await expectLater(ds.matchJob(1, 'x'), throwsA(isA<AiException>()));
+      await expectLater(ds.matchJob(1, 'x', consentAccepted: true),
+          throwsA(isA<AiException>()));
     });
   });
 }

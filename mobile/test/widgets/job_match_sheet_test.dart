@@ -72,7 +72,7 @@ void main() {
 
   testWidgets('analyse reussie -> score typé affiche via les composants',
       (t) async {
-    when(() => aiRepo.matchJob(42, any()))
+    when(() => aiRepo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted')))
         .thenAnswer((_) async => const Result.success(report));
     await t.pumpWidget(testApp());
 
@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets('erreur IA -> message expose, pas de score', (t) async {
-    when(() => aiRepo.matchJob(42, any())).thenAnswer((_) async =>
+    when(() => aiRepo.matchJob(42, any(), consentAccepted: any(named: 'consentAccepted'))).thenAnswer((_) async =>
         const Result.failure(
             AiException(code: 'AI_PROVIDER_DOWN', message: 'IA indisponible')));
     await t.pumpWidget(testApp());

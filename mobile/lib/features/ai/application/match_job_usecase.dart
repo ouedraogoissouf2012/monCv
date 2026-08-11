@@ -6,7 +6,12 @@ import '../domain/repositories/ai_repository.dart';
 class MatchJobParams {
   final int cvId;
   final String jobDescription;
-  const MatchJobParams({required this.cvId, required this.jobDescription});
+  final bool consentAccepted;
+  const MatchJobParams({
+    required this.cvId,
+    required this.jobDescription,
+    required this.consentAccepted,
+  });
 }
 
 /// Analyse la correspondance CV / offre via le port [AiRepository].
@@ -17,5 +22,6 @@ class MatchJobUseCase implements UseCase<JobMatch, MatchJobParams> {
 
   @override
   Future<Result<JobMatch>> call(MatchJobParams params) =>
-      _repository.matchJob(params.cvId, params.jobDescription);
+      _repository.matchJob(params.cvId, params.jobDescription,
+          consentAccepted: params.consentAccepted);
 }
