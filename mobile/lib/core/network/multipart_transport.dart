@@ -61,37 +61,27 @@ class MultipartTransport {
   /// Envoie [payload] en multipart/form-data sous le champ [field] et retourne
   /// la reponse normalisee, sans juger du status (l'appelant decide). Les
   /// erreurs reseau/systeme sont deja traduites en [AppException].
+  /// 401 sur un upload authentifie : refresh single-flight + rejeu unique, via
+  /// [refreshAndRetryOn401] (meme invariant qu'ApiTransport). La requete
+  /// multipart est reconstruite a chaque tentative (non rejouable).
   Future<ApiResponse> upload({
     required String path,
     required MultipartPayload payload,
     HttpMethod method = HttpMethod.post,
     String field = 'file',
     bool withAuth = true,
-  }) async {
-    var response = await _sendOnce(
-        path: path,
-        payload: payload,
-        method: method,
-        field: field,
-        withAuth: withAuth);
-
-    // 401 sur un upload authentifie : refresh (single-flight cote
-    // [SessionRefresher]) puis rejeu UNE fois avec le nouveau jeton (M-7).
-    // Memes garde-fous que ApiTransport ; la requete multipart est reconstruite
-    // (un MultipartRequest n'est pas rejouable).
-    if (response.statusCode == 401 && withAuth && _refresher != null) {
-      final refreshed = await _refresher!.refresh();
-      if (refreshed) {
-        response = await _sendOnce(
-            path: path,
-            payload: payload,
-            method: method,
-            field: field,
-            withAuth: withAuth);
-      }
-    }
-    return response;
-  }
+  }) =>
+      refreshAndRetryOn401(
+        refresher: _refresher,
+        withAuth: withAuth,
+        attempt: () => _sendOnce(
+          path: path,
+          payload: payload,
+          method: method,
+          field: field,
+          withAuth: withAuth,
+        ),
+      );
 
   Future<ApiResponse> _sendOnce({
     required String path,
