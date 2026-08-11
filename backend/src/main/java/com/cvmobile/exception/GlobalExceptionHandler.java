@@ -77,8 +77,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotFound(UsernameNotFoundException ex) {
+        // Message generique : ne jamais refleter l'email cible dans la reponse
+        // (information disclosure). Le detail reste dans ex pour les logs.
         return buildResponse(HttpStatus.NOT_FOUND, "USER_NOT_FOUND",
-                ex.getMessage(), null);
+                "Utilisateur introuvable", null);
     }
 
     // ── Custom exceptions ────────────────────────────────────────

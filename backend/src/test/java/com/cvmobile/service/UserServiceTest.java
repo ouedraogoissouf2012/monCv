@@ -1,5 +1,6 @@
 package com.cvmobile.service;
 
+import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.UploadedPhotoRepository;
 import com.cvmobile.repository.UserRepository;
@@ -61,7 +62,7 @@ class UserServiceTest {
         when(userRepository.findById(9L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findById(9L))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
