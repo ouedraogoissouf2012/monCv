@@ -120,6 +120,21 @@ class JobMatchServiceImplTest {
     }
 
     @Test
+    void matchJob_scoreIaAberrantNeFaitPasPlanter() {
+        // SCORE numeriquement enorme (overflow int) : ne doit pas provoquer une
+        // erreur 500 (M-8) ; le score deterministe borne 0..100 prend le relais.
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("SCORE: 99999999999999\n\nMOTS_CLES_PRESENTS:\n- projet\n\n"
+                        + "RESUME_OPTIMISE:\n");
+
+        JobMatchResponse response = service.matchJob(
+                22L, 7L, "Gestion de projet et budgets");
+
+        assertThat(response.getScore()).isBetween(0, 100);
+    }
+
+    @Test
     void matchJob_marqueExplicitementUnResultatFallback() {
         when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyInt()))
