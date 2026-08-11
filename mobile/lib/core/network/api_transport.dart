@@ -42,18 +42,11 @@ class ApiTransport {
   /// status : c'est a l'appelant (data source) de decider quels status sont
   /// acceptables. Toute erreur reseau/systeme est deja traduite en
   /// [AppException].
-  Future<ApiResponse> send(ApiRequest request) async {
-    var response = await _dispatchOnce(request);
-
-    // 401 sur une requete authentifiee : tenter un refresh (single-flight cote
-    // [SessionRefresher]) puis rejouer UNE fois avec le nouveau jeton (M-7).
-    // Aucune boucle : le rejeu n'est jamais re-intercepte.
-    if (response.statusCode == 401 && request.withAuth && _refresher != null) {
-      final refreshed = await _refresher!.refresh();
-      if (refreshed) response = await _dispatchOnce(request);
-    }
-    return response;
-  }
+  Future<ApiResponse> send(ApiRequest request) => refreshAndRetryOn401(
+        refresher: _refresher,
+        withAuth: request.withAuth,
+        attempt: () => _dispatchOnce(request),
+      );
 
   Future<ApiResponse> _dispatchOnce(ApiRequest request) async {
     final uri = _buildUri(request);

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../utils/constants.dart';
+import 'api_response.dart';
 import 'token_store.dart';
 
 /// Coordonne le rafraichissement de la session lorsqu'une requete authentifiee
@@ -15,6 +16,23 @@ abstract interface class SessionRefresher {
   /// disponibles (l'appelant peut rejouer sa requete), `false` sinon
   /// (l'appelant laisse le 401 se propager -> deconnexion).
   Future<bool> refresh();
+}
+
+/// Execute [attempt] ; si la reponse est un 401 sur une requete authentifiee et
+/// qu'un [refresher] est fourni, rafraichit (single-flight) puis rejoue UNE
+/// SEULE fois avec le nouveau jeton. Point unique de l'invariant "refresh +
+/// rejeu unique, pas de boucle", partage par ApiTransport et MultipartTransport.
+Future<ApiResponse> refreshAndRetryOn401({
+  required SessionRefresher? refresher,
+  required bool withAuth,
+  required Future<ApiResponse> Function() attempt,
+}) async {
+  final response = await attempt();
+  if (response.statusCode != 401 || !withAuth || refresher == null) {
+    return response;
+  }
+  if (await refresher.refresh()) return attempt();
+  return response;
 }
 
 /// Implementation HTTP : `POST /auth/refresh {refreshToken}` via le client
