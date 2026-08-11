@@ -52,5 +52,12 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
 
     @Query("SELECT c.parent.id, COUNT(c) FROM Cv c WHERE c.parent.id IN :parentIds GROUP BY c.parent.id")
     List<Object[]> countVariantsByParentIds(@Param("parentIds") List<Long> parentIds);
-    List<Cv> findByUpdatedAtBefore(LocalDateTime cutoff);
+
+    /**
+     * CV inactifs (updated_at anterieur au seuil), utilisateur charge en une
+     * seule requete (evite le N+1) et pagines pour borner la memoire du cron de
+     * rappels (M-5). L'index idx_cvs_updated_at (V16) sert ce filtre.
+     */
+    @Query("SELECT c FROM Cv c JOIN FETCH c.user WHERE c.updatedAt < :cutoff ORDER BY c.id")
+    List<Cv> findStaleWithUser(@Param("cutoff") LocalDateTime cutoff, Pageable pageable);
 }

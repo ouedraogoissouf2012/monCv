@@ -60,8 +60,8 @@ class NotificationServiceTest {
     }
 
     @Test void rappelleUnCvInactifDepuisTrenteJours() {
-        when(cvs.findByUpdatedAtBefore(any())).thenReturn(List.of(cv));
-        when(preferences.findById(1L)).thenReturn(Optional.empty());
+        when(cvs.findStaleWithUser(any(), any())).thenReturn(List.of(cv));
+        when(preferences.findAllById(any())).thenReturn(List.of()); // pas de pref -> actif par defaut
         when(tokens.findByUserId(1L)).thenReturn(List.of(DeviceToken.builder().token("token").user(user).build()));
         when(gateway.send(anyString(), anyString(), anyString(), anyMap())).thenReturn(true);
 
@@ -69,6 +69,31 @@ class NotificationServiceTest {
 
         verify(gateway).send(eq("token"), anyString(), contains("experiences"), anyMap());
         verify(deliveries).save(argThat(d -> d.getNotificationType().equals("STALE_CV")));
+    }
+
+    @Test void respecteLaPreferenceDeRappelDesactiveeEnBatch() {
+        when(cvs.findStaleWithUser(any(), any())).thenReturn(List.of(cv));
+        when(preferences.findAllById(any())).thenReturn(List.of(NotificationPreference.builder()
+            .userId(1L).user(user).staleCvEnabled(false).build()));
+
+        service.sendStaleCvReminders();
+
+        verifyNoInteractions(gateway, deliveries);
+    }
+
+    @Test void unEchecDEnvoiNInterromptPasLeResteDuBatch() {
+        Cv autreCv = Cv.builder().id(9L).titre("Autre CV").user(user).build();
+        when(cvs.findStaleWithUser(any(), any())).thenReturn(List.of(cv, autreCv));
+        when(preferences.findAllById(any())).thenReturn(List.of());
+        when(tokens.findByUserId(1L)).thenReturn(List.of(DeviceToken.builder().token("token").user(user).build()));
+        when(gateway.send(anyString(), anyString(), anyString(), anyMap()))
+            .thenThrow(new RuntimeException("FCM indisponible"))
+            .thenReturn(true);
+
+        service.sendStaleCvReminders();
+
+        // Le second CV est tente malgre l'echec du premier (isolation par item).
+        verify(gateway, times(2)).send(anyString(), anyString(), anyString(), anyMap());
     }
 
     @Test void sauvegardeLesPreferences() {
@@ -84,7 +109,7 @@ class NotificationServiceTest {
         JobApplication application = JobApplication.builder()
             .id(12L).user(user).cv(cv).company("Acme").position("Product Manager")
             .status(JobApplicationStatus.SENT).nextFollowUp(java.time.LocalDate.now()).build();
-        when(applications.findByNextFollowUpLessThanEqualAndStatusNotIn(any(), anyList()))
+        when(applications.findDueForFollowUpWithDetails(any(), anyList(), any()))
             .thenReturn(List.of(application));
         when(tokens.findByUserId(1L)).thenReturn(List.of(DeviceToken.builder().token("token").user(user).build()));
         when(gateway.send(anyString(), anyString(), anyString(), anyMap())).thenReturn(true);
