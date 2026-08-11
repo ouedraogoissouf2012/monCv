@@ -14,6 +14,7 @@ import com.cvmobile.service.auth.GoogleIdentity;
 import com.cvmobile.exception.GoogleAuthException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,6 +84,33 @@ class AuthServiceTest {
         assertThat(response.getAccessToken()).isEqualTo("access-token");
         assertThat(response.getUser().getEmail()).isEqualTo("nouveau@example.com");
         verify(userService).save(any(User.class));
+    }
+
+    @Test
+    void register_normaliseLEmail_pourFermerLeContournementDuLienGoogle() {
+        ReflectionTestUtils.setField(authService, "jwtExpiration", 3600000L);
+
+        RegisterRequest request = new RegisterRequest();
+        request.setEmail("  User@Example.COM ");
+        request.setPassword("password123");
+
+        User mappedUser = User.builder().email("  User@Example.COM ").role(User.Role.USER).build();
+        when(userService.existsByEmail(anyString())).thenReturn(false);
+        when(userMapper.toUser(request)).thenReturn(mappedUser);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(jwtTokenProvider.generateToken(anyString())).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(userMapper.toUserDto(any(User.class))).thenReturn(buildUserDto());
+
+        authService.register(request);
+
+        // Email normalise (strip + minuscules) pour le controle d'existence ET le
+        // stockage : casse plus une porte au contournement du lien Google (M-10).
+        verify(userService).existsByEmail("user@example.com");
+        ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
+        verify(userService).save(saved.capture());
+        assertThat(saved.getValue().getEmail()).isEqualTo("user@example.com");
     }
 
     @Test
