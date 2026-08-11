@@ -3,13 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ExternalLinkPolicy.validate - securite (#246 A3)', () {
-    test('accepte http et https absolus avec hote', () {
-      expect(ExternalLinkPolicy.validate('https://acme.example/job'), isNotNull);
-      expect(ExternalLinkPolicy.validate('http://acme.example'), isNotNull);
+    test('accepte http et https absolus avec hote (Uri normalise)', () {
+      final https = ExternalLinkPolicy.validate('https://acme.example/job');
+      expect(https, Uri.parse('https://acme.example/job'));
+      expect(https!.host, 'acme.example');
+      expect(ExternalLinkPolicy.validate('http://acme.example'),
+          Uri.parse('http://acme.example'));
     });
 
-    test('trim les espaces autour', () {
-      expect(ExternalLinkPolicy.validate('  https://acme.example  '), isNotNull);
+    test('trim les espaces autour (Uri sans espace)', () {
+      final uri = ExternalLinkPolicy.validate('  https://acme.example  ');
+      expect(uri, Uri.parse('https://acme.example'));
+      expect(uri.toString(), 'https://acme.example');
     });
 
     test('rejette null et vide', () {
@@ -30,8 +35,11 @@ void main() {
       expect(ExternalLinkPolicy.validate('https://'), isNull);
     });
 
-    test('scheme insensible a la casse', () {
-      expect(ExternalLinkPolicy.validate('HTTPS://acme.example'), isNotNull);
+    test('scheme insensible a la casse -> normalise en minuscules', () {
+      final uri = ExternalLinkPolicy.validate('HTTPS://acme.example');
+      expect(uri, isNotNull);
+      expect(uri!.scheme, 'https');
+      expect(uri.host, 'acme.example');
     });
   });
 
