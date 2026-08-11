@@ -67,8 +67,37 @@ class CvVariantServiceTest {
                 .build();
     }
 
+    // ── adaptToJob : appel IA, hors transaction, sans persistance (M-4) ──
+
     @Test
-    void createVariant_devraitDupliquerEtAppliquerContenuIA() {
+    void adaptToJob_delegueAuServiceDAmelioration_sansToucherLaDb() {
+        EnhanceCvResponse adapted = buildAdaptedResponse();
+        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
+
+        EnhanceCvResponse result = variantService.adaptToJob(10L, 1L, "Offre");
+
+        assertThat(result).isSameAs(adapted);
+        verify(enhancementService).adaptCvToJob(10L, 1L, "Offre");
+        // La phase IA ne persiste rien : aucune ecriture DB avant l'adaptation.
+        verifyNoInteractions(cvRepository);
+    }
+
+    @Test
+    void adaptToJob_cvNonDetenu_propageLException_avantToutePersistance() {
+        // L'ownership est verifie dans adaptCvToJob (requireOwnedCv) : un CV tiers
+        // leve avant meme l'appel IA reel ; la persistance n'est jamais atteinte.
+        when(enhancementService.adaptCvToJob(10L, 2L, "Offre"))
+                .thenThrow(new ResourceNotFoundException("CV", "id", 10L));
+
+        assertThatThrownBy(() -> variantService.adaptToJob(10L, 2L, "Offre"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(cvRepository);
+    }
+
+    // ── persistVariant : ecriture transactionnelle, SANS appel IA (M-4) ──
+
+    @Test
+    void persistVariant_dupliqueEtAppliqueContenuIA() {
         User user = buildUser();
         Cv original = buildCv(user);
         original.setPersonalInfo(PersonalInfo.builder().titrePoste("Dev").resumeProfessionnel("Resume original").build());
@@ -79,7 +108,6 @@ class CvVariantServiceTest {
 
         when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Offre d'emploi")).thenReturn(adapted);
         when(cvMapper.clonePersonalInfo(any())).thenReturn(
                 PersonalInfo.builder().titrePoste("Dev").resumeProfessionnel("Resume original").build());
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> {
@@ -89,16 +117,17 @@ class CvVariantServiceTest {
         });
         when(cvMapper.toResponse(any(Cv.class))).thenReturn(expectedResponse);
 
-        CvResponse result = variantService.createVariant(10L, "Offre d'emploi", null, 1L);
+        CvResponse result = variantService.persistVariant(10L, "Offre d'emploi", null, 1L, adapted);
 
         assertThat(result.getVarianteLabel()).isEqualTo("Developpeur Backend Java — Sopra Steria");
         assertThat(result.getParentCvId()).isEqualTo(10L);
-        verify(enhancementService).adaptCvToJob(10L, 1L, "Offre d'emploi");
         verify(cvRepository, times(2)).save(any(Cv.class));
+        // La persistance ne rappelle jamais l'IA : le round-trip est deja fait.
+        verifyNoInteractions(enhancementService);
     }
 
     @Test
-    void createVariant_avecLabelCustom_devraitUtiliserLabelFourni() {
+    void persistVariant_avecLabelCustom_utiliseLabelFourni() {
         User user = buildUser();
         Cv original = buildCv(user);
         EnhanceCvResponse adapted = buildAdaptedResponse();
@@ -107,33 +136,23 @@ class CvVariantServiceTest {
 
         when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cvMapper.toResponse(any(Cv.class))).thenReturn(expectedResponse);
 
-        CvResponse result = variantService.createVariant(10L, "Offre", "Mon label custom", 1L);
+        CvResponse result = variantService.persistVariant(10L, "Offre", "Mon label custom", 1L, adapted);
 
         assertThat(result.getVarianteLabel()).isEqualTo("Mon label custom");
     }
 
     @Test
-    void createVariant_cvInexistant_devraitLeverException() {
+    void persistVariant_cvInexistant_devraitLeverException() {
         when(cvFinder.findByIdAndUserId(99L, 1L))
                 .thenThrow(new ResourceNotFoundException("CV", "id", 99L));
 
-        assertThatThrownBy(() -> variantService.createVariant(99L, "Offre", null, 1L))
+        assertThatThrownBy(() ->
+                variantService.persistVariant(99L, "Offre", null, 1L, buildAdaptedResponse()))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("non trouve");
-    }
-
-    @Test
-    void createVariant_mauvaisUser_devraitLeverException() {
-        when(cvFinder.findByIdAndUserId(10L, 2L))
-                .thenThrow(new ResourceNotFoundException("CV", "id", 10L));
-
-        assertThatThrownBy(() -> variantService.createVariant(10L, "Offre", null, 2L))
-                .isInstanceOf(ResourceNotFoundException.class);
-        verifyNoInteractions(enhancementService);
     }
 
     @Test
@@ -154,7 +173,7 @@ class CvVariantServiceTest {
     }
 
     @Test
-    void createVariant_copieToutesLesSectionsEtDeduitLeLabelDeLOffre() {
+    void persistVariant_copieToutesLesSectionsEtDeduitLeLabelDeLOffre() {
         // Sans label utilisateur ni titre d'offre IA, le label retombe sur la
         // premiere ligne de l'offre ; sans competences adaptees, les originales
         // sont copiees ; chaque section originale est dupliquee.
@@ -173,7 +192,6 @@ class CvVariantServiceTest {
 
         when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Ingenieur logiciel\nParis")).thenReturn(adapted);
         when(cvMapper.cloneExperience(any())).thenReturn(Experience.builder().poste("Dev").build());
         when(cvMapper.cloneEducation(any())).thenReturn(Education.builder().etablissement("U").build());
         when(cvMapper.cloneProject(any())).thenReturn(Project.builder().nom("P").build());
@@ -184,7 +202,7 @@ class CvVariantServiceTest {
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cvMapper.toResponse(any(Cv.class))).thenReturn(CvResponse.builder().id(20L).build());
 
-        variantService.createVariant(10L, "Ingenieur logiciel\nParis", null, 1L);
+        variantService.persistVariant(10L, "Ingenieur logiciel\nParis", null, 1L, adapted);
 
         ArgumentCaptor<Cv> saved = ArgumentCaptor.forClass(Cv.class);
         verify(cvRepository, times(2)).save(saved.capture());
@@ -199,7 +217,7 @@ class CvVariantServiceTest {
     }
 
     @Test
-    void createVariant_appliqueLesDescriptionsAdapteesParLIa() {
+    void persistVariant_appliqueLesDescriptionsAdapteesParLIa() {
         User user = buildUser();
         Cv original = Cv.builder().id(10L).titre("Mon CV").user(user)
                 .experiences(List.of(Experience.builder().poste("Dev").description("orig").build()))
@@ -222,14 +240,13 @@ class CvVariantServiceTest {
         Project projClone = Project.builder().nom("P").build();
         when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
         when(userService.findById(1L)).thenReturn(user);
-        when(enhancementService.adaptCvToJob(10L, 1L, "Offre")).thenReturn(adapted);
         when(cvMapper.cloneExperience(any())).thenReturn(expClone);
         when(cvMapper.cloneEducation(any())).thenReturn(eduClone);
         when(cvMapper.cloneProject(any())).thenReturn(projClone);
         when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
         when(cvMapper.toResponse(any(Cv.class))).thenReturn(CvResponse.builder().id(20L).build());
 
-        variantService.createVariant(10L, "Offre", null, 1L);
+        variantService.persistVariant(10L, "Offre", null, 1L, adapted);
 
         // Les descriptions IA remplacent celles des clones.
         assertThat(expClone.getDescription()).isEqualTo("exp adaptee");

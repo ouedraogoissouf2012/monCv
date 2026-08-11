@@ -2,6 +2,7 @@ package com.cvmobile.service;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
 import com.cvmobile.model.Cv;
@@ -15,6 +16,7 @@ import com.cvmobile.service.cv.CvVariantService;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,6 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -188,14 +191,20 @@ class CvServiceTest {
     // ── Delegation ──────────────────────────────────────────────
 
     @Test
-    void createVariant_devraitDeleguerAuServiceDeVariantes() {
+    void createVariant_devraitAdapterHorsTransactionPuisPersister() {
+        // La facade orchestre : adaptation IA (adaptToJob) AVANT persistance
+        // (persistVariant), en filant le resultat adapte (M-4).
+        EnhanceCvResponse adapted = EnhanceCvResponse.builder().aiGenerated(true).build();
         CvResponse response = CvResponse.builder().id(20L).titre("Variante").build();
-        when(variantService.createVariant(10L, "Offre", "Label", 1L)).thenReturn(response);
+        when(variantService.adaptToJob(10L, 1L, "Offre")).thenReturn(adapted);
+        when(variantService.persistVariant(10L, "Offre", "Label", 1L, adapted)).thenReturn(response);
 
         CvResponse result = cvService.createVariant(10L, "Offre", "Label", 1L);
 
         assertThat(result).isSameAs(response);
-        verify(variantService).createVariant(10L, "Offre", "Label", 1L);
+        InOrder inOrder = inOrder(variantService);
+        inOrder.verify(variantService).adaptToJob(10L, 1L, "Offre");
+        inOrder.verify(variantService).persistVariant(10L, "Offre", "Label", 1L, adapted);
     }
 
     @Test

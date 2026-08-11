@@ -2,6 +2,7 @@ package com.cvmobile.service;
 
 import com.cvmobile.dto.CvRequest;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.EnhanceCvResponse;
 import com.cvmobile.dto.PublicShareSettingsRequest;
 import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.mapper.CvMapper;
@@ -175,9 +176,12 @@ public class CvService implements ICvService {
     // ── Variantes (deleguees) ─────────────────────────────────────
 
     @Override
-    @Transactional
     public CvResponse createVariant(Long parentCvId, String jobDescription, String label, Long userId) {
-        return variantService.createVariant(parentCvId, jobDescription, label, userId);
+        // Adaptation IA HORS transaction (appel HTTP externe : ne doit pas retenir
+        // une connexion DB pendant le round-trip), puis persistance dans une
+        // transaction courte portee par CvVariantService.persistVariant (M-4).
+        EnhanceCvResponse adapted = variantService.adaptToJob(parentCvId, userId, jobDescription);
+        return variantService.persistVariant(parentCvId, jobDescription, label, userId, adapted);
     }
 
     @Override
