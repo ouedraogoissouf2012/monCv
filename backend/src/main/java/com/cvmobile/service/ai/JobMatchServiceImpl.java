@@ -219,7 +219,14 @@ public class JobMatchServiceImpl implements IJobMatchService {
     private int extractAiScore(String rawContent) {
         Matcher scoreMatcher = SCORE_PATTERN.matcher(rawContent);
         if (scoreMatcher.find()) {
-            return Math.min(properties.maxScore(), Integer.parseInt(scoreMatcher.group(1)));
+            try {
+                return Math.min(properties.maxScore(), Integer.parseInt(scoreMatcher.group(1)));
+            } catch (NumberFormatException e) {
+                // Output IA non fiable : un SCORE numeriquement invalide (ex. overflow
+                // int) ne doit pas planter l'analyse -> on retombe sur le score par
+                // defaut, le score deterministe restant maitre (M-8).
+                log.warn("Score IA illisible (overflow), score par defaut applique");
+            }
         }
         return properties.defaultScore();
     }
