@@ -2,6 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.UpdateProfileRequest;
 import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.service.cv.ICvService;
@@ -49,8 +50,11 @@ class UserControllerTest {
         when(userService.save(user)).thenReturn(user);
         when(userMapper.toUserDto(user)).thenReturn(dto);
 
-        ResponseEntity<AuthResponse.UserDto> response = controller.updateCurrentUser(
-                user, Map.of("nom", "Nouveau", "prenom", "Neuf"));
+        UpdateProfileRequest request = new UpdateProfileRequest();
+        request.setNom("Nouveau");
+        request.setPrenom("Neuf");
+        ResponseEntity<AuthResponse.UserDto> response =
+                controller.updateCurrentUser(user, request);
 
         assertThat(user.getNom()).isEqualTo("Nouveau");
         assertThat(user.getPrenom()).isEqualTo("Neuf");
@@ -64,7 +68,9 @@ class UserControllerTest {
         when(userService.save(user)).thenReturn(user);
         when(userMapper.toUserDto(user)).thenReturn(mock(AuthResponse.UserDto.class));
 
-        controller.updateCurrentUser(user, Map.of("nom", "Nouveau"));
+        UpdateProfileRequest partial = new UpdateProfileRequest();
+        partial.setNom("Nouveau");
+        controller.updateCurrentUser(user, partial);
 
         assertThat(user.getNom()).isEqualTo("Nouveau");
         assertThat(user.getPrenom()).isEqualTo("Vieux"); // non fourni -> inchange
