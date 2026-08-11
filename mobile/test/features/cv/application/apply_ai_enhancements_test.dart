@@ -83,17 +83,39 @@ void main() {
       expect(result.experiences.first.poste, 'A');
     });
 
-    test('les skills IA remplacent la liste par index avec fallback', () {
+    test(
+        'plus de skills IA que dans le CV : ameliore par index, extras IA ignores (fusion stricte)',
+        () {
       final result = apply(baseCv(), {
         'skills': [
           {'nom': 'Dart', 'niveau': 5},
-          {'nom': 'Flutter'}, // niveau absent -> defaut
+          {'nom': 'Flutter'}, // pas de competence utilisateur -> non ajoutee
         ],
       });
-      expect(result.skills.length, 2);
+      expect(result.skills.length, 1,
+          reason: "l'IA n'ajoute pas une competence non saisie par l'utilisateur");
       expect(result.skills[0].id, 5); // ancien id conserve pour index 0
-      expect(result.skills[0].nom, 'Dart');
-      expect(result.skills[1].niveau, 3); // defaut
+      expect(result.skills[0].nom, 'Dart'); // reformule
+      expect(result.skills[0].niveau, 5);
+    });
+
+    test(
+        'moins de skills IA que dans le CV : les competences utilisateur ne sont pas supprimees (M-3)',
+        () {
+      final cv = baseCv().copyWith(skills: const [
+        Skill(id: 5, nom: 'Java', niveau: 4),
+        Skill(id: 6, nom: 'Dart', niveau: 5),
+      ]);
+      final result = apply(cv, {
+        'skills': [
+          {'nom': 'Java 21', 'niveau': 5},
+        ],
+      });
+      expect(result.skills.length, 2,
+          reason: 'la 2e competence utilisateur est conservee');
+      expect(result.skills[0].nom, 'Java 21'); // index 0 ameliore
+      expect(result.skills[1].nom, 'Dart'); // conserve
+      expect(result.skills[1].id, 6); // id conserve
     });
 
     test('valeur non-liste pour une section : section inchangee', () {
