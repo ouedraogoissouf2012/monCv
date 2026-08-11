@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../utils/app_colors.dart';
 
 /// Badges d'etat en tete de carte CV (issue #249, D3) : variante et/ou CV cree

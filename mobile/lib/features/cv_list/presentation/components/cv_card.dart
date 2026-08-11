@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../services/cv_readiness_service.dart';
 import 'cv_card_actions.dart';
 import 'cv_card_badges.dart';

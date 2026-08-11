@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/domain/entities/education.dart';
+import '../../../../features/cv/domain/entities/experience.dart';
 import '../../../../utils/cv_levels.dart';
 import '../../domain/cv_document_view_model.dart';
 import '../sections/cv_entry_widgets.dart';

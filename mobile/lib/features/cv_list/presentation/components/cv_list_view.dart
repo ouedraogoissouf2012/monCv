@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../utils/responsive.dart';
 
 /// Vue liste (mobile) / grille (desktop) des CV (issue #249, D4). Extraite de
