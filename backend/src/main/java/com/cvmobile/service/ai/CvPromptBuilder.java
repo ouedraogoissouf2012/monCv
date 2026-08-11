@@ -66,7 +66,8 @@ public class CvPromptBuilder {
         sb.append("Tu es un expert en redaction de CV professionnels. ");
         sb.append("Adapte ce CV pour correspondre au maximum a cette offre d'emploi. ");
         sb.append("Extrait aussi un titre court de l'offre (ex: 'Developpeur Backend Java — Sopra Steria'). ");
-        sb.append("OFFRE D'EMPLOI:\n").append(jobDescription).append("\n\n");
+        sb.append(AiPromptRules.INJECTION_GUARD);
+        sb.append("OFFRE D'EMPLOI:\n").append(AiPromptRules.fenceUserContent(jobDescription)).append("\n\n");
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
