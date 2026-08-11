@@ -1,4 +1,5 @@
 import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/ai/domain/entities/enhanced_cv.dart';
 import 'package:cv_mobile/features/cv/application/state/cv_operation_state.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
@@ -123,16 +124,70 @@ void main() {
       expect(ok, isFalse);
     });
 
-    test('avec CV courant : applique et persiste', () async {
-      store.setCurrentCv(cv(1, titre: 'CV'));
-      store.setCvs([cv(1, titre: 'CV')]);
-      when(() => repository.updateCv(any(), any()))
-          .thenAnswer((_) async => Success(cv(1)));
+    test('succes : applique, persiste et reconcilie avec la version serveur',
+        () async {
+      final base = Cv(
+        id: 1,
+        titre: 'CV',
+        personalInfo: const PersonalInfo(
+            nom: 'A', prenom: 'B', titrePoste: 'Ancien'),
+      );
+      store.setCurrentCv(base);
+      store.setCvs([base]);
+      // Le serveur echo le CV persiste (l'amelioree).
+      when(() => repository.updateCv(any(), any())).thenAnswer(
+          (inv) async => Success(inv.positionalArguments[1] as Cv));
 
       final ok = await editor.applyAiEnhancements(1, {'titrePoste': 'Lead'});
 
       expect(ok, isTrue);
-      expect(store.currentCv?.personalInfo?.titrePoste ?? 'Lead', 'Lead');
+      expect(store.currentCv?.personalInfo?.titrePoste, 'Lead',
+          reason: 'amelioration reellement appliquee et reflechie dans le store');
+      verify(() => repository.updateCv(1, any())).called(1);
+    });
+
+    test(
+        'echec de persistance serveur : retourne false (pas de faux succes) [M-2]',
+        () async {
+      final base = Cv(
+        id: 1,
+        titre: 'CV',
+        personalInfo: const PersonalInfo(
+            nom: 'A', prenom: 'B', titrePoste: 'Ancien'),
+      );
+      store.setCurrentCv(base);
+      store.setCvs([base]);
+      when(() => repository.updateCv(any(), any())).thenAnswer(
+          (_) async => const Failure(NetworkException(message: 'offline')));
+
+      final ok = await editor.applyAiEnhancements(1, {'titrePoste': 'Lead'});
+
+      expect(ok, isFalse,
+          reason: 'un echec serveur ne doit jamais etre rapporte comme succes');
+      expect(store.currentCv?.personalInfo?.titrePoste, 'Ancien',
+          reason: 'aucun etat local non persiste apres echec');
+      verify(() => repository.updateCv(1, any())).called(1);
+    });
+
+    test(
+        'applyEnhancedCv (voie typee) : echec serveur -> false, store inchange [M-2]',
+        () async {
+      final base = Cv(
+        id: 1,
+        titre: 'CV',
+        personalInfo: const PersonalInfo(
+            nom: 'A', prenom: 'B', titrePoste: 'Ancien'),
+      );
+      store.setCurrentCv(base);
+      store.setCvs([base]);
+      when(() => repository.updateCv(any(), any())).thenAnswer(
+          (_) async => const Failure(ServerException(message: 'boom')));
+
+      final ok = await editor.applyEnhancedCv(
+          1, const EnhancedCv(titrePoste: 'Lead'));
+
+      expect(ok, isFalse);
+      expect(store.currentCv?.personalInfo?.titrePoste, 'Ancien');
       verify(() => repository.updateCv(1, any())).called(1);
     });
   });

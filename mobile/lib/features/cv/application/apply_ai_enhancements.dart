@@ -74,18 +74,15 @@ class ApplyAiEnhancements {
           description: _has(e.description) ? e.description! : old.description,
         );
       }),
-      skills: enhanced.skills.isEmpty
-          ? cv.skills
-          : List.generate(enhanced.skills.length, (i) {
-              final old = i < cv.skills.length ? cv.skills[i] : null;
-              final s = enhanced.skills[i];
-              return Skill(
-                id: old?.id,
-                nom: s.nom ?? old?.nom ?? '',
-                niveau: s.niveau ?? old?.niveau ?? 3,
-                categorie: old?.categorie,
-              );
-            }),
+      skills: _zipMerge(cv.skills, enhanced.skills, (old, s) {
+        if (!_has(s.nom) && s.niveau == null) return old;
+        return Skill(
+          id: old.id,
+          nom: _has(s.nom) ? s.nom : old.nom,
+          niveau: s.niveau ?? old.niveau,
+          categorie: old.categorie,
+        );
+      }),
       languages: _zipMerge(cv.languages, enhanced.languages, (old, e) {
         if (!_has(e.langue)) return old;
         return Language(id: old.id, langue: e.langue!, niveau: old.niveau);
@@ -223,17 +220,21 @@ class ApplyAiEnhancements {
   }
 
   List<Skill> _mergeSkills(List<Skill> current, dynamic raw) {
-    if (raw is! List || raw.isEmpty) return List<Skill>.from(current);
-    return List.generate(raw.length, (index) {
-      final old = index < current.length ? current[index] : null;
-      final skill = raw[index] as Map<String, dynamic>;
-      return Skill(
-        id: old?.id,
-        nom: skill['nom'] as String? ?? old?.nom ?? '',
-        niveau: skill['niveau'] as int? ?? old?.niveau ?? 3,
-        categorie: old?.categorie,
+    final updated = List<Skill>.from(current);
+    if (raw is! List) return updated;
+    for (var i = 0; i < raw.length && i < updated.length; i++) {
+      final nom = raw[i]['nom'] as String?;
+      final niveau = raw[i]['niveau'] as int?;
+      if (!_has(nom) && niveau == null) continue;
+      final old = updated[i];
+      updated[i] = Skill(
+        id: old.id,
+        nom: _has(nom) ? nom : old.nom,
+        niveau: niveau ?? old.niveau,
+        categorie: old.categorie,
       );
-    });
+    }
+    return updated;
   }
 
   List<Language> _mergeLanguages(List<Language> current, dynamic raw) {

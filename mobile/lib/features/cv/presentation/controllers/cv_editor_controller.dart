@@ -176,10 +176,17 @@ class CvEditorController {
   }
 
   Future<bool> _persist(int cvId, Cv updatedCv) async {
-    _store.replaceCv(cvId, updatedCv);
-    _store.setCurrentCv(updatedCv);
-    // Persistance best-effort ; propagation du resultat en PR offline.
-    await _repository.updateCv(cvId, updatedCv);
-    return true;
+    final result = await _repository.updateCv(cvId, updatedCv);
+    switch (result) {
+      case Success(:final data):
+        // Reconcilier le store avec la version serveur (ids/normalisation).
+        _store.replaceCv(cvId, data);
+        _store.setCurrentCv(data);
+        return true;
+      case Failure():
+        // Echec d'ecriture serveur : ne pas pretendre au succes ni laisser
+        // d'etat local non persiste (aucune mise a jour optimiste appliquee).
+        return false;
+    }
   }
 }

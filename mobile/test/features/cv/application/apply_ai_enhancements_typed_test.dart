@@ -56,6 +56,26 @@ void main() {
       expect(out.skills.first.niveau, 4, reason: 'niveau original conserve');
     });
 
+    test(
+        'liste de competences IA plus courte -> competences utilisateur conservees (M-3)',
+        () {
+      final cv = sampleCv().copyWith(skills: const [
+        Skill(id: 20, nom: 'Java', niveau: 4),
+        Skill(id: 21, nom: 'Dart', niveau: 5),
+        Skill(id: 22, nom: 'SQL', niveau: 3),
+      ]);
+      // L'IA ne renvoie qu'une competence (ex. regle produit "Max 10", ou tri).
+      const enhanced = EnhancedCv(skills: [EnhancedSkill(nom: 'Java 21', niveau: 5)]);
+      final out = apply.fromEnhanced(cv, enhanced);
+      expect(out.skills, hasLength(3),
+          reason: 'aucune competence utilisateur supprimee');
+      expect(out.skills[0].nom, 'Java 21', reason: 'index 0 ameliore');
+      expect(out.skills[1].nom, 'Dart', reason: 'conserve');
+      expect(out.skills[1].id, 21, reason: 'id conserve');
+      expect(out.skills[2].nom, 'SQL', reason: 'conserve');
+      expect(out.skills[2].id, 22, reason: 'id conserve');
+    });
+
     test('liste amelioree plus courte -> extras du CV inchanges', () {
       final cv = sampleCv().copyWith(experiences: [
         const Experience(id: 10, poste: 'A', description: 'da'),
