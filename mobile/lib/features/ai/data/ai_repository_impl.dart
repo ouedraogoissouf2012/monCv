@@ -17,12 +17,16 @@ class HttpAiRepository implements AiRepository {
   final AiRemoteDataSource _dataSource;
 
   @override
-  Future<Result<EnhancedCv>> enhanceCv(int cvId, String level) =>
-      safeCall(() => _dataSource.enhanceCv(cvId, level));
+  Future<Result<EnhancedCv>> enhanceCv(int cvId, String level,
+          {required bool consentAccepted}) =>
+      safeCall(() => _dataSource.enhanceCv(cvId, level,
+          consentAccepted: consentAccepted));
 
   @override
-  Future<Result<JobMatch>> matchJob(int cvId, String jobDescription) =>
-      safeCall(() => _dataSource.matchJob(cvId, jobDescription));
+  Future<Result<JobMatch>> matchJob(int cvId, String jobDescription,
+          {required bool consentAccepted}) =>
+      safeCall(() => _dataSource.matchJob(cvId, jobDescription,
+          consentAccepted: consentAccepted));
 
   @override
   Future<Result<ApplicationMessages>> generateApplicationMessages(

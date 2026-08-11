@@ -16,8 +16,10 @@ import 'mapper/job_match_mapper.dart';
 /// [AppException] (traduite par le transport) ; le repository la convertit en
 /// [Result].
 abstract interface class AiRemoteDataSource {
-  Future<EnhancedCv> enhanceCv(int cvId, String level);
-  Future<JobMatch> matchJob(int cvId, String jobDescription);
+  Future<EnhancedCv> enhanceCv(int cvId, String level,
+      {required bool consentAccepted});
+  Future<JobMatch> matchJob(int cvId, String jobDescription,
+      {required bool consentAccepted});
   Future<ApplicationMessages> generateApplicationMessages(
     int cvId,
     String jobDescription,
@@ -44,24 +46,26 @@ class HttpAiRemoteDataSource implements AiRemoteDataSource {
   final ApiTransport _transport;
 
   @override
-  Future<EnhancedCv> enhanceCv(int cvId, String level) async {
+  Future<EnhancedCv> enhanceCv(int cvId, String level,
+      {required bool consentAccepted}) async {
     final json = await _transport.sendJsonObject(
       ApiRequest.post('/ai/enhance-cv', body: {
         'cvId': cvId,
         'level': level,
-        'aiConsentAccepted': true,
+        'aiConsentAccepted': consentAccepted,
       }),
     );
     return EnhancedCvMapper.fromDto(EnhancedCvDto.fromJson(json));
   }
 
   @override
-  Future<JobMatch> matchJob(int cvId, String jobDescription) async {
+  Future<JobMatch> matchJob(int cvId, String jobDescription,
+      {required bool consentAccepted}) async {
     final json = await _transport.sendJsonObject(
       ApiRequest.post('/ai/match-job', body: {
         'cvId': cvId,
         'jobDescription': jobDescription,
-        'aiConsentAccepted': true,
+        'aiConsentAccepted': consentAccepted,
       }),
     );
     return JobMatchMapper.fromDto(JobMatchDto.fromJson(json));

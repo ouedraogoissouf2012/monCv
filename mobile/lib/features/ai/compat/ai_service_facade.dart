@@ -28,11 +28,16 @@ class AiCvService {
   }) =>
       _dataSource.generateResume(titrePoste, competences, experience);
 
-  Future<Map<String, dynamic>> enhanceCv(int cvId, String level) async =>
-      (await _dataSource.enhanceCv(cvId, level)).toLegacyMap();
+  Future<Map<String, dynamic>> enhanceCv(int cvId, String level,
+          {required bool consentAccepted}) async =>
+      (await _dataSource.enhanceCv(cvId, level, consentAccepted: consentAccepted))
+          .toLegacyMap();
 
-  Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription) async =>
-      (await _dataSource.matchJob(cvId, jobDescription)).toLegacyMap();
+  Future<Map<String, dynamic>> matchJob(int cvId, String jobDescription,
+          {required bool consentAccepted}) async =>
+      (await _dataSource.matchJob(cvId, jobDescription,
+              consentAccepted: consentAccepted))
+          .toLegacyMap();
 
   Future<Map<String, dynamic>> generateApplicationMessages(
     int cvId,

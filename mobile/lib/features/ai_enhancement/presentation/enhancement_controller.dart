@@ -91,8 +91,10 @@ class EnhancementController extends ChangeNotifier {
     _changes = const [];
     notifyListeners();
 
-    final outcome = await _enhanceCv(
-        EnhanceCvParams(cvId: _cv.id!, level: _level.backendId));
+    final outcome = await _enhanceCv(EnhanceCvParams(
+        cvId: _cv.id!,
+        level: _level.backendId,
+        consentAccepted: _consentAccepted));
 
     switch (outcome) {
       case Success(:final data):

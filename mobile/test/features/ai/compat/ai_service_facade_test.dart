@@ -24,7 +24,7 @@ void main() {
 
   test('enhanceCv reconvertit EnhancedCv en Map backend (toutes sections)',
       () async {
-    when(() => ds.enhanceCv(1, 'MAX')).thenAnswer(
+    when(() => ds.enhanceCv(1, 'MAX', consentAccepted: true)).thenAnswer(
       (_) async => const EnhancedCv(
         titrePoste: 'Dev',
         resumeProfessionnel: 'resume',
@@ -42,7 +42,7 @@ void main() {
       ),
     );
 
-    final map = await facade.enhanceCv(1, 'MAX');
+    final map = await facade.enhanceCv(1, 'MAX', consentAccepted: true);
 
     expect(map['titrePoste'], 'Dev');
     expect(map['resumeProfessionnel'], 'resume');
@@ -61,10 +61,10 @@ void main() {
 
   test('enhanceCv sans sous-listes -> Map avec listes vides (null-safe)',
       () async {
-    when(() => ds.enhanceCv(1, 'LITE'))
+    when(() => ds.enhanceCv(1, 'LITE', consentAccepted: true))
         .thenAnswer((_) async => const EnhancedCv(aiGenerated: true));
 
-    final map = await facade.enhanceCv(1, 'LITE');
+    final map = await facade.enhanceCv(1, 'LITE', consentAccepted: true);
 
     expect(map['experiences'], isEmpty);
     expect(map['educations'], isEmpty);
@@ -74,7 +74,7 @@ void main() {
   });
 
   test('matchJob reconvertit JobMatch en Map backend', () async {
-    when(() => ds.matchJob(2, 'Offre')).thenAnswer(
+    when(() => ds.matchJob(2, 'Offre', consentAccepted: true)).thenAnswer(
       (_) async => const JobMatch(
         score: 88,
         matchedKeywords: ['Flutter'],
@@ -89,7 +89,7 @@ void main() {
       ),
     );
 
-    final map = await facade.matchJob(2, 'Offre');
+    final map = await facade.matchJob(2, 'Offre', consentAccepted: true);
 
     expect(map['score'], 88);
     expect(map['matchedKeywords'], ['Flutter']);

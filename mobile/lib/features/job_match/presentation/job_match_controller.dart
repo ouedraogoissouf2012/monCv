@@ -120,6 +120,7 @@ class JobMatchController extends ChangeNotifier {
     final outcome = await _matchJob(MatchJobParams(
       cvId: _cvId,
       jobDescription: _jobDescription.trim(),
+      consentAccepted: _consentAccepted,
     ));
 
     switch (outcome) {
