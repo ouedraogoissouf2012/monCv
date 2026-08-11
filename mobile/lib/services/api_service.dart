@@ -256,18 +256,6 @@ class ApiService implements IApiClient {
         description: description,
       );
 
-  @override
-  Future<Map<String, dynamic>> enhanceCv(int cvId, String level) =>
-      _ai.enhanceCv(cvId, level);
-
-  @override
-  Future<String> generateResume(
-    String? titrePoste,
-    String? competences,
-    String? experience,
-  ) =>
-      _ai.generateResume(titrePoste, competences, experience);
-
   // ── Photos ────────────────────────────────────────────────────
   @override
   Future<String> uploadPhoto(XFile photo) => _photo.uploadPhoto(photo);
