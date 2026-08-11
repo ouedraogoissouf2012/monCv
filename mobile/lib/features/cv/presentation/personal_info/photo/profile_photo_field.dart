@@ -52,36 +52,40 @@ class _ProfilePhotoFieldState extends State<ProfilePhotoField> {
     if (picked == null || !mounted) return;
 
     setState(() => _uploading = true);
-    final bytes = await picked.readAsBytes();
-    if (!mounted) return;
+    try {
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
 
-    // Apercu local immediat (l'utilisateur voit sa photo tout de suite).
-    setState(() {
-      widget.controller.photoBytes = bytes;
-      _uploading = false;
-    });
+      // Apercu local immediat (l'utilisateur voit sa photo tout de suite).
+      // _uploading reste VRAI pendant l'upload reseau qui suit : sinon le bouton
+      // se reactive et un second upload concurrent devient possible.
+      setState(() => widget.controller.photoBytes = bytes);
 
-    final result = kIsWeb
-        ? await widget.uploadPhoto(PhotoBytesSource(
-            bytes: bytes,
-            filename: picked.name,
-            mimeType: picked.mimeType ?? 'image/jpeg',
-          ))
-        : await widget.uploadPhoto(PhotoFileSource(picked.path));
-    if (!mounted) return;
+      final result = kIsWeb
+          ? await widget.uploadPhoto(PhotoBytesSource(
+              bytes: bytes,
+              filename: picked.name,
+              mimeType: picked.mimeType ?? 'image/jpeg',
+            ))
+          : await widget.uploadPhoto(PhotoFileSource(picked.path));
+      if (!mounted) return;
 
-    switch (result) {
-      case Success(:final data):
-        setState(() => widget.controller.photoUrl = data);
-      case Failure():
-        // La photo reste visible en local ; on informe sans bloquer.
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(l.photoLocalOnly('')),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-        ));
+      switch (result) {
+        case Success(:final data):
+          setState(() => widget.controller.photoUrl = data);
+        case Failure():
+          // La photo reste visible en local ; on informe sans bloquer.
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l.photoLocalOnly('')),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ));
+      }
+      widget.onChanged();
+    } finally {
+      // Toujours relacher le verrou d'upload, meme sur erreur de lecture.
+      if (mounted) setState(() => _uploading = false);
     }
-    widget.onChanged();
   }
 
   Future<ImageSource?> _chooseSource() {
