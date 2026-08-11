@@ -42,6 +42,7 @@ import '../../services/i_api_client.dart';
 import '../../services/pdf_service.dart';
 import '../network/api_transport.dart';
 import '../network/multipart_transport.dart';
+import '../network/session_refresher.dart';
 import '../network/token_store.dart';
 import '../../services/share_service.dart';
 import '../../services/connectivity_service.dart';
@@ -90,8 +91,15 @@ Future<void> initDependencies() async {
   // ── Transport reseau (issue #237) ─────────────────────────────
   sl.registerLazySingleton<http.Client>(() => http.Client());
   sl.registerLazySingleton<TokenStore>(() => SecureTokenStore());
-  sl.registerLazySingleton<ApiTransport>(
-      () => ApiTransport(sl<http.Client>(), sl<TokenStore>()));
+  // Refresh de session single-flight sur 401 (issue M-7). Singleton : l'etat
+  // "refresh en cours" est partage par toutes les requetes du pipeline.
+  sl.registerLazySingleton<SessionRefresher>(
+      () => HttpSessionRefresher(sl<http.Client>(), sl<TokenStore>()));
+  sl.registerLazySingleton<ApiTransport>(() => ApiTransport(
+        sl<http.Client>(),
+        sl<TokenStore>(),
+        refresher: sl<SessionRefresher>(),
+      ));
   sl.registerLazySingleton<MultipartTransport>(
       () => MultipartTransport(sl<http.Client>(), sl<TokenStore>()));
 
