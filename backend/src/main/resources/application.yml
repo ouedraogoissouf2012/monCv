@@ -29,8 +29,29 @@ spring:
       max-file-size: 5MB
       max-request-size: 6MB
 
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
   port: ${SERVER_PORT:8082}
+
+# Envoi d'email (issue #381) — desactive par defaut (LoggingPasswordResetEmailSender simule l'envoi)
+mail:
+  enabled: ${MAIL_ENABLED:false}
+  from: ${MAIL_FROM:no-reply@moncv.app}
+
+# URL du frontend utilisee pour construire les liens envoyes par email (reinitialisation de mot de passe)
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:8080}
 
 # Upload
 upload:
