@@ -207,4 +207,40 @@ class EnhancementServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class);
         verifyNoInteractions(aiClient);
     }
+
+    @Test
+    void enhanceCvMedium_apparieLesNiveauxParNomMemeSiLIaReordonneLesCompetences() {
+        Cv cv = Cv.builder().id(42L)
+                .personalInfo(PersonalInfo.builder().titrePoste("Developpeur").build())
+                .experiences(List.of()).educations(List.of())
+                .skills(List.of(
+                        Skill.builder().id(3L).nom("Java").niveau(5).build(),
+                        Skill.builder().id(4L).nom("Python").niveau(2).build(),
+                        Skill.builder().id(8L).nom("SQL").niveau(4).build()))
+                .languages(List.of()).certifications(List.of()).projects(List.of())
+                .build();
+        when(cvOwnershipService.requireOwnedCv(42L, 7L)).thenReturn(cv);
+        // L'IA renvoie les MEMES competences mais REORDONNEES.
+        when(aiClient.complete(anyString(), anyInt())).thenReturn("""
+                TITRE_POSTE:
+                Developpeur
+                RESUME:
+                Profil.
+                COMPETENCES:
+                Python, SQL, Java
+                """);
+
+        EnhanceCvResponse response = service.enhanceCv(42L, 7L, "MEDIUM");
+
+        // Chaque niveau doit suivre SA competence par NOM, pas par position :
+        // un reordonnancement ne doit pas decaler Java 5/5 vers Python.
+        java.util.Map<String, Integer> levelByName = response.getSkills().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        s -> s.getNom().toLowerCase(java.util.Locale.ROOT),
+                        EnhanceCvResponse.SkillEnhancement::getNiveau));
+        assertThat(levelByName)
+                .containsEntry("java", 5)
+                .containsEntry("python", 2)
+                .containsEntry("sql", 4);
+    }
 }
