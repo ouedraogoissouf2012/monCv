@@ -2,6 +2,7 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.AuthResponse;
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.dto.UpdateProfileRequest;
 import com.cvmobile.mapper.UserMapper;
 import com.cvmobile.model.User;
 import com.cvmobile.service.cv.ICvService;
@@ -9,6 +10,7 @@ import com.cvmobile.service.user.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,13 +39,16 @@ public class UserController {
     @Operation(summary = "Mettre a jour le profil de l'utilisateur connecte")
     public ResponseEntity<AuthResponse.UserDto> updateCurrentUser(
             @AuthenticationPrincipal User user,
-            @RequestBody Map<String, String> updates) {
+            @Valid @RequestBody UpdateProfileRequest request) {
 
-        if (updates.containsKey("nom")) {
-            user.setNom(updates.get("nom"));
+        // Mise a jour partielle : un champ null reste inchange (comportement
+        // preserve depuis l'ancien Map). Les valeurs fournies sont bornees a
+        // 100 caracteres (@Size sur le DTO), plus de mass-assignment non type.
+        if (request.getNom() != null) {
+            user.setNom(request.getNom());
         }
-        if (updates.containsKey("prenom")) {
-            user.setPrenom(updates.get("prenom"));
+        if (request.getPrenom() != null) {
+            user.setPrenom(request.getPrenom());
         }
 
         User updatedUser = userService.save(user);
