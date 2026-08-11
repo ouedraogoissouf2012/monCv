@@ -48,4 +48,31 @@ class AiConsentValidationTest {
         assertThat(violations).extracting(v -> v.getPropertyPath().toString())
                 .contains("jobDescription", "tone", "aiConsentAccepted");
     }
+
+    @Test
+    void matchJob_rejetteUneOffreTropLongue() {
+        JobMatchRequest request = new JobMatchRequest();
+        request.setCvId(42L);
+        request.setJobDescription("a".repeat(20001));
+        request.setAiConsentAccepted(true);
+
+        var violations = validator.validate(request);
+
+        assertThat(violations).extracting(v -> v.getPropertyPath().toString())
+                .contains("jobDescription");
+    }
+
+    @Test
+    void generateResume_rejetteDesChampsTropLongs() {
+        GenerateResumeRequest request = new GenerateResumeRequest();
+        request.setTitrePoste("a".repeat(201));
+        request.setCompetences("a".repeat(5001));
+        request.setExperience("a".repeat(5001));
+        request.setAiConsentAccepted(true);
+
+        var violations = validator.validate(request);
+
+        assertThat(violations).extracting(v -> v.getPropertyPath().toString())
+                .contains("titrePoste", "competences", "experience");
+    }
 }

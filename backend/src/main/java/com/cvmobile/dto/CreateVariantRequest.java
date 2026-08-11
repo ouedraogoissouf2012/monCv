@@ -13,6 +13,7 @@ import lombok.Data;
 public class CreateVariantRequest {
 
     @NotBlank(message = "Le texte de l'offre est obligatoire")
+    @Size(max = 20000, message = "L'offre ne doit pas depasser 20000 caracteres")
     private String jobDescription;
 
     @Size(max = 200, message = "Le label ne doit pas depasser 200 caracteres")
