@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../models/cv_style.dart';
 import '../../../repositories/cv_repository.dart';
 import '../validators/cv_form_validator.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
 import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/domain/entities/skill.dart';
 import '../../../utils/cv_levels.dart';
 
 class SkillsSection extends StatelessWidget {

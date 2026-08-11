@@ -4,7 +4,7 @@ import '../../../features/cv/presentation/section_editor/editable_section_list.d
 import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/domain/entities/education.dart';
 import '../../../features/cv/presentation/section_editor/section_form_fields.dart'
     show SectionDateButton;
 
