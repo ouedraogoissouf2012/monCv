@@ -35,10 +35,8 @@ class AuthHttpClient {
       final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
       await storeTokens(authResponse.accessToken, authResponse.refreshToken);
       return authResponse;
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Erreur lors de l\'inscription');
     }
+    throwTypedError(response);
   }
 
   Future<AuthResponse> login({
@@ -54,9 +52,7 @@ class AuthHttpClient {
       final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
       await storeTokens(authResponse.accessToken, authResponse.refreshToken);
       return authResponse;
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['message'] ?? 'Email ou mot de passe incorrect');
     }
+    throwTypedError(response);
   }
 }

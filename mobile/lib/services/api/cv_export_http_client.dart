@@ -17,7 +17,7 @@ class CvExportHttpClient {
     if (response.statusCode == 200) {
       return response.bodyBytes;
     } else {
-      throw Exception('Erreur lors du telechargement DOCX');
+      throwTypedError(response);
     }
   }
 
@@ -29,7 +29,7 @@ class CvExportHttpClient {
     if (response.statusCode == 200) {
       return response.bodyBytes;
     } else {
-      throw Exception('Erreur lors du téléchargement du PDF');
+      throwTypedError(response);
     }
   }
 }

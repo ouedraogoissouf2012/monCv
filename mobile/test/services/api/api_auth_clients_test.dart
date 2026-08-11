@@ -7,6 +7,7 @@ import 'package:cv_mobile/services/api/auth_http_client.dart';
 import 'package:cv_mobile/services/api/job_application_http_client.dart';
 import 'package:cv_mobile/services/api/notification_http_client.dart';
 import 'package:cv_mobile/services/api/user_http_client.dart';
+import 'package:cv_mobile/services/google_auth_http_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,8 +38,7 @@ void main() {
       expect(storedAccess, 'acc');
     });
 
-    test('login non-200 leve une Exception portant le message serveur',
-        () async {
+    test('login 401 leve une AuthException typee (M-9)', () async {
       final client = AuthHttpClient(
         headers: fakeHeaders,
         storeTokens: (_, __) async {},
@@ -49,7 +49,7 @@ void main() {
           () => client.login(email: 'a@b.c', password: 'bad'),
           (_) => http.Response(jsonEncode({'message': 'refuse'}), 401),
         ),
-        throwsA(predicate((e) => e.toString().contains('refuse'))),
+        throwsA(isA<AuthException>()),
       );
     });
 
@@ -166,6 +166,36 @@ void main() {
       );
 
       expect(cleared, isTrue);
+    });
+
+    test('getCurrentUser 401 leve une AuthException typee (M-9)', () async {
+      final client =
+          UserHttpClient(headers: fakeHeaders, clearTokens: () async {});
+
+      await expectLater(
+        withMockClient(
+          () => client.getCurrentUser(),
+          (_) => http.Response(jsonEncode({'message': 'expire'}), 401),
+        ),
+        throwsA(isA<AuthException>()),
+      );
+    });
+  });
+
+  group('GoogleAuthHttpClient', () {
+    test('request 401 leve une AuthException typee (M-9)', () async {
+      final client = GoogleAuthHttpClient(
+        headers: fakeHeaders,
+        storeTokens: (_, __) async {},
+      );
+
+      await expectLater(
+        withMockClient(
+          () => client.request('/google', 'cred', withAuth: false),
+          (_) => http.Response(jsonEncode({'message': 'refus'}), 401),
+        ),
+        throwsA(isA<AuthException>()),
+      );
     });
   });
 }

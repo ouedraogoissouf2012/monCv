@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../models/user.dart';
 import '../utils/constants.dart';
+import 'api/api_errors.dart';
 import 'http_timeout.dart' as http;
 
 typedef HeaderFactory = Future<Map<String, String>> Function({bool withAuth});
@@ -26,8 +27,7 @@ class GoogleAuthHttpClient {
       body: jsonEncode({'credential': credential}),
     );
     if (response.statusCode != 200) {
-      final error = jsonDecode(response.body) as Map<String, dynamic>;
-      throw Exception(error['message'] ?? 'Connexion Google impossible');
+      throwTypedError(response);
     }
     final auth = AuthResponse.fromJson(jsonDecode(response.body));
     await storeTokens(auth.accessToken, auth.refreshToken);
