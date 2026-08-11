@@ -110,10 +110,13 @@ class CvProvider with ChangeNotifier {
     _store.addListener(notifyListeners);
     // Etat initial de connectivite avant toute mutation (#240, C4).
     _initConnectivity();
-    _connectivitySub = _connectivity.onConnectivityChanged.listen((online) {
+    _connectivitySub = _connectivity.onConnectivityChanged.listen((online) async {
       _store.setOffline(!online);
       if (online) {
-        _syncPendingOperations();
+        // Rejouer la file (reconciliation d'ids, deletes en attente) AVANT de
+        // decider un rechargement : sinon un GET liste concurrent peut ecraser
+        // une reconciliation en cours ou faire reapparaitre un CV supprime.
+        await _syncPendingOperations();
         if (_store.cvs.isEmpty) loadCvs();
       }
     });
