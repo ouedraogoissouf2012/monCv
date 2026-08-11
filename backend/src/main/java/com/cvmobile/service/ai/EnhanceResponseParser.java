@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -197,11 +199,21 @@ public class EnhanceResponseParser {
             return enhancements;
         }
 
-        for (int i = 0; i < parsedNames.size(); i++) {
-            Integer levelValue = i < originalSkills.size()
-                    ? originalSkills.get(i).getNiveau() : DEFAULT_SKILL_LEVEL;
+        // Apparier le niveau a SA competence par NOM (insensible a la casse) :
+        // un reordonnancement ou un filtrage des competences par l'IA ne doit
+        // pas decaler les niveaux (ex. Java 5/5 devenant Python 5/5). Une
+        // competence sans correspondance conserve le niveau par defaut.
+        Map<String, Integer> levelByName = new HashMap<>();
+        for (Skill original : originalSkills) {
+            levelByName.putIfAbsent(
+                    original.getNom().strip().toLowerCase(Locale.ROOT),
+                    original.getNiveau());
+        }
+        for (String parsedName : parsedNames) {
+            Integer levelValue = levelByName.getOrDefault(
+                    parsedName.strip().toLowerCase(Locale.ROOT), DEFAULT_SKILL_LEVEL);
             enhancements.add(EnhanceCvResponse.SkillEnhancement.builder()
-                    .nom(qualityService.cleanProfessionalTerm(parsedNames.get(i)))
+                    .nom(qualityService.cleanProfessionalTerm(parsedName))
                     .niveau(levelValue)
                     .build());
         }
