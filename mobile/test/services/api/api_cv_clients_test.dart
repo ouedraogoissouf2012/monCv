@@ -75,6 +75,27 @@ void main() {
       );
       expect(cv.titre, 'Importe');
     });
+
+    test('getAllCvs 401 leve une AuthException typee (M-9)', () async {
+      await expectLater(
+        withMockClient(
+          () => cvClient.getAllCvs(),
+          (_) => http.Response(jsonEncode({'message': 'expire'}), 401),
+        ),
+        throwsA(isA<AuthException>()),
+      );
+    });
+
+    test('importCv en erreur (400) leve une AppException typee (M-9)', () async {
+      // Chemin multipart/streame : l'erreur doit rester typee, pas une Exception brute.
+      await expectLater(
+        withMockClient(
+          () => cvClient.importCv(Uint8List.fromList([1]), 'cv.pdf'),
+          (_) => http.Response(jsonEncode({'message': 'format invalide'}), 400),
+        ),
+        throwsA(isA<AppException>()),
+      );
+    });
   });
 
   group('CvShareHttpClient', () {
@@ -105,6 +126,16 @@ void main() {
         throwsA(isA<NotFoundException>()),
       );
     });
+
+    test('generateShareLink 401 leve une AuthException typee (M-9)', () async {
+      await expectLater(
+        withMockClient(
+          () => shareClient.generateShareLink(1),
+          (_) => http.Response(jsonEncode({'message': 'non autorise'}), 401),
+        ),
+        throwsA(isA<AuthException>()),
+      );
+    });
   });
 
   group('CvExportHttpClient', () {
@@ -122,6 +153,17 @@ void main() {
       expect(captured.url.path, endsWith('/cvs/1/pdf'));
       expect(captured.url.queryParameters['template'], 'MODERNE');
       expect(bytes, [1, 2, 3]);
+    });
+
+    test('downloadCvDocx 404 leve NotFoundException typee (M-9)', () async {
+      const client = CvExportHttpClient(headers: fakeHeaders);
+      await expectLater(
+        withMockClient(
+          () => client.downloadCvDocx(1),
+          (_) => http.Response('introuvable', 404),
+        ),
+        throwsA(isA<NotFoundException>()),
+      );
     });
   });
 
@@ -167,6 +209,22 @@ void main() {
         isTrue,
       );
       expect(url, '/uploads/p.png');
+    });
+
+    test('uploadPhotoBytes en erreur leve une AppException typee (M-9)',
+        () async {
+      final client = PhotoHttpClient(accessToken: () async => 'test-token');
+      await expectLater(
+        withMockClient(
+          () => client.uploadPhotoBytes(
+            Uint8List.fromList([1]),
+            'p.png',
+            'image/png',
+          ),
+          (_) => http.Response(jsonEncode({'message': 'trop gros'}), 413),
+        ),
+        throwsA(isA<AppException>()),
+      );
     });
   });
 }

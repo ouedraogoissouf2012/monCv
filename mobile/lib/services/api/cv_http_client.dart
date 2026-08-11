@@ -26,7 +26,7 @@ class CvHttpClient {
       final data = jsonDecode(response.body) as List<dynamic>;
       return [for (final e in data) cvFromNetworkJson(e as Map<String, dynamic>)];
     } else {
-      throw Exception('Erreur lors de la recuperation des CV');
+      throwTypedError(response);
     }
   }
 
@@ -38,7 +38,7 @@ class CvHttpClient {
     if (response.statusCode == 200) {
       return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('CV non trouve');
+      throwTypedError(response);
     }
   }
 
@@ -74,7 +74,7 @@ class CvHttpClient {
       headers: await headers(),
     );
     if (response.statusCode != 204) {
-      throw Exception('Erreur lors de la suppression du CV');
+      throwTypedError(response);
     }
   }
 
@@ -88,7 +88,7 @@ class CvHttpClient {
     if (response.statusCode == 201) {
       return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('Erreur lors de la duplication du CV');
+      throwTypedError(response);
     }
   }
 
@@ -110,10 +110,7 @@ class CvHttpClient {
     if (response.statusCode == 201) {
       return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(
-        error['message'] ?? 'Erreur lors de la creation de la variante',
-      );
+      throwTypedError(response);
     }
   }
 
@@ -148,8 +145,9 @@ class CvHttpClient {
     if (streamed.statusCode == 201) {
       return cvFromNetworkJson(jsonDecode(body) as Map<String, dynamic>);
     } else {
-      final error = jsonDecode(body);
-      throw Exception(error['message'] ?? 'Erreur lors de l\'import du CV');
+      // Reponse multipart streamee : on reconstruit une Response pour la router
+      // vers le mapping type commun (M-9).
+      throwTypedError(http.Response(body, streamed.statusCode));
     }
   }
 }

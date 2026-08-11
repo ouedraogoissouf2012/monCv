@@ -73,9 +73,18 @@ class AuthProvider with ChangeNotifier {
           case Success(:final data):
             _user = data;
             _isAuthenticated = true;
-          case Failure():
-            await _repository.clearTokens();
-            _isAuthenticated = false;
+          case Failure(:final exception):
+            // Erreur transitoire (hors-ligne, serveur indisponible) : NE PAS
+            // detruire la session. Seul un jeton reellement rejete par le
+            // serveur (401/403 -> AuthException, typee via M-9) purge les jetons.
+            // Sinon on reste authentifie de facon optimiste : le jeton existe,
+            // il sera revalide au prochain appel reussi (M-6).
+            if (exception is AuthException) {
+              await _repository.clearTokens();
+              _isAuthenticated = false;
+            } else {
+              _isAuthenticated = true;
+            }
         }
       }
     } finally {

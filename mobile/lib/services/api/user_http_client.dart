@@ -8,6 +8,10 @@ import 'api_errors.dart';
 /// Transport HTTP du profil utilisateur (issue #258, ex-#237). Extrait de
 /// `ApiService`. La suppression de compte purge les jetons locaux via
 /// [clearTokens] apres confirmation du serveur.
+///
+/// Les erreurs non-2xx sont levees en [AppException] TYPEES via
+/// [throwTypedError] (401/403 -> AuthException, etc.), jamais en `Exception`
+/// brute : le type de l'erreur est ainsi exploitable en amont (issue M-9).
 class UserHttpClient {
   const UserHttpClient({required this.headers, required this.clearTokens});
 
@@ -21,9 +25,8 @@ class UserHttpClient {
     );
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Erreur lors de la recuperation du profil');
     }
+    throwTypedError(response);
   }
 
   Future<User> updateProfile({String? nom, String? prenom}) async {
@@ -37,9 +40,8 @@ class UserHttpClient {
     );
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Erreur lors de la mise a jour du profil');
     }
+    throwTypedError(response);
   }
 
   Future<Map<String, dynamic>> exportUserData() async {
@@ -51,9 +53,8 @@ class UserHttpClient {
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
-      throw Exception('Erreur lors de l\'export des donnees');
     }
+    throwTypedError(response);
   }
 
   Future<void> deleteAccount() async {
@@ -65,6 +66,6 @@ class UserHttpClient {
       await clearTokens();
       return;
     }
-    throw Exception('Erreur lors de la suppression du compte');
+    throwTypedError(response);
   }
 }

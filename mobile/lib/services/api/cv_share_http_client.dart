@@ -21,7 +21,7 @@ class CvShareHttpClient {
     if (response.statusCode == 200) {
       return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('Erreur lors de la génération du lien');
+      throwTypedError(response);
     }
   }
 

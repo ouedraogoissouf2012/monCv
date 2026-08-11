@@ -36,7 +36,7 @@ class PhotoHttpClient {
       final json = jsonDecode(body) as Map<String, dynamic>;
       return json['url'] as String;
     } else {
-      throw Exception('Erreur lors de l\'upload de la photo');
+      throwTypedError(http.Response(body, streamed.statusCode));
     }
   }
 
@@ -70,7 +70,7 @@ class PhotoHttpClient {
       final json = jsonDecode(body) as Map<String, dynamic>;
       return json['url'] as String;
     } else {
-      throw Exception('Erreur lors de l\'upload de la photo');
+      throwTypedError(http.Response(body, streamed.statusCode));
     }
   }
 }

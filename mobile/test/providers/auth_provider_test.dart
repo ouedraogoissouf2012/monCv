@@ -139,6 +139,24 @@ void main() {
       verify(() => mockRepo.clearTokens()).called(1);
     });
 
+    test('erreur reseau a la restauration : garde la session, pas de purge (M-6)',
+        () async {
+      when(() => mockStorage.read(key: 'access_token'))
+          .thenAnswer((_) async => 'stored-token');
+      when(() => mockGetUser(any())).thenAnswer(
+        (_) async => const Result.failure(NetworkException()),
+      );
+
+      final provider = buildProvider();
+
+      await _settleAuthCheck();
+
+      expect(provider.isCheckingAuth, false);
+      expect(provider.isAuthenticated, true,
+          reason: 'une erreur reseau transitoire ne doit pas deconnecter');
+      verifyNever(() => mockRepo.clearTokens());
+    });
+
     test('login succes', () async {
       when(() => mockLogin(any()))
           .thenAnswer((_) async => Result.success(_fakeAuthResponse()));
