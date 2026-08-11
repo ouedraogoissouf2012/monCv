@@ -73,13 +73,7 @@ abstract interface class IApiClient {
   Future<Cv> getPublicCv(String token);
   Future<List<int>> downloadPublicCv(String token, String format);
   Future<void> trackPublicShare(String token);
-  Future<Map<String, dynamic>> enhanceCv(int cvId, String level);
   Future<List<int>> downloadCvDocx(int id);
-  Future<String> generateResume(
-    String? titrePoste,
-    String? competences,
-    String? experience,
-  );
   Future<List<int>> downloadCvPdf(int id, {String template = 'MODERNE'});
   Future<Cv> importCv(Uint8List bytes, String filename);
 }
