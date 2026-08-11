@@ -40,8 +40,17 @@ class AiStatusProvider extends ChangeNotifier {
 
   void recordError(AiException error) {
     _lastFailureReason = error.message;
-    _retryAfter =
-        error.retryAfter == null ? null : DateTime.now().add(error.retryAfter!);
+    if (error.retryAfter != null) {
+      final candidate = DateTime.now().add(error.retryAfter!);
+      // Ne raccourcit jamais un backoff en cours : conserve le plus lointain.
+      if (_retryAfter == null || candidate.isAfter(_retryAfter!)) {
+        _retryAfter = candidate;
+      }
+    } else if (!_quotaDelayActive) {
+      // Erreur sans delai ET aucun quota actif : rien a preserver.
+      _retryAfter = null;
+    }
+    // Erreur sans delai mais quota encore actif : on PRESERVE le backoff.
     notifyListeners();
   }
 

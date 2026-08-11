@@ -55,4 +55,24 @@ void main() {
     expect(provider.available, isTrue);
     expect(notifications, 1);
   });
+
+  test(
+      'recordError : une erreur sans delai ne doit pas effacer un backoff de quota actif',
+      () {
+    provider.recordError(const AiException(
+        code: 'AI_QUOTA_EXCEEDED',
+        message: 'quota',
+        retryAfter: Duration(minutes: 10)));
+    final backoff = provider.retryAfter;
+    expect(backoff, isNotNull);
+
+    // Erreur ulterieure SANS delai (ex. provider down) : ne doit PAS effacer le
+    // backoff de quota encore actif.
+    provider.recordError(
+        const AiException(code: 'AI_PROVIDER_DOWN', message: 'down'));
+
+    expect(provider.retryAfter, backoff,
+        reason: 'le backoff de quota actif est preserve');
+    expect(provider.unavailableReason, contains("Limite d'usage"));
+  });
 }
