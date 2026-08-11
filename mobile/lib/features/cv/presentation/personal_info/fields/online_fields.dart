@@ -25,7 +25,7 @@ class OnlineFields extends StatelessWidget {
           decoration: InputDecoration(
             labelText: l.linkedin,
             prefixIcon: const Icon(Icons.link_rounded, size: 20),
-            hintText: 'Ex : linkedin.com/in/issouf-ouedraogo',
+            hintText: l.linkedinHint,
             helperText: l.linkedinHelper,
           ),
           keyboardType: TextInputType.url,
@@ -37,7 +37,7 @@ class OnlineFields extends StatelessWidget {
           decoration: InputDecoration(
             labelText: l.portfolio,
             prefixIcon: const Icon(Icons.language_rounded, size: 20),
-            hintText: 'Ex : github.com/issouf',
+            hintText: l.portfolioHint,
             helperText: l.portfolioHelper,
           ),
           keyboardType: TextInputType.url,

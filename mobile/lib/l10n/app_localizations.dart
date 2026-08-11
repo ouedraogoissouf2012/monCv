@@ -2198,6 +2198,18 @@ abstract class AppLocalizations {
   /// **'Optionnel - votre site ou portfolio'**
   String get portfolioHelper;
 
+  /// No description provided for @linkedinHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : linkedin.com/in/votre-nom'**
+  String get linkedinHint;
+
+  /// No description provided for @portfolioHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : github.com/votre-nom'**
+  String get portfolioHint;
+
   /// No description provided for @generateSummaryHelper.
   ///
   /// In fr, this message translates to:

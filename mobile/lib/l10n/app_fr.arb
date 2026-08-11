@@ -373,6 +373,8 @@
   "professionalLinksHelper": "Optionnel - ajoutez vos liens professionnels",
   "linkedinHelper": "Optionnel - votre profil LinkedIn",
   "portfolioHelper": "Optionnel - votre site ou portfolio",
+  "linkedinHint": "Ex : linkedin.com/in/votre-nom",
+  "portfolioHint": "Ex : github.com/votre-nom",
   "generateSummaryHelper": "Cliquez sur le bouton IA pour generer automatiquement",
   "summaryGenerated": "Resume genere par l'IA",
   "aiPersonalDataConsent": "J'accepte d'envoyer ces informations au service IA.",

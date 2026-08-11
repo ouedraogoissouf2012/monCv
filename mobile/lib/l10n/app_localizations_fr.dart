@@ -1134,6 +1134,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get portfolioHelper => 'Optionnel - votre site ou portfolio';
 
   @override
+  String get linkedinHint => 'Ex : linkedin.com/in/votre-nom';
+
+  @override
+  String get portfolioHint => 'Ex : github.com/votre-nom';
+
+  @override
   String get generateSummaryHelper =>
       'Cliquez sur le bouton IA pour generer automatiquement';
 
