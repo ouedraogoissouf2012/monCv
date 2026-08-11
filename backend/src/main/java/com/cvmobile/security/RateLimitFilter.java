@@ -122,6 +122,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     false
             );
         }
+        if (path.startsWith("/api/cvs/")
+                && "GET".equals(request.getMethod())
+                && (path.endsWith("/pdf") || path.endsWith("/docx"))) {
+            // Generation PDF/DOCX authentifiee (couteuse) : limitee PAR UTILISATEUR
+            // pour qu'un seul compte ne puisse pas epuiser CPU/memoire (M-11).
+            // Reutilise le quota de telechargement de document.
+            return new RateLimitRule(
+                    "cv-document",
+                    properties.publicDownloadRequests(),
+                    properties.publicDownloadWindow(),
+                    true
+            );
+        }
         return null;
     }
 
