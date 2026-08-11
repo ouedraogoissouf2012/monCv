@@ -5,14 +5,21 @@ import com.cvmobile.dto.NotificationDtos;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
-import java.util.Map;
+import java.util.*;
 
+@Slf4j
 @Service @RequiredArgsConstructor
 public class NotificationService {
+    /** Taille de page des crons de rappels : borne la memoire et la duree de
+     * chaque lecture, sans jamais retenir une transaction pendant les envois FCM. */
+    private static final int REMINDER_PAGE_SIZE = 100;
+
     private final DeviceTokenRepository tokens;
     private final NotificationPreferenceRepository preferences;
     private final NotificationDeliveryRepository deliveries;
@@ -51,33 +58,71 @@ public class NotificationService {
         return toDto(preferences.save(value));
     }
 
+    // Crons de rappels : VOLONTAIREMENT hors @Transactional (M-5). Les envois FCM
+    // sont des appels HTTP externes ; les tenir dans une transaction retiendrait
+    // une connexion DB pendant tout le batch. Chaque lecture (requete paginee
+    // fetch-join) et chaque enregistrement de dedup portent leur propre
+    // transaction courte ; l'envoi se fait entre les deux, hors transaction.
+
     @Scheduled(cron = "${notifications.reminder-cron:0 0 9 * * *}")
-    @Transactional
     public void sendStaleCvReminders() {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(notificationProperties.staleCvDays());
-        for (Cv cv : cvs.findByUpdatedAtBefore(cutoff)) {
-            if (!getPreferences(cv.getUser()).staleCvEnabled()) continue;
-            String period = YearMonth.now().toString();
-            sendOnce(cv, "STALE_CV", "stale:" + cv.getId() + ":" + period,
-                "Votre CV merite une mise a jour",
-                "Ajoutez vos nouvelles experiences et competences.");
+        String period = YearMonth.now().toString();
+        for (int page = 0; ; page++) {
+            List<Cv> batch = cvs.findStaleWithUser(cutoff, PageRequest.of(page, REMINDER_PAGE_SIZE));
+            if (batch.isEmpty()) break;
+            Map<Long, Boolean> staleEnabled = staleEnabledByUser(batch);
+            for (Cv cv : batch) {
+                if (!staleEnabled.getOrDefault(cv.getUser().getId(), true)) continue;
+                dispatchQuietly(() -> sendOnce(cv, "STALE_CV", "stale:" + cv.getId() + ":" + period,
+                    "Votre CV merite une mise a jour",
+                    "Ajoutez vos nouvelles experiences et competences."));
+            }
+            if (batch.size() < REMINDER_PAGE_SIZE) break;
         }
     }
 
     @Scheduled(cron = "${notifications.application-reminder-cron:0 15 9 * * *}")
-    @Transactional
     public void sendApplicationFollowUpReminders() {
-        var terminalStatuses = java.util.List.of(
+        List<JobApplicationStatus> terminalStatuses = List.of(
             JobApplicationStatus.OFFER,
             JobApplicationStatus.REJECTED,
             JobApplicationStatus.ARCHIVED);
-        for (JobApplication application : applications
-                .findByNextFollowUpLessThanEqualAndStatusNotIn(LocalDate.now(), terminalStatuses)) {
-            String key = "application-follow-up:" + application.getId() + ":" + application.getNextFollowUp();
-            sendOnce(application.getUser(), application.getCv(), "APPLICATION_FOLLOW_UP", key,
-                "Relance de candidature",
-                "Pensez a relancer " + application.getCompany() + " pour le poste " + application.getPosition(),
-                "/applications");
+        LocalDate today = LocalDate.now();
+        for (int page = 0; ; page++) {
+            List<JobApplication> batch = applications.findDueForFollowUpWithDetails(
+                today, terminalStatuses, PageRequest.of(page, REMINDER_PAGE_SIZE));
+            if (batch.isEmpty()) break;
+            for (JobApplication application : batch) {
+                String key = "application-follow-up:" + application.getId() + ":" + application.getNextFollowUp();
+                dispatchQuietly(() -> sendOnce(application.getUser(), application.getCv(),
+                    "APPLICATION_FOLLOW_UP", key,
+                    "Relance de candidature",
+                    "Pensez a relancer " + application.getCompany() + " pour le poste " + application.getPosition(),
+                    "/applications"));
+            }
+            if (batch.size() < REMINDER_PAGE_SIZE) break;
+        }
+    }
+
+    /** Preferences "CV inactif" du lot, chargees en une requete (evite le N+1) ;
+     * absence de ligne = active par defaut (gere par le getOrDefault appelant). */
+    private Map<Long, Boolean> staleEnabledByUser(List<Cv> batch) {
+        List<Long> userIds = batch.stream().map(cv -> cv.getUser().getId()).distinct().toList();
+        Map<Long, Boolean> enabled = new HashMap<>();
+        for (NotificationPreference p : preferences.findAllById(userIds)) {
+            enabled.put(p.getUserId(), p.isStaleCvEnabled());
+        }
+        return enabled;
+    }
+
+    /** Isole les erreurs par item : un envoi qui echoue (token invalide, dedup
+     * concurrent, panne FCM) ne doit pas interrompre le reste du batch. */
+    private void dispatchQuietly(Runnable send) {
+        try {
+            send.run();
+        } catch (RuntimeException e) {
+            log.warn("Rappel notification ignore apres erreur ({})", e.getClass().getSimpleName());
         }
     }
 

@@ -2,6 +2,7 @@ package com.cvmobile.repository;
 
 import com.cvmobile.model.JobApplication;
 import com.cvmobile.model.JobApplicationStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -29,6 +30,14 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Query("select a from JobApplication a left join fetch a.cv where a.id = :id and a.user.id = :userId")
     Optional<JobApplication> findOwnedById(@Param("id") Long id, @Param("userId") Long userId);
 
-    List<JobApplication> findByNextFollowUpLessThanEqualAndStatusNotIn(
-            LocalDate date, List<JobApplicationStatus> statuses);
+    /**
+     * Candidatures arrivees a echeance de relance, utilisateur (et CV si
+     * present) charges en une requete et pagines, pour le cron de rappels (M-5).
+     */
+    @Query("SELECT a FROM JobApplication a JOIN FETCH a.user LEFT JOIN FETCH a.cv "
+            + "WHERE a.nextFollowUp <= :date AND a.status NOT IN :statuses ORDER BY a.id")
+    List<JobApplication> findDueForFollowUpWithDetails(
+            @Param("date") LocalDate date,
+            @Param("statuses") List<JobApplicationStatus> statuses,
+            Pageable pageable);
 }
