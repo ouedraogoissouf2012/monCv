@@ -85,6 +85,7 @@ public class ApplicationMessageServiceImpl implements IApplicationMessageService
                 .append("N'invente aucun diplome, resultat, outil, entreprise, contact ou nombre.\n")
                 .append(AiPromptRules.FRANCOPHONE_MARKET_RULE).append('\n')
                 .append(AiPromptRules.ANTI_CLICHES_RULE).append('\n')
+                .append(AiPromptRules.INJECTION_GUARD).append('\n')
                 .append("Ne produis aucun markdown, aucune note et aucun texte hors des quatre sections. ")
                 .append("Utilise le ton ").append(toneInstruction(tone)).append(".\n")
                 .append("La lettre doit faire 220 a 320 mots et comporter des paragraphes courts. ")
@@ -96,7 +97,7 @@ public class ApplicationMessageServiceImpl implements IApplicationMessageService
                 .append(EMAIL).append("\n(texte)\n\n")
                 .append(LINKEDIN).append("\n(texte)\n\n")
                 .append(WHATSAPP).append("\n(texte)\n\n")
-                .append("---\nOFFRE D'EMPLOI :\n").append(jobDescription.strip()).append("\n\n")
+                .append("---\nOFFRE D'EMPLOI :\n").append(AiPromptRules.fenceUserContent(jobDescription.strip())).append("\n\n")
                 .append("---\nDONNEES REELLES DU CV :\n")
                 .append(cvFacts(cv));
         return prompt.toString();

@@ -27,6 +27,7 @@ public class JobMatchPromptBuilder {
         sb.append("Analyse ce CV par rapport a cette offre d'emploi et donne un score de correspondance.\n\n");
         sb.append(AiPromptRules.FRANCOPHONE_MARKET_RULE);
         sb.append(AiPromptRules.ANTI_CLICHES_RULE);
+        sb.append(AiPromptRules.INJECTION_GUARD);
         sb.append("Donne des suggestions courtes, concretes et directement actionnables. ");
         sb.append("Cite des mots-cles exacts quand c'est utile.\n\n");
         sb.append("Reponds EXACTEMENT dans ce format :\n\n");
@@ -36,7 +37,7 @@ public class JobMatchPromptBuilder {
         sb.append("SUGGESTIONS:\n- suggestion1\n- suggestion2\n- suggestion3\n\n");
         sb.append("RESUME_OPTIMISE:\n(resume professionnel reecrit pour correspondre a cette offre)\n\n");
 
-        sb.append("---\nOFFRE D'EMPLOI :\n").append(jobDescription).append("\n\n");
+        sb.append("---\nOFFRE D'EMPLOI :\n").append(AiPromptRules.fenceUserContent(jobDescription)).append("\n\n");
 
         sb.append("---\nCV DU CANDIDAT :\n");
         if (cv.getPersonalInfo() != null) {
