@@ -8,6 +8,7 @@ import '../error/error_mapper.dart';
 import '../error/result.dart';
 import 'api_request.dart';
 import 'api_response.dart';
+import 'session_refresher.dart';
 import 'token_store.dart';
 
 /// Pipeline HTTP unique de l'application.
@@ -23,11 +24,18 @@ class ApiTransport {
   ApiTransport(
     this._client,
     this._tokens, {
+    SessionRefresher? refresher,
     Duration timeout = const Duration(seconds: 20),
-  }) : _timeout = timeout;
+  })  : _refresher = refresher,
+        _timeout = timeout;
 
   final http.Client _client;
   final TokenStore _tokens;
+
+  /// Rafraichisseur de session, invoque sur un 401 authentifie (M-7). `null`
+  /// desactive l'interception (comportement historique preserve).
+  final SessionRefresher? _refresher;
+
   final Duration _timeout;
 
   /// Execute [request] et retourne la reponse brute normalisee, sans juger du
@@ -35,6 +43,19 @@ class ApiTransport {
   /// acceptables. Toute erreur reseau/systeme est deja traduite en
   /// [AppException].
   Future<ApiResponse> send(ApiRequest request) async {
+    var response = await _dispatchOnce(request);
+
+    // 401 sur une requete authentifiee : tenter un refresh (single-flight cote
+    // [SessionRefresher]) puis rejouer UNE fois avec le nouveau jeton (M-7).
+    // Aucune boucle : le rejeu n'est jamais re-intercepte.
+    if (response.statusCode == 401 && request.withAuth && _refresher != null) {
+      final refreshed = await _refresher!.refresh();
+      if (refreshed) response = await _dispatchOnce(request);
+    }
+    return response;
+  }
+
+  Future<ApiResponse> _dispatchOnce(ApiRequest request) async {
     final uri = _buildUri(request);
     final headers = await _buildHeaders(request);
     final encodedBody = request.body == null ? null : jsonEncode(request.body);
