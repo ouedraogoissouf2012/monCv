@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cv_mobile/features/cv/presentation/personal_info/personal_info_form_controller.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/personal_info.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

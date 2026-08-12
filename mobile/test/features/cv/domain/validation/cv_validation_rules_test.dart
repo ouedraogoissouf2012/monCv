@@ -2,7 +2,7 @@ import 'package:cv_mobile/features/cv/domain/validation/cv_validation_rules.dart
 import 'package:cv_mobile/features/cv/domain/validation/rules/personal_info_rules.dart';
 import 'package:cv_mobile/features/cv/domain/validation/rules/section_rules.dart';
 import 'package:cv_mobile/features/cv/domain/validation/validation_code.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

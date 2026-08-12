@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cv_mobile/features/cv_list/application/import_cv.dart';
 import 'package:cv_mobile/features/cv_list/presentation/cv_list_controller.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 
 /// Fichier PDF valide (extension + magic bytes `%PDF` + taille non nulle) : passe
 /// la validation locale de [CvImportPolicy] et atteint la gateway.

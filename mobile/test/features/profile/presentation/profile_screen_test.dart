@@ -11,7 +11,7 @@ import 'package:cv_mobile/features/account/application/export_account_data.dart'
 import 'package:cv_mobile/features/account/domain/account_repository.dart';
 import 'package:cv_mobile/features/profile/presentation/profile_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/notification_preferences.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';

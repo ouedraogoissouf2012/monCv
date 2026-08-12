@@ -5,7 +5,7 @@ import 'package:cv_mobile/features/cv_list/presentation/components/cv_card_badge
 import 'package:cv_mobile/features/cv_list/presentation/components/cv_card_header.dart';
 import 'package:cv_mobile/features/cv_list/presentation/components/cv_score_presentation.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

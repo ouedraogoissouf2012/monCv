@@ -4,7 +4,7 @@ import 'package:cv_mobile/features/ai/domain/entities/enhanced_cv.dart';
 import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/ai_enhancement/domain/enhancement_level.dart';
 import 'package:cv_mobile/features/ai_enhancement/presentation/enhancement_controller.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
