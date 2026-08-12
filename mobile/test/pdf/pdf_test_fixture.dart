@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/cv_style.dart';
 
 Cv professionalCv({String templateId = 'moderne'}) => Cv(

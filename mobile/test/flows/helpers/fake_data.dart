@@ -1,5 +1,5 @@
 import 'package:cv_mobile/models/user.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 
 User fakeUser({int id = 1, String email = 'test@example.com'}) => User(
       id: id,
