@@ -9,7 +9,7 @@ import 'package:cv_mobile/features/applications/domain/job_application_status.da
 import 'package:cv_mobile/features/applications/presentation/application_list_controller.dart';
 import 'package:cv_mobile/features/applications/presentation/applications_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,7 +17,7 @@ import 'package:provider/provider.dart';
 
 class _MockRepo extends Mock implements ApplicationRepository {}
 
-class _MockCvProvider extends Mock implements CvProvider {}
+class _MockCvListController extends Mock implements CvListController {}
 
 class _SpyLauncher implements ExternalLinkLauncher {
   final List<String?> opened = [];
@@ -32,7 +32,7 @@ class _SpyLauncher implements ExternalLinkLauncher {
 void main() {
   late _MockRepo repo;
   late _SpyLauncher launcher;
-  late _MockCvProvider cvProvider;
+  late _MockCvListController listController;
 
   setUpAll(() => registerFallbackValue(
       const JobApplication(company: 'x', position: 'y')));
@@ -40,13 +40,12 @@ void main() {
   setUp(() {
     repo = _MockRepo();
     launcher = _SpyLauncher();
-    cvProvider = _MockCvProvider();
-    when(() => cvProvider.cvs).thenReturn(const []);
-    when(() => cvProvider.loadCvs()).thenAnswer((_) async {});
+    listController = _MockCvListController();
+    when(() => listController.load()).thenAnswer((_) async {});
   });
 
-  Widget app() => ChangeNotifierProvider<CvProvider>.value(
-        value: cvProvider,
+  Widget app() => Provider<CvListController>.value(
+        value: listController,
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

@@ -6,7 +6,7 @@ import '../../core/di/injection_container.dart';
 import '../../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/cv/presentation/cv_presentation_model.dart';
-import '../../providers/cv_provider.dart';
+import '../../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../../repositories/cv_repository.dart';
 import '../../utils/constants.dart';
 import '../../widgets/cv_preview.dart';
@@ -138,7 +138,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
     if (!mounted) return;
 
     if (success) {
-      await context.read<CvProvider>().loadCvs();
+      await context.read<CvListController>().load();
       if (!mounted) return;
       router.pop();
       messenger.showSnackBar(
