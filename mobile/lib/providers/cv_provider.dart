@@ -9,7 +9,7 @@ import '../features/cv/presentation/controllers/cv_editor_controller.dart';
 import '../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../features/cv/presentation/controllers/cv_style_controller.dart';
 import '../features/cv/presentation/cv_store.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../models/cv_style.dart';
 import '../repositories/cv_repository.dart';
 import '../services/connectivity_service.dart';

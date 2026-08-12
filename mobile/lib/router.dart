@@ -11,7 +11,7 @@ import 'features/cv_list/application/import_cv.dart';
 import 'features/cv_list/presentation/cv_list_screen.dart';
 import 'features/cv_style/presentation/cv_style_controller.dart';
 import 'features/cv_style/presentation/cv_style_editor_screen.dart';
-import 'models/cv.dart';
+import 'features/cv/presentation/cv_presentation_model.dart';
 import 'providers/cv_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/i_api_client.dart';

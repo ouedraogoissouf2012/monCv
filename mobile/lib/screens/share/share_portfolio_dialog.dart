@@ -6,7 +6,7 @@ import '../../core/error/result.dart';
 import '../../features/cv_share/domain/cv_share_repository.dart';
 import '../../features/public_portfolio/domain/public_portfolio_repository.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/cv.dart';
+import '../../features/cv/presentation/cv_presentation_model.dart';
 import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/public_qr_code.dart';
