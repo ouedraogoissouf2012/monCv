@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import '../../../core/error/result.dart';
 import '../../../core/error/safe_call.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../domain/cv_import_policy.dart';
 
 /// Fichier a importer (octets + nom d'origine).

@@ -1,4 +1,4 @@
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 
 /// Une competence unitaire prete a afficher : un nom + un niveau borne
 /// (issue #243). Les competences saisies "Java, Python; Go" sont eclatees en

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../widgets/stats_badge.dart';
 import 'cv_score_presentation.dart';

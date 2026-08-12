@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/domain/entities/language.dart';
+import '../../../../features/cv/domain/entities/skill.dart';
 import '../../../../utils/cv_levels.dart';
 import '../../domain/cv_document_view_model.dart';
 import '../theme/cv_document_theme.dart';

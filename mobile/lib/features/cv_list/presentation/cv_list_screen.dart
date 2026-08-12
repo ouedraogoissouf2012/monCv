@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/navigation/app_shell.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../providers/cv_provider.dart';
 import '../../../services/pdf_service.dart';
 import '../../../utils/app_colors.dart';
