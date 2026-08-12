@@ -6,7 +6,7 @@ import '../../core/di/injection_container.dart';
 import '../../core/error/result.dart';
 import '../../features/public_portfolio/domain/public_portfolio_repository.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/cv.dart';
+import '../../features/cv/presentation/cv_presentation_model.dart';
 import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/pdf_saver.dart';
