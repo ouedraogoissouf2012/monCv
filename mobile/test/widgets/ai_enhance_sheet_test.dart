@@ -2,7 +2,7 @@ import 'package:cv_mobile/core/di/injection_container.dart';
 import 'package:cv_mobile/features/ai/application/enhance_cv_usecase.dart';
 import 'package:cv_mobile/features/ai/application/get_ai_status_usecase.dart';
 import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/widgets/ai_enhance_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

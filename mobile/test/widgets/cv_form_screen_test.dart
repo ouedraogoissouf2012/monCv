@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';

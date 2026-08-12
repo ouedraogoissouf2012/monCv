@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/public_portfolio/domain/public_portfolio_repository.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/screens/share/public_portfolio_screen.dart';
 import 'package:cv_mobile/services/i_api_client.dart';
 import 'package:cv_mobile/services/share_service.dart';
