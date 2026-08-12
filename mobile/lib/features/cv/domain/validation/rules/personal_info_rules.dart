@@ -1,4 +1,4 @@
-import '../../../../../features/cv/presentation/cv_presentation_model.dart';
+import '../../entities/cv.dart';
 import '../../policies/cv_validation_thresholds.dart';
 import '../cv_validation_rule.dart';
 import '../validation_code.dart';
@@ -14,7 +14,7 @@ class PersonalInfoRule implements CvValidationRule {
   static bool _blank(String? v) => v == null || v.isEmpty;
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final info = cv.personalInfo;
     if (info == null) {
       return [

@@ -56,7 +56,7 @@ class CvFormValidator {
     AppLocalizations localizations,
   ) {
     final firstError =
-        ValidationOutcome(const CvSaveRules().evaluate(cv)).firstError;
+        ValidationOutcome(const CvSaveRules().evaluate(cv.entity)).firstError;
     if (firstError == null) return null;
     return CvFormValidationIssue(
       section: sectionForCategory(firstError.section),

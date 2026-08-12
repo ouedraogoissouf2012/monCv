@@ -1,4 +1,4 @@
-import '../../../../../features/cv/presentation/cv_presentation_model.dart';
+import '../../entities/cv.dart';
 import '../../policies/cv_validation_thresholds.dart';
 import '../cv_validation_rule.dart';
 import '../validation_code.dart';
@@ -11,7 +11,7 @@ class ExperienceRule implements CvValidationRule {
   const ExperienceRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final exps = cv.experiences;
     if (exps.isEmpty) {
       return [
@@ -60,7 +60,7 @@ class EducationRule implements CvValidationRule {
   const EducationRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) => cv.educations.isEmpty
+  List<ValidationMessage> evaluate(CvEntity cv) => cv.educations.isEmpty
       ? [ValidationMessage.warning('formations', ValidationCode.noEducation)]
       : const [];
 }
@@ -70,7 +70,7 @@ class SkillsRule implements CvValidationRule {
   const SkillsRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final skills = cv.skills;
     final out = <ValidationMessage>[];
 
@@ -99,7 +99,7 @@ class LanguagesRule implements CvValidationRule {
   const LanguagesRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) => cv.languages.isEmpty
+  List<ValidationMessage> evaluate(CvEntity cv) => cv.languages.isEmpty
       ? [ValidationMessage.warning('langues', ValidationCode.noLanguages)]
       : const [];
 }
@@ -109,7 +109,7 @@ class CertificationsRule implements CvValidationRule {
   const CertificationsRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final now = DateTime.now();
     final out = <ValidationMessage>[];
     for (final cert in cv.certifications) {
@@ -128,7 +128,7 @@ class ProjectsRule implements CvValidationRule {
   const ProjectsRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final out = <ValidationMessage>[];
     for (final p in cv.projects) {
       final len = p.description?.length ?? 0;
@@ -147,7 +147,7 @@ class OverallContentRule implements CvValidationRule {
   const OverallContentRule();
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final total = cv.experiences.length +
         cv.educations.length +
         cv.skills.length +

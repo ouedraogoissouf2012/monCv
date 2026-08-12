@@ -2,11 +2,18 @@ import 'package:cv_mobile/features/cv/domain/validation/cv_validation_rules.dart
 import 'package:cv_mobile/features/cv/domain/validation/rules/personal_info_rules.dart';
 import 'package:cv_mobile/features/cv/domain/validation/rules/section_rules.dart';
 import 'package:cv_mobile/features/cv/domain/validation/validation_code.dart';
-import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
+import 'package:cv_mobile/features/cv/domain/entities/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/certification.dart';
+import 'package:cv_mobile/features/cv/domain/entities/education.dart';
+import 'package:cv_mobile/features/cv/domain/entities/experience.dart';
+import 'package:cv_mobile/features/cv/domain/entities/language.dart';
+import 'package:cv_mobile/features/cv/domain/entities/personal_info.dart';
+import 'package:cv_mobile/features/cv/domain/entities/project.dart';
+import 'package:cv_mobile/features/cv/domain/entities/skill.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Cv cvWith({
+  CvEntity cvWith({
     PersonalInfo? info,
     List<Experience> experiences = const [],
     List<Education> educations = const [],
@@ -15,7 +22,7 @@ void main() {
     List<Certification> certifications = const [],
     List<Project> projects = const [],
   }) =>
-      Cv(
+      CvEntity(
         titre: 'CV',
         personalInfo: info,
         experiences: experiences,

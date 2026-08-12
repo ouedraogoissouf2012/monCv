@@ -1,4 +1,4 @@
-import '../../../../../features/cv/presentation/cv_presentation_model.dart';
+import '../../entities/cv.dart';
 import '../cv_validation_rule.dart';
 import '../validation_code.dart';
 import '../validation_result.dart';
@@ -15,7 +15,7 @@ class CvSaveRules implements CvValidationRule {
   static bool _blank(String? v) => v == null || v.trim().isEmpty;
 
   @override
-  List<ValidationMessage> evaluate(Cv cv) {
+  List<ValidationMessage> evaluate(CvEntity cv) {
     final out = <ValidationMessage>[];
 
     // Titre du CV
@@ -60,7 +60,7 @@ class CvSaveRules implements CvValidationRule {
       ValidationMessage.error(section, ValidationCode.requiredFieldMissing,
           params: {'itemSection': section, 'index': index, 'field': field});
 
-  void _experiences(Cv cv, List<ValidationMessage> out) {
+  void _experiences(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.experiences.length; i++) {
       final e = cv.experiences[i];
       if (_blank(e.poste)) out.add(_itemField('experiences', i + 1, 'jobTitle'));
@@ -79,7 +79,7 @@ class CvSaveRules implements CvValidationRule {
     }
   }
 
-  void _educations(Cv cv, List<ValidationMessage> out) {
+  void _educations(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.educations.length; i++) {
       final edu = cv.educations[i];
       if (_blank(edu.etablissement)) {
@@ -98,7 +98,7 @@ class CvSaveRules implements CvValidationRule {
     }
   }
 
-  void _skills(Cv cv, List<ValidationMessage> out) {
+  void _skills(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.skills.length; i++) {
       final s = cv.skills[i];
       if (_blank(s.nom)) out.add(_itemField('skills', i + 1, 'name'));
@@ -110,7 +110,7 @@ class CvSaveRules implements CvValidationRule {
     }
   }
 
-  void _languages(Cv cv, List<ValidationMessage> out) {
+  void _languages(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.languages.length; i++) {
       final lg = cv.languages[i];
       if (_blank(lg.langue)) out.add(_itemField('languages', i + 1, 'language'));
@@ -118,7 +118,7 @@ class CvSaveRules implements CvValidationRule {
     }
   }
 
-  void _certifications(Cv cv, List<ValidationMessage> out) {
+  void _certifications(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.certifications.length; i++) {
       final c = cv.certifications[i];
       if (_blank(c.nom)) out.add(_itemField('certifications', i + 1, 'name'));
@@ -131,7 +131,7 @@ class CvSaveRules implements CvValidationRule {
     }
   }
 
-  void _projects(Cv cv, List<ValidationMessage> out) {
+  void _projects(CvEntity cv, List<ValidationMessage> out) {
     for (var i = 0; i < cv.projects.length; i++) {
       final p = cv.projects[i];
       if (_blank(p.nom)) out.add(_itemField('projets', i + 1, 'name'));

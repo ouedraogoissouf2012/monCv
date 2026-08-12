@@ -1,16 +1,19 @@
 import 'package:cv_mobile/features/cv/domain/validation/rules/save_rules.dart';
 import 'package:cv_mobile/features/cv/domain/validation/validation_code.dart';
 import 'package:cv_mobile/features/cv/domain/validation/validation_result.dart';
-import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
+import 'package:cv_mobile/features/cv/domain/entities/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/experience.dart';
+import 'package:cv_mobile/features/cv/domain/entities/personal_info.dart';
+import 'package:cv_mobile/features/cv/domain/entities/skill.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   const rules = CvSaveRules();
 
-  ValidationMessage? firstError(Cv cv) =>
+  ValidationMessage? firstError(CvEntity cv) =>
       ValidationOutcome(rules.evaluate(cv)).firstError;
 
-  Cv valid() => Cv(
+  CvEntity valid() => CvEntity(
         titre: 'Dev Flutter',
         personalInfo: const PersonalInfo(
           prenom: 'Issouf',
@@ -30,12 +33,12 @@ void main() {
     });
 
     test('personalInfo null -> personalInfoIncomplete', () {
-      final cv = Cv(titre: 'X', personalInfo: null);
+      final cv = CvEntity(titre: 'X', personalInfo: null);
       expect(firstError(cv)?.code, ValidationCode.personalInfoIncomplete);
     });
 
     test('email invalide -> invalidEmail', () {
-      final cv = Cv(
+      final cv = CvEntity(
         titre: 'X',
         personalInfo: const PersonalInfo(
             prenom: 'A', nom: 'B', email: 'pas-un-email'),
