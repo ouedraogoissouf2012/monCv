@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../services/http_timeout.dart' as http;
 import '../utils/cv_levels.dart';
 

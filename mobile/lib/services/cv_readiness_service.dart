@@ -1,5 +1,5 @@
 import '../features/cv/domain/policies/cv_validation_thresholds.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 
 class CvReadinessIssue {
   const CvReadinessIssue(this.code, this.message, this.penalty);

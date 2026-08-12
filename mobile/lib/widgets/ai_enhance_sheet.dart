@@ -12,7 +12,7 @@ import '../features/ai_enhancement/presentation/components/level_selector.dart';
 import '../features/ai_enhancement/presentation/components/status_banner.dart';
 import '../features/ai_enhancement/presentation/enhancement_controller.dart';
 import '../l10n/app_localizations.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../providers/ai_status_provider.dart';
 import '../utils/app_colors.dart';
 import 'ai_button.dart';

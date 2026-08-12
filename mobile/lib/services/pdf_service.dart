@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../utils/cv_pdf_generator.dart';
 import '../utils/pdf_saver.dart';
 import 'accent_corrector.dart';
