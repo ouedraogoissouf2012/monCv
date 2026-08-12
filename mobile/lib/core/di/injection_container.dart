@@ -61,6 +61,7 @@ import '../../usecases/cv/delete_cv_usecase.dart';
 import '../../usecases/cv/duplicate_cv_usecase.dart';
 import '../../usecases/cv/create_variant_usecase.dart';
 import '../../providers/auth_provider.dart';
+import '../../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../../features/cv/presentation/cv_store.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -223,6 +224,11 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<CvStore>(() => CvStore());
+  sl.registerLazySingleton<CvListController>(
+      () => CvListController(
+            getAllCvs: sl<GetAllCvsUseCase>(),
+            store: sl<CvStore>(),
+          ));
   sl.registerFactory<CvProvider>(
     () => CvProvider(
       getAllCvs: sl<GetAllCvsUseCase>(),
