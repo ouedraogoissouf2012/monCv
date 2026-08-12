@@ -8,7 +8,7 @@ import '../../../core/navigation/app_shell.dart';
 import '../../../core/ui/confirm_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/cv_provider.dart';
+import '../../cv/presentation/cv_store.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/google_account_link_section.dart';
@@ -118,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final controller = ProfileController.from(
       fullName: user?.fullName,
       email: user?.email,
-      cvCount: context.watch<CvProvider>().cvs.length,
+      cvCount: context.watch<CvStore>().cvs.length,
     );
     return AppShell(
       currentIndex: 3,

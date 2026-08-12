@@ -12,6 +12,7 @@ import 'core/di/injection_container.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/ai_status_provider.dart';
 import 'providers/auth_provider.dart';
+import 'features/cv/presentation/cv_store.dart';
 import 'providers/cv_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
@@ -79,6 +80,7 @@ class _MyAppState extends State<MyApp> {
         Provider<PdfService>.value(value: sl<PdfService>()),
         Provider<ShareService>.value(value: sl<ShareService>()),
         ChangeNotifierProvider.value(value: _authProvider),
+        ChangeNotifierProvider<CvStore>.value(value: sl<CvStore>()),
         ChangeNotifierProvider(create: (_) => sl<CvProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ThemeProvider>()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),

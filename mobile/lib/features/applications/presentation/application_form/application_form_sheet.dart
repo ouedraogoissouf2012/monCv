@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../features/cv/presentation/cv_presentation_model.dart';
-import '../../../../providers/cv_provider.dart';
+import '../../../cv/presentation/cv_store.dart';
 import '../../domain/job_application.dart';
 import '../../domain/job_application_status.dart';
 import '../components/application_status_presentation.dart';
@@ -83,7 +83,7 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final cvs = context.watch<CvProvider>().cvs;
+    final cvs = context.watch<CvStore>().cvs;
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 14, 20, 20 + bottom),
