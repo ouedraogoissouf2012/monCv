@@ -1,4 +1,4 @@
-import 'package:cv_mobile/features/cv_preview/domain/cv_document_view_model.dart';
+import 'package:cv_mobile/features/cv_preview/presentation/cv_document_view_model.dart';
 import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_body_sections.dart';
 import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_entry_widgets.dart';
 import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_level_bars.dart';

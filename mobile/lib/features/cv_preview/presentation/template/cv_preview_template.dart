@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../domain/cv_document_view_model.dart';
+import '../cv_document_view_model.dart';
 
 /// Contrat d'un template de preview CV (issue #243).
 ///

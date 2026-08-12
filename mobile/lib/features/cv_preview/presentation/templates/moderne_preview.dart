@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../widgets/secure_photo.dart';
-import '../../domain/cv_document_view_model.dart';
+import '../cv_document_view_model.dart';
 import '../sections/cv_body_sections.dart';
 import '../template/cv_preview_template.dart';
 import '../theme/cv_document_theme.dart';

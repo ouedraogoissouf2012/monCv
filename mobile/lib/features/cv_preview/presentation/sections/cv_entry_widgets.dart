@@ -5,7 +5,7 @@ import '../../../../features/cv/domain/entities/certification.dart';
 import '../../../../features/cv/domain/entities/education.dart';
 import '../../../../features/cv/domain/entities/experience.dart';
 import '../../../../features/cv/domain/entities/project.dart';
-import '../../domain/cv_document_view_model.dart';
+import '../cv_document_view_model.dart';
 import '../theme/cv_document_theme.dart';
 
 /// Entree d'experience : poste, dates, entreprise/lieu, description a puces
