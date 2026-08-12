@@ -2,7 +2,7 @@ import '../../../features/cv/domain/validation/rules/save_rules.dart';
 import '../../../features/cv/domain/validation/validation_result.dart';
 import '../../../features/cv/presentation/validation_message_mapper.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../services/cv_readiness_service.dart';
 
 enum CvFormSection { identity, experiences, education, skills, extras }

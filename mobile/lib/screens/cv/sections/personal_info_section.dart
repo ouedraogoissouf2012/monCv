@@ -11,7 +11,7 @@ import '../../../features/cv/presentation/personal_info/fields/online_fields.dar
 import '../../../features/cv/presentation/personal_info/personal_info_form_controller.dart';
 import '../../../features/cv/presentation/personal_info/photo/profile_photo_field.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/domain/entities/personal_info.dart';
 
 /// Section « Informations personnelles » du formulaire CV (issue #242).
 ///

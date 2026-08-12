@@ -9,7 +9,7 @@ import '../../../features/cv/presentation/section_editor/section_editor_sheet.da
 import '../../../features/cv/presentation/section_editor/section_form_fields.dart';
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/domain/entities/project.dart';
 
 class ProjectsSection extends StatelessWidget {
   final List<Project> projects;

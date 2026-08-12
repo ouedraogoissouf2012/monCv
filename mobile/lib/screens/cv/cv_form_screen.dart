@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/di/injection_container.dart';
 import '../../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/cv.dart';
+import '../../features/cv/presentation/cv_presentation_model.dart';
 import '../../providers/cv_provider.dart';
 import '../../repositories/cv_repository.dart';
 import '../../utils/constants.dart';
