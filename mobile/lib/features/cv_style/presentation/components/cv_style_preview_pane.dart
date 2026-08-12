@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../models/cv_style.dart';
 import '../../../../utils/app_colors.dart';
 import '../../../../widgets/cv_preview.dart';

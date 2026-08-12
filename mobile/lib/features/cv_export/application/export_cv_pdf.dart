@@ -1,7 +1,7 @@
 import '../../../core/error/result.dart';
 import '../../../core/error/safe_call.dart';
 import '../../../core/usecase/usecase.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../services/pdf_service.dart';
 
 /// Exporte un CV au format PDF et declenche son telechargement (issue #247).
