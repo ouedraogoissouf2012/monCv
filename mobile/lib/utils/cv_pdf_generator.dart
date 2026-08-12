@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../pdf/pdf_renderer.dart';
 
 export '../pdf/pdf_renderer.dart';

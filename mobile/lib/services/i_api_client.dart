@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../models/job_application.dart';
 import '../models/notification_preferences.dart';
 import '../models/user.dart';

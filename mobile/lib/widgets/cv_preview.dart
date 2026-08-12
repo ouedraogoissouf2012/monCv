@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../features/cv_preview/domain/cv_document_view_model.dart';
 import '../features/cv_preview/presentation/template/default_template_registry.dart';
 import '../features/cv_preview/presentation/template/template_registry.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 
 /// Apercu d'un CV : selectionne le template via le registre (Strategy) et le
 /// rend dans le cadre document commun (issue #243).
