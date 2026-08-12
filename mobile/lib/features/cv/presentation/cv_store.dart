@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../application/state/cv_operation_state.dart';
 
 /// Source unique de verite de l'etat CV partagee par les controllers

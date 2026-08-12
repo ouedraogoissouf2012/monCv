@@ -1,4 +1,4 @@
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import 'validation_result.dart';
 
 /// Contrat d'une regle de validation CV (issue #241).

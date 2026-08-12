@@ -1,5 +1,5 @@
 import '../../../../core/error/result.dart';
-import '../../../../models/cv.dart';
+import '../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../../../usecases/cv/get_cv_by_id_usecase.dart';
 import '../../application/state/cv_operation_state.dart';
 import '../cv_store.dart';
