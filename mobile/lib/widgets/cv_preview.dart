@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../features/cv_preview/domain/cv_document_view_model.dart';
+import '../features/cv_preview/presentation/cv_document_view_model.dart';
 import '../features/cv_preview/presentation/template/default_template_registry.dart';
 import '../features/cv_preview/presentation/template/template_registry.dart';
 import '../features/cv/presentation/cv_presentation_model.dart';

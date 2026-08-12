@@ -1,4 +1,4 @@
-import 'package:cv_mobile/features/cv_preview/domain/cv_document_view_model.dart';
+import 'package:cv_mobile/features/cv_preview/presentation/cv_document_view_model.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 

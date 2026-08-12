@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../utils/cv_levels.dart';
 import '../../../../widgets/secure_photo.dart';
-import '../../domain/cv_document_view_model.dart';
+import '../cv_document_view_model.dart';
 import '../sections/cv_entry_widgets.dart';
 import '../sections/cv_section_header.dart';
 import '../template/cv_preview_template.dart';

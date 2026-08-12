@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/cv_document_view_model.dart';
+import '../cv_document_view_model.dart';
 import '../theme/cv_document_theme.dart';
 import 'cv_entry_widgets.dart';
 import 'cv_level_bars.dart';
