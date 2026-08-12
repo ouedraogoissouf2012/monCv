@@ -1,4 +1,4 @@
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../ai/domain/entities/enhanced_cv.dart';
 import '../domain/enhancement_change.dart';
 

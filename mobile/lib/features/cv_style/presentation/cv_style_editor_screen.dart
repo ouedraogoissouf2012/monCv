@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/error/result.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../cv_export/application/export_cv_pdf.dart';
 import 'components/cv_style_draggable_divider.dart';
 import 'components/cv_style_options_pane.dart';

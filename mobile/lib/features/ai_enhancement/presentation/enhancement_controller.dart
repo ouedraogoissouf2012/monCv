@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../models/cv.dart';
+import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../ai/application/enhance_cv_usecase.dart';
 import '../../ai/domain/entities/enhanced_cv.dart';
 import '../application/build_enhancement_diff.dart';
