@@ -1,4 +1,4 @@
-import '../../../../features/cv/presentation/cv_presentation_model.dart';
+import '../entities/cv.dart';
 import 'validation_result.dart';
 
 /// Contrat d'une regle de validation CV (issue #241).
@@ -11,5 +11,5 @@ import 'validation_result.dart';
 /// deterministe pour produire un [ValidationOutcome].
 abstract interface class CvValidationRule {
   /// Evalue la regle et retourne les messages produits (vide si tout va bien).
-  List<ValidationMessage> evaluate(Cv cv);
+  List<ValidationMessage> evaluate(CvEntity cv);
 }
