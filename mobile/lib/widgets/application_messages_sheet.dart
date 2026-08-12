@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/di/injection_container.dart';
 import '../features/ai/application/generate_application_messages_usecase.dart';
-import '../features/application_messages/data/system_clipboard_copier.dart';
+import '../features/application_messages/domain/clipboard_copier.dart';
 import '../features/application_messages/presentation/application_messages_controller.dart';
 import '../features/application_messages/presentation/components/message_components.dart';
 import '../l10n/app_localizations.dart';
@@ -46,7 +46,7 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
       cvId: widget.cvId,
       jobDescription: widget.jobDescription,
       generate: sl<GenerateApplicationMessagesUseCase>(),
-      clipboard: const SystemClipboardCopier(),
+      clipboard: sl<ClipboardCopier>(),
       onAiError: (e) => _aiStatus
         ..recordError(e)
         ..refresh(),

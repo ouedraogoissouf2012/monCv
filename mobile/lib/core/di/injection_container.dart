@@ -26,6 +26,8 @@ import '../../features/cv/data/http_profile_photo_repository.dart';
 import '../../features/cv/domain/repositories/profile_photo_repository.dart';
 import '../../utils/constants.dart';
 import '../../features/ai/application/generate_application_messages_usecase.dart';
+import '../../features/application_messages/data/system_clipboard_copier.dart';
+import '../../features/application_messages/domain/clipboard_copier.dart';
 import '../../features/ai/application/generate_resume_usecase.dart';
 import '../../features/ai/application/get_ai_status_usecase.dart';
 import '../../features/ai/application/match_job_usecase.dart';
@@ -201,6 +203,7 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => GenerateResumeUseCase(sl<AiRepository>()));
   sl.registerFactory(() => SuggestBulletsUseCase(sl<AiRepository>()));
   sl.registerFactory(() => GenerateApplicationMessagesUseCase(sl<AiRepository>()));
+  sl.registerLazySingleton<ClipboardCopier>(() => const SystemClipboardCopier());
   sl.registerFactory(() => GetAiStatusUseCase(sl<AiRepository>()));
 
   // ── Providers ─────────────────────────────────────────────────
