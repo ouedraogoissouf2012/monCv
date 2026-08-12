@@ -4,7 +4,7 @@ import 'package:cv_mobile/features/cv_preview/presentation/template/cv_preview_t
 import 'package:cv_mobile/features/cv_preview/presentation/templates/executive_preview.dart';
 import 'package:cv_mobile/features/cv_preview/presentation/templates/minimaliste_preview.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/cv_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

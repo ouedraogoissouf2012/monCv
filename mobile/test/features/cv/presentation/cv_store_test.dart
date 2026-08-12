@@ -1,6 +1,6 @@
 import 'package:cv_mobile/features/cv/application/state/cv_operation_state.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

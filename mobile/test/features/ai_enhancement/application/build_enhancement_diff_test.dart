@@ -1,7 +1,7 @@
 import 'package:cv_mobile/features/ai/domain/entities/enhanced_cv.dart';
 import 'package:cv_mobile/features/ai_enhancement/application/build_enhancement_diff.dart';
 import 'package:cv_mobile/features/ai_enhancement/domain/enhancement_change.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

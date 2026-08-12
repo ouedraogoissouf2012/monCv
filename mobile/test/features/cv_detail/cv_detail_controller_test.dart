@@ -4,7 +4,7 @@ import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/cv_detail/presentation/cv_detail_controller.dart';
 import 'package:cv_mobile/features/cv_export/application/export_cv_docx.dart';
 import 'package:cv_mobile/features/cv_export/application/export_cv_pdf.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/services/pdf_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';

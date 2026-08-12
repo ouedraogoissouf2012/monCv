@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/cv_list/application/import_cv.dart';
 import 'package:cv_mobile/features/cv_list/domain/cv_import_policy.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

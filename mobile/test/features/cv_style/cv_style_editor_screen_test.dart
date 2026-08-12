@@ -5,7 +5,7 @@ import 'package:cv_mobile/features/cv_style/presentation/components/cv_style_pre
 import 'package:cv_mobile/features/cv_style/presentation/cv_style_controller.dart';
 import 'package:cv_mobile/features/cv_style/presentation/cv_style_editor_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/services/pdf_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

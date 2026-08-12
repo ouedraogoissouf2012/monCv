@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/features/cv_list/application/import_cv.dart';
 import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 
 class MockCvProvider extends Mock implements CvProvider {}

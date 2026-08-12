@@ -3,7 +3,7 @@ import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_body_sect
 import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_entry_widgets.dart';
 import 'package:cv_mobile/features/cv_preview/presentation/sections/cv_level_bars.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';

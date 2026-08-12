@@ -2,7 +2,7 @@ import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/cv/application/sync/offline_cv_sync_coordinator.dart';
 import 'package:cv_mobile/features/cv/data/cv_cache_codec.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/services/sync_queue.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
