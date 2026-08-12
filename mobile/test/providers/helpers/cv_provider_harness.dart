@@ -4,7 +4,7 @@ import 'package:flutter/painting.dart' show Color;
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/cv_style.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/services/sync_queue.dart';

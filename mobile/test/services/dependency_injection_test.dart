@@ -2,7 +2,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 import 'package:cv_mobile/features/ai/compat/ai_service_facade.dart';
 import 'package:cv_mobile/features/ai/data/ai_remote_data_source.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/repositories/auth_repository.dart';
 import 'package:cv_mobile/services/api_service.dart';
