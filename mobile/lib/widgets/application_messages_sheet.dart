@@ -46,7 +46,7 @@ class _ApplicationMessagesSheetState extends State<ApplicationMessagesSheet> {
       cvId: widget.cvId,
       jobDescription: widget.jobDescription,
       generate: sl<GenerateApplicationMessagesUseCase>(),
-      clipboard: const SystemClipboardCopier(),
+      clipboard: sl<ClipboardCopier>(),
       onAiError: (e) => _aiStatus
         ..recordError(e)
         ..refresh(),
