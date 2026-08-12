@@ -15,14 +15,14 @@ import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/models/notification_preferences.dart';
 import 'package:cv_mobile/models/user.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/providers/locale_provider.dart';
 import 'package:cv_mobile/providers/notification_provider.dart';
 import 'package:cv_mobile/providers/theme_provider.dart';
 
 class _MockAuth extends Mock implements AuthProvider {}
 
-class _MockCv extends Mock implements CvProvider {}
+class _MockCvStore extends Mock implements CvStore {}
 
 class _MockNotif extends Mock implements NotificationProvider {}
 
@@ -47,7 +47,7 @@ Cv _fakeCv() => Cv(
 
 void main() {
   late _MockAuth auth;
-  late _MockCv cv;
+  late _MockCvStore cv;
   late _MockNotif notif;
   late _MockLocale locale;
 
@@ -61,7 +61,7 @@ void main() {
 
   setUp(() {
     auth = _MockAuth();
-    cv = _MockCv();
+    cv = _MockCvStore();
     notif = _MockNotif();
     locale = _MockLocale();
 
@@ -81,7 +81,7 @@ void main() {
   Widget app(_FakeAccountRepository repo) => MultiProvider(
         providers: [
           ChangeNotifierProvider<AuthProvider>.value(value: auth),
-          ChangeNotifierProvider<CvProvider>.value(value: cv),
+          ChangeNotifierProvider<CvStore>.value(value: cv),
           ChangeNotifierProvider<NotificationProvider>.value(value: notif),
           ChangeNotifierProvider<LocaleProvider>.value(value: locale),
           ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
