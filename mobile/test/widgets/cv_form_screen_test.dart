@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
@@ -17,7 +17,7 @@ import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/cv/application/upload_profile_photo_usecase.dart';
 import 'package:cv_mobile/features/cv/domain/repositories/profile_photo_repository.dart';
 
-class MockCvProvider extends Mock implements CvProvider {}
+class MockCvListController extends Mock implements CvListController {}
 
 class MockCvRepository extends Mock implements CvRepository {}
 
@@ -31,7 +31,7 @@ void _setMobileViewport(WidgetTester tester) {
 }
 
 Widget _buildSubject(
-  CvProvider cvProvider, {
+  CvListController listController, {
   required CvFormController controller,
   String initialLocation = '/cvs/create',
 }) {
@@ -56,8 +56,8 @@ Widget _buildSubject(
     ],
   );
 
-  return ChangeNotifierProvider<CvProvider>.value(
-    value: cvProvider,
+  return Provider<CvListController>.value(
+    value: listController,
     child: MaterialApp.router(
       theme: ThemeData(useMaterial3: true),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -111,18 +111,16 @@ void main() {
     _setMobileViewport(tester);
     addTearDown(tester.view.resetPhysicalSize);
 
-    final cvProvider = MockCvProvider();
+    final listController = MockCvListController();
     final repository = MockCvRepository();
     final controller = CvFormController(
       repository: repository,
       fallbackTitle: 'Mon CV',
     );
     addTearDown(controller.dispose);
-    when(() => cvProvider.addListener(any())).thenReturn(null);
-    when(() => cvProvider.removeListener(any())).thenReturn(null);
 
     await tester.pumpWidget(_buildSubject(
-      cvProvider,
+      listController,
       controller: controller,
     ));
     await tester.pumpAndSettle();
@@ -139,16 +137,14 @@ void main() {
     _setMobileViewport(tester);
     addTearDown(tester.view.resetPhysicalSize);
 
-    final cvProvider = MockCvProvider();
+    final listController = MockCvListController();
     final repository = MockCvRepository();
     final controller = CvFormController(
       repository: repository,
       fallbackTitle: 'Mon CV',
     );
     addTearDown(controller.dispose);
-    when(() => cvProvider.addListener(any())).thenReturn(null);
-    when(() => cvProvider.removeListener(any())).thenReturn(null);
-    when(() => cvProvider.loadCvs()).thenAnswer((_) async {});
+    when(() => listController.load()).thenAnswer((_) async {});
     when(() => repository.createCv(any())).thenAnswer(
       (invocation) async =>
           Result.success(invocation.positionalArguments.first as Cv),
@@ -156,7 +152,7 @@ void main() {
 
     await tester.pumpWidget(
       _buildSubject(
-        cvProvider,
+        listController,
         controller: controller,
         initialLocation: '/home',
       ),
