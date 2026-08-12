@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 
-import '../../../../models/cv.dart';
+import '../../../../features/cv/domain/entities/personal_info.dart';
 
 /// Possede les `TextEditingController` du formulaire d'informations
 /// personnelles, leur cycle de vie et la conversion vers [PersonalInfo]

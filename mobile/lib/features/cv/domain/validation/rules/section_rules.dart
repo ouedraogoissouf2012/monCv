@@ -1,4 +1,4 @@
-import '../../../../../models/cv.dart';
+import '../../../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../policies/cv_validation_thresholds.dart';
 import '../cv_validation_rule.dart';
 import '../validation_code.dart';
