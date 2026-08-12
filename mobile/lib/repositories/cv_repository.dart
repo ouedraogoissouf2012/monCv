@@ -1,6 +1,6 @@
 import '../core/error/result.dart';
 import '../core/error/safe_call.dart';
-import '../models/cv.dart';
+import '../features/cv/presentation/cv_presentation_model.dart';
 import '../services/i_api_client.dart';
 
 abstract class CvRepository {
