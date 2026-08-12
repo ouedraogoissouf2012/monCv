@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../providers/cv_provider.dart';
+import '../../cv/presentation/controllers/cv_list_controller.dart';
 import '../../../core/navigation/app_shell.dart';
 import '../../../utils/responsive.dart';
 import '../domain/external_link_launcher.dart';
@@ -52,7 +52,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _c.load();
-      context.read<CvProvider>().loadCvs();
+      context.read<CvListController>().load();
     });
   }
 
