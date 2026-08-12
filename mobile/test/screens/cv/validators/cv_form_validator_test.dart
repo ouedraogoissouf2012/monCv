@@ -1,4 +1,4 @@
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/screens/cv/validators/cv_form_validator.dart';
 import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:flutter_test/flutter_test.dart';

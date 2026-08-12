@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/widgets/cv_preview.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 

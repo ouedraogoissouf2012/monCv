@@ -3,7 +3,7 @@ import 'package:cv_mobile/features/ai/application/generate_resume_usecase.dart';
 import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/cv/application/upload_profile_photo_usecase.dart';
 import 'package:cv_mobile/features/cv/domain/repositories/profile_photo_repository.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/personal_info.dart';
 import 'package:cv_mobile/screens/cv/sections/personal_info_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

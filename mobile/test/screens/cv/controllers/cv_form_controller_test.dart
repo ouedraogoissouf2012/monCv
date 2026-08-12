@@ -1,5 +1,5 @@
 import 'package:cv_mobile/core/error/result.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/validators/cv_form_validator.dart';

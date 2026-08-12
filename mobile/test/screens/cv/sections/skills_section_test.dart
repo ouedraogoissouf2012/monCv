@@ -1,5 +1,5 @@
 import 'package:cv_mobile/l10n/app_localizations.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/skill.dart';
 import 'package:cv_mobile/screens/cv/sections/skills_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

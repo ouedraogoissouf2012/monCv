@@ -4,7 +4,7 @@ import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/ai/application/suggest_bullets_usecase.dart';
 import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/cv/presentation/section_editor/ai_suggestions_sheet.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/domain/entities/experience.dart';
 import 'package:cv_mobile/screens/cv/sections/experience_section.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
