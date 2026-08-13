@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,7 +10,6 @@ import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controlle
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
 
 import 'helpers/mock_definitions.dart';
 import 'helpers/fake_data.dart';
@@ -34,8 +32,6 @@ void main() {
   late MockDuplicateCvUseCase mockDuplicate;
   late MockCreateVariantUseCase mockCreateVariant;
   late MockCvRepository mockCvRepo;
-  late MockConnectivityService mockConnectivity;
-  late StreamController<bool> connectivityCtrl;
 
   setUp(() {
     mockLogin = MockLoginUseCase();
@@ -54,21 +50,14 @@ void main() {
     mockDuplicate = MockDuplicateCvUseCase();
     mockCreateVariant = MockCreateVariantUseCase();
     mockCvRepo = MockCvRepository();
-    mockConnectivity = MockConnectivityService();
-    connectivityCtrl = StreamController<bool>.broadcast();
 
     registerAllFallbackValues();
 
     when(() => mockStorage.read(key: 'access_token'))
         .thenAnswer((_) async => null);
-    when(() => mockConnectivity.onConnectivityChanged)
-        .thenAnswer((_) => connectivityCtrl.stream);
-    when(() => mockConnectivity.isConnected()).thenAnswer((_) async => true);
 
     suppressOverflowErrors();
   });
-
-  tearDown(() => connectivityCtrl.close());
 
   AuthProvider buildAuthProvider() => AuthProvider(
         loginUseCase: mockLogin,
@@ -78,19 +67,6 @@ void main() {
         updateProfileUseCase: mockUpdateProfile,
         repository: mockAuthRepo,
         storage: mockStorage,
-      );
-
-  CvProvider buildCvProvider(CvStore store) => CvProvider(
-        getAllCvs: mockGetAllCvs,
-        getCvById: mockGetCvById,
-        createCv: mockCreateCv,
-        updateCv: mockUpdateCv,
-        deleteCv: mockDeleteCv,
-        duplicateCv: mockDuplicate,
-        createVariantUseCase: mockCreateVariant,
-        repository: mockCvRepo,
-        connectivity: mockConnectivity,
-        store: store,
       );
 
   cvp.CvListController buildCvListController(CvStore store) =>
@@ -127,11 +103,9 @@ void main() {
 
       final authProvider = buildAuthProvider();
       final cvStore = CvStore();
-      final cvProvider = buildCvProvider(cvStore);
 
       await tester.pumpWidget(buildTestApp(
         authProvider: authProvider,
-        cvProvider: cvProvider,
         cvStore: cvStore,
         cvListController: buildCvListController(cvStore),
         cvEditorController: buildCvEditorController(cvStore),
@@ -170,7 +144,7 @@ void main() {
       // Verifier l'etat du provider
       expect(authProvider.isAuthenticated, true);
       expect(authProvider.user?.email, 'test@example.com');
-      expect(cvProvider.cvs.length, 2);
+      expect(cvStore.cvs.length, 2);
     });
 
     testWidgets('login echec → reste sur login → message erreur',
@@ -184,11 +158,9 @@ void main() {
 
       final authProvider = buildAuthProvider();
       final cvStore = CvStore();
-      final cvProvider = buildCvProvider(cvStore);
 
       await tester.pumpWidget(buildTestApp(
         authProvider: authProvider,
-        cvProvider: cvProvider,
         cvStore: cvStore,
         cvListController: buildCvListController(cvStore),
         cvEditorController: buildCvEditorController(cvStore),

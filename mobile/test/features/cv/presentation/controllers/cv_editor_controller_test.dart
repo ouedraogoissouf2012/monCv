@@ -3,9 +3,11 @@ import 'package:cv_mobile/features/ai/domain/entities/enhanced_cv.dart';
 import 'package:cv_mobile/features/cv/application/state/cv_operation_state.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
+import 'package:cv_mobile/services/sync_queue.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../flows/helpers/mock_definitions.dart';
 
@@ -115,6 +117,28 @@ void main() {
       expect(result?.id, 3);
       expect(store.cvs.length, 2);
     });
+
+    test('createVariant echec : retourne null, etat failure', () async {
+      when(() => variant(any())).thenAnswer((_) async =>
+          const Failure(ServerException(message: 'IA indisponible')));
+
+      final result = await editor.createVariant(1, 'offre');
+
+      expect(result, isNull);
+      expect(store.state.errorMessage, 'IA indisponible');
+    });
+
+    test('Cv.isVariante retourne true quand varianteLabel defini', () {
+      final variantCv = Cv(
+        id: 20,
+        titre: 'Variante',
+        varianteLabel: 'Dev Backend',
+        parentCvId: 10,
+      );
+
+      expect(variantCv.isVariante, isTrue);
+      expect(cv(10).isVariante, isFalse);
+    });
   });
 
   group('CvEditorController - applyAiEnhancements', () {
@@ -189,6 +213,34 @@ void main() {
       expect(ok, isFalse);
       expect(store.currentCv?.personalInfo?.titrePoste, 'Ancien');
       verify(() => repository.updateCv(1, any())).called(1);
+    });
+  });
+
+  group('CvEditorController - offline (#240)', () {
+    test('create hors ligne : sauvegarde locale avec ID temp negatif',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final syncQueue = SyncQueue(await SharedPreferences.getInstance());
+      final offlineEditor = CvEditorController(
+        createCv: create,
+        updateCv: update,
+        deleteCv: delete,
+        duplicateCv: duplicate,
+        createVariant: variant,
+        repository: repository,
+        store: store,
+        syncQueue: syncQueue,
+      );
+      store.setOffline(true);
+
+      final ok = await offlineEditor.create(cv(0, titre: 'CV Offline'));
+
+      expect(ok, isTrue);
+      expect(store.cvs.single.id, lessThan(0));
+      expect(syncQueue.hasPending, isTrue);
+      expect(syncQueue.pendingCount, 1);
+      expect(syncQueue.getAll().first.type, 'create');
+      verifyNever(() => create(any()));
     });
   });
 }

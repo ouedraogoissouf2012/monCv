@@ -8,7 +8,6 @@ import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_control
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
 import 'package:cv_mobile/providers/theme_provider.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
@@ -26,7 +25,6 @@ import 'package:cv_mobile/features/cv_list/presentation/cv_list_screen.dart';
 /// Le router utilise les memes routes que l'app reelle mais sans kIsWeb.
 Widget buildTestApp({
   required AuthProvider authProvider,
-  required CvProvider cvProvider,
   required CvStore cvStore,
   required cvp.CvListController cvListController,
   required CvEditorController cvEditorController,
@@ -74,7 +72,6 @@ Widget buildTestApp({
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-      ChangeNotifierProvider<CvProvider>.value(value: cvProvider),
       ChangeNotifierProvider<CvStore>.value(value: cvStore),
       Provider<cvp.CvListController>.value(value: cvListController),
       Provider<CvEditorController>.value(value: cvEditorController),

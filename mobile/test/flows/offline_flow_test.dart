@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_connectivity_sync_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_detail_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
-import 'package:cv_mobile/providers/cv_provider.dart';
 
 import 'helpers/mock_definitions.dart';
 import 'helpers/fake_data.dart';
@@ -80,21 +80,21 @@ void main() {
         storage: mockStorage,
       );
 
-  CvProvider buildCvProvider(CvStore store) => CvProvider(
-        getAllCvs: mockGetAllCvs,
-        getCvById: mockGetCvById,
-        createCv: mockCreateCv,
-        updateCv: mockUpdateCv,
-        deleteCv: mockDeleteCv,
-        duplicateCv: mockDuplicate,
-        createVariantUseCase: mockCreateVariant,
-        repository: mockCvRepo,
-        connectivity: mockConnectivity,
-        store: store,
-      );
-
   cvp.CvListController buildCvListController(CvStore store) =>
       cvp.CvListController(getAllCvs: mockGetAllCvs, store: store);
+
+  /// Construit le controleur qui suit la connectivite dans [CvStore] (extrait
+  /// de l'ancien CvProvider, #240). Instancie directement l'objet (pas via un
+  /// Provider paresseux) : le test exerce son comportement reel.
+  CvConnectivitySyncController buildConnectivitySync(
+    CvStore store,
+    cvp.CvListController listController,
+  ) =>
+      CvConnectivitySyncController(
+        connectivity: mockConnectivity,
+        store: store,
+        list: listController,
+      );
 
   CvEditorController buildCvEditorController(CvStore store) =>
       CvEditorController(
@@ -122,13 +122,14 @@ void main() {
 
       final authProvider = buildAuthProvider();
       final cvStore = CvStore();
-      final cvProvider = buildCvProvider(cvStore);
+      final listController = buildCvListController(cvStore);
+      final connectivitySync = buildConnectivitySync(cvStore, listController);
+      addTearDown(connectivitySync.dispose);
 
       await tester.pumpWidget(buildTestApp(
         authProvider: authProvider,
-        cvProvider: cvProvider,
         cvStore: cvStore,
-        cvListController: buildCvListController(cvStore),
+        cvListController: listController,
         cvEditorController: buildCvEditorController(cvStore),
         cvDetailController: buildCvDetailController(cvStore),
         initialLocation: '/home',
@@ -144,7 +145,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Banner offline visible
-      expect(cvProvider.isOffline, true);
+      expect(cvStore.isOffline, true);
       expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
 
       // Retour en ligne
@@ -153,7 +154,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Banner disparait
-      expect(cvProvider.isOffline, false);
+      expect(cvStore.isOffline, false);
       expect(find.byIcon(Icons.wifi_off_rounded), findsNothing);
     });
   });
