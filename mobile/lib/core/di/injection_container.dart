@@ -61,12 +61,13 @@ import '../../usecases/cv/delete_cv_usecase.dart';
 import '../../usecases/cv/duplicate_cv_usecase.dart';
 import '../../usecases/cv/create_variant_usecase.dart';
 import '../../providers/auth_provider.dart';
+import '../../features/cv/application/sync/offline_cv_sync_coordinator.dart';
+import '../../features/cv/presentation/controllers/cv_connectivity_sync_controller.dart';
 import '../../features/cv/presentation/controllers/cv_detail_controller.dart' as cvp;
 import '../../features/cv/presentation/controllers/cv_editor_controller.dart';
 import '../../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../../features/cv/presentation/controllers/cv_style_controller.dart' as cvp;
 import '../../features/cv/presentation/cv_store.dart';
-import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../features/applications/application/delete_application.dart';
@@ -252,21 +253,21 @@ Future<void> initDependencies() async {
             repository: sl<CvRepository>(),
             store: sl<CvStore>(),
           ));
-  sl.registerFactory<CvProvider>(
-    () => CvProvider(
-      getAllCvs: sl<GetAllCvsUseCase>(),
-      getCvById: sl<GetCvByIdUseCase>(),
-      createCv: sl<CreateCvUseCase>(),
-      updateCv: sl<UpdateCvUseCase>(),
-      deleteCv: sl<DeleteCvUseCase>(),
-      duplicateCv: sl<DuplicateCvUseCase>(),
-      createVariantUseCase: sl<CreateVariantUseCase>(),
-      repository: sl<CvRepository>(),
-      connectivity: sl<ConnectivityService>(),
-      syncQueue: sl<SyncQueue>(),
-      store: sl<CvStore>(),
-    ),
-  );
+  sl.registerLazySingleton<OfflineCvSyncCoordinator>(
+      () => OfflineCvSyncCoordinator(
+            createCv: sl<CreateCvUseCase>(),
+            updateCv: sl<UpdateCvUseCase>(),
+            deleteCv: sl<DeleteCvUseCase>(),
+            queue: sl<SyncQueue>(),
+            store: sl<CvStore>(),
+          ));
+  sl.registerLazySingleton<CvConnectivitySyncController>(
+      () => CvConnectivitySyncController(
+            connectivity: sl<ConnectivityService>(),
+            store: sl<CvStore>(),
+            list: sl<CvListController>(),
+            syncCoordinator: sl<OfflineCvSyncCoordinator>(),
+          ));
   sl.registerFactory<ThemeProvider>(() => ThemeProvider());
   sl.registerFactory<AiStatusProvider>(
       () => AiStatusProvider(getAiStatus: sl<GetAiStatusUseCase>()));
