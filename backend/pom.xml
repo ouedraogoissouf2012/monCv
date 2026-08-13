@@ -21,6 +21,7 @@
         <java.version>25</java.version>
         <firebase-admin.version>9.10.0</firebase-admin.version>
         <grpc.version>1.75.0</grpc.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
         <jackson-bom.version>2.21.4</jackson-bom.version>
         <jjwt.version>0.12.3</jjwt.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -44,6 +45,19 @@
                 <version>${grpc.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Force httpcore5 au-dessus de la version transitive de firebase-admin
+                 (CVE-2026-54399, HIGH), deja a sa derniere release disponible. -->
+            <dependency>
+                <groupId>org.apache.httpcomponents.core5</groupId>
+                <artifactId>httpcore5</artifactId>
+                <version>${httpcore5.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents.core5</groupId>
+                <artifactId>httpcore5-h2</artifactId>
+                <version>${httpcore5.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
