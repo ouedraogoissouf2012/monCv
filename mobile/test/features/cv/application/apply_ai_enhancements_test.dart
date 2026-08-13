@@ -1,5 +1,5 @@
 import 'package:cv_mobile/features/cv/application/apply_ai_enhancements.dart';
-import 'package:cv_mobile/models/cv.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

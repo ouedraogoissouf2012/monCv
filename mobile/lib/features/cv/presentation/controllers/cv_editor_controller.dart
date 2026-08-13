@@ -1,5 +1,4 @@
 import '../../../../core/error/result.dart';
-import '../../../../models/cv.dart';
 import '../../../../repositories/cv_repository.dart';
 import '../../../../services/sync_queue.dart';
 import '../../../../usecases/cv/create_cv_usecase.dart';
@@ -11,6 +10,7 @@ import '../../../ai/domain/entities/enhanced_cv.dart';
 import '../../application/apply_ai_enhancements.dart';
 import '../../application/state/cv_operation_state.dart';
 import '../../data/cv_cache_codec.dart';
+import '../cv_presentation_model.dart';
 import '../cv_store.dart';
 
 /// Ecritures sur les CV (create/update/delete/duplicate/variant, style IA)
