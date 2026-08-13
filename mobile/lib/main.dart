@@ -12,6 +12,7 @@ import 'core/di/injection_container.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/ai_status_provider.dart';
 import 'providers/auth_provider.dart';
+import 'features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'features/cv/presentation/controllers/cv_list_controller.dart';
 import 'features/cv/presentation/cv_store.dart';
 import 'providers/cv_provider.dart';
@@ -83,6 +84,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider<CvStore>.value(value: sl<CvStore>()),
         Provider<CvListController>.value(value: sl<CvListController>()),
+        Provider<CvEditorController>.value(value: sl<CvEditorController>()),
         ChangeNotifierProvider(create: (_) => sl<CvProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ThemeProvider>()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
