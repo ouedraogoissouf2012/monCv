@@ -61,8 +61,10 @@ import '../../usecases/cv/delete_cv_usecase.dart';
 import '../../usecases/cv/duplicate_cv_usecase.dart';
 import '../../usecases/cv/create_variant_usecase.dart';
 import '../../providers/auth_provider.dart';
+import '../../features/cv/presentation/controllers/cv_detail_controller.dart' as cvp;
 import '../../features/cv/presentation/controllers/cv_editor_controller.dart';
 import '../../features/cv/presentation/controllers/cv_list_controller.dart';
+import '../../features/cv/presentation/controllers/cv_style_controller.dart' as cvp;
 import '../../features/cv/presentation/cv_store.dart';
 import '../../providers/cv_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -237,6 +239,16 @@ Future<void> initDependencies() async {
             deleteCv: sl<DeleteCvUseCase>(),
             duplicateCv: sl<DuplicateCvUseCase>(),
             createVariant: sl<CreateVariantUseCase>(),
+            repository: sl<CvRepository>(),
+            store: sl<CvStore>(),
+          ));
+  sl.registerLazySingleton<cvp.CvDetailController>(
+      () => cvp.CvDetailController(
+            getCvById: sl<GetCvByIdUseCase>(),
+            store: sl<CvStore>(),
+          ));
+  sl.registerLazySingleton<cvp.CvStyleController>(
+      () => cvp.CvStyleController(
             repository: sl<CvRepository>(),
             store: sl<CvStore>(),
           ));

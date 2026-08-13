@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import 'core/error/result.dart';
 import 'features/cv_detail/presentation/cv_detail_controller.dart';
@@ -9,10 +8,10 @@ import 'features/cv_detail/presentation/cv_detail_screen.dart';
 import 'features/cv_export/application/export_cv_pdf.dart';
 import 'features/cv_list/application/import_cv.dart';
 import 'features/cv_list/presentation/cv_list_screen.dart';
+import 'features/cv/presentation/controllers/cv_style_controller.dart' as cvp;
 import 'features/cv_style/presentation/cv_style_controller.dart';
 import 'features/cv_style/presentation/cv_style_editor_screen.dart';
 import 'features/cv/presentation/cv_presentation_model.dart';
-import 'providers/cv_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/i_api_client.dart';
 import 'features/auth/presentation/login/login_screen.dart';
@@ -140,7 +139,6 @@ class AppRouter {
           path: '/cvs/:id/style',
           builder: (context, state) {
             final cv = state.extra as Cv;
-            final cvProvider = context.read<CvProvider>();
             return CvStyleEditorScreen(
               cv: cv,
               exportPdf: sl<ExportCvPdfUseCase>(),
@@ -148,7 +146,7 @@ class AppRouter {
                 initial: cv.style,
                 // Adapte le save legacy (bool) vers Result typé.
                 save: (style) async {
-                  final ok = await cvProvider.updateCvStyle(cv.id!, style);
+                  final ok = await sl<cvp.CvStyleController>().update(cv.id!, style);
                   return ok
                       ? const Result.success(null)
                       : const Result.failure(ServerException());
