@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_detail_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
@@ -108,6 +109,9 @@ void main() {
         store: store,
       );
 
+  cvp.CvDetailController buildCvDetailController(CvStore store) =>
+      cvp.CvDetailController(getCvById: mockGetCvById, store: store);
+
   group('CV Detail Flow', () {
     testWidgets('tap CV dans la liste → preview + boutons export visibles',
         (tester) async {
@@ -129,6 +133,7 @@ void main() {
         cvStore: cvStore,
         cvListController: buildCvListController(cvStore),
         cvEditorController: buildCvEditorController(cvStore),
+        cvDetailController: buildCvDetailController(cvStore),
         initialLocation: '/home',
       ));
 

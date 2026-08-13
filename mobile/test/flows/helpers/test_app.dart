@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_detail_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart' as cvp;
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
@@ -29,6 +30,7 @@ Widget buildTestApp({
   required CvStore cvStore,
   required cvp.CvListController cvListController,
   required CvEditorController cvEditorController,
+  required cvp.CvDetailController cvDetailController,
   String initialLocation = '/login',
 }) {
   final router = GoRouter(
@@ -76,6 +78,7 @@ Widget buildTestApp({
       ChangeNotifierProvider<CvStore>.value(value: cvStore),
       Provider<cvp.CvListController>.value(value: cvListController),
       Provider<CvEditorController>.value(value: cvEditorController),
+      Provider<cvp.CvDetailController>.value(value: cvDetailController),
       ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
     ],
     child: MaterialApp.router(
