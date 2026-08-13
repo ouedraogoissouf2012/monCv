@@ -7,8 +7,9 @@ import '../cv_store.dart';
 /// Applique un changement de style a un CV et le persiste (issue #240).
 ///
 /// Optimiste : met a jour le store immediatement, puis persiste. En cas
-/// d'echec, l'etat passe en [CvOperationState.failure] (le rollback complet
-/// est traite dans la PR offline de #240).
+/// d'echec, l'etat passe en [CvOperationState.failure] ET le store revient au
+/// CV original : aucun autre ecran ne doit afficher un style non persiste
+/// comme s'il etait sauvegarde.
 class CvStyleController {
   final CvRepository _repository;
   final CvStore _store;
@@ -38,6 +39,7 @@ class CvStyleController {
         _store.replaceCv(cvId, data);
         return true;
       case Failure(:final exception):
+        _store.replaceCv(cvId, cv);
         _store.setState(CvOperationState.failure(exception.message));
         return false;
     }
