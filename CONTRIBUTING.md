@@ -52,7 +52,7 @@ etre retirees des que les tests correspondants sont ajoutes.
 
 ```bash
 cd mobile
-flutter analyze --no-fatal-infos
+flutter analyze
 flutter test --coverage --concurrency=1
 dart run tool/check_coverage.dart --summary=coverage/summary.md
 ```

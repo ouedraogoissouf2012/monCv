@@ -1,5 +1,5 @@
-import '../../../models/cv.dart';
 import '../../ai/domain/entities/enhanced_cv.dart';
+import '../presentation/cv_presentation_model.dart';
 
 /// Applique un resultat d'amelioration IA sur un CV et retourne le CV enrichi.
 ///

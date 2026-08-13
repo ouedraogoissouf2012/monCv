@@ -133,7 +133,7 @@ jobs:
 
       - name: Analyze
         working-directory: mobile
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze
 
       - name: Run tests
         working-directory: mobile

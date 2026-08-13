@@ -109,7 +109,7 @@ class ReleasePipeline:
             ["git", "diff", "--exit-code", "--", *generated],
             cwd=self.context.root,
         )
-        self.runner.run(["flutter", "analyze", "--no-fatal-infos"], cwd=mobile)
+        self.runner.run(["flutter", "analyze"], cwd=mobile)
         self.runner.run(
             [
                 "flutter",

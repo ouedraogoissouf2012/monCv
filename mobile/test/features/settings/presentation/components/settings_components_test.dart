@@ -146,7 +146,7 @@ void main() {
 
       expect(
         tester.getSemantics(find.byType(DestructiveActionTile)),
-        containsSemantics(isButton: true, label: 'Supprimer mon compte'),
+        isSemantics(isButton: true, label: 'Supprimer mon compte'),
       );
 
       await tester.tap(find.text('Supprimer mon compte'));
