@@ -59,5 +59,22 @@ void main() {
       expect(store.state.errorMessage, isNotNull);
       verifyNever(() => repository.updateCv(any(), any()));
     });
+
+    test(
+        'echec de persistance : le store revient au style original (pas de faux succes affiche)',
+        () async {
+      final original = Cv(id: 7, titre: 'CV', style: CvStyle.defaultStyle);
+      store.setCurrentCv(original);
+      when(() => repository.updateCv(7, any())).thenAnswer((_) async =>
+          const Result.failure(NetworkException(message: 'offline')));
+
+      final ok = await controller.update(7, sampleStyle);
+
+      expect(ok, isFalse);
+      expect(store.currentCv?.style, CvStyle.defaultStyle,
+          reason:
+              'le style optimiste non persiste ne doit pas rester affiche apres un echec serveur');
+      expect(store.state.errorMessage, 'offline');
+    });
   });
 }
