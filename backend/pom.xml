@@ -381,7 +381,6 @@
                                     <!-- Legacy baseline: remove an entry as soon as its tests reach 80%. -->
                                     <excludes>
                                         <exclude>com.cvmobile.service.CvService</exclude>
-                                        <exclude>com.cvmobile.service.DocxGenerationService</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
