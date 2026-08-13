@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import '../../../core/navigation/app_shell.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/presentation/cv_presentation_model.dart';
-import '../../../providers/cv_provider.dart';
+import '../../cv/presentation/controllers/cv_editor_controller.dart';
+import '../../cv/presentation/controllers/cv_list_controller.dart' as cvp;
+import '../../cv/presentation/cv_store.dart';
 import '../../../services/pdf_service.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/responsive.dart';
@@ -39,15 +41,16 @@ class _CvListScreenState extends State<CvListScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = context.read<CvProvider>();
+    final listController = context.read<cvp.CvListController>();
+    final editor = context.read<CvEditorController>();
     _controller = CvListController(
       importCv: widget.importCv,
       pickFile: _pickFile,
-      reload: () => provider.loadCvs().then((_) => true),
-      deleteCv: provider.deleteCv,
-      duplicateCv: provider.duplicateCv,
+      reload: () => listController.load().then((_) => true),
+      deleteCv: editor.delete,
+      duplicateCv: editor.duplicate,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => provider.loadCvs());
+    WidgetsBinding.instance.addPostFrameCallback((_) => listController.load());
   }
 
   @override
@@ -113,12 +116,12 @@ class _CvListScreenState extends State<CvListScreen> {
   Future<void> _confirmAction(
       Future<bool> Function() action, String okMessage) async {
     final messenger = ScaffoldMessenger.of(context);
-    final provider = context.read<CvProvider>();
+    final store = context.read<CvStore>();
     final l = AppLocalizations.of(context)!;
     final ok = await action();
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(
-      content: Text(ok ? okMessage : provider.error ?? l.errorGeneric),
+      content: Text(ok ? okMessage : store.state.errorMessage ?? l.errorGeneric),
       behavior: SnackBarBehavior.floating,
       backgroundColor: ok ? AppColors.success : Theme.of(context).colorScheme.error,
     ));
@@ -150,7 +153,7 @@ class _CvListScreenState extends State<CvListScreen> {
   Future<void> _share(Cv cv) async {
     final changed = await showDialog<bool>(
         context: context, builder: (_) => SharePortfolioDialog(cv: cv));
-    if (changed == true && mounted) await context.read<CvProvider>().loadCvs();
+    if (changed == true && mounted) await context.read<cvp.CvListController>().load();
   }
 
   AppLocalizations get _l => AppLocalizations.of(context)!;
@@ -167,17 +170,17 @@ class _CvListScreenState extends State<CvListScreen> {
         if (isDesktop) const CvNewButton(),
       ],
       floatingActionButton: isDesktop ? null : const CvNewFab(),
-      body: Consumer<CvProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading && provider.cvs.isEmpty) {
+      body: Consumer<CvStore>(
+        builder: (context, store, _) {
+          if (store.state.isLoading && store.cvs.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (provider.cvs.isEmpty) return const CvListEmptyState();
+          if (store.cvs.isEmpty) return const CvListEmptyState();
           return Column(
             children: [
-              if (provider.isOffline) const CvListOfflineBanner(),
+              if (store.isOffline) const CvListOfflineBanner(),
               Expanded(
-                  child: CvListView(cvs: provider.cvs, itemBuilder: _card)),
+                  child: CvListView(cvs: store.cvs, itemBuilder: _card)),
             ],
           );
         },
