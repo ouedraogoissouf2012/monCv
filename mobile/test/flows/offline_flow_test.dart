@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:cv_mobile/core/error/result.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_editor_controller.dart';
+import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart' as cvp;
+import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/providers/auth_provider.dart';
 import 'package:cv_mobile/providers/cv_provider.dart';
 
@@ -76,7 +79,7 @@ void main() {
         storage: mockStorage,
       );
 
-  CvProvider buildCvProvider() => CvProvider(
+  CvProvider buildCvProvider(CvStore store) => CvProvider(
         getAllCvs: mockGetAllCvs,
         getCvById: mockGetCvById,
         createCv: mockCreateCv,
@@ -86,6 +89,21 @@ void main() {
         createVariantUseCase: mockCreateVariant,
         repository: mockCvRepo,
         connectivity: mockConnectivity,
+        store: store,
+      );
+
+  cvp.CvListController buildCvListController(CvStore store) =>
+      cvp.CvListController(getAllCvs: mockGetAllCvs, store: store);
+
+  CvEditorController buildCvEditorController(CvStore store) =>
+      CvEditorController(
+        createCv: mockCreateCv,
+        updateCv: mockUpdateCv,
+        deleteCv: mockDeleteCv,
+        duplicateCv: mockDuplicate,
+        createVariant: mockCreateVariant,
+        repository: mockCvRepo,
+        store: store,
       );
 
   group('Offline Flow', () {
@@ -99,11 +117,15 @@ void main() {
           .thenAnswer((_) async => Result.success([fakeCv()]));
 
       final authProvider = buildAuthProvider();
-      final cvProvider = buildCvProvider();
+      final cvStore = CvStore();
+      final cvProvider = buildCvProvider(cvStore);
 
       await tester.pumpWidget(buildTestApp(
         authProvider: authProvider,
         cvProvider: cvProvider,
+        cvStore: cvStore,
+        cvListController: buildCvListController(cvStore),
+        cvEditorController: buildCvEditorController(cvStore),
         initialLocation: '/home',
       ));
       await tester.pumpAndSettle();
