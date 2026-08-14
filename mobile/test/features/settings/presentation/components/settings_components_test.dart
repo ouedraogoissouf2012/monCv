@@ -144,9 +144,12 @@ void main() {
         ),
       );
 
+      // containsSemantics (et non matchesSemantics) : verification PARTIELLE du
+      // role bouton + label, sans exiger l'absence des actions tap/focus reelles
+      // du bouton (matchesSemantics est strict et echouerait sur ces actions).
       expect(
         tester.getSemantics(find.byType(DestructiveActionTile)),
-        matchesSemantics(isButton: true, label: 'Supprimer mon compte'),
+        containsSemantics(isButton: true, label: 'Supprimer mon compte'),
       );
 
       await tester.tap(find.text('Supprimer mon compte'));
