@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -20,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Reinitialisation de mot de passe (issue #381).
@@ -28,6 +31,13 @@ import java.util.HexFormat;
  * d'emails), jeton cryptographiquement aleatoire jamais persiste en clair (seule
  * son empreinte SHA-256 l'est), usage unique, duree de vie courte, rate-limiting
  * de la demande. Le jeton n'est jamais journalise.
+ *
+ * Anti-enumeration par timing (issue #495) : l'envoi de l'email est asynchrone et
+ * declenche <strong>apres le commit</strong> de la transaction. Asynchrone, il sort
+ * du chemin de reponse pour que la demande revienne en temps constant que l'email
+ * existe ou non. Apres commit, il garantit que le jeton est deja persiste et donc
+ * utilisable quand l'utilisateur clique le lien (aucune course entre l'envoi et le
+ * commit qui rendrait {@link #resetPassword} incapable de retrouver le jeton).
  */
 @Slf4j
 @Service
@@ -68,9 +78,44 @@ public class PasswordResetService {
                     .tokenHash(hash(rawToken))
                     .expiresAt(Instant.now().plus(TOKEN_TTL))
                     .build());
-            emailSender.sendResetLink(email, rawToken);
+            sendResetLinkAfterCommit(email, rawToken);
             log.info("Jeton de reinitialisation emis pour userId={}", user.getId());
         });
+    }
+
+    /**
+     * Programme l'envoi (asynchrone) du lien apres le commit de la transaction courante,
+     * de sorte que le jeton soit deja persiste lorsque l'utilisateur clique le lien.
+     * En l'absence de transaction active (ne devrait pas arriver, la methode est
+     * {@code @Transactional}), l'envoi est declenche immediatement par prudence.
+     */
+    private void sendResetLinkAfterCommit(String email, String rawToken) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            dispatchEmail(email, rawToken);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        dispatchEmail(email, rawToken);
+                    }
+                });
+    }
+
+    /**
+     * Soumet l'envoi asynchrone en absorbant un eventuel rejet de l'executor (pool
+     * sature, {@code AbortPolicy}). Le rejet ne doit jamais remonter au thread de
+     * requete : cela romprait la reponse uniforme et le temps de reponse constant
+     * (anti-enumeration). On journalise l'incident sans PII ni jeton (aucun email ici,
+     * le sender se charge du log masque sur succes/echec d'envoi effectif).
+     */
+    private void dispatchEmail(String email, String rawToken) {
+        try {
+            emailSender.sendResetLink(email, rawToken);
+        } catch (RejectedExecutionException rejected) {
+            log.error("Envoi de reinitialisation rejete : executor d'emails sature");
+        }
     }
 
     /**

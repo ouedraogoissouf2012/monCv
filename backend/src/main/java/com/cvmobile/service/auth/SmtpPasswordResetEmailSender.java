@@ -1,11 +1,13 @@
 package com.cvmobile.service.auth;
 
+import com.cvmobile.config.AsyncConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,6 +17,10 @@ import org.springframework.stereotype.Component;
  *
  * Ne journalise JAMAIS le jeton en clair (OWASP) : seul un email masque apparait dans les logs,
  * y compris en cas d'echec d'envoi.
+ *
+ * L'envoi est asynchrone (issue #495) : il s'execute hors du chemin de reponse HTTP, sur
+ * l'executor dedie {@link AsyncConfig#EMAIL_EXECUTOR}, afin que la demande de reinitialisation
+ * revienne en temps constant que l'email existe ou non (anti-enumeration par timing).
  */
 @Slf4j
 @Component
@@ -38,6 +44,7 @@ public class SmtpPasswordResetEmailSender implements PasswordResetEmailSender {
     }
 
     @Override
+    @Async(AsyncConfig.EMAIL_EXECUTOR)
     public void sendResetLink(String email, String rawToken) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);

@@ -7,24 +7,31 @@ import com.cvmobile.repository.PasswordResetTokenRepository;
 import com.cvmobile.repository.UserRepository;
 import com.cvmobile.security.RateLimitResult;
 import com.cvmobile.security.RateLimitService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.RejectedExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,6 +46,13 @@ class PasswordResetServiceTest {
     @Mock PasswordResetEmailSender emailSender;
     @Mock RateLimitService rateLimit;
     @InjectMocks PasswordResetService service;
+
+    @AfterEach
+    void clearSynchronization() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
 
     private void allowRate() {
         when(rateLimit.consume(anyString(), anyLong(), any()))
@@ -70,6 +84,63 @@ class PasswordResetServiceTest {
 
         verify(tokens, never()).save(any());
         verifyNoInteractions(emailSender);
+    }
+
+    @Test
+    void requestReset_transactionActive_neDeclencheLEnvoiQuApresLeCommit() {
+        // Simule le contexte transactionnel de production : Spring enregistre des
+        // synchronisations, l'envoi ne doit partir qu'au afterCommit (issue #495, piege
+        // de course commit/envoi). Prouve aussi que l'envoi est hors du chemin de reponse :
+        // requestReset revient sans avoir declenche l'envoi.
+        TransactionSynchronizationManager.initSynchronization();
+        allowRate();
+        User user = User.builder().id(4L).email("a@b.c").build();
+        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+
+        service.requestReset("a@b.c");
+
+        // Le jeton est persiste, mais l'envoi n'a PAS encore eu lieu au retour de la methode.
+        verify(tokens).save(any());
+        verifyNoInteractions(emailSender);
+
+        // Le commit declenche l'envoi (afterCommit), et seulement alors.
+        List<TransactionSynchronization> syncs =
+                TransactionSynchronizationManager.getSynchronizations();
+        assertThat(syncs).hasSize(1);
+        syncs.forEach(TransactionSynchronization::afterCommit);
+
+        verify(emailSender).sendResetLink(eq("a@b.c"), anyString());
+    }
+
+    @Test
+    void requestReset_transactionRollback_naEnvoieAucunEmail() {
+        // Si la transaction n'aboutit pas (afterCommit jamais appele), aucun email ne part :
+        // pas de lien vers un jeton qui n'a pas ete persiste.
+        TransactionSynchronizationManager.initSynchronization();
+        allowRate();
+        User user = User.builder().id(4L).email("a@b.c").build();
+        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+
+        service.requestReset("a@b.c");
+
+        // On ne declenche jamais afterCommit (simulant un rollback).
+        verifyNoInteractions(emailSender);
+    }
+
+    @Test
+    void requestReset_executorSature_absorbeLeRejetSansPropager() {
+        // Sans synchronisation active, l'envoi passe par le chemin direct ; un rejet de
+        // l'executor (@Async + AbortPolicy) ne doit jamais remonter et rompre la reponse
+        // uniforme / le temps constant.
+        allowRate();
+        User user = User.builder().id(4L).email("a@b.c").build();
+        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        doThrow(new RejectedExecutionException("pool sature"))
+                .when(emailSender).sendResetLink(eq("a@b.c"), anyString());
+
+        assertThatCode(() -> service.requestReset("a@b.c")).doesNotThrowAnyException();
+
+        verify(tokens).save(any());
     }
 
     @Test
