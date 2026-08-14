@@ -12,20 +12,15 @@
 # Sans --env, les variables sont lues depuis l'ENVIRONNEMENT du shell courant
 # (utile en conteneur/CI ou les secrets sont deja exportes).
 #
-# PERIMETRE ET COMPLEMENTARITE (pas de duplication) :
-#   * tools/deployment/compose_contract.py = preflight STRUCTUREL : rend le merge
-#     Compose et valide services/reseaux/ports/SHA d'image + PRESENCE des vars.
-#     Il exige docker + uv. Il ne juge PAS la qualite des valeurs.
+# PERIMETRE (complementaire, sans duplication) :
+#   * compose_contract.py = preflight STRUCTUREL (services/reseaux/ports/SHA +
+#     PRESENCE des vars) ; exige docker, ne juge pas la qualite des valeurs.
 #   * Ce script = SANITE DES VALEURS (longueur, placeholder, https, base64-32,
-#     regex) SANS docker, + un smoke de SANTE runtime. Il attrape en amont un
-#     secret present-mais-faible (ex. JWT_SECRET trop court) que le contrat
-#     structurel laisse passer mais que ProductionConfigurationPolicy REJETTE au
-#     boot (crash-loop). Il ne verifie PAS les flags codes en dur dans le compose
-#     (SPRING_PROFILES_ACTIVE, DB_URL, AI_FALLBACK_ENABLED...) : ils ne sont pas
-#     dans .env.production, c'est le role de compose_contract.py.
-#   * ProductionConfigurationPolicy (Java) reste le GATE d'autorite : il refuse
-#     le demarrage en profil prod si la config est invalide. Un boot reussi
-#     (readiness UP) est la preuve definitive ; ce script est un garde-fou amont.
+#     formats) sans docker + smoke de SANTE runtime. Attrape un secret present-
+#     mais-faible que le contrat structurel laisse passer mais que
+#     ProductionConfigurationPolicy REJETTE au boot. Ne verifie PAS les flags
+#     codes en dur dans le compose (SPRING_PROFILES_ACTIVE, DB_URL...) : role de
+#     compose_contract.py. La policy Java reste le GATE d'autorite au boot.
 set -eu
 
 # ---------------------------------------------------------------- presentation
@@ -203,49 +198,15 @@ check_google_client() {
   fi
 }
 
-# Miroir de ProductionConfigurationPolicy.validHost : hote nu (FQDN), pas de
-# schema/espace/wildcard, pas d'hote reserve ou local.
-check_mail_host() {
+# Presence + non-placeholder. Le FORMAT des champs mail (FQDN, email, port) est
+# valide au demarrage par ProductionConfigurationPolicy (autorite) : on ne
+# duplique pas ses regex ici (principe de non-duplication, cf. entete).
+# check_present NOM MESSAGE_SI_MANQUANT
+check_present() {
   v=$(get_var "$1")
-  if [ -z "$v" ]; then fail "$1 manquant (hote SMTP requis quand MAIL_ENABLED=true)"; return; fi
-  if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
-  case "$v" in *' '*|*'*'*|*://*) fail "$1 doit etre un hote nu (ex. smtp.example.org), sans schema ni espace"; return ;; esac
-  lv=$(lower "$v")
-  case "$lv" in
-    localhost|*.localhost|127.*|::1|*.test|*.invalid|example.com|*.example.com|*.example)
-      fail "$1 pointe vers un hote reserve/local"; return ;;
-  esac
-  if printf '%s' "$v" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$'; then
-    ok "$1 present et valide ($v)"
-  else
-    fail "$1 format d'hote invalide"
-  fi
-}
-
-# MAIL_PORT a un defaut compose (587) -> vide = non bloquant.
-check_mail_port() {
-  v=$(get_var "$1")
-  if [ -z "$v" ]; then warn "$1 vide : defaut 587 (STARTTLS) utilise"; return; fi
-  case "$v" in ''|*[!0-9]*) fail "$1 doit etre un entier (port), trouve '$v'"; return ;; esac
-  if [ "$v" -ge 1 ] && [ "$v" -le 65535 ]; then ok "$1 = $v"; else fail "$1 hors plage 1-65535"; fi
-}
-
-check_mail_user() {
-  v=$(get_var "$1")
-  if [ -z "$v" ]; then fail "$1 manquant (identifiant SMTP requis)"; return; fi
+  if [ -z "$v" ]; then fail "$2"; return; fi
   if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
   ok "$1 present"
-}
-
-check_email() {
-  v=$(get_var "$1")
-  if [ -z "$v" ]; then fail "$1 manquant (adresse expediteur requise)"; return; fi
-  if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
-  if printf '%s' "$v" | grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$'; then
-    ok "$1 : adresse email valide"
-  else
-    fail "$1 doit etre une adresse email valide (ex. no-reply@moncv.app)"
-  fi
 }
 
 # ------------------------------------------------------------- verif config
@@ -280,26 +241,21 @@ if [ "$CHECK_CONFIG" -eq 1 ]; then
     check_https_url SENTRY_DSN
   fi
   webport=$(get_var WEB_PORT)
-  if [ -n "$webport" ]; then
-    case "$webport" in
-      ''|*[!0-9]*) warn "WEB_PORT non numerique ('$webport'), defaut 8080 utilise si absent" ;;
-      *) [ "$webport" -ge 1 ] && [ "$webport" -le 65535 ] && ok "WEB_PORT = $webport" \
-           || warn "WEB_PORT hors plage 1-65535 ('$webport')" ;;
-    esac
-  fi
+  case "$webport" in
+    '') ;;                                        # defaut compose 8080
+    *[!0-9]*) warn "WEB_PORT non numerique ('$webport')" ;;
+    *) ok "WEB_PORT = $webport" ;;
+  esac
 
-  # Envoi email (reset password, issues #381/#487). Miroir de la validation
-  # conditionnelle de ProductionConfigurationPolicy.validateMail :
-  #   MAIL_ENABLED absent/false -> repli logging, rien a exiger (sur par defaut).
-  #   MAIL_ENABLED=true          -> creds SMTP requises et valides.
+  # Envoi email (reset password, #487). Presence seule ; le format est valide au
+  # boot par ProductionConfigurationPolicy. MAIL_PORT a un defaut compose (587).
   mail_enabled=$(lower "$(get_var MAIL_ENABLED)")
   case "$mail_enabled" in
     true)
-      check_mail_host  MAIL_HOST
-      check_mail_port  MAIL_PORT
-      check_mail_user  MAIL_USERNAME
-      check_secret     MAIL_PASSWORD 8
-      check_email      MAIL_FROM
+      check_present MAIL_HOST     "MAIL_HOST manquant (hote SMTP requis quand MAIL_ENABLED=true)"
+      check_present MAIL_USERNAME "MAIL_USERNAME manquant (identifiant SMTP requis)"
+      check_secret  MAIL_PASSWORD 8
+      check_present MAIL_FROM     "MAIL_FROM manquant (adresse expediteur requise)"
       ;;
     ''|false)
       ok "MAIL_ENABLED absent/false : reset password par email desactive (repli logging)"
