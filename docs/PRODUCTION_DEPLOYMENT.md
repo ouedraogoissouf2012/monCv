@@ -58,6 +58,19 @@ Le preflight rend Compose en memoire et ne journalise aucune valeur. N'envoyez
 jamais la sortie de `docker compose config` vers un log : elle contient les
 secrets interpoles.
 
+Le preflight ci-dessus valide la STRUCTURE Compose et la PRESENCE des variables,
+pas la qualite des valeurs. En complement, sans docker, verifiez la SANITE des
+secrets eux-memes :
+
+```bash
+sh tools/deployment/check-prod-readiness.sh --env .env.production
+```
+
+Ce controle attrape un secret present mais faible (longueur insuffisante, valeur
+placeholder, origine non-HTTPS, cle de chiffrement mal dimensionnee) que le
+preflight structurel laisse passer mais que `ProductionConfigurationPolicy`
+refuse au demarrage, provoquant un crash-loop. Il ne journalise aucune valeur.
+
 ## Publier les images
 
 Depuis un checkout propre de `origin/main`, authentifie a GHCR :
@@ -96,6 +109,17 @@ docker compose --env-file .env.production \
   -f docker-compose.yml -f docker-compose.prod.yml \
   exec -T backend wget -qO- http://127.0.0.1:8082/actuator/health/readiness
 ```
+
+La ou actuator est joignable avec `curl` (staging avec port expose, tunnel SSH),
+un smoke des deux probes avec quelques essais est disponible :
+
+```bash
+sh tools/deployment/check-prod-readiness.sh --health http://127.0.0.1:8082
+```
+
+L'image backend de production n'embarque pas `curl` : ce mode s'utilise depuis
+l'hote ou une machine d'admin, pas dans le conteneur (ou le `wget` ci-dessus
+reste la reference).
 
 Le reverse proxy hote termine TLS et transmet vers `127.0.0.1:WEB_PORT`.
 PostgreSQL, Redis et le backend ne possedent aucun port hote.
