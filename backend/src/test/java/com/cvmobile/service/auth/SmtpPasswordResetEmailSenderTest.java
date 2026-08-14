@@ -67,18 +67,23 @@ class SmtpPasswordResetEmailSenderTest {
     }
 
     @Test
-    void sendResetLink_nAvorteJamaisEtNeJournaliseJamaisLeJetonQuandLEnvoiEchoue() {
+    void sendResetLink_nAvorteJamaisEtNeFuitNiJetonNiEmailEnClairQuandLEnvoiEchoue() {
         ListAppender<ILoggingEvent> appender = attachAppender();
-        doThrow(new MailSendException("SMTP indisponible"))
+        // Un MailSendException reel embarque frequemment l'adresse destinataire en
+        // clair : on verifie qu'elle ne fuite pas dans les logs (PII).
+        doThrow(new MailSendException("Invalid Addresses: john@example.com"))
                 .when(mailSender).send(any(SimpleMailMessage.class));
 
         sender.sendResetLink("john@example.com", RAW_TOKEN);
 
         ILoggingEvent event = appender.list.get(0);
         assertThat(event.getFormattedMessage())
-                .contains("j***@example.com")
-                .doesNotContain(RAW_TOKEN);
-        assertThat(event.getThrowableProxy().getMessage()).doesNotContain(RAW_TOKEN);
+                .contains("j***@example.com")        // email masque pour le triage
+                .contains("MailSendException")        // type d'incident, pas le detail brut
+                .doesNotContain(RAW_TOKEN)            // jamais le jeton
+                .doesNotContain("john@example.com");  // jamais l'email en clair (PII)
+        // L'exception brute n'est jamais journalisee (sa stacktrace/message peut contenir la PII).
+        assertThat(event.getThrowableProxy()).isNull();
     }
 
     @Test

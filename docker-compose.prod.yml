@@ -51,6 +51,15 @@ services:
       PUBLIC_MEDIA_ALLOWED_ORIGINS: ${PUBLIC_MEDIA_ALLOWED_ORIGINS:?PUBLIC_MEDIA_ALLOWED_ORIGINS is required}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: production
+      # Reset password par email (issue #487). Desactive par defaut -> repli logging.
+      # Passer MAIL_ENABLED=true impose des creds SMTP valides (voir .env.production.example
+      # et ProductionConfigurationPolicy). Aucune credential reelle n'est stockee ici.
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@moncv.app}
 
     networks: !override
       - edge-net

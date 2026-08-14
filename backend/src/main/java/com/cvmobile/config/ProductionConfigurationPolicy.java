@@ -17,6 +17,17 @@ final class ProductionConfigurationPolicy {
     private static final Pattern DB_USERNAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_-]{2,62}");
     private static final Pattern GOOGLE_CLIENT_ID = Pattern.compile(
             "[A-Za-z0-9-]{10,}\\.apps\\.googleusercontent\\.com");
+    private static final Pattern HOSTNAME = Pattern.compile(
+            "[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+                    + "(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+");
+    private static final Pattern EMAIL = Pattern.compile(
+            "[A-Za-z0-9._%+-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+                    + "(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+");
+    // Plancher volontairement bas : le secret SMTP est fourni par le provider
+    // (App Password 16c, cle API...) ; on rejette surtout le vide/placeholder/trivial.
+    private static final int MAIL_PASSWORD_MIN_LENGTH = 8;
+    private static final int MIN_PORT = 1;
+    private static final int MAX_PORT = 65535;
     private static final Set<String> PLACEHOLDER_VALUES = Set.of(
             "change_me", "change-me", "changeme", "dummy", "password",
             "placeholder", "postgres", "secret", "tbd", "todo");
@@ -57,6 +68,7 @@ final class ProductionConfigurationPolicy {
                 exactBoolean(configuration.value(ProductionSetting.RATE_LIMIT_ENABLED), true));
         require(invalid, ProductionSetting.RATE_LIMIT_ADMIN_BYPASS,
                 exactBoolean(configuration.value(ProductionSetting.RATE_LIMIT_ADMIN_BYPASS), false));
+        validateMail(configuration, invalid);
         if (!invalid.isEmpty()) {
             String names = invalid.stream().map(Enum::name).sorted()
                     .collect(Collectors.joining(", "));
@@ -70,6 +82,35 @@ final class ProductionConfigurationPolicy {
             boolean valid
     ) {
         if (!valid) invalid.add(setting);
+    }
+
+    /**
+     * Le mail est optionnel : desactive (defaut sur), on ne valide rien et l'app
+     * retombe sur {@code LoggingPasswordResetEmailSender}. Active
+     * ({@code MAIL_ENABLED=true}), les creds SMTP deviennent requises, sinon
+     * l'{@code SmtpPasswordResetEmailSender} echouerait silencieusement a chaque envoi.
+     */
+    private void validateMail(
+            ProductionConfiguration configuration,
+            EnumSet<ProductionSetting> invalid
+    ) {
+        String enabled = configuration.value(ProductionSetting.MAIL_ENABLED);
+        if (enabled != null && !isBoolean(enabled)) {
+            // Valeur ininterpretable : impossible de decider s'il faut exiger les creds.
+            invalid.add(ProductionSetting.MAIL_ENABLED);
+            return;
+        }
+        if (!isTrue(enabled)) return;
+        require(invalid, ProductionSetting.MAIL_HOST,
+                validHost(configuration.value(ProductionSetting.MAIL_HOST)));
+        require(invalid, ProductionSetting.MAIL_PORT,
+                validPort(configuration.value(ProductionSetting.MAIL_PORT)));
+        require(invalid, ProductionSetting.MAIL_USERNAME,
+                validRequiredValue(configuration.value(ProductionSetting.MAIL_USERNAME)));
+        require(invalid, ProductionSetting.MAIL_PASSWORD,
+                validMailSecret(configuration.value(ProductionSetting.MAIL_PASSWORD)));
+        require(invalid, ProductionSetting.MAIL_FROM,
+                validEmail(configuration.value(ProductionSetting.MAIL_FROM)));
     }
 
     private boolean validSecret(String value, int minimumLength) {
@@ -150,5 +191,46 @@ final class ProductionConfigurationPolicy {
     private boolean exactBoolean(String value, boolean expected) {
         return value != null && value.equals(value.strip())
                 && Boolean.toString(expected).equalsIgnoreCase(value);
+    }
+
+    private boolean isBoolean(String value) {
+        return exactBoolean(value, true) || exactBoolean(value, false);
+    }
+
+    private boolean isTrue(String value) {
+        return exactBoolean(value, true);
+    }
+
+    private boolean validHost(String value) {
+        return value != null && value.equals(value.strip()) && !isPlaceholder(value)
+                && HOSTNAME.matcher(value).matches() && !reservedHost(value);
+    }
+
+    private boolean validPort(String value) {
+        if (value == null || !value.equals(value.strip())) return false;
+        try {
+            int port = Integer.parseInt(value);
+            return port >= MIN_PORT && port <= MAX_PORT;
+        } catch (NumberFormatException exception) {
+            return false;
+        }
+    }
+
+    private boolean validRequiredValue(String value) {
+        return value != null && value.equals(value.strip())
+                && !value.isBlank() && !isPlaceholder(value);
+    }
+
+    private boolean validMailSecret(String value) {
+        return value != null && value.equals(value.strip())
+                && value.length() >= MAIL_PASSWORD_MIN_LENGTH && !isPlaceholder(value);
+    }
+
+    private boolean validEmail(String value) {
+        if (value == null || !value.equals(value.strip()) || isPlaceholder(value)
+                || !EMAIL.matcher(value).matches()) {
+            return false;
+        }
+        return !reservedHost(value.substring(value.indexOf('@') + 1));
     }
 }

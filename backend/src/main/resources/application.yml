@@ -40,6 +40,11 @@ spring:
           auth: true
           starttls:
             enable: true
+          # Timeouts SMTP (ms) : un relais lent/injoignable ne doit jamais bloquer
+          # la requete de reset (envoi effectue dans requestReset). Voir issue #487.
+          connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
+          timeout: ${MAIL_SMTP_READ_TIMEOUT:5000}
+          writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
 
 server:
   port: ${SERVER_PORT:8082}

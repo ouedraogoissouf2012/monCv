@@ -50,9 +50,11 @@ public class SmtpPasswordResetEmailSender implements PasswordResetEmailSender {
         } catch (MailException exception) {
             // L'echec d'envoi ne doit jamais remonter : la reponse du controleur reste uniforme
             // (anti-enumeration d'emails, voir PasswordResetService). L'incident reste visible
-            // via ce log d'erreur (email masque, jamais le jeton).
-            log.error("Echec de l'envoi de l'email de reinitialisation pour {}",
-                    maskEmail(email), exception);
+            // via ce log d'erreur : email masque + type d'exception seulement. On NE journalise
+            // PAS l'exception brute — un MailSendException peut contenir l'adresse destinataire
+            // en clair (PII) et jamais le jeton.
+            log.error("Echec de l'envoi de l'email de reinitialisation pour {} (cause: {})",
+                    maskEmail(email), exception.getClass().getSimpleName());
             return;
         }
         log.info("Email de reinitialisation envoye pour {}", maskEmail(email));
