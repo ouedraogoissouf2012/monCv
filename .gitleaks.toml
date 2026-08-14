@@ -3,6 +3,18 @@ title = "MonCV Gitleaks configuration"
 [extend]
 useDefault = true
 
+# Regle dediee DeepSeek : la regle "openai-api-key" par defaut de Gitleaks
+# exige le marqueur "T3BlbkFJ" propre a OpenAI. Une cle DeepSeek (sk- suivi
+# d'une chaine aleatoire, sans ce marqueur) echapperait donc au ruleset par
+# defaut. Cette regle ferme ce trou (cf. issue #485, cle DeepSeek compromise).
+# Pas de seuil d'entropie : on privilegie la detection ; un faux positif se
+# traite par une allowlist ciblee, un secret rate ne se rattrape pas.
+[[rules]]
+id = "moncv-deepseek-api-key"
+description = "Cle API DeepSeek au format sk-..."
+regex = '''\bsk-[a-zA-Z0-9]{28,}\b'''
+keywords = ["sk-"]
+
 [[allowlists]]
 description = "Valeur JWT locale non-production, limitee au profil dev"
 condition = "AND"
@@ -11,10 +23,16 @@ paths = ['''(?:^|/)backend/src/main/resources/application-dev\.yml$''']
 regexes = ['''moncv-dev-only-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6n''']
 
 [[allowlists]]
+# `Cv` couvre l'ancien fichier `CvFlowIntegrationTest.java`, present dans
+# l'historique avant d'etre scinde en `CvCrudFlowIntegrationTest.java` &co.
+# La valeur y est le meme secret de test fictif deja autorise ci-dessous ; sans
+# cette entree, le scan d'historique complet (run planifie de la CI) echoue sur
+# un faux positif. La condition AND garde le controle : un vrai secret dans ce
+# fichier resterait detecte.
 description = "Secrets JWT fixes et non-production des tests reproductibles"
 condition = "AND"
 regexTarget = "match"
-paths = ['''(?:^|/)backend/src/test/(resources/application-test\.yml|java/com/cvmobile/(integration/(Auth|CvCrud|PublicShare|AiFallback)FlowIntegrationTest|security/JwtTokenProviderTest)\.java)$''']
+paths = ['''(?:^|/)backend/src/test/(resources/application-test\.yml|java/com/cvmobile/(integration/(Auth|Cv|CvCrud|PublicShare|AiFallback)FlowIntegrationTest|security/JwtTokenProviderTest)\.java)$''']
 regexes = ['''(TestOnly-A7zQ9mK2xR8pL4vN6sT1wY5cD3fH0jU7eB9gM2qX8kP4rV6nC5sD8wZ1kP4|IntegrationTest-B8yR4nM7qW2xK9pL5vT1sD6fH3jU0eA7zC4gN8mQ2rX6kP9wV5b)''']
 
 [[allowlists]]

@@ -57,6 +57,100 @@ ne contiennent aucune valeur utilisable.
 - rotation a chaque changement d'equipe pour les secrets partages manuellement ;
 - apres rotation, verifier les healthchecks et l'absence d'erreurs auth.
 
+## Runbook — Rotation cle DeepSeek + audit pre-prod
+
+Procedure operateur pour remplacer la cle `DEEPSEEK_API_KEY`. A appliquer
+apres toute exposition confirmee ou suspectee (cf. incident de mai 2026,
+`docs/SECURITY_INCIDENT_2026-05.md`) et lors des rotations planifiees.
+
+Regles absolues pendant l'operation :
+
+- ne jamais afficher, coller, journaliser ni committer la valeur d'une cle ;
+- ne jamais reutiliser l'ancienne cle, meme temporairement ;
+- l'ordre est strict : deployer la NOUVELLE cle et valider AVANT de revoquer
+  l'ancienne, sinon l'IA tombe en panne (le service reste up en mode degrade,
+  cf. `AppStartupValidator`, mais la fonctionnalite IA est indisponible).
+
+### 1. Preparer la nouvelle cle
+
+1. Se connecter au tableau de bord DeepSeek (`https://platform.deepseek.com/`).
+2. Creer une NOUVELLE cle. Ne pas encore revoquer l'ancienne.
+3. La transmettre uniquement via le gestionnaire de secrets ou un canal
+   chiffre. Jamais par courriel, ticket, capture ou messagerie en clair.
+
+### 2. Injecter la cle dans le gestionnaire de secrets
+
+1. Enregistrer la valeur sous `DEEPSEEK_API_KEY` dans le gestionnaire de
+   secrets de la plateforme de production (jamais dans un fichier suivi).
+2. En local uniquement : la placer dans `backend/.env` (ignore par Git). Ne
+   definir aucune valeur par defaut dans un YAML suivi.
+3. Ne jamais propager la cle vers le client Flutter ou une variable Web : elle
+   ne sert qu'au backend (`spring.ai.deepseek.api-key`).
+
+### 3. Redeployer et valider la readiness
+
+1. Redeployer le backend pour qu'il relise le secret (par ex.
+   `docker compose -f docker-compose.prod.yml up -d --no-deps --force-recreate backend`,
+   ou l'equivalent de la plateforme). `ProductionConfigurationPolicy` reste le
+   gate d'autorite : un boot en profil prod echoue si la config est invalide.
+2. Controler la SANITE de la configuration avant meme le boot :
+
+   ```bash
+   tools/deployment/check-prod-readiness.sh --env <fichier .env.production>
+   ```
+
+3. Sonder l'application deployee (readiness + liveness) :
+
+   ```bash
+   tools/deployment/check-prod-readiness.sh --health <url actuator>
+   ```
+
+4. Verifier specifiquement le composant DeepSeek de `/actuator/health` : il
+   doit etre `UP` (cf. `DeepSeekHealthIndicator`, cache 60 s). Un `DOWN` ou un
+   `401` provider signale une cle invalide ou mal injectee — corriger avant de
+   poursuivre.
+
+### 4. Revoquer l'ancienne cle
+
+1. Une fois la readiness confirmee UP avec la nouvelle cle, revoquer l'ancienne
+   dans le tableau de bord DeepSeek.
+2. Consulter les journaux d'utilisation DeepSeek de l'ancienne cle pour
+   detecter tout appel non legitime, et le signaler le cas echeant.
+3. Reverifier `/actuator/health` apres revocation : le composant DeepSeek doit
+   rester `UP` (preuve que la nouvelle cle est bien celle utilisee).
+
+### 5. Purge de l'historique si la cle a ete committee
+
+La revocation ne suffit pas si la valeur est entree dans Git : elle reste
+lisible dans l'historique. Appliquer alors la procedure de reecriture decrite
+dans `docs/SECURITY_INCIDENT_2026-05.md` :
+
+1. cloner un miroir de sauvegarde avant toute reecriture ;
+2. reecrire toutes les branches avec `git-filter-repo` ;
+3. controler le resultat sur le miroir :
+
+   ```bash
+   git log --all -S "sk-" --oneline   # doit ne rien renvoyer
+   git fsck --full --strict
+   python tools/quality/run_gitleaks.py
+   ```
+
+4. forcer la mise a jour des branches, puis demander a chaque contributeur de
+   supprimer son clone et de recloner ;
+5. contacter GitHub Support pour purger les references PR et caches residuels.
+
+### 6. Cloture
+
+- Confirmer que le scan Gitleaks d'historique complet est vert : declencher le
+  workflow `.github/workflows/security.yml` (evenement `workflow_dispatch`), qui
+  analyse tout l'historique et fait autorite (cf. section « Controle GitHub »).
+- Consigner l'operation (date, operateur, motif) sans jamais y reporter la
+  moindre valeur de cle.
+- La detection en amont d'une cle DeepSeek au format `sk-...` est assuree par la
+  regle `moncv-deepseek-api-key` de `.gitleaks.toml` : le ruleset Gitleaks par
+  defaut ne couvre que le format OpenAI (`sk-...T3BlbkFJ...`) et laisserait
+  passer une cle DeepSeek.
+
 ## Controle avant commit
 
 Installer `pre-commit` et Gitleaks, puis activer le hook :
