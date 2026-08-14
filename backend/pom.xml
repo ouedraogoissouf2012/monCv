@@ -392,10 +392,6 @@
                                         <include>com.cvmobile.service.*</include>
                                         <include>com.cvmobile.controller.*</include>
                                     </includes>
-                                    <!-- Legacy baseline: remove an entry as soon as its tests reach 80%. -->
-                                    <excludes>
-                                        <exclude>com.cvmobile.service.CvService</exclude>
-                                    </excludes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>

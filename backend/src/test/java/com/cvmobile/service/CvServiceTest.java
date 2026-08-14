@@ -35,8 +35,9 @@ import static org.mockito.Mockito.when;
 /**
  * Teste la facade CRUD {@link CvService} : operations propres (lecture,
  * creation, mise a jour, suppression) et delegation aux collaborateurs
- * (variantes, partage). Les logiques deleguees sont testees dans leurs propres
- * classes de test.
+ * (variantes, partage). Duplication, delegations de partage restantes et
+ * branches collections/style sont testees dans {@link CvServiceAdditionalTest}
+ * (issue #231, fichier separe pour respecter la limite de 300 lignes).
  */
 @ExtendWith(MockitoExtension.class)
 class CvServiceTest {
