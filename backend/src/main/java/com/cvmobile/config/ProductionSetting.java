@@ -13,7 +13,15 @@ enum ProductionSetting {
     GOOGLE_CLIENT_ID("google.auth.client-id", true),
     AI_FALLBACK_ENABLED("ai.fallback.enabled", false),
     RATE_LIMIT_ENABLED("security.rate-limit.enabled", false),
-    RATE_LIMIT_ADMIN_BYPASS("security.rate-limit.admin-bypass", false);
+    RATE_LIMIT_ADMIN_BYPASS("security.rate-limit.admin-bypass", false),
+    // Envoi SMTP du reset password (issue #487). Non suivi au demarrage (banniere) :
+    // le mail est optionnel et desactive par defaut. Valide seulement si MAIL_ENABLED=true.
+    MAIL_ENABLED("mail.enabled", false),
+    MAIL_HOST("spring.mail.host", false),
+    MAIL_PORT("spring.mail.port", false),
+    MAIL_USERNAME("spring.mail.username", false),
+    MAIL_PASSWORD("spring.mail.password", false),
+    MAIL_FROM("mail.from", false);
 
     private final String propertyName;
     private final boolean trackedAtStartup;

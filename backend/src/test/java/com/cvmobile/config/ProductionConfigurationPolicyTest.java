@@ -121,9 +121,70 @@ class ProductionConfigurationPolicyTest {
         assertInvalid(ProductionSetting.RATE_LIMIT_ADMIN_BYPASS, "true");
     }
 
+    @Test
+    void ignoresMailCredentialsWhenMailIsDisabled() {
+        // Defaut sur (MAIL_ENABLED absent) : aucune cred SMTP requise, repli logging.
+        assertThatCode(() -> policy.validate(validConfiguration())).doesNotThrowAnyException();
+        // Explicitement desactive : idem, meme sans aucun MAIL_* configure.
+        ProductionConfiguration disabled = configuration(
+                Set.of("prod"), ProductionSetting.MAIL_ENABLED, "false");
+        assertThatCode(() -> policy.validate(disabled)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void acceptsAFullyConfiguredMailSetup() {
+        ProductionConfiguration enabled = new ProductionConfiguration(Set.of("prod"), mailValues());
+        assertThatCode(() -> policy.validate(enabled)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsAnUninterpretableMailEnabledFlag() {
+        for (String value : List.of("yes", "1", "TRUE ", "enabled")) {
+            assertInvalid(ProductionSetting.MAIL_ENABLED, value);
+        }
+    }
+
+    @Test
+    void rejectsEnabledMailWithMissingOrWeakCredentials() {
+        for (ProductionSetting required : List.of(
+                ProductionSetting.MAIL_HOST, ProductionSetting.MAIL_PORT,
+                ProductionSetting.MAIL_USERNAME, ProductionSetting.MAIL_PASSWORD,
+                ProductionSetting.MAIL_FROM)) {
+            assertMailInvalid(required, null);
+        }
+        for (String host : List.of("smtp://smtp.acme.org", "smtp .acme.org", "localhost",
+                "smtp.localhost", "smtp.example.com", "your-smtp-host", "nodot")) {
+            assertMailInvalid(ProductionSetting.MAIL_HOST, host);
+        }
+        for (String port : List.of("0", "70000", "abc", "-1")) {
+            assertMailInvalid(ProductionSetting.MAIL_PORT, port);
+        }
+        for (String user : List.of("change_me", "your-user")) {
+            assertMailInvalid(ProductionSetting.MAIL_USERNAME, user);
+        }
+        for (String password : List.of("short", "change_me", "  padded-secret  ")) {
+            assertMailInvalid(ProductionSetting.MAIL_PASSWORD, password);
+        }
+        for (String from : List.of("not-an-email", "no-reply@localhost",
+                "no-reply@example.com", "a@b")) {
+            assertMailInvalid(ProductionSetting.MAIL_FROM, from);
+        }
+    }
+
     private void assertInvalid(ProductionSetting setting, String value) {
         var assertion = assertThatThrownBy(() -> policy.validate(
                 configuration(Set.of("prod"), setting, value)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(setting.name());
+        if (value != null && !value.isEmpty()) assertion.hasMessageNotContaining(value);
+    }
+
+    /** Comme {@link #assertInvalid} mais sur une base mail active et par ailleurs valide. */
+    private void assertMailInvalid(ProductionSetting setting, String value) {
+        EnumMap<ProductionSetting, String> values = mailValues();
+        values.put(setting, value);
+        var assertion = assertThatThrownBy(() -> policy.validate(
+                new ProductionConfiguration(Set.of("prod"), values)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining(setting.name());
         if (value != null && !value.isEmpty()) assertion.hasMessageNotContaining(value);
@@ -159,6 +220,17 @@ class ProductionConfigurationPolicyTest {
         values.put(ProductionSetting.AI_FALLBACK_ENABLED, "false");
         values.put(ProductionSetting.RATE_LIMIT_ENABLED, "true");
         values.put(ProductionSetting.RATE_LIMIT_ADMIN_BYPASS, "false");
+        return values;
+    }
+
+    private EnumMap<ProductionSetting, String> mailValues() {
+        EnumMap<ProductionSetting, String> values = validValues();
+        values.put(ProductionSetting.MAIL_ENABLED, "true");
+        values.put(ProductionSetting.MAIL_HOST, "smtp.acme.org");
+        values.put(ProductionSetting.MAIL_PORT, "587");
+        values.put(ProductionSetting.MAIL_USERNAME, "smtp-user");
+        values.put(ProductionSetting.MAIL_PASSWORD, "s3cret-app-password");
+        values.put(ProductionSetting.MAIL_FROM, "no-reply@acme.org");
         return values;
     }
 

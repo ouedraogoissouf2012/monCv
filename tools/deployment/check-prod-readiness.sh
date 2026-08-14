@@ -203,6 +203,51 @@ check_google_client() {
   fi
 }
 
+# Miroir de ProductionConfigurationPolicy.validHost : hote nu (FQDN), pas de
+# schema/espace/wildcard, pas d'hote reserve ou local.
+check_mail_host() {
+  v=$(get_var "$1")
+  if [ -z "$v" ]; then fail "$1 manquant (hote SMTP requis quand MAIL_ENABLED=true)"; return; fi
+  if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
+  case "$v" in *' '*|*'*'*|*://*) fail "$1 doit etre un hote nu (ex. smtp.example.org), sans schema ni espace"; return ;; esac
+  lv=$(lower "$v")
+  case "$lv" in
+    localhost|*.localhost|127.*|::1|*.test|*.invalid|example.com|*.example.com|*.example)
+      fail "$1 pointe vers un hote reserve/local"; return ;;
+  esac
+  if printf '%s' "$v" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$'; then
+    ok "$1 present et valide ($v)"
+  else
+    fail "$1 format d'hote invalide"
+  fi
+}
+
+# MAIL_PORT a un defaut compose (587) -> vide = non bloquant.
+check_mail_port() {
+  v=$(get_var "$1")
+  if [ -z "$v" ]; then warn "$1 vide : defaut 587 (STARTTLS) utilise"; return; fi
+  case "$v" in ''|*[!0-9]*) fail "$1 doit etre un entier (port), trouve '$v'"; return ;; esac
+  if [ "$v" -ge 1 ] && [ "$v" -le 65535 ]; then ok "$1 = $v"; else fail "$1 hors plage 1-65535"; fi
+}
+
+check_mail_user() {
+  v=$(get_var "$1")
+  if [ -z "$v" ]; then fail "$1 manquant (identifiant SMTP requis)"; return; fi
+  if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
+  ok "$1 present"
+}
+
+check_email() {
+  v=$(get_var "$1")
+  if [ -z "$v" ]; then fail "$1 manquant (adresse expediteur requise)"; return; fi
+  if is_placeholder "$v"; then fail "$1 = valeur placeholder/exemple"; return; fi
+  if printf '%s' "$v" | grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$'; then
+    ok "$1 : adresse email valide"
+  else
+    fail "$1 doit etre une adresse email valide (ex. no-reply@moncv.app)"
+  fi
+}
+
 # ------------------------------------------------------------- verif config
 if [ "$CHECK_CONFIG" -eq 1 ]; then
   if [ -n "$ENV_FILE" ]; then
@@ -243,10 +288,26 @@ if [ "$CHECK_CONFIG" -eq 1 ]; then
     esac
   fi
 
-  # Envoi email (reset password, issues #381/#487) : NON cable dans le compose
-  # prod actuel (aucun MAIL_* dans docker-compose.prod.yml). Le repli est le
-  # logging. A cabler explicitement si la fonctionnalite est attendue en prod.
-  warn "Reset password par email non cable en prod (aucun MAIL_* dans le compose) -> repli logging. Voir issue #487."
+  # Envoi email (reset password, issues #381/#487). Miroir de la validation
+  # conditionnelle de ProductionConfigurationPolicy.validateMail :
+  #   MAIL_ENABLED absent/false -> repli logging, rien a exiger (sur par defaut).
+  #   MAIL_ENABLED=true          -> creds SMTP requises et valides.
+  mail_enabled=$(lower "$(get_var MAIL_ENABLED)")
+  case "$mail_enabled" in
+    true)
+      check_mail_host  MAIL_HOST
+      check_mail_port  MAIL_PORT
+      check_mail_user  MAIL_USERNAME
+      check_secret     MAIL_PASSWORD 8
+      check_email      MAIL_FROM
+      ;;
+    ''|false)
+      ok "MAIL_ENABLED absent/false : reset password par email desactive (repli logging)"
+      ;;
+    *)
+      fail "MAIL_ENABLED doit valoir true ou false (trouve '$mail_enabled')"
+      ;;
+  esac
 fi
 
 # --------------------------------------------------------------- verif sante
