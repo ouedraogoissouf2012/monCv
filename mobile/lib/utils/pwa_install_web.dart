@@ -1,13 +1,10 @@
-import 'dart:js_interop';
-
-@JS('promptMoncvInstall')
-external JSPromise<JSString> _promptMoncvInstall();
+import 'package:web/web.dart' as web;
 
 Future<bool> promptPwaInstall() async {
-  try {
-    final outcome = (await _promptMoncvInstall().toDart).toDart;
-    return outcome == 'accepted';
-  } catch (_) {
+  final ua = web.window.navigator.userAgent.toLowerCase();
+  if (ua.contains('iphone') || ua.contains('ipad') || ua.contains('ipod')) {
     return false;
   }
+  web.window.location.assign('/downloads/moncv.apk');
+  return true;
 }

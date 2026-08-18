@@ -587,13 +587,13 @@ abstract class AppLocalizations {
   /// No description provided for @installApp.
   ///
   /// In fr, this message translates to:
-  /// **'Installer l\'application'**
+  /// **'Telecharger l\'application'**
   String get installApp;
 
   /// No description provided for @installAppHelp.
   ///
   /// In fr, this message translates to:
-  /// **'Sur ce telephone : touche ⋮ en haut a droite, puis Installer l\'application. iPhone : Partager puis Sur l\'ecran d\'accueil. La navigation privee bloque l\'installation.'**
+  /// **'Sur iPhone : Safari > Partager > Sur l\'ecran d\'accueil. Sur Android le fichier MonCV.apk se telecharge, puis ouvre-le pour installer.'**
   String get installAppHelp;
 
   /// No description provided for @landingFooter.

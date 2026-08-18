@@ -282,11 +282,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startNow => 'Start now';
 
   @override
-  String get installApp => 'Install the app';
+  String get installApp => 'Download the app';
 
   @override
   String get installAppHelp =>
-      'On this phone: tap ⋮ at the top right, then Install app. iPhone: Share then Add to Home Screen. Private browsing blocks install.';
+      'On iPhone: Safari > Share > Add to Home Screen. On Android, MonCV.apk downloads, then open it to install.';
 
   @override
   String get landingFooter => '© 2026 MonCV. Mobile-first, ATS-compatible CVs.';

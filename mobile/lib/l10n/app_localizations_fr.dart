@@ -283,11 +283,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get startNow => 'Commencer maintenant';
 
   @override
-  String get installApp => 'Installer l\'application';
+  String get installApp => 'Telecharger l\'application';
 
   @override
   String get installAppHelp =>
-      'Sur ce telephone : touche ⋮ en haut a droite, puis Installer l\'application. iPhone : Partager puis Sur l\'ecran d\'accueil. La navigation privee bloque l\'installation.';
+      'Sur iPhone : Safari > Partager > Sur l\'ecran d\'accueil. Sur Android le fichier MonCV.apk se telecharge, puis ouvre-le pour installer.';
 
   @override
   String get landingFooter =>

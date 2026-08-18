@@ -63,3 +63,6 @@ replay_pid*.log
 # Claude Code
 # ========================
 .claude/
+
+# Android APK served from the site
+downloads/*.apk
