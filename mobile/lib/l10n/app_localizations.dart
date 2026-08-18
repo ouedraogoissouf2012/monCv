@@ -584,6 +584,18 @@ abstract class AppLocalizations {
   /// **'Commencer maintenant'**
   String get startNow;
 
+  /// No description provided for @installApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Installer l\'application'**
+  String get installApp;
+
+  /// No description provided for @installAppHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chrome ou Edge, fenetre normale (pas privee) : menu ⋮ puis Installer MonCV. iPhone : Partager puis Sur l\'ecran d\'accueil.'**
+  String get installAppHelp;
+
   /// No description provided for @landingFooter.
   ///
   /// In fr, this message translates to:

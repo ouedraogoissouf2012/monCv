@@ -283,6 +283,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get startNow => 'Commencer maintenant';
 
   @override
+  String get installApp => 'Installer l\'application';
+
+  @override
+  String get installAppHelp =>
+      'Chrome ou Edge, fenetre normale (pas privee) : menu ⋮ puis Installer MonCV. iPhone : Partager puis Sur l\'ecran d\'accueil.';
+
+  @override
   String get landingFooter =>
       '© 2026 MonCV. CV francophone, mobile-first et compatible ATS.';
 

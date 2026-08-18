@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,7 @@ import '../../../../core/design_system/tokens/app_spacing.dart';
 import '../../../../core/design_system/tokens/app_typography.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../utils/app_colors.dart';
+import '../../../../utils/pwa_install.dart';
 import '../components/landing_section.dart';
 import '../landing_metrics.dart';
 
@@ -104,13 +106,37 @@ class _HeroActions extends StatelessWidget {
       ),
       child: Text(l.login),
     );
+    final install = !kIsWeb
+        ? null
+        : OutlinedButton.icon(
+            onPressed: () async {
+              final installed = await promptPwaInstall();
+              if (!context.mounted || installed) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l.installAppHelp)),
+              );
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white70),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              shape: const RoundedRectangleBorder(borderRadius: AppRadii.lg),
+            ),
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: Text(l.installApp),
+          );
+    final actions = [
+      primary,
+      secondary,
+      if (install != null) install,
+    ];
 
     if (isWide) {
       return Wrap(
           alignment: WrapAlignment.center,
           spacing: 12,
           runSpacing: 12,
-          children: [primary, secondary]);
+          children: actions);
     }
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 320),
@@ -118,6 +144,10 @@ class _HeroActions extends StatelessWidget {
         primary,
         const SizedBox(height: 12),
         secondary,
+        if (install != null) ...[
+          const SizedBox(height: 12),
+          install,
+        ],
       ]),
     );
   }
