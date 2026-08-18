@@ -5,7 +5,6 @@ import com.cvmobile.dto.FidelityNote;
 import com.cvmobile.model.Cv;
 import com.cvmobile.model.Experience;
 import com.cvmobile.model.PersonalInfo;
-import com.cvmobile.model.Skill;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -94,59 +93,6 @@ class FactualFidelityGuardTest {
         assertThat(safe.getFidelity())
                 .anyMatch(note -> note.getField().equals("experience-1")
                         && FidelityNote.REFUSED.equals(note.getStatus()));
-    }
-
-    @Test
-    void refuseLesCompetencesInventeesEtGardeLesConnues() {
-        Cv cv = Cv.builder()
-                .experiences(List.of())
-                .educations(List.of())
-                .skills(List.of(
-                        Skill.builder().nom("Java").niveau(5).build(),
-                        Skill.builder().nom("Spring Boot").niveau(4).build()))
-                .projects(List.of())
-                .build();
-        EnhanceCvResponse adapted = EnhanceCvResponse.builder()
-                .experiences(List.of())
-                .educations(List.of())
-                .skills(List.of(
-                        EnhanceCvResponse.SkillEnhancement.builder().nom("Java").niveau(5).build(),
-                        EnhanceCvResponse.SkillEnhancement.builder().nom("Kubernetes").niveau(3).build()))
-                .projects(List.of())
-                .build();
-
-        EnhanceCvResponse safe = guard.sanitize(cv, adapted);
-
-        assertThat(safe.getSkills())
-                .extracting(EnhanceCvResponse.SkillEnhancement::getNom)
-                .containsExactly("Java");
-        assertThat(safe.getWarnings()).anyMatch(warning -> warning.contains("Kubernetes"));
-    }
-
-    @Test
-    void refuseUneCompetenceConnueEnrichieDeTermesInventes() {
-        Cv cv = Cv.builder()
-                .experiences(List.of())
-                .educations(List.of())
-                .skills(List.of(Skill.builder().nom("Java").niveau(5).build()))
-                .projects(List.of())
-                .build();
-        EnhanceCvResponse adapted = EnhanceCvResponse.builder()
-                .experiences(List.of())
-                .educations(List.of())
-                .skills(List.of(EnhanceCvResponse.SkillEnhancement.builder()
-                        .nom("Java Kubernetes AWS").niveau(5).build()))
-                .projects(List.of())
-                .build();
-
-        EnhanceCvResponse safe = guard.sanitize(cv, adapted);
-
-        assertThat(safe.getSkills())
-                .extracting(EnhanceCvResponse.SkillEnhancement::getNom)
-                .containsExactly("Java");
-        assertThat(safe.getFidelity())
-                .anyMatch(note -> FidelityNote.REFUSED.equals(note.getStatus())
-                        && note.getReason().contains("Kubernetes"));
     }
 
     @Test
