@@ -32,13 +32,17 @@ class CvSectionHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: CvDocumentTheme.sizeSectionTitle,
-              fontWeight: CvDocumentTheme.weightSectionTitle,
-              color: accent,
-              letterSpacing: 0.8,
+          Flexible(
+            child: Text(
+              title.toUpperCase(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: CvDocumentTheme.sizeSectionTitle,
+                fontWeight: CvDocumentTheme.weightSectionTitle,
+                color: accent,
+                letterSpacing: 0.8,
+              ),
             ),
           ),
           const SizedBox(width: 10),

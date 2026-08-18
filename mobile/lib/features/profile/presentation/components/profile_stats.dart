@@ -70,8 +70,8 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.lg,
-        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+        horizontal: 6,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
@@ -91,12 +91,17 @@ class _StatCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              color: context.colors.onSurface.withValues(alpha: 0.6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 10,
+                height: 1.15,
+                color: context.colors.onSurface.withValues(alpha: 0.6),
+              ),
             ),
           ),
         ],

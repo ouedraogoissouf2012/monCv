@@ -46,12 +46,17 @@ class ExperienceEntry extends StatelessWidget {
                       color: CvDocumentTheme.textStrong,
                     )),
               ),
-              if (date.isNotEmpty)
-                Text(date,
-                    style: TextStyle(
-                        fontSize: CvDocumentTheme.sizeMeta,
-                        color: accent,
-                        fontWeight: FontWeight.w700)),
+              if (date.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(date,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                          fontSize: CvDocumentTheme.sizeMeta,
+                          color: accent,
+                          fontWeight: FontWeight.w700)),
+                ),
+              ],
             ],
           ),
           if (e.entreprise?.isNotEmpty == true || e.lieu?.isNotEmpty == true)
@@ -146,12 +151,17 @@ class EducationEntry extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: CvDocumentTheme.textStrong)),
             ),
-            if (date.isNotEmpty)
-              Text(date,
-                  style: TextStyle(
-                      fontSize: CvDocumentTheme.sizeMeta,
-                      color: accent,
-                      fontWeight: FontWeight.w700)),
+            if (date.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(date,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                        fontSize: CvDocumentTheme.sizeMeta,
+                        color: accent,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ],
           ]),
           if (e.etablissement?.isNotEmpty == true)
             Text(e.etablissement!,
