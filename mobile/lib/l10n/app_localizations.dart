@@ -593,7 +593,7 @@ abstract class AppLocalizations {
   /// No description provided for @sampleCandidateName.
   ///
   /// In fr, this message translates to:
-  /// **'ISSOUF OUEDRAOGO'**
+  /// **'ALEX TRAORE'**
   String get sampleCandidateName;
 
   /// No description provided for @sampleCandidateRole.
@@ -605,7 +605,7 @@ abstract class AppLocalizations {
   /// No description provided for @sampleCandidateContact.
   ///
   /// In fr, this message translates to:
-  /// **'issouf@gmail.com | +225 07 44 21 01 12 | Abidjan'**
+  /// **'alex.traore@email.com | +225 07 00 00 00 00 | Abidjan'**
   String get sampleCandidateContact;
 
   /// No description provided for @sampleCandidatePosition.
@@ -617,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @sampleCandidateCompany.
   ///
   /// In fr, this message translates to:
-  /// **'DIGIT AFRICAN - Abidjan'**
+  /// **'Studio Digital - Abidjan'**
   String get sampleCandidateCompany;
 
   /// No description provided for @lite.
@@ -1889,13 +1889,13 @@ abstract class AppLocalizations {
   /// No description provided for @firstNameExample.
   ///
   /// In fr, this message translates to:
-  /// **'Ex : Issouf'**
+  /// **'Ex : Alex'**
   String get firstNameExample;
 
   /// No description provided for @lastNameExample.
   ///
   /// In fr, this message translates to:
-  /// **'Ex : Ouedraogo'**
+  /// **'Ex : Traore'**
   String get lastNameExample;
 
   /// No description provided for @jobTitleExample.

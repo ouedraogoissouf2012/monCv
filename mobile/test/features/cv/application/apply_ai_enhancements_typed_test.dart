@@ -10,8 +10,8 @@ void main() {
         id: 1,
         titre: 'CV',
         personalInfo: const PersonalInfo(
-          nom: 'Ouedraogo',
-          prenom: 'Issouf',
+          nom: 'Traore',
+          prenom: 'Alex',
           titrePoste: 'Dev',
           resumeProfessionnel: 'ancien resume',
         ),

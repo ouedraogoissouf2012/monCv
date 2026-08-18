@@ -160,7 +160,7 @@ Notes importantes :
 
 | Email | Mot de passe |
 |-------|-------------|
-| issouf@moncv.com | moncv2024 |
+| demo@moncv.com | moncv2024 |
 
 ---
 

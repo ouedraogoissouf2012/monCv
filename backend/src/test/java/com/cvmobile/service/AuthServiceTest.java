@@ -47,7 +47,7 @@ class AuthServiceTest {
     private AuthResponse.UserDto buildUserDto() {
         return AuthResponse.UserDto.builder()
                 .id(1L).email("nouveau@example.com")
-                .nom("Ouedraogo").prenom("Issouf").role("USER")
+                .nom("Traore").prenom("Alex").role("USER")
                 .build();
     }
 
@@ -58,8 +58,8 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("nouveau@example.com");
         request.setPassword("password123");
-        request.setNom("Ouedraogo");
-        request.setPrenom("Issouf");
+        request.setNom("Traore");
+        request.setPrenom("Alex");
 
         User mappedUser = User.builder()
                 .email(request.getEmail())
@@ -156,7 +156,7 @@ class AuthServiceTest {
 
         User user = User.builder()
                 .id(1L).email("user@example.com")
-                .nom("Ouedraogo").prenom("Issouf")
+                .nom("Traore").prenom("Alex")
                 .role(User.Role.USER).build();
 
         Authentication auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

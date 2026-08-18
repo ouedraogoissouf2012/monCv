@@ -175,7 +175,7 @@ class CvTest {
         @DisplayName("met a jour puis efface les informations personnelles")
         void changesPersonalInfo() {
             Cv cv = newCv();
-            PersonalInfo info = PersonalInfo.builder().nom("Ouedraogo").build();
+            PersonalInfo info = PersonalInfo.builder().nom("Traore").build();
 
             cv.changePersonalInfo(info);
             assertThat(cv.getPersonalInfo()).isEqualTo(info);

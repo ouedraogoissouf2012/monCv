@@ -24,10 +24,10 @@ class CvTextCleanerTest {
 
     @Test
     void removeRepeatedTitleSupprimeLaPremiereLigneQuiRepeteLePoste() {
-        String description = "Développeur Full Stack - DIGIT AFRICAN\n- Conçu une API";
+        String description = "Développeur Full Stack - Studio Digital\n- Conçu une API";
 
         String result = cleaner.removeRepeatedTitle(
-                description, "Développeur Full Stack", "DIGIT AFRICAN");
+                description, "Développeur Full Stack", "Studio Digital");
 
         assertThat(result).isEqualTo("- Conçu une API");
     }

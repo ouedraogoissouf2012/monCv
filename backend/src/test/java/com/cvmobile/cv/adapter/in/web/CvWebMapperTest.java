@@ -27,7 +27,7 @@ class CvWebMapperTest {
         return CvRequest.builder()
                 .titre("Mon CV")
                 .personalInfo(CvRequest.PersonalInfoDto.builder()
-                        .nom("Ouedraogo").prenom("Issouf").email("i@x.io")
+                        .nom("Traore").prenom("Alex").email("i@x.io")
                         .titrePoste("Dev Backend").build())
                 .style(CvRequest.StyleDto.builder()
                         .templateId("classique").primaryColor(99L).fontFamily("Lato").build())
@@ -52,7 +52,7 @@ class CvWebMapperTest {
         assertThat(cv.getTitre()).isEqualTo("Mon CV");
         assertThat(cv.getOwnerId()).isEqualTo(OWNER);
         assertThat(cv.getStyle()).isEqualTo(CvStyle.of("classique", 99L, "Lato"));
-        assertThat(cv.getPersonalInfo().nom()).isEqualTo("Ouedraogo");
+        assertThat(cv.getPersonalInfo().nom()).isEqualTo("Traore");
         assertThat(cv.getPersonalInfo().titrePoste()).isEqualTo("Dev Backend");
     }
 

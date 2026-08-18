@@ -139,7 +139,7 @@ public class CvTextCleaner {
 
     /**
      * Supprime la premiere ligne de la description si elle repete le
-     * poste/entreprise. Ex: "Développeur Full Stack - DIGIT AFRICAN\n- Conçu..."
+     * poste/entreprise. Ex: "Développeur Full Stack - Studio Digital\n- Conçu..."
      * devient "- Conçu...".
      */
     public String removeRepeatedTitle(String description, String poste, String entreprise) {

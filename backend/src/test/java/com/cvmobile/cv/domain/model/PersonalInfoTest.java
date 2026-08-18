@@ -10,8 +10,8 @@ class PersonalInfoTest {
 
     private PersonalInfo full() {
         return PersonalInfo.builder()
-                .nom("Ouedraogo")
-                .prenom("Issouf")
+                .nom("Traore")
+                .prenom("Alex")
                 .email("i@example.com")
                 .telephone("+226 70 00 00 00")
                 .adresse("Rue 1")
@@ -31,8 +31,8 @@ class PersonalInfoTest {
     void buildsFull() {
         PersonalInfo info = full();
 
-        assertThat(info.nom()).isEqualTo("Ouedraogo");
-        assertThat(info.prenom()).isEqualTo("Issouf");
+        assertThat(info.nom()).isEqualTo("Traore");
+        assertThat(info.prenom()).isEqualTo("Alex");
         assertThat(info.email()).isEqualTo("i@example.com");
         assertThat(info.titrePoste()).isEqualTo("Developpeur Backend");
         assertThat(info.resumeProfessionnel()).isEqualTo("Concu des systemes fiables");
@@ -51,12 +51,12 @@ class PersonalInfoTest {
     @DisplayName("normalise les espaces et convertit les blancs en null")
     void normalisesText() {
         PersonalInfo info = PersonalInfo.builder()
-                .nom("  Ouedraogo  ")
+                .nom("  Traore  ")
                 .prenom("   ")
                 .titrePoste("  Dev  ")
                 .build();
 
-        assertThat(info.nom()).isEqualTo("Ouedraogo");
+        assertThat(info.nom()).isEqualTo("Traore");
         assertThat(info.prenom()).isNull();
         assertThat(info.titrePoste()).isEqualTo("Dev");
     }
@@ -67,7 +67,7 @@ class PersonalInfoTest {
         PersonalInfo info = full().withTitrePoste("Lead Backend");
 
         assertThat(info.titrePoste()).isEqualTo("Lead Backend");
-        assertThat(info.nom()).isEqualTo("Ouedraogo");
+        assertThat(info.nom()).isEqualTo("Traore");
     }
 
     @Test

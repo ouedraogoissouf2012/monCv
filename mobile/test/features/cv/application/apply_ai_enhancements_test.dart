@@ -8,8 +8,8 @@ void main() {
   Cv baseCv() => Cv(
         titre: 'Dev',
         personalInfo: const PersonalInfo(
-          prenom: 'Issouf',
-          nom: 'Ouedraogo',
+          prenom: 'Alex',
+          nom: 'Traore',
           email: 'a@b.co',
           titrePoste: 'Ancien titre',
           resumeProfessionnel: 'Ancien resume',

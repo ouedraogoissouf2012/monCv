@@ -82,7 +82,7 @@
 | 3.3.1 | Champs Prénom* et Email* vides → Suivant | Validation bloquante sur champs marqués `*` | ☐ |
 | 3.3.2 | Taper "Cot" dans le champ Pays | Dropdown autocomplete affichant "Côte d'Ivoire" | ☐ |
 | 3.3.3 | Sélectionner "Côte d'Ivoire" | Champ rempli, dropdown fermé | ☐ |
-| 3.3.4 | Remplir Prénom=`Issouf`, Nom=`Ouedraogo`, Email=`test@test.com`, Tél=`0544210112`, Ville=`Abidjan` → Suivant | Étape 3 affichée | ☐ |
+| 3.3.4 | Remplir Prénom=`Alex`, Nom=`Traore`, Email=`test@test.com`, Tél=`0544210112`, Ville=`Abidjan` → Suivant | Étape 3 affichée | ☐ |
 | 3.3.5 | Upload photo profil | Photo affichée dans le formulaire | ☐ |
 
 ### T3.4 — Étape 3 : Expériences
@@ -175,7 +175,7 @@
 | # | Entrée | Sortie attendue | Statut |
 |---|--------|-----------------|--------|
 | 5.1.1 | Cliquer "Profil" dans la sidebar | Page profil avec email et nom affichés | ☐ |
-| 5.1.2 | Modifier Prénom=`IssoufEdited` → Sauvegarder | Confirmation + nom mis à jour | ☐ |
+| 5.1.2 | Modifier Prénom=`AlexEdited` → Sauvegarder | Confirmation + nom mis à jour | ☐ |
 
 ---
 

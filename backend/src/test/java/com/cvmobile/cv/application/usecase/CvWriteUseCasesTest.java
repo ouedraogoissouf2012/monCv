@@ -43,7 +43,7 @@ class CvWriteUseCasesTest {
 
     private Cv richDraft() {
         Cv cv = Cv.create("Mon CV", OWNER);
-        cv.changePersonalInfo(PersonalInfo.builder().nom("Ouedraogo").build());
+        cv.changePersonalInfo(PersonalInfo.builder().nom("Traore").build());
         cv.addExperience(Experience.of(null, "ACME", "Dev", null, null, null, "x", true));
         cv.addEducation(com.cvmobile.cv.domain.model.Education.of(
                 null, "U", "Master", "Info", null, null, "desc"));
@@ -209,7 +209,7 @@ class CvWriteUseCasesTest {
             Cv copy = duplicateCv.duplicate(created.getId(), OWNER);
 
             assertThat(copy.getStyle()).isEqualTo(CvStyle.of("minimaliste", 7L, "Lato"));
-            assertThat(copy.getPersonalInfo().nom()).isEqualTo("Ouedraogo");
+            assertThat(copy.getPersonalInfo().nom()).isEqualTo("Traore");
         }
 
         @Test

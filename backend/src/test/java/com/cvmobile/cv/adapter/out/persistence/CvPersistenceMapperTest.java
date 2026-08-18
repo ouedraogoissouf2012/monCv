@@ -26,7 +26,7 @@ class CvPersistenceMapperTest {
     private com.cvmobile.model.Cv fullEntity() {
         User owner = User.builder().id(7L).email("o@x.io").build();
         com.cvmobile.model.PersonalInfo info = com.cvmobile.model.PersonalInfo.builder()
-                .nom("Ouedraogo").prenom("Issouf").email("i@x.io")
+                .nom("Traore").prenom("Alex").email("i@x.io")
                 .titrePoste("Dev Backend").resumeProfessionnel("Concu des systemes")
                 .build();
         com.cvmobile.model.Cv cv = com.cvmobile.model.Cv.builder()
@@ -77,7 +77,7 @@ class CvPersistenceMapperTest {
             Cv domain = mapper.toDomain(fullEntity());
 
             assertThat(domain.getPersonalInfo()).isNotNull();
-            assertThat(domain.getPersonalInfo().nom()).isEqualTo("Ouedraogo");
+            assertThat(domain.getPersonalInfo().nom()).isEqualTo("Traore");
             assertThat(domain.getPersonalInfo().titrePoste()).isEqualTo("Dev Backend");
         }
 
@@ -161,7 +161,7 @@ class CvPersistenceMapperTest {
             assertThat(target.getViewCount()).isEqualTo(3);
             assertThat(target.getStyleTemplateId()).isEqualTo("classique");
             assertThat(target.getStylePrimaryColor()).isEqualTo(99L);
-            assertThat(target.getPersonalInfo().getNom()).isEqualTo("Ouedraogo");
+            assertThat(target.getPersonalInfo().getNom()).isEqualTo("Traore");
             assertThat(target.getExperiences()).singleElement()
                     .satisfies(e -> assertThat(e.getEntreprise()).isEqualTo("ACME"));
             assertThat(target.getSkills()).singleElement()

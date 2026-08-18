@@ -16,8 +16,8 @@ void main() {
         titre: 'CV',
         style: const CvStyle(templateId: 'moderne'),
         personalInfo: const PersonalInfo(
-          prenom: 'Issouf',
-          nom: 'Ouedraogo',
+          prenom: 'Alex',
+          nom: 'Traore',
           email: 'a@b.co',
           telephone: '+226 70 00 00 00',
           ville: 'Ouagadougou',
@@ -63,7 +63,7 @@ void main() {
       await pump(tester, const ModernePreviewTemplate(), sampleCv());
 
       // Moderne met le nom en UPPERCASE dans le bandeau.
-      expect(find.text('ISSOUF OUEDRAOGO'), findsOneWidget);
+      expect(find.text('ALEX TRAORE'), findsOneWidget);
       expect(find.text('Developpeur Flutter'), findsOneWidget);
       expect(find.textContaining('a@b.co'), findsOneWidget);
       // Corps commun present avec ses sections.
@@ -82,7 +82,7 @@ void main() {
       await pump(tester, const ClassiquePreviewTemplate(), sampleCv());
 
       // Classique garde la casse d'origine (pas d'uppercase).
-      expect(find.text('Issouf Ouedraogo'), findsOneWidget);
+      expect(find.text('Alex Traore'), findsOneWidget);
       expect(find.text('Developpeur Flutter'), findsOneWidget);
       expect(find.byType(CvBodySections), findsOneWidget);
       expect(find.text('PROFIL'), findsOneWidget);

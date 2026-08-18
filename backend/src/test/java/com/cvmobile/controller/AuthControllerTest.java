@@ -42,7 +42,7 @@ class AuthControllerTest {
                 .tokenType("Bearer").expiresIn(3600L)
                 .user(AuthResponse.UserDto.builder()
                         .id(1L).email("user@example.com")
-                        .nom("Ouedraogo").prenom("Issouf").role("USER").build())
+                        .nom("Traore").prenom("Alex").role("USER").build())
                 .build();
     }
 
@@ -51,8 +51,8 @@ class AuthControllerTest {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("user@example.com");
         request.setPassword("password123");
-        request.setNom("Ouedraogo");
-        request.setPrenom("Issouf");
+        request.setNom("Traore");
+        request.setPrenom("Alex");
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(buildAuthResponse());
 

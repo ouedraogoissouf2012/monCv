@@ -14,8 +14,8 @@ void main() {
         titre: 'CV',
         style: CvStyle(templateId: templateId),
         personalInfo: const PersonalInfo(
-          prenom: 'Issouf',
-          nom: 'Ouedraogo',
+          prenom: 'Alex',
+          nom: 'Traore',
           email: 'a@b.co',
           telephone: '+226 70 00 00 00',
           ville: 'Ouagadougou',
@@ -67,7 +67,7 @@ void main() {
       await pump(tester, const CreatifPreviewTemplate(), sampleCv('creatif'));
 
       // Nom sur 2 lignes dans la sidebar : les 2 fragments sont presents.
-      expect(find.textContaining('Issouf'), findsWidgets);
+      expect(find.textContaining('Alex'), findsWidgets);
       // Competences eclatees en sidebar.
       expect(find.text('Dart'), findsOneWidget);
       expect(find.text('Flutter'), findsOneWidget);
@@ -85,7 +85,7 @@ void main() {
         (tester) async {
       await pump(tester, const AtsPreviewTemplate(), sampleCv('ats'));
 
-      expect(find.text('Issouf Ouedraogo'), findsOneWidget);
+      expect(find.text('Alex Traore'), findsOneWidget);
       expect(find.text('Ingenieur logiciel'), findsOneWidget);
       // Competences rendues en ligne "nom (niveau)" -> pas de barres.
       expect(find.textContaining('Dart'), findsOneWidget);

@@ -287,20 +287,20 @@ class AppLocalizationsFr extends AppLocalizations {
       '© 2026 MonCV. CV francophone, mobile-first et compatible ATS.';
 
   @override
-  String get sampleCandidateName => 'ISSOUF OUEDRAOGO';
+  String get sampleCandidateName => 'ALEX TRAORE';
 
   @override
   String get sampleCandidateRole => 'Ingenieur Logiciel Full Stack';
 
   @override
   String get sampleCandidateContact =>
-      'issouf@gmail.com | +225 07 44 21 01 12 | Abidjan';
+      'alex.traore@email.com | +225 07 00 00 00 00 | Abidjan';
 
   @override
   String get sampleCandidatePosition => 'Lead Developer';
 
   @override
-  String get sampleCandidateCompany => 'DIGIT AFRICAN - Abidjan';
+  String get sampleCandidateCompany => 'Studio Digital - Abidjan';
 
   @override
   String get lite => 'Lite';
@@ -973,10 +973,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get currentRole => 'Poste actuel';
 
   @override
-  String get firstNameExample => 'Ex : Issouf';
+  String get firstNameExample => 'Ex : Alex';
 
   @override
-  String get lastNameExample => 'Ex : Ouedraogo';
+  String get lastNameExample => 'Ex : Traore';
 
   @override
   String get jobTitleExample => 'Ex : Developpeur Full Stack';

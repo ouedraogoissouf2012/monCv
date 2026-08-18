@@ -48,7 +48,7 @@ class CvPersistenceAdapterIntegrationTest extends PostgresIntegrationTest {
     private Cv richCv(long ownerId) {
         Cv cv = Cv.create("Developpeur Backend", ownerId);
         cv.changePersonalInfo(PersonalInfo.builder()
-                .nom("Ouedraogo").prenom("Issouf").email("i@it.test")
+                .nom("Traore").prenom("Alex").email("i@it.test")
                 .titrePoste("Dev Backend").resumeProfessionnel("Concu des systemes fiables")
                 .build());
         cv.changeStyle(CvStyle.of("classique", 99L, "Lato"));
@@ -74,7 +74,7 @@ class CvPersistenceAdapterIntegrationTest extends PostgresIntegrationTest {
         assertThat(reloaded.getTitre()).isEqualTo("Developpeur Backend");
         assertThat(reloaded.getOwnerId()).isEqualTo(ownerId);
         assertThat(reloaded.getStyle()).isEqualTo(CvStyle.of("classique", 99L, "Lato"));
-        assertThat(reloaded.getPersonalInfo().nom()).isEqualTo("Ouedraogo");
+        assertThat(reloaded.getPersonalInfo().nom()).isEqualTo("Traore");
         assertThat(reloaded.getPersonalInfo().resumeProfessionnel())
                 .isEqualTo("Concu des systemes fiables");
         assertThat(reloaded.getExperiences()).singleElement()

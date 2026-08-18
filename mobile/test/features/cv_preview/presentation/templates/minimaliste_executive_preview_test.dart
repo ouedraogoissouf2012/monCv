@@ -15,8 +15,8 @@ void main() {
         titre: 'CV',
         style: CvStyle(templateId: templateId),
         personalInfo: const PersonalInfo(
-          prenom: 'Issouf',
-          nom: 'Ouedraogo',
+          prenom: 'Alex',
+          nom: 'Traore',
           email: 'a@b.co',
           telephone: '+226 70 00 00 00',
           ville: 'Ouagadougou',
@@ -59,7 +59,7 @@ void main() {
       await pump(
           tester, const MinimalistePreviewTemplate(), sampleCv('minimaliste'));
 
-      expect(find.text('Issouf Ouedraogo'), findsOneWidget);
+      expect(find.text('Alex Traore'), findsOneWidget);
       expect(find.text('Developpeur Flutter'), findsOneWidget);
       expect(find.byType(CvBodySections), findsOneWidget);
       expect(find.text('PROFIL'), findsOneWidget);
@@ -77,7 +77,7 @@ void main() {
       await pump(
           tester, const ExecutivePreviewTemplate(), sampleCv('executive'));
 
-      expect(find.text('Issouf Ouedraogo'), findsOneWidget);
+      expect(find.text('Alex Traore'), findsOneWidget);
       expect(find.text('Developpeur Flutter'), findsOneWidget);
       expect(find.textContaining('a@b.co'), findsOneWidget);
       expect(find.byType(CvBodySections), findsOneWidget);

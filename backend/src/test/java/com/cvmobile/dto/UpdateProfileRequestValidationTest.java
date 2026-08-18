@@ -25,7 +25,7 @@ class UpdateProfileRequestValidationTest {
     @Test
     void accepteUnProfilPartielValide() {
         UpdateProfileRequest request = new UpdateProfileRequest();
-        request.setNom("Ouedraogo"); // prenom null -> mise a jour partielle
+        request.setNom("Traore"); // prenom null -> mise a jour partielle
 
         assertThat(validator.validate(request)).isEmpty();
     }

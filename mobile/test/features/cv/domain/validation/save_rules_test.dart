@@ -16,8 +16,8 @@ void main() {
   CvEntity valid() => CvEntity(
         titre: 'Dev Flutter',
         personalInfo: const PersonalInfo(
-          prenom: 'Issouf',
-          nom: 'Ouedraogo',
+          prenom: 'Alex',
+          nom: 'Traore',
           email: 'a@b.co',
         ),
       );

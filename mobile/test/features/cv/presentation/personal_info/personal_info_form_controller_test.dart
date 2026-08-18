@@ -8,8 +8,8 @@ void main() {
   group('PersonalInfoFormController (#242 D2)', () {
     test('fromPersonalInfo initialise chaque controller', () {
       const info = PersonalInfo(
-        nom: 'Ouedraogo',
-        prenom: 'Issouf',
+        nom: 'Traore',
+        prenom: 'Alex',
         email: 'a@b.co',
         telephone: '+226 70 00 00 00',
         adresse: '10 rue X',
@@ -17,7 +17,7 @@ void main() {
         codePostal: '01',
         pays: 'Burkina Faso',
         titrePoste: 'Dev Flutter',
-        linkedIn: 'in/issouf',
+        linkedIn: 'in/alextraore',
         portfolio: 'https://x.dev',
         resumeProfessionnel: 'Resume',
         photoUrl: 'https://cdn/x.png',
@@ -26,8 +26,8 @@ void main() {
       final c = PersonalInfoFormController.fromPersonalInfo(info);
       addTearDown(c.dispose);
 
-      expect(c.nom.text, 'Ouedraogo');
-      expect(c.prenom.text, 'Issouf');
+      expect(c.nom.text, 'Traore');
+      expect(c.prenom.text, 'Alex');
       expect(c.email.text, 'a@b.co');
       expect(c.telephone.text, '+226 70 00 00 00');
       expect(c.pays.text, 'Burkina Faso');
