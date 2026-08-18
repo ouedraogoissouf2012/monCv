@@ -30,7 +30,20 @@ class ExperienceEntry extends StatelessWidget {
       ongoingLabel: l.inProgress,
       actuel: e.actuel,
     );
-    return Padding(
+    final company = [e.entreprise, e.lieu]
+        .where((s) => s?.isNotEmpty == true)
+        .join(' - ');
+    final spoken = [
+      e.poste,
+      if (date.isNotEmpty) date,
+      if (company.isNotEmpty) company,
+      e.description,
+    ].whereType<String>().where((s) => s.trim().isNotEmpty).join('. ');
+    return Semantics(
+      container: true,
+      label: spoken,
+      child: ExcludeSemantics(
+        child: Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,11 +72,9 @@ class ExperienceEntry extends StatelessWidget {
               ],
             ],
           ),
-          if (e.entreprise?.isNotEmpty == true || e.lieu?.isNotEmpty == true)
+          if (company.isNotEmpty)
             Text(
-              [e.entreprise, e.lieu]
-                  .where((s) => s?.isNotEmpty == true)
-                  .join(' - '),
+              company,
               style: const TextStyle(
                   fontSize: CvDocumentTheme.sizeBody,
                   color: CvDocumentTheme.textMuted),
@@ -73,6 +84,8 @@ class ExperienceEntry extends StatelessWidget {
             ...buildDescriptionLines(e.description!, accent),
           ],
         ],
+      ),
+        ),
       ),
     );
   }
