@@ -35,7 +35,10 @@ jobs:
         working-directory: mobile
         run: |
           flutter pub get
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons \
+            --dart-define=APP_ENV=production \
+            --dart-define=API_BASE_URL=https://moncv.riqamb.com/api \
+            --dart-define=PUBLIC_APP_URL=https://moncv.riqamb.com
 
       - name: Upload APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
