@@ -179,7 +179,7 @@ class CvFormController extends ChangeNotifier {
         notifyListeners();
         return true;
       case Failure(:final exception):
-        _error = exception.message;
+        _error = exception.message.replaceFirst(RegExp(r'^Exception:\s*'), '');
         notifyListeners();
         return false;
     }

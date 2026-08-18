@@ -6,6 +6,7 @@ import '../../../features/cv/application/upload_profile_photo_usecase.dart';
 import '../../../features/cv/presentation/personal_info/ai_resume_field.dart';
 import '../../../features/cv/presentation/personal_info/fields/contact_fields.dart';
 import '../../../features/cv/presentation/personal_info/fields/identity_fields.dart';
+import '../../../features/cv/presentation/personal_info/fields/sensitive_identity_fields.dart';
 import '../../../features/cv/presentation/personal_info/fields/location_fields.dart';
 import '../../../features/cv/presentation/personal_info/fields/online_fields.dart';
 import '../../../features/cv/presentation/personal_info/personal_info_form_controller.dart';
@@ -80,6 +81,9 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
           const SizedBox(height: 20),
           _GroupLabel(l.identity.toUpperCase()),
           IdentityFields(controller: _controller, onChanged: _notify),
+          const SizedBox(height: 20),
+          _GroupLabel(l.sensitiveInfo),
+          SensitiveIdentityFields(controller: _controller, onChanged: _notify),
           const SizedBox(height: 20),
           _GroupLabel(l.coordinates),
           ContactFields(controller: _controller, onChanged: _notify),

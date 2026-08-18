@@ -40,4 +40,16 @@ public class PersonalInfo {
 
     @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String resumeProfessionnel;
+
+    private Integer anneeNaissance;
+
+    @jakarta.persistence.Column(length = 40)
+    private String situationMatrimoniale;
+
+    @jakarta.persistence.Column(length = 20)
+    private String sexe;
+
+    @jakarta.persistence.Column(nullable = false)
+    @Builder.Default
+    private Boolean afficherInfosSensibles = Boolean.FALSE;
 }

@@ -980,6 +980,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get currentRole => 'Poste actuel';
 
   @override
+  String get sensitiveInfo => 'Infos personnelles';
+
+  @override
+  String get showSensitiveInfo => 'Afficher ces infos sur mon CV';
+
+  @override
+  String get showSensitiveInfoHelp =>
+      'Par defaut elles restent privees (annee de naissance, situation, sexe).';
+
+  @override
+  String get birthYear => 'Annee de naissance';
+
+  @override
+  String get maritalStatus => 'Situation matrimoniale';
+
+  @override
+  String get sex => 'Sexe';
+
+  @override
   String get firstNameExample => 'Ex : Alex';
 
   @override

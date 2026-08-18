@@ -96,6 +96,7 @@ class CreatifPreviewTemplate extends CvPreviewTemplate {
                   if (info?.telephone?.isNotEmpty == true)
                     _SideText(info!.telephone!),
                   if (info?.ville?.isNotEmpty == true) _SideText(info!.ville!),
+                  ...?info?.sensitiveDisplayParts.map(_SideText.new),
                   if (skills.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     _SideLabel(l.skills.toUpperCase()),
@@ -146,9 +147,9 @@ class CreatifPreviewTemplate extends CvPreviewTemplate {
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                            Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

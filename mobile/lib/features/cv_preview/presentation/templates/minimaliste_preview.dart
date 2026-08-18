@@ -23,6 +23,7 @@ class MinimalistePreviewTemplate extends CvPreviewTemplate {
       if (info?.email?.isNotEmpty == true) info!.email!,
       if (info?.telephone?.isNotEmpty == true) info!.telephone!,
       if (info?.ville?.isNotEmpty == true) info!.ville!,
+      ...?info?.sensitiveDisplayParts,
     ].join('   |   ');
 
     return DefaultTextStyle(

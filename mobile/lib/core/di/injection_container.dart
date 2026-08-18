@@ -25,6 +25,7 @@ import '../../features/cv/application/upload_profile_photo_usecase.dart';
 import '../../features/cv/data/http_profile_photo_repository.dart';
 import '../../features/cv/domain/repositories/profile_photo_repository.dart';
 import '../../utils/constants.dart';
+import '../../screens/cv/controllers/cv_wizard_draft_store.dart';
 import '../../features/ai/application/generate_application_messages_usecase.dart';
 import '../../features/application_messages/data/system_clipboard_copier.dart';
 import '../../features/application_messages/domain/clipboard_copier.dart';
@@ -228,6 +229,7 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<CvStore>(() => CvStore());
+  sl.registerLazySingleton<CvWizardDraftStore>(() => CvWizardDraftStore());
   sl.registerLazySingleton<CvListController>(
       () => CvListController(
             getAllCvs: sl<GetAllCvsUseCase>(),

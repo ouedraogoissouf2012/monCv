@@ -76,6 +76,10 @@ public class CvWebMapper {
                 .codePostal(d.getCodePostal()).pays(d.getPays()).photoUrl(d.getPhotoUrl())
                 .linkedIn(d.getLinkedIn()).portfolio(d.getPortfolio())
                 .titrePoste(d.getTitrePoste()).resumeProfessionnel(d.getResumeProfessionnel())
+                .anneeNaissance(d.getAnneeNaissance())
+                .situationMatrimoniale(d.getSituationMatrimoniale())
+                .sexe(d.getSexe())
+                .afficherInfosSensibles(d.getAfficherInfosSensibles())
                 .build();
     }
 

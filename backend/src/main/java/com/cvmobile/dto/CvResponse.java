@@ -68,6 +68,10 @@ public class CvResponse {
         private String portfolio;
         private String titrePoste;
         private String resumeProfessionnel;
+        private Integer anneeNaissance;
+        private String situationMatrimoniale;
+        private String sexe;
+        private Boolean afficherInfosSensibles;
     }
 
     @Data

@@ -64,6 +64,8 @@ class ExecutivePreviewTemplate extends CvPreviewTemplate {
                       Text(
                           '${info!.ville}${info.pays?.isNotEmpty == true ? ', ${info.pays}' : ''}',
                           style: contactStyle),
+                    ...?info?.sensitiveDisplayParts.map(
+                        (part) => Text(part, style: contactStyle)),
                   ],
                 ),
               ],

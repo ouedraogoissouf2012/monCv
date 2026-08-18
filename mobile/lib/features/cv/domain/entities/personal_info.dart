@@ -18,6 +18,10 @@ final class PersonalInfo {
   final String? portfolio;
   final String? titrePoste;
   final String? resumeProfessionnel;
+  final int? anneeNaissance;
+  final String? situationMatrimoniale;
+  final String? sexe;
+  final bool afficherInfosSensibles;
 
   const PersonalInfo({
     this.nom,
@@ -33,7 +37,21 @@ final class PersonalInfo {
     this.portfolio,
     this.titrePoste,
     this.resumeProfessionnel,
+    this.anneeNaissance,
+    this.situationMatrimoniale,
+    this.sexe,
+    this.afficherInfosSensibles = false,
   });
+
+  List<String> get sensitiveDisplayParts {
+    if (!afficherInfosSensibles) return const [];
+    return [
+      if (anneeNaissance != null) 'Ne(e) en $anneeNaissance',
+      if (situationMatrimoniale != null && situationMatrimoniale!.isNotEmpty)
+        situationMatrimoniale!,
+      if (sexe != null && sexe!.isNotEmpty) sexe!,
+    ];
+  }
 
   /// Nom complet lisible : « prenom nom » si les deux existent, sinon celui
   /// qui est present, sinon chaine vide.
@@ -56,6 +74,10 @@ final class PersonalInfo {
     Object? portfolio = unsetSentinel,
     Object? titrePoste = unsetSentinel,
     Object? resumeProfessionnel = unsetSentinel,
+    Object? anneeNaissance = unsetSentinel,
+    Object? situationMatrimoniale = unsetSentinel,
+    Object? sexe = unsetSentinel,
+    Object? afficherInfosSensibles = unsetSentinel,
   }) {
     return PersonalInfo(
       nom: identical(nom, unsetSentinel) ? this.nom : nom as String?,
@@ -86,6 +108,16 @@ final class PersonalInfo {
       resumeProfessionnel: identical(resumeProfessionnel, unsetSentinel)
           ? this.resumeProfessionnel
           : resumeProfessionnel as String?,
+      anneeNaissance: identical(anneeNaissance, unsetSentinel)
+          ? this.anneeNaissance
+          : anneeNaissance as int?,
+      situationMatrimoniale: identical(situationMatrimoniale, unsetSentinel)
+          ? this.situationMatrimoniale
+          : situationMatrimoniale as String?,
+      sexe: identical(sexe, unsetSentinel) ? this.sexe : sexe as String?,
+      afficherInfosSensibles: identical(afficherInfosSensibles, unsetSentinel)
+          ? this.afficherInfosSensibles
+          : afficherInfosSensibles as bool,
     );
   }
 
@@ -104,7 +136,11 @@ final class PersonalInfo {
       other.linkedIn == linkedIn &&
       other.portfolio == portfolio &&
       other.titrePoste == titrePoste &&
-      other.resumeProfessionnel == resumeProfessionnel;
+      other.resumeProfessionnel == resumeProfessionnel &&
+      other.anneeNaissance == anneeNaissance &&
+      other.situationMatrimoniale == situationMatrimoniale &&
+      other.sexe == sexe &&
+      other.afficherInfosSensibles == afficherInfosSensibles;
 
   @override
   int get hashCode => Object.hashAll([
@@ -121,5 +157,9 @@ final class PersonalInfo {
         portfolio,
         titrePoste,
         resumeProfessionnel,
+        anneeNaissance,
+        situationMatrimoniale,
+        sexe,
+        afficherInfosSensibles,
       ]);
 }

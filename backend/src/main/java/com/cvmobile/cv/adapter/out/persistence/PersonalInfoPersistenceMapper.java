@@ -30,6 +30,10 @@ final class PersonalInfoPersistenceMapper {
                 .portfolio(entity.getPortfolio())
                 .titrePoste(entity.getTitrePoste())
                 .resumeProfessionnel(entity.getResumeProfessionnel())
+                .anneeNaissance(entity.getAnneeNaissance())
+                .situationMatrimoniale(entity.getSituationMatrimoniale())
+                .sexe(entity.getSexe())
+                .afficherInfosSensibles(entity.getAfficherInfosSensibles())
                 .build();
     }
 
@@ -52,6 +56,12 @@ final class PersonalInfoPersistenceMapper {
                 .portfolio(domain.portfolio())
                 .titrePoste(domain.titrePoste())
                 .resumeProfessionnel(domain.resumeProfessionnel())
+                .anneeNaissance(domain.anneeNaissance())
+                .situationMatrimoniale(domain.situationMatrimoniale())
+                .sexe(domain.sexe())
+                .afficherInfosSensibles(
+                        domain.afficherInfosSensibles() != null
+                                && domain.afficherInfosSensibles())
                 .build();
     }
 }

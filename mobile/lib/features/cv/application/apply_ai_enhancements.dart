@@ -24,20 +24,10 @@ class ApplyAiEnhancements {
       personalInfo: info == null
           ? null
           : (_has(enhanced.titrePoste) || _has(enhanced.resumeProfessionnel))
-              ? PersonalInfo(
-                  nom: info.nom,
-                  prenom: info.prenom,
-                  email: info.email,
-                  telephone: info.telephone,
-                  adresse: info.adresse,
-                  ville: info.ville,
-                  codePostal: info.codePostal,
-                  pays: info.pays,
-                  titrePoste:
-                      _has(enhanced.titrePoste) ? enhanced.titrePoste : info.titrePoste,
-                  linkedIn: info.linkedIn,
-                  portfolio: info.portfolio,
-                  photoUrl: info.photoUrl,
+              ? info.copyWith(
+                  titrePoste: _has(enhanced.titrePoste)
+                      ? enhanced.titrePoste
+                      : info.titrePoste,
                   resumeProfessionnel: _has(enhanced.resumeProfessionnel)
                       ? enhanced.resumeProfessionnel
                       : info.resumeProfessionnel,
@@ -154,21 +144,9 @@ class ApplyAiEnhancements {
     final newTitre = result['titrePoste'] as String?;
     final newResume = result['resumeProfessionnel'] as String?;
     if (!_has(newTitre) && !_has(newResume)) return info;
-    return PersonalInfo(
-      nom: info.nom,
-      prenom: info.prenom,
-      email: info.email,
-      telephone: info.telephone,
-      adresse: info.adresse,
-      ville: info.ville,
-      codePostal: info.codePostal,
-      pays: info.pays,
+    return info.copyWith(
       titrePoste: _has(newTitre) ? newTitre : info.titrePoste,
-      linkedIn: info.linkedIn,
-      portfolio: info.portfolio,
-      photoUrl: info.photoUrl,
-      resumeProfessionnel:
-          _has(newResume) ? newResume : info.resumeProfessionnel,
+      resumeProfessionnel: _has(newResume) ? newResume : info.resumeProfessionnel,
     );
   }
 

@@ -103,6 +103,18 @@ public class CvRequest {
 
         @Size(max = MAX_LONG_TEXT_LENGTH, message = "Le resume ne doit pas depasser 10000 caracteres")
         private String resumeProfessionnel;
+
+        @Min(value = 1920, message = "Annee de naissance invalide")
+        @Max(value = 2015, message = "Annee de naissance invalide")
+        private Integer anneeNaissance;
+
+        @Size(max = 40, message = "Situation matrimoniale trop longue")
+        private String situationMatrimoniale;
+
+        @Size(max = 20, message = "Sexe trop long")
+        private String sexe;
+
+        private Boolean afficherInfosSensibles;
     }
 
     @Data

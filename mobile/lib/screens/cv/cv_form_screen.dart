@@ -11,6 +11,7 @@ import '../../repositories/cv_repository.dart';
 import '../../utils/constants.dart';
 import '../../widgets/cv_preview.dart';
 import 'controllers/cv_form_controller.dart';
+import 'controllers/cv_wizard_draft_store.dart';
 import 'sections/certifications_section.dart';
 import 'sections/education_section.dart';
 import 'sections/experience_section.dart';
@@ -70,20 +71,40 @@ class _CvFormScreenState extends State<CvFormScreen> {
     super.didChangeDependencies();
     if (_controller != null) return;
     final l = AppLocalizations.of(context)!;
+    final draft = sl<CvWizardDraftStore>();
+    final initial = widget.cv ??
+        (widget.controller == null && draft.hasDraft ? draft.cv : null);
     _controller = widget.controller ??
         CvFormController(
           repository: sl<CvRepository>(),
-          initialCv: widget.cv,
+          initialCv: initial,
           fallbackTitle: l.myCv,
           titleBuilder: l.cvDefaultTitle,
         );
     _ownsController = widget.controller == null;
+    if (_ownsController && widget.cv == null && draft.hasDraft) {
+      _controller!.goToStep(draft.step);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(_controller!.currentStep);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    if (_ownsController) _controller?.dispose();
+    if (_ownsController && _controller != null) {
+      final draft = sl<CvWizardDraftStore>();
+      if (_controller!.savedCv == null && widget.cv == null) {
+        draft.save(
+          cv: _controller!.currentCv,
+          step: _controller!.currentStep,
+        );
+      }
+      _controller!.dispose();
+    }
     super.dispose();
   }
 
@@ -138,6 +159,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
     if (!mounted) return;
 
     if (success) {
+      sl<CvWizardDraftStore>().clear();
       await context.read<CvListController>().load();
       if (!mounted) return;
       router.pop();

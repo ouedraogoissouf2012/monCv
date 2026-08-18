@@ -26,7 +26,12 @@ class PersonalInfoFormController {
         linkedIn = TextEditingController(text: info?.linkedIn),
         portfolio = TextEditingController(text: info?.portfolio),
         resume = TextEditingController(text: info?.resumeProfessionnel),
-        photoUrl = info?.photoUrl;
+        anneeNaissance = TextEditingController(
+            text: info?.anneeNaissance?.toString() ?? ''),
+        photoUrl = info?.photoUrl,
+        situationMatrimoniale = info?.situationMatrimoniale,
+        sexe = info?.sexe,
+        afficherInfosSensibles = info?.afficherInfosSensibles ?? false;
 
   final TextEditingController nom;
   final TextEditingController prenom;
@@ -40,6 +45,11 @@ class PersonalInfoFormController {
   final TextEditingController linkedIn;
   final TextEditingController portfolio;
   final TextEditingController resume;
+  final TextEditingController anneeNaissance;
+
+  String? situationMatrimoniale;
+  String? sexe;
+  bool afficherInfosSensibles;
 
   /// URL absolue de la photo uploadee (null si aucune / supprimee).
   String? photoUrl;
@@ -70,6 +80,10 @@ class PersonalInfoFormController {
         portfolio: _nullIfEmpty(portfolio),
         resumeProfessionnel: _nullIfEmpty(resume),
         photoUrl: photoUrl,
+        anneeNaissance: int.tryParse(anneeNaissance.text.trim()),
+        situationMatrimoniale: situationMatrimoniale,
+        sexe: sexe,
+        afficherInfosSensibles: afficherInfosSensibles,
       );
 
   static String? _nullIfEmpty(TextEditingController c) =>
@@ -89,5 +103,6 @@ class PersonalInfoFormController {
     linkedIn.dispose();
     portfolio.dispose();
     resume.dispose();
+    anneeNaissance.dispose();
   }
 }

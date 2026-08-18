@@ -1902,6 +1902,13 @@ abstract class AppLocalizations {
   ///
   /// In fr, this message translates to:
   /// **'Ex : Alex'**
+  String get sensitiveInfo;
+  String get showSensitiveInfo;
+  String get showSensitiveInfoHelp;
+  String get birthYear;
+  String get maritalStatus;
+  String get sex;
+
   String get firstNameExample;
 
   /// No description provided for @lastNameExample.

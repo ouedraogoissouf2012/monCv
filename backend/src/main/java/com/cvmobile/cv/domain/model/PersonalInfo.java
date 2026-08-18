@@ -19,8 +19,12 @@ package com.cvmobile.cv.domain.model;
  * @param photoUrl            URL de la photo, ou {@code null}
  * @param linkedIn            profil LinkedIn, ou {@code null}
  * @param portfolio           lien portfolio, ou {@code null}
- * @param titrePoste          titre du poste vise, ou {@code null}
- * @param resumeProfessionnel resume/accroche, ou {@code null}
+ * @param titrePoste               titre du poste vise, ou {@code null}
+ * @param resumeProfessionnel      resume/accroche, ou {@code null}
+ * @param anneeNaissance           annee de naissance, ou {@code null}
+ * @param situationMatrimoniale    situation familiale, ou {@code null}
+ * @param sexe                     sexe, ou {@code null}
+ * @param afficherInfosSensibles   true si ces infos doivent figurer sur le CV
  */
 public record PersonalInfo(
         String nom,
@@ -35,7 +39,11 @@ public record PersonalInfo(
         String linkedIn,
         String portfolio,
         String titrePoste,
-        String resumeProfessionnel) {
+        String resumeProfessionnel,
+        Integer anneeNaissance,
+        String situationMatrimoniale,
+        String sexe,
+        Boolean afficherInfosSensibles) {
 
     /**
      * Compact constructor : normalise chaque champ (trim, blanc -> null) pour
@@ -55,6 +63,11 @@ public record PersonalInfo(
         portfolio = DomainText.normalize(portfolio);
         titrePoste = DomainText.normalize(titrePoste);
         resumeProfessionnel = DomainText.normalize(resumeProfessionnel);
+        situationMatrimoniale = DomainText.normalize(situationMatrimoniale);
+        sexe = DomainText.normalize(sexe);
+        if (afficherInfosSensibles == null) {
+            afficherInfosSensibles = Boolean.FALSE;
+        }
     }
 
     /** Cree un builder vide. */
@@ -77,7 +90,11 @@ public record PersonalInfo(
                 .nom(nom).prenom(prenom).email(email).telephone(telephone)
                 .adresse(adresse).ville(ville).codePostal(codePostal).pays(pays)
                 .photoUrl(photoUrl).linkedIn(linkedIn).portfolio(portfolio)
-                .titrePoste(titrePoste).resumeProfessionnel(resumeProfessionnel);
+                .titrePoste(titrePoste).resumeProfessionnel(resumeProfessionnel)
+                .anneeNaissance(anneeNaissance)
+                .situationMatrimoniale(situationMatrimoniale)
+                .sexe(sexe)
+                .afficherInfosSensibles(afficherInfosSensibles);
     }
 
     /** Builder fluide ecrit a la main (aucune dependance d'infrastructure). */
@@ -95,6 +112,10 @@ public record PersonalInfo(
         private String portfolio;
         private String titrePoste;
         private String resumeProfessionnel;
+        private Integer anneeNaissance;
+        private String situationMatrimoniale;
+        private String sexe;
+        private Boolean afficherInfosSensibles;
 
         private Builder() {
         }
@@ -125,11 +146,20 @@ public record PersonalInfo(
 
         public Builder resumeProfessionnel(String v) { this.resumeProfessionnel = v; return this; }
 
+        public Builder anneeNaissance(Integer v) { this.anneeNaissance = v; return this; }
+
+        public Builder situationMatrimoniale(String v) { this.situationMatrimoniale = v; return this; }
+
+        public Builder sexe(String v) { this.sexe = v; return this; }
+
+        public Builder afficherInfosSensibles(Boolean v) { this.afficherInfosSensibles = v; return this; }
+
         public PersonalInfo build() {
             return new PersonalInfo(
                     nom, prenom, email, telephone, adresse, ville, codePostal,
                     pays, photoUrl, linkedIn, portfolio, titrePoste,
-                    resumeProfessionnel);
+                    resumeProfessionnel, anneeNaissance, situationMatrimoniale,
+                    sexe, afficherInfosSensibles);
         }
     }
 }

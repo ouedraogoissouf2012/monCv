@@ -30,6 +30,10 @@ final class CvSectionMapper {
         portfolio: asString(json['portfolio']),
         titrePoste: asString(json['titrePoste']),
         resumeProfessionnel: asString(json['resumeProfessionnel']),
+        anneeNaissance: asInt(json['anneeNaissance']),
+        situationMatrimoniale: asString(json['situationMatrimoniale']),
+        sexe: asString(json['sexe']),
+        afficherInfosSensibles: asBool(json['afficherInfosSensibles']),
       );
 
   Map<String, dynamic> personalInfoToJson(PersonalInfo info) => {
@@ -46,6 +50,10 @@ final class CvSectionMapper {
         'portfolio': info.portfolio,
         'titrePoste': info.titrePoste,
         'resumeProfessionnel': info.resumeProfessionnel,
+        'anneeNaissance': info.anneeNaissance,
+        'situationMatrimoniale': info.situationMatrimoniale,
+        'sexe': info.sexe,
+        'afficherInfosSensibles': info.afficherInfosSensibles,
       };
 
   // ── Education ───────────────────────────────────────────────────
