@@ -2,7 +2,7 @@
     "name": "MonCV - Créateur de CV Professionnel",
     "short_name": "MonCV",
     "id": "/",
-    "start_url": ".",
+    "start_url": "/",
     "scope": "/",
     "display": "standalone",
     "display_override": [
