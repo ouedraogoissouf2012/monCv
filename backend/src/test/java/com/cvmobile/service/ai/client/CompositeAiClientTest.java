@@ -125,6 +125,16 @@ class CompositeAiClientTest {
         verify(fallback, never()).complete("prompt", 100);
     }
 
+    @Test
+    void startsWithoutMockBeanWhenFallbackDisabled() {
+        AiProviderDownException failure = providerDown("primary");
+        CompositeAiClient withoutMock = new CompositeAiClient(
+                primary, null, meters, businessMetrics, new AiTelemetry(), false);
+        when(primary.complete("prompt", 100)).thenThrow(failure);
+
+        assertThatThrownBy(() -> withoutMock.complete("prompt", 100)).isSameAs(failure);
+    }
+
     private AiProviderDownException providerDown(String provider) {
         return new AiProviderDownException(provider, "unavailable", null);
     }

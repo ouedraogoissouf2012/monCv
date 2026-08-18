@@ -9,6 +9,7 @@ import com.cvmobile.service.ai.AiTelemetry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -47,14 +48,14 @@ public class CompositeAiClient implements IAiClient {
 
     public CompositeAiClient(
             @Qualifier("resilientDeepSeek") IAiClient primary,
-            @Qualifier("mockAiClient") IAiClient fallback,
+            @Autowired(required = false) @Qualifier("mockAiClient") IAiClient fallback,
             MeterRegistry meters,
             BusinessMetrics businessMetrics,
             AiTelemetry telemetry,
             @Value("${ai.fallback.enabled:true}") boolean fallbackEnabled) {
         List<IAiClient> chain = new ArrayList<>();
         chain.add(primary);
-        if (fallbackEnabled) {
+        if (fallbackEnabled && fallback != null) {
             chain.add(fallback);
             log.info("AI provider chain: {} -> {} (fallback enabled)",
                     providerName(primary), providerName(fallback));
