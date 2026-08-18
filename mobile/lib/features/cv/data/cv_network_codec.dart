@@ -13,8 +13,13 @@ export '../presentation/cv_presentation_model.dart' show Cv;
 const CvMapper _mapper = CvMapper();
 
 /// Decode une reponse CV du serveur.
-Cv cvFromNetworkJson(Map<String, dynamic> json) =>
-    Cv.fromEntity(_mapper.fromNetworkJson(json));
+Cv cvFromNetworkJson(Map<String, dynamic> json) {
+  final rawNotes = json['fidelityNotes'];
+  final notes = rawNotes is List
+      ? rawNotes.whereType<String>().toList(growable: false)
+      : const <String>[];
+  return Cv.fromEntity(_mapper.fromNetworkJson(json), fidelityNotes: notes);
+}
 
 /// Encode un CV au format minimal attendu par le serveur (creation / update).
 String cvToNetworkBody(Cv cv) => jsonEncode(_mapper.toNetworkJson(cv.entity));

@@ -39,6 +39,9 @@ class Cv {
   /// Style visuel Flutter (presentation), assemble au boundary.
   final CvStyle style;
 
+  /// Notes de fidelite renvoyees a la creation d'une variante (inventions refusees).
+  final List<String> fidelityNotes;
+
   Cv({
     int? id,
     required String titre,
@@ -62,6 +65,7 @@ class Cv {
     DateTime? createdAt,
     DateTime? updatedAt,
     this.style = CvStyle.defaultStyle,
+    this.fidelityNotes = const [],
   })  : entity = CvEntity(
           id: id == null ? null : CvId(id),
           titre: titre,
@@ -88,7 +92,7 @@ class Cv {
         );
 
   /// Construit un modele de presentation autour d'une entite de domaine.
-  Cv.fromEntity(this.entity, {CvStyle? style})
+  Cv.fromEntity(this.entity, {CvStyle? style, this.fidelityNotes = const []})
       : style = style ?? _styleFrom(entity.style);
 
   int? get id => entity.id?.value;
@@ -146,6 +150,7 @@ class Cv {
     int? downloadCount,
     int? shareCount,
     CvStyle? style,
+    List<String>? fidelityNotes,
   }) {
     return Cv(
       id: id ?? this.id,
@@ -171,6 +176,7 @@ class Cv {
       createdAt: createdAt,
       updatedAt: updatedAt,
       style: style ?? this.style,
+      fidelityNotes: fidelityNotes ?? this.fidelityNotes,
     );
   }
 

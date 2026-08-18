@@ -71,7 +71,7 @@ public class PasswordResetService {
                 RATE_LIMIT_CAPACITY, RATE_LIMIT_PERIOD).allowed()) {
             return;
         }
-        users.findByEmail(email).ifPresent(user -> {
+        users.findByEmailIgnoreCase(email).ifPresent(user -> {
             String rawToken = generateToken();
             tokens.save(PasswordResetToken.builder()
                     .userId(user.getId())

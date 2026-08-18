@@ -537,6 +537,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get variantFidelityBlocked => 'No invented facts were kept.';
+
+  @override
   String get variantCreationError => 'Could not create the variant';
 
   @override
@@ -666,7 +669,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get localProofreadingComplete => 'Local proofreading complete';
 
   @override
-  String get noCertainCorrection => 'No certain correction detected.';
+  String get noCertainCorrection => 'This CV is already corrected.';
 
   @override
   String correctedFields(int count) {

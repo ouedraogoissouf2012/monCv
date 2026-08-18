@@ -67,8 +67,11 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
     // confirme ; sinon on reste ouvert avec un message d'erreur.
     if (_controller.variantCreated) {
       Navigator.of(context).pop();
+      final notes = _controller.variant?.refusedNotes ?? const [];
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(l.variantCreated(_controller.variant?.label ?? '')),
+        content: Text(notes.isEmpty
+            ? l.variantCreated(_controller.variant?.label ?? '')
+            : '${l.variantCreated(_controller.variant?.label ?? '')} ${l.variantFidelityBlocked}'),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.success,
       ));

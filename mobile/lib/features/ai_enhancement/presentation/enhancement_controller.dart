@@ -29,8 +29,9 @@ class EnhancementController extends ChangeNotifier {
     this.onAiError,
   })  : _cv = cv,
         _enhanceCv = enhanceCv,
-        _buildDiff = buildDiff,
-        // Le mode relecture reste STRICTEMENT LITE (critere #244).
+        _buildDiff = proofreadOnly
+            ? const BuildEnhancementDiff(proofread: true)
+            : buildDiff,
         _level = proofreadOnly ? EnhancementLevel.lite : initialLevel;
 
   final Cv _cv;
@@ -44,6 +45,7 @@ class EnhancementController extends ChangeNotifier {
   final void Function(AiException error)? onAiError;
 
   EnhancementLevel _level;
+  bool _disposed = false;
   bool _consentAccepted = false;
   bool _loading = false;
   AppException? _error;
@@ -96,6 +98,8 @@ class EnhancementController extends ChangeNotifier {
         level: _level.backendId,
         consentAccepted: _consentAccepted));
 
+    if (_disposed) return;
+
     switch (outcome) {
       case Success(:final data):
         _result = data;
@@ -106,5 +110,11 @@ class EnhancementController extends ChangeNotifier {
     }
     _loading = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

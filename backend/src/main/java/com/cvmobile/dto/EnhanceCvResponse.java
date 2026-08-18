@@ -19,6 +19,7 @@ public class EnhanceCvResponse {
     private List<CertificationEnhancement> certifications;
     private List<ProjectEnhancement> projects;
     private List<String> warnings;
+    private List<FidelityNote> fidelity;
     private int correctionCount;
     private boolean aiGenerated;
     private boolean fallback;

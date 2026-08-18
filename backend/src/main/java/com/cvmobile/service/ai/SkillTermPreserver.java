@@ -12,6 +12,18 @@ final class SkillTermPreserver {
     private SkillTermPreserver() {
     }
 
+    static boolean isReformulationOf(String original, String candidate) {
+        List<String> originalTokens = tokens(original);
+        List<String> candidateTokens = tokens(candidate);
+        if (originalTokens.isEmpty() || candidateTokens.isEmpty()) {
+            return false;
+        }
+        if (candidateTokens.size() > originalTokens.size()) {
+            return false;
+        }
+        return preserves(original, candidate) || preserves(candidate, original);
+    }
+
     static boolean preserves(String original, String candidate) {
         List<String> originalTokens = tokens(original);
         List<String> candidateTokens = tokens(candidate);

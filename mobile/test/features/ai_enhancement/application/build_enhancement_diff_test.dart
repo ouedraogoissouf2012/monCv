@@ -115,6 +115,36 @@ void main() {
       expect(changes, isEmpty);
     });
 
+    test('seuls des accents deja connus -> aucun change', () {
+      final cv = Cv(titre: 'x', experiences: [
+        const Experience(poste: 'Developpeur Web Full Stack'),
+      ], educations: [
+        const Education(
+            etablissement: 'Universite Aube Nouvelle de Bobo-Dioulasso'),
+      ]);
+      const enhanced = EnhancedCv(experiences: [
+        EnhancedExperience(poste: 'Développeur Web Full Stack'),
+      ], educations: [
+        EnhancedEducation(
+            etablissement: 'Université Aube Nouvelle de Bobo-Dioulasso'),
+      ]);
+
+      expect(diff(cv, enhanced), isEmpty);
+    });
+
+    test('relecture : champ invente (avant vide) ignore', () {
+      const proofread = BuildEnhancementDiff(proofread: true);
+      final cv = Cv(titre: 'x', educations: [
+        const Education(etablissement: 'ESI', description: ''),
+      ]);
+      const enhanced = EnhancedCv(educations: [
+        EnhancedEducation(
+            etablissement: 'ESI', description: 'Parcours invente'),
+      ]);
+
+      expect(proofread(cv, enhanced), isEmpty);
+    });
+
     test('toutes les sections couvertes (formation/certif/projet/langue)', () {
       final cv = Cv(titre: 'x', educations: [
         const Education(diplome: 'Licence', etablissement: 'ESI'),

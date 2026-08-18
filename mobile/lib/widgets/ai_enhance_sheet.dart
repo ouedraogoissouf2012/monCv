@@ -159,28 +159,71 @@ class _AiEnhanceSheetState extends State<AiEnhanceSheet> {
     return [
       StatusBanner(aiGenerated: result.aiGenerated),
       const SizedBox(height: 12),
-      EnhancementResultList(changes: _controller.changes),
+      if (_controller.changes.isEmpty)
+        _AlreadyCorrectedNotice(message: l.noCertainCorrection)
+      else
+        EnhancementResultList(changes: _controller.changes),
       const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _controller.enhance, // retry / regenerer
-              child: Text(l.retry),
-            ),
+      if (_controller.changes.isEmpty)
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: () => Navigator.of(context).pop<EnhancedCv>(),
+            child: Text(l.close),
           ),
+        )
+      else
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _controller.enhance,
+                child: Text(l.retry),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop<EnhancedCv>(result),
+                icon: const Icon(Icons.check_rounded),
+                label: Text(l.apply),
+                style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.success),
+              ),
+            ),
+          ],
+        ),
+    ];
+  }
+}
+
+class _AlreadyCorrectedNotice extends StatelessWidget {
+  const _AlreadyCorrectedNotice({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_outline,
+              color: AppColors.success, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop<EnhancedCv>(result),
-              icon: const Icon(Icons.check_rounded),
-              label: Text(l.apply),
-              style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.success),
+            child: Text(
+              message,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],
       ),
-    ];
+    );
   }
 }

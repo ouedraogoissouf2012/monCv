@@ -71,7 +71,9 @@ public class CvPromptBuilder {
 
         sb.append(GRAMMAR_RULE);
         sb.append(TITLE_RULE);
-        sb.append(GROUNDING_RULE); sb.append(ANTI_CLICHES_RULE);
+        sb.append(GROUNDING_RULE);
+        sb.append(ZERO_INVENTION_RULE);
+        sb.append(ANTI_CLICHES_RULE);
         sb.append(STYLE_RULE);
         sb.append(FRANCOPHONE_MARKET_RULE);
         sb.append(QUANTIFICATION_RULE);

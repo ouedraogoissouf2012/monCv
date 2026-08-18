@@ -27,6 +27,7 @@ public interface CvMapper {
     @Mapping(target = "variantCount", ignore = true)
     @Mapping(target = "style", expression = "java(toStyleDto(cv))")
     @Mapping(target = "publicToken", ignore = true)
+    @Mapping(target = "fidelityNotes", ignore = true)
     @Mapping(target = "publicEnabled", expression = "java(cv.getPublicTokenHash() != null || cv.getPublicToken() != null)")
     CvResponse toResponse(Cv cv);
 

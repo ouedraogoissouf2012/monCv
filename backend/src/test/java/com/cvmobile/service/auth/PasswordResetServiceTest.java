@@ -63,7 +63,7 @@ class PasswordResetServiceTest {
     void requestReset_emailConnu_persisteUnJetonHasheEtEnvoieLEmail() {
         allowRate();
         User user = User.builder().id(4L).email("a@b.c").build();
-        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase("a@b.c")).thenReturn(Optional.of(user));
 
         service.requestReset("a@b.c");
 
@@ -78,7 +78,7 @@ class PasswordResetServiceTest {
     @Test
     void requestReset_emailInconnu_neFuitePasEtNePersisteRien() {
         allowRate();
-        when(users.findByEmail("absent@b.c")).thenReturn(Optional.empty());
+        when(users.findByEmailIgnoreCase("absent@b.c")).thenReturn(Optional.empty());
 
         service.requestReset("absent@b.c");
 
@@ -95,7 +95,7 @@ class PasswordResetServiceTest {
         TransactionSynchronizationManager.initSynchronization();
         allowRate();
         User user = User.builder().id(4L).email("a@b.c").build();
-        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase("a@b.c")).thenReturn(Optional.of(user));
 
         service.requestReset("a@b.c");
 
@@ -119,7 +119,7 @@ class PasswordResetServiceTest {
         TransactionSynchronizationManager.initSynchronization();
         allowRate();
         User user = User.builder().id(4L).email("a@b.c").build();
-        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase("a@b.c")).thenReturn(Optional.of(user));
 
         service.requestReset("a@b.c");
 
@@ -134,7 +134,7 @@ class PasswordResetServiceTest {
         // uniforme / le temps constant.
         allowRate();
         User user = User.builder().id(4L).email("a@b.c").build();
-        when(users.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase("a@b.c")).thenReturn(Optional.of(user));
         doThrow(new RejectedExecutionException("pool sature"))
                 .when(emailSender).sendResetLink(eq("a@b.c"), anyString());
 

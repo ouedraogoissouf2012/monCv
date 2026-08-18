@@ -11,11 +11,14 @@ import '../domain/job_score_snapshot.dart';
 /// l'UI (message de confirmation).
 @immutable
 class JobVariantOutcome {
-  const JobVariantOutcome({required this.label});
+  const JobVariantOutcome({required this.label, this.refusedNotes = const []});
 
   /// Etiquette de la variante creee (ex. "Developpeur Full Stack — variante"),
   /// ou `null` si le backend n'en a pas fourni.
   final String? label;
+
+  /// Inventions IA bloquees avant sauvegarde.
+  final List<String> refusedNotes;
 }
 
 /// Etat et orchestration du flow d'analyse CV / offre (issue #245).
@@ -167,7 +170,10 @@ class JobMatchController extends ChangeNotifier {
 
     switch (outcome) {
       case Success(:final data):
-        _variant = JobVariantOutcome(label: data.varianteLabel);
+        _variant = JobVariantOutcome(
+          label: data.varianteLabel,
+          refusedNotes: data.fidelityNotes,
+        );
         _variantCreated = true;
       case Failure(:final exception):
         _variantError = exception;

@@ -29,6 +29,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
     private final AiEnhancementProperties enhancementProperties;
     private final CvPromptBuilder promptBuilder;
     private final EnhanceResponseParser responseParser;
+    private final FactualFidelityGuard fidelityGuard;
 
     @Override
     public EnhanceCvResponse enhanceCv(Long cvId, Long userId, String level) {
@@ -50,6 +51,7 @@ public class EnhancementServiceImpl implements IEnhancementService {
         String rawContent = aiClient.complete(prompt, enhancementProperties.completionTokens());
         boolean fallback = aiClient.isFallbackResult();
         log.info("AI adapt response summary: {}", AiLogSanitizer.summarize(rawContent));
-        return responseParser.parse(rawContent, cv, "MAX", fallback, true);
+        EnhanceCvResponse parsed = responseParser.parse(rawContent, cv, "MAX", fallback, true);
+        return fidelityGuard.sanitize(cv, parsed);
     }
 }

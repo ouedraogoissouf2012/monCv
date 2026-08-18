@@ -29,6 +29,7 @@ public class CvResponse {
     private Long parentCvId;
     private String varianteLabel;
     private Integer variantCount;
+    private List<String> fidelityNotes;
     private StyleDto style;
     private String publicToken;
     private boolean publicEnabled;

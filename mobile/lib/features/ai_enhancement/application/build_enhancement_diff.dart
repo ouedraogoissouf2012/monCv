@@ -1,4 +1,5 @@
 import '../../../features/cv/presentation/cv_presentation_model.dart';
+import '../../../services/accent_corrector.dart';
 import '../../ai/domain/entities/enhanced_cv.dart';
 import '../domain/enhancement_change.dart';
 
@@ -11,20 +12,26 @@ import '../domain/enhancement_change.dart';
 /// inchange ou vide cote IA est ignore). Gere les listes de tailles
 /// differentes en s'arretant au plus court (aucun acces hors bornes, aucun ID
 /// perdu : l'[index] identifie l'element compare).
+///
+/// En relecture ([proofread]), les seuls accents deja couverts par
+/// [AccentCorrector] et les champs inventes (avant vide) ne sont pas des
+/// corrections : le CV est alors considere deja corrige.
 class BuildEnhancementDiff {
-  const BuildEnhancementDiff();
+  const BuildEnhancementDiff({this.proofread = false});
+
+  final bool proofread;
 
   List<EnhancementChange> call(Cv original, EnhancedCv enhanced) {
     final changes = <EnhancementChange>[];
 
     void add(EnhancementField field, String? before, String? after,
         {int index = 0}) {
-      final b = before ?? '';
-      final a = after ?? '';
-      if (a.isNotEmpty && a != b) {
-        changes.add(EnhancementChange(
-            field: field, before: b, after: a, index: index));
-      }
+      final b = (before ?? '').trim();
+      final a = (after ?? '').trim();
+      if (a.isEmpty || _equivalent(b, a)) return;
+      if (proofread && b.isEmpty) return;
+      changes.add(EnhancementChange(
+          field: field, before: b, after: a, index: index));
     }
 
     final info = original.personalInfo;
@@ -71,6 +78,18 @@ class BuildEnhancementDiff {
     });
 
     return changes;
+  }
+
+  static final _whitespace = RegExp(r'\s+');
+
+  bool _equivalent(String before, String after) {
+    if (before == after) return true;
+    return _normalize(before) == _normalize(after);
+  }
+
+  String _normalize(String value) {
+    final collapsed = value.replaceAll(_whitespace, ' ').trim();
+    return AccentCorrector().correct(collapsed);
   }
 
   /// Parcourt deux listes en parallele jusqu'au plus court (borne sure).

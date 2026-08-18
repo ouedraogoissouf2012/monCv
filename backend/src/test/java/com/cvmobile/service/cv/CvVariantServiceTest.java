@@ -14,6 +14,7 @@ import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.ai.FactualFidelityGuard;
 import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.user.IUserService;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -40,6 +42,7 @@ class CvVariantServiceTest {
     @Mock private IUserService userService;
     @Mock private CvMapper cvMapper;
     @Mock private IEnhancementService enhancementService;
+    @Spy private FactualFidelityGuard fidelityGuard = new FactualFidelityGuard();
     @Mock private CvFinder cvFinder;
 
     @InjectMocks
@@ -195,7 +198,6 @@ class CvVariantServiceTest {
         when(cvMapper.cloneExperience(any())).thenReturn(Experience.builder().poste("Dev").build());
         when(cvMapper.cloneEducation(any())).thenReturn(Education.builder().etablissement("U").build());
         when(cvMapper.cloneProject(any())).thenReturn(Project.builder().nom("P").build());
-        when(cvMapper.cloneSkill(any())).thenReturn(Skill.builder().nom("Java").niveau(4).build());
         when(cvMapper.cloneLanguage(any())).thenReturn(
                 Language.builder().langue("Francais").niveau(Language.NiveauLangue.NATIF).build());
         when(cvMapper.cloneCertification(any())).thenReturn(Certification.builder().nom("C").build());
@@ -252,5 +254,44 @@ class CvVariantServiceTest {
         assertThat(expClone.getDescription()).isEqualTo("exp adaptee");
         assertThat(eduClone.getDescription()).isEqualTo("edu adaptee");
         assertThat(projClone.getDescription()).isEqualTo("proj adaptee");
+    }
+
+    @Test
+    void persistVariant_retireLesChiffresEtCompetencesInventes() {
+        User user = buildUser();
+        Cv original = Cv.builder().id(10L).titre("Mon CV").user(user)
+                .personalInfo(PersonalInfo.builder()
+                        .titrePoste("Dev")
+                        .resumeProfessionnel("Developpeur Java en equipe.")
+                        .build())
+                .experiences(List.of(Experience.builder().poste("Dev").description("APIs REST").build()))
+                .skills(List.of(Skill.builder().nom("Java").niveau(4).build()))
+                .build();
+        EnhanceCvResponse adapted = EnhanceCvResponse.builder()
+                .titreOffre("Backend")
+                .resumeProfessionnel("Developpeur Java, +45% de performance.")
+                .experiences(List.of(EnhanceCvResponse.ExperienceEnhancement.builder()
+                        .description("APIs REST industrialisees").build()))
+                .skills(List.of(
+                        EnhanceCvResponse.SkillEnhancement.builder().nom("Java").niveau(4).build(),
+                        EnhanceCvResponse.SkillEnhancement.builder().nom("Kubernetes").niveau(3).build()))
+                .build();
+        PersonalInfo clonedInfo = PersonalInfo.builder()
+                .titrePoste("Dev").resumeProfessionnel("Developpeur Java en equipe.").build();
+        Experience expClone = Experience.builder().poste("Dev").description("APIs REST").build();
+
+        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
+        when(userService.findById(1L)).thenReturn(user);
+        when(cvMapper.clonePersonalInfo(any())).thenReturn(clonedInfo);
+        when(cvMapper.cloneExperience(any())).thenReturn(expClone);
+        when(cvRepository.save(any(Cv.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cvMapper.toResponse(any(Cv.class))).thenReturn(CvResponse.builder().id(20L).build());
+
+        CvResponse result = variantService.persistVariant(10L, "Offre", null, 1L, adapted);
+
+        assertThat(clonedInfo.getResumeProfessionnel()).isEqualTo("Developpeur Java en equipe.");
+        assertThat(expClone.getDescription()).isEqualTo("APIs REST industrialisees");
+        assertThat(result.getFidelityNotes()).anyMatch(note -> note.contains("45%"));
+        assertThat(result.getFidelityNotes()).anyMatch(note -> note.contains("Kubernetes"));
     }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/ai/application/enhance_cv_usecase.dart';
 import 'package:cv_mobile/features/ai/domain/entities/enhanced_cv.dart';
@@ -87,6 +89,33 @@ void main() {
       expect(states.last, isFalse);
     });
 
+    test('relecture : accents seuls -> aucun change', () async {
+      when(() => repo.enhanceCv(42, 'LITE', consentAccepted: true)).thenAnswer(
+        (_) async => const Result.success(EnhancedCv(
+          experiences: [
+            EnhancedExperience(poste: 'Développeur Web Full Stack'),
+          ],
+          aiGenerated: true,
+        )),
+      );
+      final c = controller(
+        cv: Cv(
+          id: 42,
+          titre: 'CV',
+          experiences: [
+            const Experience(poste: 'Developpeur Web Full Stack'),
+          ],
+        ),
+        proofreadOnly: true,
+      )..setConsent(true);
+
+      await c.enhance();
+
+      expect(c.result, isNotNull);
+      expect(c.changes, isEmpty);
+      expect(c.error, isNull);
+    });
+
     test('le niveau selectionne est transmis au contrat backend', () async {
       when(() => repo.enhanceCv(42, 'MAX', consentAccepted: true)).thenAnswer(
           (_) async => const Result.success(EnhancedCv()));
@@ -142,6 +171,20 @@ void main() {
       expect(c.error, isNull);
       expect(c.result?.titrePoste, 'Mieux');
       verify(() => repo.enhanceCv(any(), any(), consentAccepted: any(named: 'consentAccepted'))).called(2);
+    });
+
+    test('dispose pendant l appel -> pas de notifyListeners', () async {
+      final gate = Completer<Result<EnhancedCv>>();
+      when(() => repo.enhanceCv(any(), any(),
+              consentAccepted: any(named: 'consentAccepted')))
+          .thenAnswer((_) => gate.future);
+      final c = controller()..setConsent(true);
+
+      final pending = c.enhance();
+      c.dispose();
+      gate.complete(const Result.success(EnhancedCv(titrePoste: 'Dev')));
+
+      await expectLater(pending, completes);
     });
   });
 }

@@ -55,7 +55,8 @@ class EnhancementServiceImplTest {
                 mock(NotificationService.class),
                 new AiEnhancementProperties(3000),
                 new CvPromptBuilder(),
-                new EnhanceResponseParser(qualityService, qualityProperties, new CorrectionCounter())
+                new EnhanceResponseParser(qualityService, qualityProperties, new CorrectionCounter()),
+                new FactualFidelityGuard()
         );
     }
 
@@ -175,7 +176,9 @@ class EnhancementServiceImplTest {
         assertThat(response.isAiGenerated()).isTrue();
         ArgumentCaptor<String> prompt = ArgumentCaptor.forClass(String.class);
         verify(aiClient).complete(prompt.capture(), anyInt());
-        assertThat(prompt.getValue()).contains("Offre backend Java");
+        assertThat(prompt.getValue())
+                .contains("Offre backend Java")
+                .contains("ZERO INVENTION");
     }
 
     @Test

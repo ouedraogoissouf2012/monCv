@@ -1058,6 +1058,12 @@ abstract class AppLocalizations {
   /// **'Variante \"{label}\" creee'**
   String variantCreated(String label);
 
+  /// No description provided for @variantFidelityBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun fait inventé n\'a été conservé.'**
+  String get variantFidelityBlocked;
+
   /// No description provided for @variantCreationError.
   ///
   /// In fr, this message translates to:
@@ -1301,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @noCertainCorrection.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune correction certaine detectee.'**
+  /// **'Ce CV est déjà corrigé.'**
   String get noCertainCorrection;
 
   /// No description provided for @correctedFields.

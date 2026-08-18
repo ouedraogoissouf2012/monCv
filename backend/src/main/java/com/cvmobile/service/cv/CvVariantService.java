@@ -11,6 +11,7 @@ import com.cvmobile.model.Project;
 import com.cvmobile.model.Skill;
 import com.cvmobile.model.User;
 import com.cvmobile.repository.CvRepository;
+import com.cvmobile.service.ai.FactualFidelityGuard;
 import com.cvmobile.service.ai.IEnhancementService;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class CvVariantService {
     private final IUserService userService;
     private final CvMapper cvMapper;
     private final IEnhancementService enhancementService;
+    private final FactualFidelityGuard fidelityGuard;
     private final CvFinder cvFinder;
 
     /**
@@ -67,9 +69,10 @@ public class CvVariantService {
                                      Long userId, EnhanceCvResponse adapted) {
         Cv original = cvFinder.findByIdAndUserId(parentCvId, userId);
         User user = userService.findById(userId);
+        EnhanceCvResponse safe = fidelityGuard.sanitize(original, adapted);
 
         // 1. Determiner le label de la variante
-        String resolvedLabel = resolveVariantLabel(label, adapted, jobDescription);
+        String resolvedLabel = resolveVariantLabel(label, safe, jobDescription);
 
         // 2. Creer la copie avec lien parent
         Cv variant = Cv.builder()
@@ -82,11 +85,11 @@ public class CvVariantService {
         // 3. Copier le personalInfo avec les adaptations IA
         if (original.getPersonalInfo() != null) {
             PersonalInfo info = cvMapper.clonePersonalInfo(original.getPersonalInfo());
-            if (adapted.getTitrePoste() != null && !adapted.getTitrePoste().isBlank()) {
-                info.setTitrePoste(adapted.getTitrePoste());
+            if (safe.getTitrePoste() != null && !safe.getTitrePoste().isBlank()) {
+                info.setTitrePoste(safe.getTitrePoste());
             }
-            if (adapted.getResumeProfessionnel() != null && !adapted.getResumeProfessionnel().isBlank()) {
-                info.setResumeProfessionnel(adapted.getResumeProfessionnel());
+            if (safe.getResumeProfessionnel() != null && !safe.getResumeProfessionnel().isBlank()) {
+                info.setResumeProfessionnel(safe.getResumeProfessionnel());
             }
             variant.setPersonalInfo(info);
         }
@@ -94,12 +97,12 @@ public class CvVariantService {
         Cv savedVariant = cvRepository.save(variant);
 
         // 4-5. Copier experiences et educations avec descriptions adaptees
-        applyAdaptedExperiences(original, adapted, savedVariant);
-        applyAdaptedEducations(original, adapted, savedVariant);
+        applyAdaptedExperiences(original, safe, savedVariant);
+        applyAdaptedEducations(original, safe, savedVariant);
 
         // 6. Competences : remplacer si l'IA en propose, sinon copier
-        if (adapted.getSkills() != null && !adapted.getSkills().isEmpty()) {
-            adapted.getSkills().stream().limit(MAX_ADAPTED_SKILLS).forEach(s ->
+        if (safe.getSkills() != null && !safe.getSkills().isEmpty()) {
+            safe.getSkills().stream().limit(MAX_ADAPTED_SKILLS).forEach(s ->
                 savedVariant.addSkill(Skill.builder()
                         .nom(s.getNom())
                         .niveau(s.getNiveau() != null ? s.getNiveau() : 3)
@@ -113,12 +116,14 @@ public class CvVariantService {
         original.getCertifications().forEach(c -> savedVariant.addCertification(cvMapper.cloneCertification(c)));
 
         // 8. Copier les projets avec descriptions adaptees
-        applyAdaptedProjects(original, adapted, savedVariant);
+        applyAdaptedProjects(original, safe, savedVariant);
 
         Cv saved = cvRepository.save(savedVariant);
-        log.info("Variante CV creee: parent={}, variante={}, label='{}', userId={}",
-                parentCvId, saved.getId(), resolvedLabel, userId);
-        return cvMapper.toResponse(saved);
+        log.info("Variante CV creee: parent={}, variante={}, label='{}', userId={}, inventionsRefusees={}",
+                parentCvId, saved.getId(), resolvedLabel, userId, fidelityGuard.refusedReasons(safe).size());
+        CvResponse response = cvMapper.toResponse(saved);
+        response.setFidelityNotes(fidelityGuard.refusedReasons(safe));
+        return response;
     }
 
     public List<CvResponse> getVariantsByParentId(Long parentCvId, Long userId) {
