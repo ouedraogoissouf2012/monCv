@@ -593,7 +593,7 @@ abstract class AppLocalizations {
   /// No description provided for @installAppHelp.
   ///
   /// In fr, this message translates to:
-  /// **'Chrome ou Edge, fenetre normale (pas privee) : menu ⋮ puis Installer MonCV. iPhone : Partager puis Sur l\'ecran d\'accueil.'**
+  /// **'Sur ce telephone : touche ⋮ en haut a droite, puis Installer l\'application. iPhone : Partager puis Sur l\'ecran d\'accueil. La navigation privee bloque l\'installation.'**
   String get installAppHelp;
 
   /// No description provided for @landingFooter.

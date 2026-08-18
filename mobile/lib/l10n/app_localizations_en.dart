@@ -286,7 +286,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installAppHelp =>
-      'Chrome or Edge, normal window (not private): menu ⋮ then Install MonCV. iPhone: Share then Add to Home Screen.';
+      'On this phone: tap ⋮ at the top right, then Install app. iPhone: Share then Add to Home Screen. Private browsing blocks install.';
 
   @override
   String get landingFooter => '© 2026 MonCV. Mobile-first, ATS-compatible CVs.';

@@ -287,7 +287,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installAppHelp =>
-      'Chrome ou Edge, fenetre normale (pas privee) : menu ⋮ puis Installer MonCV. iPhone : Partager puis Sur l\'ecran d\'accueil.';
+      'Sur ce telephone : touche ⋮ en haut a droite, puis Installer l\'application. iPhone : Partager puis Sur l\'ecran d\'accueil. La navigation privee bloque l\'installation.';
 
   @override
   String get landingFooter =>

@@ -88,7 +88,7 @@
   "readyToApplySubtitle": "Mobile, rapide, lisible et pense pour le marche francophone.",
   "startNow": "Commencer maintenant",
   "installApp": "Installer l'application",
-  "installAppHelp": "Chrome ou Edge, fenetre normale (pas privee) : menu ⋮ puis Installer MonCV. iPhone : Partager puis Sur l'ecran d'accueil.",
+  "installAppHelp": "Sur ce telephone : touche ⋮ en haut a droite, puis Installer l'application. iPhone : Partager puis Sur l'ecran d'accueil. La navigation privee bloque l'installation.",
   "landingFooter": "© 2026 MonCV. CV francophone, mobile-first et compatible ATS.",
   "sampleCandidateName": "ALEX TRAORE",
   "sampleCandidateRole": "Ingenieur Logiciel Full Stack",

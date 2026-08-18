@@ -41,8 +41,23 @@
 <body>
   <script>
     if ('serviceWorker' in navigator) {
+      var nativeRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+      navigator.serviceWorker.register = function (url, options) {
+        if (String(url).indexOf('flutter_service_worker') !== -1) {
+          return nativeRegister('/sw.js', options);
+        }
+        return nativeRegister(url, options);
+      };
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js');
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) {
+            var script = (reg.active && reg.active.scriptURL) || '';
+            if (script.indexOf('flutter_service_worker') !== -1) {
+              reg.unregister();
+            }
+          });
+        });
+        nativeRegister('/sw.js');
       });
     }
     window.__moncvDeferred = null;
@@ -51,14 +66,28 @@
       window.__moncvDeferred = event;
     });
     window.promptMoncvInstall = function () {
-      if (!window.__moncvDeferred) {
-        return Promise.resolve('unavailable');
+      function runPrompt(deferred) {
+        window.__moncvDeferred = null;
+        deferred.prompt();
+        return deferred.userChoice.then(function (choice) {
+          return choice.outcome;
+        });
       }
-      var deferred = window.__moncvDeferred;
-      window.__moncvDeferred = null;
-      deferred.prompt();
-      return deferred.userChoice.then(function (choice) {
-        return choice.outcome;
+      if (window.__moncvDeferred) {
+        return runPrompt(window.__moncvDeferred);
+      }
+      return new Promise(function (resolve) {
+        var timer = setTimeout(function () {
+          window.removeEventListener('beforeinstallprompt', onPrompt);
+          resolve('unavailable');
+        }, 2000);
+        function onPrompt(event) {
+          event.preventDefault();
+          clearTimeout(timer);
+          window.removeEventListener('beforeinstallprompt', onPrompt);
+          runPrompt(event).then(resolve);
+        }
+        window.addEventListener('beforeinstallprompt', onPrompt);
       });
     };
   </script>
