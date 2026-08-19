@@ -88,12 +88,14 @@ void main() {
           poste: 'Dev',
           entreprise: 'ACME',
           description: null,
+          consentAccepted: true,
         )).thenAnswer(
       (_) async => const Result.success(['a', 'b']),
     );
 
     final result = await SuggestBulletsUseCase(repo).call(
-      const SuggestBulletsParams(poste: 'Dev', entreprise: 'ACME'),
+      const SuggestBulletsParams(
+          poste: 'Dev', entreprise: 'ACME', consentAccepted: true),
     );
 
     expect(result.getOrThrow(), ['a', 'b']);
@@ -105,10 +107,11 @@ void main() {
           poste: 'Dev',
           entreprise: null,
           description: null,
+          consentAccepted: true,
         )).thenAnswer((_) async => const Result.failure(NetworkException()));
 
-    final result = await SuggestBulletsUseCase(repo)
-        .call(const SuggestBulletsParams(poste: 'Dev'));
+    final result = await SuggestBulletsUseCase(repo).call(
+        const SuggestBulletsParams(poste: 'Dev', consentAccepted: true));
 
     expect(result.isFailure, isTrue);
     expect((result as Failure).exception, isA<NetworkException>());
@@ -119,12 +122,13 @@ void main() {
           poste: 'Dev',
           entreprise: null,
           description: null,
+          consentAccepted: true,
         )).thenAnswer((_) async => const Result.failure(
           AiException(code: 'AI_QUOTA_EXCEEDED', message: 'Quota IA atteint'),
         ));
 
-    final result = await SuggestBulletsUseCase(repo)
-        .call(const SuggestBulletsParams(poste: 'Dev'));
+    final result = await SuggestBulletsUseCase(repo).call(
+        const SuggestBulletsParams(poste: 'Dev', consentAccepted: true));
 
     expect((result as Failure).exception, isA<AiException>());
   });

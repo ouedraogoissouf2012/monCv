@@ -61,6 +61,7 @@ abstract interface class IApiClient {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   });
   Future<Cv> generateShareLink(int id);
   Future<Cv> regenerateShareLink(int id);

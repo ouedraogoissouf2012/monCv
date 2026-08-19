@@ -123,10 +123,12 @@ void main() {
         }, 200);
       });
 
-      final result = await ds.getSuggestions(poste: 'Dev', entreprise: '');
+      final result = await ds.getSuggestions(
+          poste: 'Dev', entreprise: '', consentAccepted: true);
 
       expect(captured.url.path, endsWith('/ai/suggest'));
-      expect(jsonDecode(captured.body), {'poste': 'Dev'});
+      expect(jsonDecode(captured.body),
+          {'poste': 'Dev', 'aiConsentAccepted': true});
       expect(result, ['a', 'b']);
     });
 
@@ -147,14 +149,17 @@ void main() {
       // Comportement volontairement plus robuste que l'ancien ApiService (qui
       // levait). Doit rester : aucune exception, liste vide.
       final ds = build((_) => json({'autre': 1}, 200));
-      expect(await ds.getSuggestions(poste: 'Dev'), isEmpty);
+      expect(await ds.getSuggestions(poste: 'Dev', consentAccepted: true),
+          isEmpty);
     });
 
     test('getSuggestions filtre les elements non-string', () async {
       final ds = build((_) => json({
             'suggestions': ['ok', 42, null, 'ok2'],
           }, 200));
-      expect(await ds.getSuggestions(poste: 'Dev'), ['ok', 'ok2']);
+      expect(
+          await ds.getSuggestions(poste: 'Dev', consentAccepted: true),
+          ['ok', 'ok2']);
     });
   });
 

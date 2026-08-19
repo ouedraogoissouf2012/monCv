@@ -249,11 +249,13 @@ class ApiService implements IApiClient {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   }) =>
       _ai.getAiSuggestions(
         poste: poste,
         entreprise: entreprise,
         description: description,
+        consentAccepted: consentAccepted,
       );
 
   // ── Photos ────────────────────────────────────────────────────

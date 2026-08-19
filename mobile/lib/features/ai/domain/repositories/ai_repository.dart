@@ -38,6 +38,7 @@ abstract interface class AiRepository {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   });
 
   /// Etat courant du sous-systeme IA.

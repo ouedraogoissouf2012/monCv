@@ -7,6 +7,7 @@ import '../../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/cv/presentation/cv_presentation_model.dart';
 import '../../features/cv/presentation/controllers/cv_list_controller.dart';
+import '../../features/cv/presentation/cv_store.dart';
 import '../../repositories/cv_repository.dart';
 import '../../utils/constants.dart';
 import '../../widgets/cv_preview.dart';
@@ -160,6 +161,12 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
     if (success) {
       sl<CvWizardDraftStore>().clear();
+      final saved = controller.savedCv;
+      if (saved != null && controller.isEditing && saved.id != null) {
+        sl<CvStore>().replaceCv(saved.id!, saved);
+      } else if (saved != null) {
+        sl<CvStore>().addCv(saved, makeCurrent: true);
+      }
       await context.read<CvListController>().load();
       if (!mounted) return;
       router.pop();

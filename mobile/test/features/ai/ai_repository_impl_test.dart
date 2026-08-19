@@ -89,8 +89,10 @@ void main() {
           poste: 'Dev',
           entreprise: null,
           description: null,
+          consentAccepted: true,
         )).thenAnswer((_) async => ['a']);
-    final result = await repository.getSuggestions(poste: 'Dev');
+    final result = await repository.getSuggestions(
+        poste: 'Dev', consentAccepted: true);
     expect(result.getOrThrow(), ['a']);
   });
 

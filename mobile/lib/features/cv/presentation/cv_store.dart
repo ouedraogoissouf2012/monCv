@@ -36,6 +36,14 @@ class CvStore extends ChangeNotifier {
   /// Remplace la liste complete et passe l'etat en succes.
   void setCvs(List<Cv> cvs) {
     _cvs = List.of(cvs);
+    if (_currentCv?.id != null) {
+      for (final cv in _cvs) {
+        if (cv.id == _currentCv!.id) {
+          _currentCv = cv;
+          break;
+        }
+      }
+    }
     _state = const CvOperationState.success();
     notifyListeners();
   }

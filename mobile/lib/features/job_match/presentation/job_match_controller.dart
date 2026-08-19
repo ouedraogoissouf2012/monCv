@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../usecases/cv/create_variant_usecase.dart';
+import '../../cv/presentation/cv_store.dart';
 import '../../ai/application/match_job_usecase.dart';
 import '../../ai/domain/entities/job_match.dart';
 import '../domain/job_score_snapshot.dart';
@@ -33,6 +34,7 @@ class JobMatchController extends ChangeNotifier {
     required int cvId,
     required MatchJobUseCase matchJob,
     required CreateVariantUseCase createVariant,
+    this.store,
     this.onAiError,
     DateTime Function()? clock,
     JobScoreHistory? history,
@@ -48,6 +50,7 @@ class JobMatchController extends ChangeNotifier {
   final int _cvId;
   final MatchJobUseCase _matchJob;
   final CreateVariantUseCase _createVariant;
+  final CvStore? store;
   final DateTime Function() _clock;
   final JobScoreHistory _history;
 
@@ -170,6 +173,7 @@ class JobMatchController extends ChangeNotifier {
 
     switch (outcome) {
       case Success(:final data):
+        store?.addCv(data);
         _variant = JobVariantOutcome(
           label: data.varianteLabel,
           refusedNotes: data.fidelityNotes,

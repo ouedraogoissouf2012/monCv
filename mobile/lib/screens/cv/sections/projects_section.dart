@@ -37,6 +37,7 @@ class ProjectsSection extends StatelessWidget {
     DateTime? dateDebut = proj?.dateDebut;
     DateTime? dateFin = proj?.dateFin;
     bool isLoadingAi = false;
+    bool aiConsent = false;
 
     return showSectionEditor<Project>(
       context: context,
@@ -121,15 +122,25 @@ class ProjectsSection extends StatelessWidget {
             maxLines: 3,
           ),
           const SizedBox(height: 6),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: aiConsent,
+            onChanged: (v) => setState(() => aiConsent = v ?? false),
+            title: Text(l.aiConsent, style: const TextStyle(fontSize: 12)),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
           AiSuggestButton(
             isLoading: isLoadingAi,
-            onPressed: () async {
+            onPressed: !aiConsent
+                ? null
+                : () async {
               setState(() => isLoadingAi = true);
               final suggest = suggestBullets ?? sl<SuggestBulletsUseCase>();
               final result = await suggest(SuggestBulletsParams(
                 poste: nomCtrl.text,
                 entreprise: techCtrl.text.isNotEmpty ? techCtrl.text : null,
                 description: descCtrl.text,
+                consentAccepted: aiConsent,
               ));
               if (!ctx.mounted) return;
               switch (result) {

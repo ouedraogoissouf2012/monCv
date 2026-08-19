@@ -21,6 +21,7 @@ class AiHttpClient {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   }) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.aiEndpoint}/suggest'),
@@ -31,6 +32,7 @@ class AiHttpClient {
           'entreprise': entreprise,
         if (description != null && description.isNotEmpty)
           'description': description,
+        'aiConsentAccepted': consentAccepted,
       }),
     );
     if (response.statusCode == 200) {

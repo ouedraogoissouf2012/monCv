@@ -6,10 +6,12 @@ class SuggestBulletsParams {
   final String poste;
   final String? entreprise;
   final String? description;
+  final bool consentAccepted;
   const SuggestBulletsParams({
     required this.poste,
     this.entreprise,
     this.description,
+    required this.consentAccepted,
   });
 }
 
@@ -25,5 +27,6 @@ class SuggestBulletsUseCase
         poste: params.poste,
         entreprise: params.entreprise,
         description: params.description,
+        consentAccepted: params.consentAccepted,
       );
 }

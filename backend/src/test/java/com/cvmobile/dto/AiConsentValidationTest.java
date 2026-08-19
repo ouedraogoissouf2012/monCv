@@ -11,6 +11,19 @@ class AiConsentValidationTest {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Test
+    void suggest_exigeConsentementIa() {
+        SuggestRequest request = SuggestRequest.builder()
+                .poste("Dev")
+                .aiConsentAccepted(false)
+                .build();
+
+        var violations = validator.validate(request);
+
+        assertThat(violations)
+                .anyMatch(v -> v.getMessage().contains("consentement IA"));
+    }
+
+    @Test
     void enhanceCv_exigeConsentementIa() {
         EnhanceCvRequest request = new EnhanceCvRequest();
         request.setCvId(42L);

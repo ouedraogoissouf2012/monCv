@@ -19,6 +19,16 @@ void main() {
       expect(() => store.cvs.add(cv(2)), throwsUnsupportedError);
     });
 
+    test('setCvs rafraichit le CV courant s il est dans la nouvelle liste', () {
+      final store = CvStore()
+        ..setCvs([cv(1, titre: 'ancien')])
+        ..setCurrentCv(cv(1, titre: 'ancien'));
+
+      store.setCvs([cv(1, titre: 'nouveau'), cv(2)]);
+
+      expect(store.currentCv?.titre, 'nouveau');
+    });
+
     test('replaceCv met a jour la liste ET le courant simultanement', () {
       final store = CvStore()
         ..setCvs([cv(1, titre: 'ancien')])

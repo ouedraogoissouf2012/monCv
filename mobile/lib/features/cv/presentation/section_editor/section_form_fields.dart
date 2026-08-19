@@ -84,7 +84,7 @@ class SectionDateButton extends StatelessWidget {
 /// Bouton « suggestions IA » avec etat de chargement.
 class AiSuggestButton extends StatelessWidget {
   final bool isLoading;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const AiSuggestButton(
       {super.key, required this.isLoading, required this.onPressed});

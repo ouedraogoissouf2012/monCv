@@ -173,7 +173,7 @@ void main() {
       const client = AiHttpClient(headers: fakeHeaders);
 
       final suggestions = await withMockClient(
-        () => client.getAiSuggestions(poste: 'Dev'),
+        () => client.getAiSuggestions(poste: 'Dev', consentAccepted: true),
         (_) => http.Response(
           jsonEncode({
             'suggestions': ['a', 'b']

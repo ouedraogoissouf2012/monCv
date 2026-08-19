@@ -60,7 +60,8 @@ class AiControllerTest {
     @Test
     void suggest_delegueLesChampsDeLaRequete() {
         SuggestRequest request = SuggestRequest.builder()
-                .poste("Dev").entreprise("Acme").description("Missions").build();
+                .poste("Dev").entreprise("Acme").description("Missions")
+                .aiConsentAccepted(true).build();
         SuggestResponse expected = mock(SuggestResponse.class);
         when(suggestionService.generateSuggestions("Dev", "Acme", "Missions"))
                 .thenReturn(expected);

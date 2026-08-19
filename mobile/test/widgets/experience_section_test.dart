@@ -215,6 +215,9 @@ void main() {
       )));
       await tester.tap(find.text('Ajouter une expérience'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(CheckboxListTile));
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pump();
       await tester.ensureVisible(find.text('Suggestions IA'));
       await tester.tap(find.text('Suggestions IA'));
     }
@@ -226,6 +229,7 @@ void main() {
             poste: any(named: 'poste'),
             entreprise: any(named: 'entreprise'),
             description: any(named: 'description'),
+            consentAccepted: any(named: 'consentAccepted'),
           )).thenAnswer(
         (_) async => const Result.success(['Piloté une migration cloud']),
       );
@@ -241,6 +245,7 @@ void main() {
             poste: any(named: 'poste'),
             entreprise: any(named: 'entreprise'),
             description: any(named: 'description'),
+            consentAccepted: true,
           )).called(1);
     });
 
@@ -250,6 +255,7 @@ void main() {
             poste: any(named: 'poste'),
             entreprise: any(named: 'entreprise'),
             description: any(named: 'description'),
+            consentAccepted: any(named: 'consentAccepted'),
           )).thenAnswer((_) async => const Result.failure(NetworkException()));
 
       await openEditorAndTapAi(tester, SuggestBulletsUseCase(repo));

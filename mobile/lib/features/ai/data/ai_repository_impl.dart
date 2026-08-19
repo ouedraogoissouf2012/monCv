@@ -57,11 +57,13 @@ class HttpAiRepository implements AiRepository {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   }) =>
       safeCall(() => _dataSource.getSuggestions(
             poste: poste,
             entreprise: entreprise,
             description: description,
+            consentAccepted: consentAccepted,
           ));
 
   @override

@@ -140,9 +140,11 @@ void main() {
           poste: 'Dev',
           entreprise: 'ACME',
           description: null,
+          consentAccepted: true,
         )).thenAnswer((_) async => ['a', 'b']);
 
-    final result = await facade.getSuggestions(poste: 'Dev', entreprise: 'ACME');
+    final result = await facade.getSuggestions(
+        poste: 'Dev', entreprise: 'ACME', consentAccepted: true);
 
     expect(result, ['a', 'b']);
   });

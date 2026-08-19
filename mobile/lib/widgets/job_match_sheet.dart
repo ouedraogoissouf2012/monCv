@@ -6,6 +6,7 @@ import '../core/error/result.dart';
 import '../features/ai/application/match_job_usecase.dart';
 import '../features/job_match/presentation/components/job_match_form.dart';
 import '../features/job_match/presentation/components/job_match_result.dart';
+import '../features/cv/presentation/cv_store.dart';
 import '../features/job_match/presentation/job_match_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/ai_status_provider.dart';
@@ -42,6 +43,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       cvId: widget.cvId,
       matchJob: sl<MatchJobUseCase>(),
       createVariant: sl<CreateVariantUseCase>(),
+      store: sl<CvStore>(),
       onAiError: _reportAiError,
     );
   }

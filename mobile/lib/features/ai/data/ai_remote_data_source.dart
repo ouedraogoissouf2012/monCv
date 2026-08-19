@@ -34,6 +34,7 @@ abstract interface class AiRemoteDataSource {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   });
   Future<AiStatus> getStatus();
 }
@@ -112,6 +113,7 @@ class HttpAiRemoteDataSource implements AiRemoteDataSource {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   }) async {
     final json = await _transport.sendJsonObject(
       ApiRequest.post('/ai/suggest', body: {
@@ -119,6 +121,7 @@ class HttpAiRemoteDataSource implements AiRemoteDataSource {
         if (entreprise != null && entreprise.isNotEmpty) 'entreprise': entreprise,
         if (description != null && description.isNotEmpty)
           'description': description,
+        'aiConsentAccepted': consentAccepted,
       }),
     );
     final raw = json['suggestions'];

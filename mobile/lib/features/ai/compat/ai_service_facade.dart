@@ -55,10 +55,12 @@ class AiCvService {
     required String poste,
     String? entreprise,
     String? description,
+    required bool consentAccepted,
   }) =>
       _dataSource.getSuggestions(
         poste: poste,
         entreprise: entreprise,
         description: description,
+        consentAccepted: consentAccepted,
       );
 }
