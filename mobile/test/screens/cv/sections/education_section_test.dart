@@ -58,6 +58,7 @@ void main() {
     await tester.enterText(
         find.byType(TextFormField).at(0), 'Universite X');
     await tester.enterText(find.byType(TextFormField).at(1), 'Master');
+    await tester.enterText(find.byType(TextFormField).at(3), '01/09/2018');
     await tester.tap(find.byIcon(Icons.check_rounded));
     await tester.pumpAndSettle();
 
