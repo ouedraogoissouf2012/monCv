@@ -33,7 +33,7 @@ final class PersonalInfoPersistenceMapper {
                 .anneeNaissance(entity.getAnneeNaissance())
                 .situationMatrimoniale(entity.getSituationMatrimoniale())
                 .sexe(entity.getSexe())
-                .afficherInfosSensibles(entity.getAfficherInfosSensibles())
+                .afficherInfosSensibles(entity.isAfficherInfosSensibles())
                 .build();
     }
 

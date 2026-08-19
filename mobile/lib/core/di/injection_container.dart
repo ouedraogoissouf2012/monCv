@@ -40,7 +40,6 @@ import '../../features/ai/domain/repositories/ai_repository.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/cv_repository.dart';
 import '../../repositories/cv_trash_repository.dart';
-import '../../repositories/cv_trash_repository.dart';
 import '../../repositories/cached_cv_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/i_api_client.dart';

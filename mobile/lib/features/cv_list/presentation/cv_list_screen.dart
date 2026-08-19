@@ -149,26 +149,24 @@ class _CvListScreenState extends State<CvListScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
-      final messenger = ScaffoldMessenger.of(context);
-      final ok = await _controller.deleteCv(id);
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(
-        content: Text(ok ? l.cvMovedToTrash : l.errorGeneric),
-        behavior: SnackBarBehavior.floating,
-        action: ok
-            ? SnackBarAction(
-                label: l.undo,
-                onPressed: () async {
-                  final restored = await sl<CvTrashRepository>().restore(id);
-                  if (restored is Success) {
-                    await context.read<cvp.CvListController>().load();
-                  }
-                },
-              )
-            : null,
-      ));
-    }
+    if (!mounted || confirmed != true) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final list = context.read<cvp.CvListController>();
+    final ok = await _controller.deleteCv(id);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(
+      content: Text(ok ? l.cvMovedToTrash : l.errorGeneric),
+      behavior: SnackBarBehavior.floating,
+      action: ok
+          ? SnackBarAction(
+              label: l.undo,
+              onPressed: () async {
+                final restored = await sl<CvTrashRepository>().restore(id);
+                if (restored is Success) await list.load();
+              },
+            )
+          : null,
+    ));
   }
 
   Future<void> _share(Cv cv) async {
