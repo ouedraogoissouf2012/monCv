@@ -5,8 +5,8 @@ import '../../../features/cv/presentation/section_editor/section_editor_sheet.da
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/domain/entities/certification.dart';
-import '../../../features/cv/presentation/section_editor/section_form_fields.dart'
-    show SectionDateButton;
+import '../../../utils/strict_date_input.dart';
+import '../../../widgets/strict_date_field.dart';
 
 class CertificationsSection extends StatelessWidget {
   final List<Certification> certifications;
@@ -61,34 +61,22 @@ class CertificationsSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SectionDateButton(
+                child: StrictDateField(
                   label: l.issueDate,
                   date: dateObtention,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: dateObtention ?? DateTime.now(),
-                      firstDate: DateTime(1990),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => dateObtention = d);
-                  },
+                  minYear: StrictDateInput.minYearDefault,
+                  maxYear: StrictDateInput.maxCareerYear(),
+                  onChanged: (d) => setState(() => dateObtention = d),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: SectionDateButton(
+                child: StrictDateField(
                   label: l.expiration,
                   date: dateExpiration,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: dateExpiration ?? DateTime.now(),
-                      firstDate: DateTime(1990),
-                      lastDate: DateTime(2040),
-                    );
-                    if (d != null) setState(() => dateExpiration = d);
-                  },
+                  minYear: StrictDateInput.minYearDefault,
+                  maxYear: 2040,
+                  onChanged: (d) => setState(() => dateExpiration = d),
                 ),
               ),
             ],

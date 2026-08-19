@@ -1001,7 +1001,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Hidden by default (year of birth, marital status, sex).';
 
   @override
+  String get cvIsForMe => 'This CV is for me';
+
+  @override
+  String get cvIsForMeHelp =>
+      'Fills first name, last name and email from your account.';
+
+  @override
   String get birthYear => 'Year of birth';
+
+  @override
+  String get birthYearHelp =>
+      'Greater than 1926 and at most current year minus 10.';
+
+  @override
+  String birthYearRange(int min, int max) {
+    return 'Year must be between $min and $max.';
+  }
 
   @override
   String get maritalStatus => 'Marital status';

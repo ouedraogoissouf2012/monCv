@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../../utils/strict_date_input.dart';
 import '../personal_info_form_controller.dart';
 
 class SensitiveIdentityFields extends StatelessWidget {
@@ -47,8 +48,21 @@ class SensitiveIdentityFields extends StatelessWidget {
             FilteringTextInputFormatter.digitsOnly,
             LengthLimitingTextInputFormatter(4),
           ],
-          decoration: InputDecoration(labelText: l.birthYear),
+          decoration: InputDecoration(
+            labelText: l.birthYear,
+            helperText: l.birthYearHelp,
+          ),
           onChanged: (_) => onChanged(),
+          validator: (value) {
+            if (value == null || value.isEmpty) return null;
+            final year = int.tryParse(value);
+            final min = StrictDateInput.minYearDefault;
+            final max = StrictDateInput.maxBirthYear();
+            if (year == null || year < min || year > max) {
+              return l.birthYearRange(min, max);
+            }
+            return null;
+          },
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(

@@ -1952,11 +1952,35 @@ abstract class AppLocalizations {
   /// **'Par defaut elles restent privees (annee de naissance, situation, sexe).'**
   String get showSensitiveInfoHelp;
 
+  /// No description provided for @cvIsForMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce CV est pour moi'**
+  String get cvIsForMe;
+
+  /// No description provided for @cvIsForMeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplit prenom, nom et email depuis votre compte.'**
+  String get cvIsForMeHelp;
+
   /// No description provided for @birthYear.
   ///
   /// In fr, this message translates to:
   /// **'Annee de naissance'**
   String get birthYear;
+
+  /// No description provided for @birthYearHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Superieure a 1926 et au plus annee actuelle moins 10 ans.'**
+  String get birthYearHelp;
+
+  /// No description provided for @birthYearRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annee entre {min} et {max}.'**
+  String birthYearRange(int min, int max);
 
   /// No description provided for @maritalStatus.
   ///

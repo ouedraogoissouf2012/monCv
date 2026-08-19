@@ -5,8 +5,8 @@ import '../../../features/cv/presentation/section_editor/section_editor_sheet.da
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/domain/entities/education.dart';
-import '../../../features/cv/presentation/section_editor/section_form_fields.dart'
-    show SectionDateButton;
+import '../../../utils/strict_date_input.dart';
+import '../../../widgets/strict_date_field.dart';
 
 class EducationSection extends StatelessWidget {
   final List<Education> educations;
@@ -72,18 +72,13 @@ class EducationSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SectionDateButton(
+                child: StrictDateField(
                   label: l.startRequired,
                   date: debut,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: debut ?? DateTime.now(),
-                      firstDate: DateTime(1950),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => debut = d);
-                  },
+                  required: true,
+                  minYear: StrictDateInput.minYearDefault,
+                  maxYear: StrictDateInput.maxCareerYear(),
+                  onChanged: (d) => setState(() => debut = d),
                 ),
               ),
               const SizedBox(width: 12),
@@ -109,19 +104,12 @@ class EducationSection extends StatelessWidget {
                           ),
                         ),
                       )
-                    : SectionDateButton(
+                    : StrictDateField(
                         label: l.end,
                         date: fin,
-                        onTap: () async {
-                          final d = await showDatePicker(
-                            context: ctx,
-                            initialDate: fin ?? DateTime.now(),
-                            firstDate: DateTime(1950),
-                            lastDate: DateTime.now()
-                                .add(const Duration(days: 365 * 5)),
-                          );
-                          if (d != null) setState(() => fin = d);
-                        },
+                        minYear: StrictDateInput.minYearDefault,
+                        maxYear: StrictDateInput.maxCareerYear() + 5,
+                        onChanged: (d) => setState(() => fin = d),
                       ),
               ),
             ],

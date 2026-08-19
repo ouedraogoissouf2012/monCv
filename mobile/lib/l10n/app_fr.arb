@@ -331,7 +331,17 @@
   "sensitiveInfo": "Infos personnelles",
   "showSensitiveInfo": "Afficher ces infos sur mon CV",
   "showSensitiveInfoHelp": "Par defaut elles restent privees (annee de naissance, situation, sexe).",
+  "cvIsForMe": "Ce CV est pour moi",
+  "cvIsForMeHelp": "Remplit prenom, nom et email depuis votre compte.",
   "birthYear": "Annee de naissance",
+  "birthYearHelp": "Superieure a 1926 et au plus annee actuelle moins 10 ans.",
+  "@birthYearRange": {
+    "placeholders": {
+      "min": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "birthYearRange": "Annee entre {min} et {max}.",
   "maritalStatus": "Situation matrimoniale",
   "sex": "Sexe",
   "firstNameExample": "Ex : Alex",
