@@ -25,7 +25,7 @@ class AppBottomNavigation extends StatelessWidget {
       selectedIndex: currentIndex,
       onDestinationSelected: onSelected,
       destinations: [
-        for (final d in appDestinations)
+        for (final d in appDestinations.where((d) => !d.sidebarOnly))
           NavigationDestination(
             icon: Icon(d.icon),
             selectedIcon: Icon(d.selectedIcon),

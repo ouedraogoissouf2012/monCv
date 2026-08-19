@@ -8,14 +8,16 @@ import 'package:go_router/go_router.dart';
 
 void main() {
   group('appDestinations (#249 D2)', () {
-    test('4 destinations avec routes attendues', () {
-      expect(appDestinations, hasLength(4));
+    test('5 destinations avec routes attendues', () {
+      expect(appDestinations, hasLength(5));
       expect(appDestinations.map((d) => d.route), [
         '/home',
         '/cvs/create',
         '/applications',
         '/profile',
+        '/cvs/trash',
       ]);
+      expect(appDestinations.last.sidebarOnly, isTrue);
     });
 
     test('creation est empilee (push), les autres remplacent (go)', () {
@@ -30,7 +32,7 @@ void main() {
   GoRouter router(Widget home) => GoRouter(
         initialLocation: '/home',
         routes: [
-          for (final path in ['/home', '/applications', '/profile'])
+          for (final path in ['/home', '/applications', '/profile', '/cvs/trash'])
             GoRoute(
                 path: path,
                 builder: (_, __) {

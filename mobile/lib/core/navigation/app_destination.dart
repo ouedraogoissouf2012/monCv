@@ -14,6 +14,7 @@ class AppDestination {
     required this.route,
     required this.label,
     this.push = false,
+    this.sidebarOnly = false,
   });
 
   final IconData icon;
@@ -27,6 +28,9 @@ class AppDestination {
 
   /// `true` -> `context.push` (empile, ex. creation) ; sinon `context.go`.
   final bool push;
+
+  /// Visible seulement dans la sidebar desktop (pas la barre mobile).
+  final bool sidebarOnly;
 }
 
 /// Les destinations principales, dans l'ordre d'affichage. L'index dans cette
@@ -57,6 +61,13 @@ const List<AppDestination> appDestinations = [
     route: '/profile',
     label: _profile,
   ),
+  AppDestination(
+    icon: Icons.delete_outline,
+    selectedIcon: Icons.delete,
+    route: '/cvs/trash',
+    label: _trash,
+    sidebarOnly: true,
+  ),
 ];
 
 // Selecteurs de libelles (fonctions top-level -> utilisables dans un const).
@@ -64,3 +75,4 @@ String _myCvs(AppLocalizations l) => l.myCvs;
 String _newCv(AppLocalizations l) => l.newCv;
 String _applications(AppLocalizations l) => l.applications;
 String _profile(AppLocalizations l) => l.profile;
+String _trash(AppLocalizations l) => l.trashTitle;
