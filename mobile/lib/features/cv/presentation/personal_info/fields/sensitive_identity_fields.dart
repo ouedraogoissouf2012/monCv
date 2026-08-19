@@ -56,7 +56,7 @@ class SensitiveIdentityFields extends StatelessWidget {
           validator: (value) {
             if (value == null || value.isEmpty) return null;
             final year = int.tryParse(value);
-            final min = StrictDateInput.minYearDefault;
+            const min = StrictDateInput.minYearDefault;
             final max = StrictDateInput.maxBirthYear();
             if (year == null || year < min || year > max) {
               return l.birthYearRange(min, max);

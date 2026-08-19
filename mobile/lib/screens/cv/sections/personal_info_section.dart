@@ -16,7 +16,6 @@ import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/domain/entities/personal_info.dart';
 import '../../../models/user.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../utils/strict_date_input.dart';
 
 /// Section « Informations personnelles » du formulaire CV (issue #242).
 ///

@@ -40,7 +40,7 @@ class StrictDateInput {
     required int maxYear,
   }) {
     if (digits.isEmpty) return null;
-    if (digits.length >= 1 && int.parse(digits[0]) > 3) {
+    if (digits.isNotEmpty && int.parse(digits[0]) > 3) {
       return 'Jour invalide (01-31).';
     }
     if (digits.length >= 2) {
