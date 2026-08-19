@@ -37,12 +37,43 @@ class CountryCatalog {
 
   /// Filtre les pays dont le nom commence par [query] (insensible
   /// casse/accents). [query] vide -> liste vide (pas de suggestion parasite).
+  static const _zonePriority = {
+    'cote d ivoire',
+    'senegal',
+    'mali',
+    'burkina faso',
+    'benin',
+    'togo',
+    'niger',
+    'guinee',
+    'cameroun',
+    'congo',
+    'gabon',
+    'tchad',
+    'france',
+    'belgique',
+    'suisse',
+    'canada',
+    'maroc',
+    'algerie',
+    'tunisie',
+  };
+
   static List<CountryMetadata> search(String query) {
     final needle = CountryMetadata.normalize(query);
     if (needle.isEmpty) return const [];
-    return kCountryCatalog
-        .where((c) => c.id.startsWith(needle))
-        .toList(growable: false);
+    final prefix = kCountryCatalog.where((c) => c.id.startsWith(needle)).toList();
+    prefix.sort((a, b) {
+      int rank(CountryMetadata c) {
+        if (c.id == 'cote d ivoire') return 0;
+        if (_zonePriority.contains(c.id)) return 1;
+        return 2;
+      }
+
+      final cmp = rank(a).compareTo(rank(b));
+      return cmp != 0 ? cmp : a.nameFr.compareTo(b.nameFr);
+    });
+    return prefix;
   }
 
   /// Filtre les pays dont le nom CONTIENT [query] (insensible casse/accents).

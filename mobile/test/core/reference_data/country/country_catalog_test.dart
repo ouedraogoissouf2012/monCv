@@ -90,6 +90,13 @@ void main() {
       expect(CountryCatalog.search('   '), isEmpty);
     });
 
+    test('search c ne propose que les pays commencant par c', () {
+      final names = CountryCatalog.search('c').map((c) => c.nameFr).toList();
+      expect(names, isNot(contains('Autriche')));
+      expect(names.first, "Côte d'Ivoire");
+      expect(names, containsAll(<String>['Cameroun', 'Canada', 'Congo']));
+    });
+
     test('searchContains filtre par sous-chaine insensible casse/accents', () {
       // "ivoire" doit trouver "Cote d'Ivoire" (sous-chaine, pas prefixe).
       final names =

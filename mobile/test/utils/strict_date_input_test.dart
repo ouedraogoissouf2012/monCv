@@ -37,5 +37,16 @@ void main() {
       expect(StrictDateInput.mask('1503'), '15/03');
       expect(StrictDateInput.mask('15032010'), '15/03/2010');
     });
+
+    test('fin avant debut est refusee', () {
+      expect(
+        StrictDateInput.rangeError(DateTime(2026, 1, 1), DateTime(2014, 1, 1)),
+        contains('fin'),
+      );
+      expect(
+        StrictDateInput.rangeError(DateTime(2014, 1, 1), DateTime(2026, 1, 1)),
+        isNull,
+      );
+    });
   });
 }

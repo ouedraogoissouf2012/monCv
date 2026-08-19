@@ -71,6 +71,14 @@ class StrictDateInput {
     return null;
   }
 
+  static String? rangeError(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return null;
+    if (end.isBefore(start)) {
+      return 'La date de fin doit etre posterieure a la date de debut.';
+    }
+    return null;
+  }
+
   static int _daysInMonth(int month, int year) {
     if (month == 2) {
       final leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;

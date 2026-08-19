@@ -11,6 +11,8 @@ class StrictDateField extends StatefulWidget {
     required this.onChanged,
     this.minYear,
     this.maxYear,
+    this.notBefore,
+    this.notAfter,
     this.required = false,
   });
 
@@ -19,6 +21,8 @@ class StrictDateField extends StatefulWidget {
   final ValueChanged<DateTime?> onChanged;
   final int? minYear;
   final int? maxYear;
+  final DateTime? notBefore;
+  final DateTime? notAfter;
   final bool required;
 
   @override
@@ -102,10 +106,19 @@ class _StrictDateFieldState extends State<StrictDateField> {
         if ((value == null || value.trim().isEmpty) && widget.required) {
           return 'Date requise (jj/mm/aaaa).';
         }
-        if (value != null &&
-            value.isNotEmpty &&
-            StrictDateInput.parse(value) == null) {
+        final parsed = value == null ? null : StrictDateInput.parse(value);
+        if (value != null && value.isNotEmpty && parsed == null) {
           return 'Format jj/mm/aaaa.';
+        }
+        if (parsed != null &&
+            widget.notBefore != null &&
+            parsed.isBefore(widget.notBefore!)) {
+          return 'La date de fin doit etre posterieure a la date de debut.';
+        }
+        if (parsed != null &&
+            widget.notAfter != null &&
+            parsed.isAfter(widget.notAfter!)) {
+          return 'La date de debut doit etre anterieure a la date de fin.';
         }
         return _error;
       },
