@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/injection_container.dart';
+import '../../../core/navigation/app_shell.dart';
 import '../../../core/error/result.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../repositories/cv_trash_repository.dart';
@@ -69,6 +70,10 @@ class _CvTrashScreenState extends State<CvTrashScreen> {
                   },
                 );
     if (widget.embedded) return body;
-    return Scaffold(appBar: AppBar(title: Text(l.trashTitle)), body: body);
+    return AppShell(
+      currentIndex: 4,
+      title: l.trashTitle,
+      body: body,
+    );
   }
 }

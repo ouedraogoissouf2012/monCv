@@ -193,10 +193,16 @@ class _CvListScreenState extends State<CvListScreen> {
       floatingActionButton: isDesktop ? null : const CvNewFab(),
       body: Column(
         children: [
-          TabBar(tabs: [
-            Tab(text: l.myCvs),
-            Tab(text: l.trashTitle),
-          ]),
+          Material(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: TabBar(
+              labelColor: Theme.of(context).colorScheme.primary,
+              tabs: [
+                Tab(text: l.myCvs),
+                Tab(text: l.trashTitle),
+              ],
+            ),
+          ),
           Expanded(
             child: TabBarView(children: [
               Consumer<CvStore>(
