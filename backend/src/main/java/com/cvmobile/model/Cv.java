@@ -133,6 +133,9 @@ public class Cv {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (personalInfo == null) {
+            personalInfo = new PersonalInfo();
+        }
     }
 
     @PreUpdate

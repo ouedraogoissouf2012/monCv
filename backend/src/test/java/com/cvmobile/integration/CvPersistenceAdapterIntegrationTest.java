@@ -102,7 +102,11 @@ class CvPersistenceAdapterIntegrationTest extends PostgresIntegrationTest {
         cvRepository.flush();
 
         assertThat(deleted).isTrue();
-        assertThat(cvRepository.findById(cvId)).isEmpty();
+        assertThat(cvRepository.findByIdAndUserId(cvId, ownerId)).isEmpty();
+        assertThat(cvRepository.findById(cvId))
+                .get()
+                .extracting(com.cvmobile.model.Cv::getDeletedAt)
+                .isNotNull();
     }
 
     @Test
