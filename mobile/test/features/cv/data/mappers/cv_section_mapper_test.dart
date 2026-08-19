@@ -20,6 +20,10 @@ void main() {
         'portfolio': 'john.dev',
         'titrePoste': 'Dev',
         'resumeProfessionnel': 'Expert.',
+        'anneeNaissance': null,
+        'situationMatrimoniale': null,
+        'sexe': null,
+        'afficherInfosSensibles': false,
       };
       final info = mapper.personalInfoFromJson(json);
       expect(info.nom, 'Doe');

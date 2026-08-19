@@ -97,9 +97,8 @@ class _CvFormScreenState extends State<CvFormScreen> {
   void dispose() {
     _pageController.dispose();
     if (_ownsController && _controller != null) {
-      final draft = sl<CvWizardDraftStore>();
       if (_controller!.savedCv == null && widget.cv == null) {
-        draft.save(
+        sl<CvWizardDraftStore>().save(
           cv: _controller!.currentCv,
           step: _controller!.currentStep,
         );

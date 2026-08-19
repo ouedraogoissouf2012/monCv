@@ -6,8 +6,10 @@ import 'package:provider/provider.dart';
 
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
 import 'package:cv_mobile/repositories/cv_repository.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
+import 'package:cv_mobile/screens/cv/controllers/cv_wizard_draft_store.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/core/error/result.dart';
@@ -95,6 +97,12 @@ void main() {
     if (!sl.isRegistered<GenerateResumeUseCase>()) {
       sl.registerFactory(() => GenerateResumeUseCase(aiRepo));
     }
+    if (!sl.isRegistered<CvWizardDraftStore>()) {
+      sl.registerLazySingleton(CvWizardDraftStore.new);
+    }
+    if (!sl.isRegistered<CvStore>()) {
+      sl.registerLazySingleton(CvStore.new);
+    }
   });
 
   tearDownAll(() {
@@ -103,6 +111,12 @@ void main() {
     }
     if (sl.isRegistered<GenerateResumeUseCase>()) {
       sl.unregister<GenerateResumeUseCase>();
+    }
+    if (sl.isRegistered<CvWizardDraftStore>()) {
+      sl.unregister<CvWizardDraftStore>();
+    }
+    if (sl.isRegistered<CvStore>()) {
+      sl.unregister<CvStore>();
     }
   });
 
