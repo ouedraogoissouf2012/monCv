@@ -26,6 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -171,16 +172,16 @@ class CvServiceTest {
 
     @Test
     void deleteCv_avecIdValide_devraitSupprimerLeCv() {
-        when(cvRepository.existsByIdAndUserId(10L, 1L)).thenReturn(true);
+        when(cvRepository.softDelete(eq(10L), eq(1L), any())).thenReturn(1);
 
         cvService.deleteCv(10L, 1L);
 
-        verify(cvRepository).deleteById(10L);
+        verify(cvRepository).softDelete(eq(10L), eq(1L), any());
     }
 
     @Test
     void deleteCv_avecIdInconnu_devraitLeverException() {
-        when(cvRepository.existsByIdAndUserId(99L, 1L)).thenReturn(false);
+        when(cvRepository.softDelete(eq(99L), eq(1L), any())).thenReturn(0);
 
         assertThatThrownBy(() -> cvService.deleteCv(99L, 1L))
                 .isInstanceOf(ResourceNotFoundException.class)

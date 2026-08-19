@@ -38,8 +38,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
         long versionedMigrations = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .count();
-        // V1..V16 (V16 = index idx_cvs_updated_at pour le cron de rappels, M-5).
-        assertThat(versionedMigrations).isEqualTo(16);
+        assertThat(versionedMigrations).isEqualTo(18);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -51,6 +50,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
             assertThat(tableExists(connection, SCHEMA, "password_reset_token")).isTrue();
             assertThat(tableExists(connection, SCHEMA, "cv_views")).isFalse();
             assertThat(columnExists(connection, SCHEMA, "cvs", "public_token_hash")).isTrue();
+            assertThat(columnExists(connection, SCHEMA, "cvs", "deleted_at")).isTrue();
         }
     }
 

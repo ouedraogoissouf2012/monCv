@@ -349,6 +349,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cvDeleted => 'CV deleted';
 
   @override
+  String get cvMovedToTrash => 'CV moved to trash';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'No CVs in trash';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get purgeForever => 'Delete permanently';
+
+  @override
   String get cvDuplicated => 'CV duplicated';
 
   @override

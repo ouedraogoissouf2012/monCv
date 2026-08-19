@@ -39,6 +39,7 @@ import '../../features/ai/data/ai_repository_impl.dart';
 import '../../features/ai/domain/repositories/ai_repository.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/cv_repository.dart';
+import '../../repositories/cv_trash_repository.dart';
 import '../../repositories/cached_cv_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/i_api_client.dart';
@@ -150,6 +151,7 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<CvRepository>(() => sl<CachedCvRepository>());
+  sl.registerLazySingleton<CvTrashRepository>(() => CvTrashRepository(api: sl()));
   sl.registerLazySingleton<ProfilePhotoRepository>(
     () => HttpProfilePhotoRepository(
       sl<IApiClient>(),

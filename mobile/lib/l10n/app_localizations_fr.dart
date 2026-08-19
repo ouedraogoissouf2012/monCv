@@ -351,6 +351,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cvDeleted => 'CV supprime';
 
   @override
+  String get cvMovedToTrash => 'CV mis a la corbeille';
+
+  @override
+  String get undo => 'Annuler';
+
+  @override
+  String get trashTitle => 'Corbeille';
+
+  @override
+  String get trashEmpty => 'Aucun CV dans la corbeille';
+
+  @override
+  String get restore => 'Restaurer';
+
+  @override
+  String get purgeForever => 'Supprimer definitivement';
+
+  @override
   String get cvDuplicated => 'CV duplique';
 
   @override

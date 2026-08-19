@@ -203,6 +203,15 @@ class ApiService implements IApiClient {
   Future<void> deleteCv(int id) => _cv.deleteCv(id);
 
   @override
+  Future<List<Cv>> getTrashedCvs() => _cv.getTrashedCvs();
+
+  @override
+  Future<Cv> restoreCv(int id) => _cv.restoreCv(id);
+
+  @override
+  Future<void> purgeCv(int id) => _cv.purgeCv(id);
+
+  @override
   Future<Cv> duplicateCv(int id) => _cv.duplicateCv(id);
 
   @override

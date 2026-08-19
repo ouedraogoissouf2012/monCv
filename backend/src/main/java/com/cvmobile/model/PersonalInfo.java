@@ -51,5 +51,5 @@ public class PersonalInfo {
 
     @jakarta.persistence.Column(nullable = false)
     @Builder.Default
-    private Boolean afficherInfosSensibles = Boolean.FALSE;
+    private boolean afficherInfosSensibles = false;
 }

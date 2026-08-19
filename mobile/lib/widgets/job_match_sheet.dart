@@ -43,7 +43,7 @@ class _JobMatchSheetState extends State<JobMatchSheet> {
       cvId: widget.cvId,
       matchJob: sl<MatchJobUseCase>(),
       createVariant: sl<CreateVariantUseCase>(),
-      store: sl<CvStore>(),
+      store: sl.isRegistered<CvStore>() ? sl<CvStore>() : null,
       onAiError: _reportAiError,
     );
   }

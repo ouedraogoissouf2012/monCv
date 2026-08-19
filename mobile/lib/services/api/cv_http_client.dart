@@ -78,6 +78,39 @@ class CvHttpClient {
     }
   }
 
+  Future<List<Cv>> getTrashedCvs() async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/trash'),
+      headers: await headers(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List<dynamic>;
+      return [for (final e in data) cvFromNetworkJson(e as Map<String, dynamic>)];
+    }
+    throwTypedError(response);
+  }
+
+  Future<Cv> restoreCv(int id) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/trash/$id/restore'),
+      headers: await headers(),
+    );
+    if (response.statusCode == 200) {
+      return cvFromNetworkJson(jsonDecode(response.body) as Map<String, dynamic>);
+    }
+    throwTypedError(response);
+  }
+
+  Future<void> purgeCv(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.cvsEndpoint}/trash/$id'),
+      headers: await headers(),
+    );
+    if (response.statusCode != 204) {
+      throwTypedError(response);
+    }
+  }
+
   Future<Cv> duplicateCv(int id) async {
     final response = await http.post(
       Uri.parse(

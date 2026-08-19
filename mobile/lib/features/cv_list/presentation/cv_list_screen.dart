@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/di/injection_container.dart';
+import '../../../core/error/result.dart';
 import '../../../core/navigation/app_shell.dart';
+import '../../../repositories/cv_trash_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../cv/presentation/controllers/cv_editor_controller.dart';
@@ -19,6 +22,7 @@ import 'components/cv_list_actions.dart';
 import 'components/cv_list_states.dart';
 import 'components/cv_list_view.dart';
 import 'cv_list_controller.dart';
+import 'cv_trash_screen.dart';
 
 /// Liste des CV de l'utilisateur (issue #249, D4).
 ///
@@ -145,9 +149,24 @@ class _CvListScreenState extends State<CvListScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await _confirmAction(() => _controller.deleteCv(id), l.cvDeleted);
-    }
+    if (!mounted || confirmed != true) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final list = context.read<cvp.CvListController>();
+    final ok = await _controller.deleteCv(id);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(
+      content: Text(ok ? l.cvMovedToTrash : l.errorGeneric),
+      behavior: SnackBarBehavior.floating,
+      action: ok
+          ? SnackBarAction(
+              label: l.undo,
+              onPressed: () async {
+                final restored = await sl<CvTrashRepository>().restore(id);
+                if (restored is Success) await list.load();
+              },
+            )
+          : null,
+    ));
   }
 
   Future<void> _share(Cv cv) async {
@@ -162,7 +181,9 @@ class _CvListScreenState extends State<CvListScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final isDesktop = Responsive.isDesktop(context);
-    return AppShell(
+    return DefaultTabController(
+      length: 2,
+      child: AppShell(
       currentIndex: 0,
       title: l.myCvs,
       actions: [
@@ -170,20 +191,34 @@ class _CvListScreenState extends State<CvListScreen> {
         if (isDesktop) const CvNewButton(),
       ],
       floatingActionButton: isDesktop ? null : const CvNewFab(),
-      body: Consumer<CvStore>(
-        builder: (context, store, _) {
-          if (store.state.isLoading && store.cvs.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (store.cvs.isEmpty) return const CvListEmptyState();
-          return Column(
-            children: [
-              if (store.isOffline) const CvListOfflineBanner(),
-              Expanded(
-                  child: CvListView(cvs: store.cvs, itemBuilder: _card)),
-            ],
-          );
-        },
+      body: Column(
+        children: [
+          TabBar(tabs: [
+            Tab(text: l.myCvs),
+            Tab(text: l.trashTitle),
+          ]),
+          Expanded(
+            child: TabBarView(children: [
+              Consumer<CvStore>(
+                builder: (context, store, _) {
+                  if (store.state.isLoading && store.cvs.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (store.cvs.isEmpty) return const CvListEmptyState();
+                  return Column(
+                    children: [
+                      if (store.isOffline) const CvListOfflineBanner(),
+                      Expanded(
+                          child: CvListView(cvs: store.cvs, itemBuilder: _card)),
+                    ],
+                  );
+                },
+              ),
+              const CvTrashScreen(embedded: true),
+            ]),
+          ),
+        ],
+      ),
       ),
     );
   }

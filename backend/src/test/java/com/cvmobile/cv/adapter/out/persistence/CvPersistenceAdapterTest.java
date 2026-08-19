@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -145,22 +146,22 @@ class CvPersistenceAdapterTest {
     @Test
     @DisplayName("deleteByIdAndOwnerId supprime uniquement un CV possede")
     void deletesOwned() {
-        when(cvRepository.existsByIdAndUserId(42L, OWNER)).thenReturn(true);
+        when(cvRepository.softDelete(eq(42L), eq(OWNER), any())).thenReturn(1);
 
         boolean deleted = adapter.deleteByIdAndOwnerId(42L, OWNER);
 
         assertThat(deleted).isTrue();
-        verify(cvRepository).deleteById(42L);
+        verify(cvRepository).softDelete(eq(42L), eq(OWNER), any());
     }
 
     @Test
     @DisplayName("deleteByIdAndOwnerId ne supprime pas un CV non possede")
     void doesNotDeleteUnowned() {
-        when(cvRepository.existsByIdAndUserId(42L, OWNER)).thenReturn(false);
+        when(cvRepository.softDelete(eq(42L), eq(OWNER), any())).thenReturn(0);
 
         boolean deleted = adapter.deleteByIdAndOwnerId(42L, OWNER);
 
         assertThat(deleted).isFalse();
-        verify(cvRepository, never()).deleteById(anyLong());
+        verify(cvRepository, never()).delete(any());
     }
 }

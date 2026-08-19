@@ -48,6 +48,13 @@ public class CvResponseAssembler {
                 .orElseThrow(() -> new CvNotFoundException(cvId));
     }
 
+    @Transactional(readOnly = true)
+    public List<CvResponse> assembleTrash(long ownerId) {
+        return cvRepository.findDeletedByUserId(ownerId).stream()
+                .map(cvMapper::toResponse)
+                .toList();
+    }
+
     /**
      * Construit la liste des reponses d'un proprietaire, enrichie du nombre de
      * variantes de chaque CV parent (comme l'exposait le service historique).
