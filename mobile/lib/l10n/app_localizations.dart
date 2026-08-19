@@ -709,11 +709,41 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'CV supprime'**
   String get cvDeleted;
+
+  /// No description provided for @cvMovedToTrash.
+  ///
+  /// In fr, this message translates to:
+  /// **'CV mis a la corbeille'**
   String get cvMovedToTrash;
+
+  /// No description provided for @undo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
   String get undo;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corbeille'**
   String get trashTitle;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun CV dans la corbeille'**
   String get trashEmpty;
+
+  /// No description provided for @restore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
   String get restore;
+
+  /// No description provided for @purgeForever.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer definitivement'**
   String get purgeForever;
 
   /// No description provided for @cvDuplicated.
@@ -1904,17 +1934,46 @@ abstract class AppLocalizations {
   /// **'Poste actuel'**
   String get currentRole;
 
+  /// No description provided for @sensitiveInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos personnelles'**
+  String get sensitiveInfo;
+
+  /// No description provided for @showSensitiveInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher ces infos sur mon CV'**
+  String get showSensitiveInfo;
+
+  /// No description provided for @showSensitiveInfoHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par defaut elles restent privees (annee de naissance, situation, sexe).'**
+  String get showSensitiveInfoHelp;
+
+  /// No description provided for @birthYear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annee de naissance'**
+  String get birthYear;
+
+  /// No description provided for @maritalStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Situation matrimoniale'**
+  String get maritalStatus;
+
+  /// No description provided for @sex.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sexe'**
+  String get sex;
+
   /// No description provided for @firstNameExample.
   ///
   /// In fr, this message translates to:
   /// **'Ex : Alex'**
-  String get sensitiveInfo;
-  String get showSensitiveInfo;
-  String get showSensitiveInfoHelp;
-  String get birthYear;
-  String get maritalStatus;
-  String get sex;
-
   String get firstNameExample;
 
   /// No description provided for @lastNameExample.

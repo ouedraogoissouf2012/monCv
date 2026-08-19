@@ -22,6 +22,7 @@ import 'components/cv_list_actions.dart';
 import 'components/cv_list_states.dart';
 import 'components/cv_list_view.dart';
 import 'cv_list_controller.dart';
+import 'cv_trash_screen.dart';
 
 /// Liste des CV de l'utilisateur (issue #249, D4).
 ///
@@ -182,33 +183,44 @@ class _CvListScreenState extends State<CvListScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final isDesktop = Responsive.isDesktop(context);
-    return AppShell(
+    return DefaultTabController(
+      length: 2,
+      child: AppShell(
       currentIndex: 0,
       title: l.myCvs,
       actions: [
-        IconButton(
-          tooltip: l.trashTitle,
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => context.push('/cvs/trash'),
-        ),
         CvImportButton(controller: _controller, onImport: _import),
         if (isDesktop) const CvNewButton(),
       ],
       floatingActionButton: isDesktop ? null : const CvNewFab(),
-      body: Consumer<CvStore>(
-        builder: (context, store, _) {
-          if (store.state.isLoading && store.cvs.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (store.cvs.isEmpty) return const CvListEmptyState();
-          return Column(
-            children: [
-              if (store.isOffline) const CvListOfflineBanner(),
-              Expanded(
-                  child: CvListView(cvs: store.cvs, itemBuilder: _card)),
-            ],
-          );
-        },
+      body: Column(
+        children: [
+          TabBar(tabs: [
+            Tab(text: l.myCvs),
+            Tab(text: l.trashTitle),
+          ]),
+          Expanded(
+            child: TabBarView(children: [
+              Consumer<CvStore>(
+                builder: (context, store, _) {
+                  if (store.state.isLoading && store.cvs.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (store.cvs.isEmpty) return const CvListEmptyState();
+                  return Column(
+                    children: [
+                      if (store.isOffline) const CvListOfflineBanner(),
+                      Expanded(
+                          child: CvListView(cvs: store.cvs, itemBuilder: _card)),
+                    ],
+                  );
+                },
+              ),
+              const CvTrashScreen(embedded: true),
+            ]),
+          ),
+        ],
+      ),
       ),
     );
   }

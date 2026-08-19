@@ -7,7 +7,9 @@ import '../../../repositories/cv_trash_repository.dart';
 import '../../cv/presentation/cv_presentation_model.dart';
 
 class CvTrashScreen extends StatefulWidget {
-  const CvTrashScreen({super.key});
+  const CvTrashScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<CvTrashScreen> createState() => _CvTrashScreenState();
@@ -36,9 +38,7 @@ class _CvTrashScreenState extends State<CvTrashScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(title: Text(l.trashTitle)),
-      body: _loading
+    final body = _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(child: Text(l.trashEmpty))
@@ -67,7 +67,8 @@ class _CvTrashScreenState extends State<CvTrashScreen> {
                       ]),
                     );
                   },
-                ),
-    );
+                );
+    if (widget.embedded) return body;
+    return Scaffold(appBar: AppBar(title: Text(l.trashTitle)), body: body);
   }
 }
