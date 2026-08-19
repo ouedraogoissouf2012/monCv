@@ -4,6 +4,7 @@ import com.cvmobile.cv.application.port.out.CvRepositoryPort;
 import com.cvmobile.cv.domain.model.Cv;
 import com.cvmobile.repository.CvRepository;
 import com.cvmobile.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -91,10 +92,31 @@ public class CvPersistenceAdapter implements CvRepositoryPort {
     @Override
     @Transactional
     public boolean deleteByIdAndOwnerId(long cvId, long ownerId) {
-        if (!cvRepository.existsByIdAndUserId(cvId, ownerId)) {
-            return false;
-        }
-        cvRepository.deleteById(cvId);
-        return true;
+        return cvRepository.softDelete(cvId, ownerId, LocalDateTime.now()) > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cv> findDeletedByOwnerId(long ownerId) {
+        return cvRepository.findDeletedByUserId(ownerId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public boolean restoreByIdAndOwnerId(long cvId, long ownerId) {
+        return cvRepository.restore(cvId, ownerId) > 0;
+    }
+
+    @Override
+    @Transactional
+    public boolean purgeByIdAndOwnerId(long cvId, long ownerId) {
+        return cvRepository.findDeletedByIdAndUserId(cvId, ownerId)
+                .map(entity -> {
+                    cvRepository.delete(entity);
+                    return true;
+                })
+                .orElse(false);
     }
 }

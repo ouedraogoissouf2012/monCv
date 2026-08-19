@@ -166,11 +166,10 @@ public class CvService implements ICvService {
     @Override
     @Transactional
     public void deleteCv(Long cvId, Long userId) {
-        if (!cvRepository.existsByIdAndUserId(cvId, userId)) {
+        if (cvRepository.softDelete(cvId, userId, java.time.LocalDateTime.now()) == 0) {
             throw new ResourceNotFoundException("CV", "id", cvId);
         }
-        cvRepository.deleteById(cvId);
-        log.info("CV supprime: id={}, userId={}", cvId, userId);
+        log.info("CV mis a la corbeille: id={}, userId={}", cvId, userId);
     }
 
     // ── Variantes (deleguees) ─────────────────────────────────────

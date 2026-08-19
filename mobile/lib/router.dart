@@ -8,6 +8,7 @@ import 'features/cv_detail/presentation/cv_detail_screen.dart';
 import 'features/cv_export/application/export_cv_pdf.dart';
 import 'features/cv_list/application/import_cv.dart';
 import 'features/cv_list/presentation/cv_list_screen.dart';
+import 'features/cv_list/presentation/cv_trash_screen.dart';
 import 'features/cv/presentation/controllers/cv_style_controller.dart' as cvp;
 import 'features/cv_style/presentation/cv_style_controller.dart';
 import 'features/cv_style/presentation/cv_style_editor_screen.dart';
@@ -117,6 +118,10 @@ class AppRouter {
         GoRoute(
           path: '/cvs/create',
           builder: (context, state) => const CvFormScreen(),
+        ),
+        GoRoute(
+          path: '/cvs/trash',
+          builder: (context, state) => const CvTrashScreen(),
         ),
         GoRoute(
           path: '/cvs/:id',

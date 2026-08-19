@@ -53,4 +53,10 @@ public interface CvRepositoryPort {
      *         n'existait pas pour ce proprietaire
      */
     boolean deleteByIdAndOwnerId(long cvId, long ownerId);
+
+    List<Cv> findDeletedByOwnerId(long ownerId);
+
+    boolean restoreByIdAndOwnerId(long cvId, long ownerId);
+
+    boolean purgeByIdAndOwnerId(long cvId, long ownerId);
 }

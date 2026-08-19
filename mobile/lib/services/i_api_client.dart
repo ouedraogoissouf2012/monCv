@@ -44,6 +44,9 @@ abstract interface class IApiClient {
   Future<Cv> createCv(Cv cv);
   Future<Cv> updateCv(int id, Cv cv);
   Future<void> deleteCv(int id);
+  Future<List<Cv>> getTrashedCvs();
+  Future<Cv> restoreCv(int id);
+  Future<void> purgeCv(int id);
   Future<String> uploadPhoto(XFile photo);
   Future<String> uploadPhotoBytes(
     Uint8List bytes,

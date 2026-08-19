@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/di/injection_container.dart';
+import '../../../core/error/result.dart';
 import '../../../core/navigation/app_shell.dart';
+import '../../../repositories/cv_trash_repository.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/presentation/cv_presentation_model.dart';
 import '../../cv/presentation/controllers/cv_editor_controller.dart';
@@ -146,7 +149,24 @@ class _CvListScreenState extends State<CvListScreen> {
       ),
     );
     if (confirmed == true) {
-      await _confirmAction(() => _controller.deleteCv(id), l.cvDeleted);
+      final messenger = ScaffoldMessenger.of(context);
+      final ok = await _controller.deleteCv(id);
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(
+        content: Text(ok ? l.cvMovedToTrash : l.errorGeneric),
+        behavior: SnackBarBehavior.floating,
+        action: ok
+            ? SnackBarAction(
+                label: l.undo,
+                onPressed: () async {
+                  final restored = await sl<CvTrashRepository>().restore(id);
+                  if (restored is Success) {
+                    await context.read<cvp.CvListController>().load();
+                  }
+                },
+              )
+            : null,
+      ));
     }
   }
 
@@ -166,6 +186,11 @@ class _CvListScreenState extends State<CvListScreen> {
       currentIndex: 0,
       title: l.myCvs,
       actions: [
+        IconButton(
+          tooltip: l.trashTitle,
+          icon: const Icon(Icons.delete_outline),
+          onPressed: () => context.push('/cvs/trash'),
+        ),
         CvImportButton(controller: _controller, onImport: _import),
         if (isDesktop) const CvNewButton(),
       ],

@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class InMemoryCvRepository implements CvRepositoryPort {
 
     private final Map<Long, Cv> store = new ConcurrentHashMap<>();
+    private final Map<Long, Cv> trash = new ConcurrentHashMap<>();
     private final AtomicLong sequence = new AtomicLong();
 
     @Override
@@ -71,7 +72,34 @@ public final class InMemoryCvRepository implements CvRepositoryPort {
         if (!existsByIdAndOwnerId(cvId, ownerId)) {
             return false;
         }
-        store.remove(cvId);
+        trash.put(cvId, store.remove(cvId));
+        return true;
+    }
+
+    @Override
+    public List<Cv> findDeletedByOwnerId(long ownerId) {
+        return trash.values().stream()
+                .filter(cv -> cv.getOwnerId() == ownerId)
+                .toList();
+    }
+
+    @Override
+    public boolean restoreByIdAndOwnerId(long cvId, long ownerId) {
+        Cv cv = trash.get(cvId);
+        if (cv == null || cv.getOwnerId() != ownerId) {
+            return false;
+        }
+        store.put(cvId, trash.remove(cvId));
+        return true;
+    }
+
+    @Override
+    public boolean purgeByIdAndOwnerId(long cvId, long ownerId) {
+        Cv cv = trash.get(cvId);
+        if (cv == null || cv.getOwnerId() != ownerId) {
+            return false;
+        }
+        trash.remove(cvId);
         return true;
     }
 

@@ -709,6 +709,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'CV supprime'**
   String get cvDeleted;
+  String get cvMovedToTrash;
+  String get undo;
+  String get trashTitle;
+  String get trashEmpty;
+  String get restore;
+  String get purgeForever;
 
   /// No description provided for @cvDuplicated.
   ///
