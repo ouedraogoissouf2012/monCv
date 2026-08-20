@@ -33,7 +33,8 @@ public final class EducationSectionRenderer implements PdfSectionRenderer {
             String details = PdfRenderUtils.joinNonBlank("  •  ", education.getDomaine(), period);
             if (details != null) context.add(new Paragraph(details, context.fonts().sub()));
             if (education.getDescription() != null && !education.getDescription().isBlank()) {
-                Paragraph description = new Paragraph(education.getDescription(), context.fonts().body());
+                Paragraph description = new Paragraph(
+                        PdfRenderUtils.clean(education.getDescription()), context.fonts().body());
                 description.setIndentationLeft(8);
                 description.setSpacingAfter(9);
                 context.add(description);

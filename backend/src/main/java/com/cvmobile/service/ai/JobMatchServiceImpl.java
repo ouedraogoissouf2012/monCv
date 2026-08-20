@@ -69,11 +69,11 @@ public class JobMatchServiceImpl implements IJobMatchService {
                 .score(analysis.globalScore())
                 .matchedKeywords(analysis.matchedKeywords())
                 .missingKeywords(analysis.missingKeywords())
-                .suggestions(analysis.suggestions())
+                .suggestions(analysis.suggestions().stream().map(cvQualityService::clean).toList())
                 .categories(analysis.categories())
                 .prioritizedRecommendations(analysis.recommendations())
                 .formatChecks(analysis.formatChecks())
-                .optimizedResume(optimizedResume.isBlank() ? null : optimizedResume)
+                .optimizedResume(optimizedResume.isBlank() ? null : cvQualityService.clean(optimizedResume))
                 .aiGenerated(!fallback)
                 .fallback(fallback)
                 .build();

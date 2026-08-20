@@ -2,7 +2,9 @@ package com.cvmobile.service.quality;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,10 +18,9 @@ import java.util.regex.Pattern;
 @Component
 public class CvTextCleaner {
 
-    // Participes qui doivent etre au singulier
-    private static final Pattern PLURAL_PARTICIPLE = Pattern.compile(
-            "\\b(Conçus|Développés|Implémentés|Optimisés|Résolus|Déployés|Livrés|Créés|Rédigés|Supervisés|Automatisés|Gérés|Améliorés)\\b"
-    );
+    private static final Pattern WORD = Pattern.compile("\\b(\\p{L}+)\\b");
+    private static final Set<String> KEEP_US = Set.of(
+            "virus", "campus", "bonus", "focus", "status", "versus", "consensus", "corpus");
 
     // Markdown a nettoyer
     private static final Pattern MARKDOWN_BOLD = Pattern.compile("\\*\\*([^*]+)\\*\\*");
@@ -167,13 +168,31 @@ public class CvTextCleaner {
     }
 
     private String fixPluralParticiples(String text) {
-        return PLURAL_PARTICIPLE.matcher(text).replaceAll(m -> {
-            String word = m.group();
-            // Retirer le 's' final pour passer au singulier
-            if (word.endsWith("és")) return word.substring(0, word.length() - 1);
-            if (word.endsWith("us")) return word.substring(0, word.length() - 1);
-            return word;
-        });
+        Matcher matcher = WORD.matcher(text);
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            matcher.appendReplacement(result, Matcher.quoteReplacement(toSingular(matcher.group())));
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+    private String toSingular(String word) {
+        if (word.length() < 5) return word;
+        if (KEEP_US.contains(word.toLowerCase(Locale.ROOT))) return word;
+        if (endsWithIgnoreCase(word, "és") || endsWithIgnoreCase(word, "us")) {
+            return word.substring(0, word.length() - 1);
+        }
+        if (Character.isUpperCase(word.codePointAt(0))
+                && word.endsWith("es")
+                && !word.endsWith("ées")) {
+            return word.substring(0, word.length() - 1);
+        }
+        return word;
+    }
+
+    private static boolean endsWithIgnoreCase(String word, String suffix) {
+        return word.regionMatches(true, word.length() - suffix.length(), suffix, 0, suffix.length());
     }
 
     private String fixAccents(String text) {

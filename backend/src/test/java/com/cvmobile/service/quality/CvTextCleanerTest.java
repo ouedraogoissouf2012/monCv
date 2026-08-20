@@ -16,6 +16,18 @@ class CvTextCleanerTest {
     }
 
     @Test
+    void cleanSingulariseLesVerbesDActionHorsListeBlanche() {
+        assertThat(cleaner.clean("Analyses, Testes, Formes et Coordonnés"))
+                .isEqualTo("Analyse, Teste, Forme et Coordonné");
+    }
+
+    @Test
+    void cleanNeCassePasLesMotsCourtsNiVirus() {
+        assertThat(cleaner.clean("plus nous virus campus"))
+                .isEqualTo("plus nous virus campus");
+    }
+
+    @Test
     void cleanRetireLesTitresMarkdownEnDebutDeLigne() {
         String result = cleaner.clean("### Titre\n- Conçu une API");
 

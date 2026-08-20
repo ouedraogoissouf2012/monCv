@@ -1,17 +1,32 @@
 package com.cvmobile.service.pdf;
 
 import com.cvmobile.dto.CvResponse;
+import com.cvmobile.service.quality.CvTextCleaner;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Font;
 import com.lowagie.text.Paragraph;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public final class PdfRenderUtils {
 
     public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MM/yyyy");
+    public static final int MAX_SKILLS = 10;
+    private static final CvTextCleaner TEXT = new CvTextCleaner();
 
     private PdfRenderUtils() {
+    }
+
+    public static String clean(String text) {
+        return TEXT.clean(text);
+    }
+
+    public static <T> List<T> limitSkills(List<T> skills) {
+        if (skills == null || skills.isEmpty()) {
+            return skills == null ? List.of() : skills;
+        }
+        return skills.size() <= MAX_SKILLS ? skills : skills.subList(0, MAX_SKILLS);
     }
 
     public static String fullName(CvResponse.PersonalInfoDto info) {

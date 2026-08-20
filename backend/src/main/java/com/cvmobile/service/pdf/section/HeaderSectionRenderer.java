@@ -22,7 +22,7 @@ public final class HeaderSectionRenderer implements PdfSectionRenderer {
         }
         if (info == null) return;
         if (info.getTitrePoste() != null && !info.getTitrePoste().isBlank()) {
-            Paragraph job = new Paragraph(info.getTitrePoste(), context.fonts().job());
+            Paragraph job = new Paragraph(PdfRenderUtils.clean(info.getTitrePoste()), context.fonts().job());
             job.setAlignment(alignment);
             job.setSpacingAfter(8);
             context.add(job);

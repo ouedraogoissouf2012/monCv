@@ -21,7 +21,8 @@ public final class ProjectSectionRenderer implements PdfSectionRenderer {
             if (project.getNom() != null) title.add(new Chunk(project.getNom(), context.fonts().item()));
             context.add(title);
             if (project.getDescription() != null && !project.getDescription().isBlank()) {
-                context.add(new Paragraph(project.getDescription(), context.fonts().body()));
+                context.add(new Paragraph(
+                        PdfRenderUtils.clean(project.getDescription()), context.fonts().body()));
             }
             String period = PdfRenderUtils.period(
                     project.getDateDebut() == null ? null

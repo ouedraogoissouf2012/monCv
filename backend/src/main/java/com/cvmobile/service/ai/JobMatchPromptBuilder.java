@@ -25,6 +25,7 @@ public class JobMatchPromptBuilder {
         StringBuilder sb = new StringBuilder();
         sb.append("Tu es un expert en recrutement et en optimisation de CV pour les ATS. ");
         sb.append("Analyse ce CV par rapport a cette offre d'emploi et donne un score de correspondance.\n\n");
+        sb.append(AiPromptRules.GRAMMAR_RULE);
         sb.append(AiPromptRules.FRANCOPHONE_MARKET_RULE);
         sb.append(AiPromptRules.ANTI_CLICHES_RULE);
         sb.append(AiPromptRules.INJECTION_GUARD);

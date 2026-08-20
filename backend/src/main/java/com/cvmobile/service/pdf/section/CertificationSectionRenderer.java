@@ -19,7 +19,7 @@ public final class CertificationSectionRenderer implements PdfSectionRenderer {
         for (CvResponse.CertificationDto certification : certifications) {
             Paragraph title = new Paragraph();
             if (certification.getNom() != null) {
-                title.add(new Chunk(certification.getNom(), context.fonts().item()));
+                title.add(new Chunk(PdfRenderUtils.clean(certification.getNom()), context.fonts().item()));
             }
             if (certification.getOrganisme() != null) {
                 title.add(new Chunk("  —  " + certification.getOrganisme(), context.fonts().body()));
