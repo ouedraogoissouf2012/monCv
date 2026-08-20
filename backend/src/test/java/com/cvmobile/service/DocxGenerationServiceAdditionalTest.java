@@ -60,7 +60,7 @@ class DocxGenerationServiceAdditionalTest {
                     .contains("Ingenieure logicielle")
                     .contains("awa@example.com  |  +237600000000  |  Douala, Cameroun")
                     .contains("PROFIL")
-                    .contains("Dix ans d'experience en developpement.");
+                    .contains("Dix ans d'expérience en développement.");
         }
     }
 
@@ -95,7 +95,7 @@ class DocxGenerationServiceAdditionalTest {
             assertThat(text)
                     .contains("SansNiveau")
                     .contains("Junior (Débutant)")
-                    .contains("Intermediaire (Intermédiaire)")
+                    .contains("Intermédiaire (Intermédiaire)")
                     .contains("Confirme (Confirmé)")
                     .contains("ClampBas (Débutant)")
                     .contains("ClampHaut (Expert)");
