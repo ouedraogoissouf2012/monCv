@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/di/injection_container.dart';
 import '../../../features/ai/application/generate_resume_usecase.dart';
@@ -13,6 +14,8 @@ import '../../../features/cv/presentation/personal_info/personal_info_form_contr
 import '../../../features/cv/presentation/personal_info/photo/profile_photo_field.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/domain/entities/personal_info.dart';
+import '../../../models/user.dart';
+import '../../../providers/auth_provider.dart';
 
 /// Section « Informations personnelles » du formulaire CV (issue #242).
 ///
@@ -46,6 +49,7 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
   late final PersonalInfoFormController _controller;
   late final UploadProfilePhotoUseCase _uploadPhoto;
   late final GenerateResumeUseCase _generateResume;
+  bool _cvIsForMe = false;
 
   @override
   void initState() {
@@ -64,6 +68,28 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
 
   void _notify() => widget.onChanged(_controller.toPersonalInfo());
 
+  void _applyAccountIdentity(bool enabled) {
+    User? user;
+    try {
+      user = Provider.of<AuthProvider>(context, listen: false).user;
+    } catch (_) {}
+    setState(() => _cvIsForMe = enabled);
+    if (!enabled || user == null) {
+      _notify();
+      return;
+    }
+    if (user.prenom != null && user.prenom!.trim().isNotEmpty) {
+      _controller.prenom.text = user.prenom!.trim();
+    }
+    if (user.nom != null && user.nom!.trim().isNotEmpty) {
+      _controller.nom.text = user.nom!.trim();
+    }
+    if (user.email.trim().isNotEmpty) {
+      _controller.email.text = user.email.trim();
+    }
+    _notify();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -79,6 +105,15 @@ class _PersonalInfoSectionState extends State<PersonalInfoSection> {
             onChanged: _notify,
           ),
           const SizedBox(height: 20),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _cvIsForMe,
+            onChanged: (v) => _applyAccountIdentity(v ?? false),
+            title: Text(l.cvIsForMe),
+            subtitle: Text(l.cvIsForMeHelp),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          const SizedBox(height: 8),
           _GroupLabel(l.identity.toUpperCase()),
           IdentityFields(controller: _controller, onChanged: _notify),
           const SizedBox(height: 20),

@@ -7,6 +7,8 @@ import '../../../features/cv/presentation/section_editor/ai_suggestions_sheet.da
 import '../../../features/cv/presentation/section_editor/editable_section_list.dart';
 import '../../../features/cv/presentation/section_editor/section_editor_sheet.dart';
 import '../../../features/cv/presentation/section_editor/section_form_fields.dart';
+import '../../../utils/strict_date_input.dart';
+import '../../../widgets/strict_date_field.dart';
 import '../../../features/cv/presentation/section_editor/section_primitives.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/cv/domain/entities/project.dart';
@@ -79,34 +81,24 @@ class ProjectsSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SectionDateButton(
+                child: StrictDateField(
                   label: l.start,
                   date: dateDebut,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: dateDebut ?? DateTime.now(),
-                      firstDate: DateTime(1990),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => dateDebut = d);
-                  },
+                  minYear: StrictDateInput.minYearDefault,
+                  maxYear: StrictDateInput.maxCareerYear(),
+                  notAfter: dateFin,
+                  onChanged: (d) => setState(() => dateDebut = d),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: SectionDateButton(
+                child: StrictDateField(
                   label: l.end,
                   date: dateFin,
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: ctx,
-                      initialDate: dateFin ?? DateTime.now(),
-                      firstDate: DateTime(1990),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => dateFin = d);
-                  },
+                  minYear: StrictDateInput.minYearDefault,
+                  maxYear: StrictDateInput.maxCareerYear(),
+                  notBefore: dateDebut,
+                  onChanged: (d) => setState(() => dateFin = d),
                 ),
               ),
             ],

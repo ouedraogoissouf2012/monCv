@@ -8,8 +8,8 @@ import '../../../../../l10n/app_localizations.dart';
 ///
 /// Remplace l'ancien `_PaysAutocomplete` qui embarquait sa propre liste de
 /// pays dupliquee. La recherche est insensible casse/accents (via
-/// `CountryCatalog.searchContains`), fondee sur l'identifiant stable et non le
-/// libelle FR brut.
+/// `CountryCatalog.search` : prefixe uniquement, zone Afrique/Francophonie
+/// prioritaire.
 class CountryAutocomplete extends StatelessWidget {
   const CountryAutocomplete({
     super.key,
@@ -26,7 +26,7 @@ class CountryAutocomplete extends StatelessWidget {
     return Autocomplete<String>(
       initialValue: TextEditingValue(text: controller.text),
       optionsBuilder: (textEditingValue) => CountryCatalog
-          .searchContains(textEditingValue.text)
+          .search(textEditingValue.text)
           .map((c) => c.nameFr),
       onSelected: (selection) {
         controller.text = selection;

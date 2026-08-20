@@ -316,7 +316,17 @@
   "sensitiveInfo": "Personal details",
   "showSensitiveInfo": "Show these details on my CV",
   "showSensitiveInfoHelp": "Hidden by default (year of birth, marital status, sex).",
+  "cvIsForMe": "This CV is for me",
+  "cvIsForMeHelp": "Fills first name, last name and email from your account.",
   "birthYear": "Year of birth",
+  "birthYearHelp": "Greater than 1926 and at most current year minus 10.",
+  "@birthYearRange": {
+    "placeholders": {
+      "min": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "birthYearRange": "Year must be between {min} and {max}.",
   "maritalStatus": "Marital status",
   "sex": "Sex",
   "firstNameExample": "E.g. Alex",

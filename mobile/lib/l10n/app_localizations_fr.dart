@@ -1008,7 +1008,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Par defaut elles restent privees (annee de naissance, situation, sexe).';
 
   @override
+  String get cvIsForMe => 'Ce CV est pour moi';
+
+  @override
+  String get cvIsForMeHelp =>
+      'Remplit prenom, nom et email depuis votre compte.';
+
+  @override
   String get birthYear => 'Annee de naissance';
+
+  @override
+  String get birthYearHelp =>
+      'Superieure a 1926 et au plus annee actuelle moins 10 ans.';
+
+  @override
+  String birthYearRange(int min, int max) {
+    return 'Annee entre $min et $max.';
+  }
 
   @override
   String get maritalStatus => 'Situation matrimoniale';

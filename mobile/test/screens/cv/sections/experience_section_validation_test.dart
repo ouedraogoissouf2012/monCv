@@ -56,6 +56,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Dev Flutter');
     await tester.enterText(find.byType(TextFormField).at(1), 'ACME');
+    await tester.enterText(find.byType(TextFormField).at(3), '01/01/2020');
     await tester.tap(find.byIcon(Icons.check_rounded));
     await tester.pumpAndSettle();
 
