@@ -116,43 +116,70 @@ class ErrorHelper {
     _showSnackBar(context, message, ErrorType.info);
   }
 
+  static const double _maxSnackWidth = 460;
+
   static void _showSnackBar(
       BuildContext context, String message, ErrorType type,
       {VoidCallback? onRetry}) {
     final config = _configForType(type);
     final l = AppLocalizations.of(context)!;
+    final media = MediaQuery.of(context);
+    final side = ((media.size.width - _maxSnackWidth) / 2).clamp(16.0, 120.0);
+    final bottom = 16.0 + media.padding.bottom;
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       behavior: SnackBarBehavior.floating,
       duration: Duration(seconds: type == ErrorType.network ? 6 : 4),
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      margin: EdgeInsets.fromLTRB(side, 0, side, bottom),
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: config.border),
       ),
       backgroundColor: config.bg,
-      content: Row(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(config.icon, size: 20, color: config.fg),
-          const SizedBox(width: 12),
-          Expanded(
-              child: Text(message,
-                  style: TextStyle(
-                      color: config.fg,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500))),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(config.icon, size: 20, color: config.fg),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(message,
+                    softWrap: true,
+                    style: TextStyle(
+                        color: config.fg,
+                        fontSize: 13,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500)),
+              ),
+            ],
+          ),
           if (onRetry != null)
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                onRetry();
-              },
-              child: Text(l.retry,
-                  style: TextStyle(
-                      color: config.fg,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  onRetry();
+                },
+                child: Text(l.retry,
+                    style: TextStyle(
+                        color: config.fg,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12)),
+              ),
             ),
         ],
       ),
