@@ -22,6 +22,7 @@ class JobMatchPromptBuilderTest {
 
         String prompt = builder.buildMatchPrompt(cv, malicious);
 
+        assertThat(prompt).contains(AiPromptRules.GRAMMAR_RULE);
         assertThat(prompt).contains(AiPromptRules.INJECTION_GUARD);
         assertThat(prompt).contains("<DONNEE>");
         // La balise fermante injectee dans l'offre est desamorcee.

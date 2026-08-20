@@ -3,6 +3,7 @@ package com.cvmobile.service.ai;
 import com.cvmobile.config.AiSuggestionProperties;
 import com.cvmobile.dto.SuggestResponse;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.quality.ICvQualityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class SuggestionServiceImpl implements ISuggestionService {
 
     private final IAiClient aiClient;
     private final AiSuggestionProperties properties;
+    private final ICvQualityService qualityService;
 
     @Override
     public SuggestResponse generateSuggestions(String poste, String entreprise, String description) {
@@ -28,7 +30,7 @@ public class SuggestionServiceImpl implements ISuggestionService {
         List<String> suggestions = AiResponseParser.parseSuggestions(
                 rawContent,
                 properties.maxSuggestions()
-        );
+        ).stream().map(qualityService::clean).toList();
         return SuggestResponse.builder()
                 .suggestions(suggestions)
                 .aiGenerated(!fallback)
@@ -45,6 +47,7 @@ public class SuggestionServiceImpl implements ISuggestionService {
                 : "(aucune description fournie)";
         return "Génère exactement " + properties.maxSuggestions()
                 + " propositions d'amélioration en français pour une expérience de CV. "
+                + AiPromptRules.GRAMMAR_RULE
                 + AiPromptRules.FRANCOPHONE_MARKET_RULE
                 + AiPromptRules.ANTI_CLICHES_RULE
                 + "Poste : " + poste + context + ". "

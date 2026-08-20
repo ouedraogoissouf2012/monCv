@@ -2,6 +2,10 @@ package com.cvmobile.service.ai;
 
 import com.cvmobile.config.AiSuggestionProperties;
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.CvQualityService;
+import com.cvmobile.service.quality.CvReviewAnalyzer;
+import com.cvmobile.service.quality.CvTextCleaner;
+import com.cvmobile.service.quality.ICvQualityService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -17,7 +21,8 @@ class SuggestionServiceImplTest {
         IAiClient aiClient = mock(IAiClient.class);
         SuggestionServiceImpl service = new SuggestionServiceImpl(
                 aiClient,
-                new AiSuggestionProperties(3, 321)
+                new AiSuggestionProperties(3, 321),
+                quality()
         );
         when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyInt()))
@@ -33,7 +38,8 @@ class SuggestionServiceImplTest {
                 .contains("Agent de formation continue")
                 .contains("<DESCRIPTION>\nAccompagnement des apprenants\n</DESCRIPTION>")
                 .contains("N'invente aucun outil, diplôme, mission, résultat, chiffre ou pourcentage")
-                .contains("Ne change jamais de métier");
+                .contains("Ne change jamais de métier")
+                .contains("SINGULIER MASCULIN");
         assertThat(response.getSuggestions()).containsExactly("Premier", "Deuxieme", "Troisieme");
     }
 
@@ -42,7 +48,8 @@ class SuggestionServiceImplTest {
         IAiClient aiClient = mock(IAiClient.class);
         SuggestionServiceImpl service = new SuggestionServiceImpl(
                 aiClient,
-                new AiSuggestionProperties(2, 100)
+                new AiSuggestionProperties(2, 100),
+                quality()
         );
         when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyInt()))
@@ -60,5 +67,24 @@ class SuggestionServiceImplTest {
         assertThat(response.isFallback()).isTrue();
         assertThat(response.isAiGenerated()).isFalse();
         assertThat(response.getSuggestions()).containsExactly("Un", "Deux");
+    }
+
+    @Test
+    void nettoieMarkdownEtParticipesPluriels() {
+        IAiClient aiClient = mock(IAiClient.class);
+        SuggestionServiceImpl service = new SuggestionServiceImpl(
+                aiClient, new AiSuggestionProperties(2, 100), quality());
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn("Livrés **cinq** modules\nAnalyses les besoins");
+
+        var response = service.generateSuggestions("Dev", "Acme", "Missions");
+
+        assertThat(response.getSuggestions())
+                .containsExactly("Livré cinq modules", "Analyse les besoins");
+    }
+
+    private static ICvQualityService quality() {
+        return new CvQualityService(new CvTextCleaner(), mock(CvReviewAnalyzer.class));
     }
 }

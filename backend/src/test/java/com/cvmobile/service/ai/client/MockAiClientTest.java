@@ -1,6 +1,9 @@
 package com.cvmobile.service.ai.client;
 
+import com.cvmobile.service.CvQualityService;
 import com.cvmobile.service.ai.ResumeGeneratorServiceImpl;
+import com.cvmobile.service.quality.CvReviewAnalyzer;
+import com.cvmobile.service.quality.CvTextCleaner;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Modifier;
@@ -15,7 +18,8 @@ class MockAiClientTest {
 
     @Test
     void marksDownstreamResponseAsFallbackAndNotAiGenerated() {
-        ResumeGeneratorServiceImpl service = new ResumeGeneratorServiceImpl(client);
+        ResumeGeneratorServiceImpl service = new ResumeGeneratorServiceImpl(
+                client, new CvQualityService(new CvTextCleaner(), org.mockito.Mockito.mock(CvReviewAnalyzer.class)));
 
         Map<String, Object> response = service.generateResume(
                 "Developpeur", "Java, Spring", "5 ans");

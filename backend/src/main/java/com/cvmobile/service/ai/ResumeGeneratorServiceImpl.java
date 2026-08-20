@@ -1,6 +1,7 @@
 package com.cvmobile.service.ai;
 
 import com.cvmobile.service.ai.client.IAiClient;
+import com.cvmobile.service.quality.ICvQualityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,12 +18,14 @@ import java.util.Map;
 public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
 
     private final IAiClient aiClient;
+    private final ICvQualityService qualityService;
 
     @Override
     public Map<String, Object> generateResume(String titrePoste, String competences, String experience) {
         String prompt = "Tu es un expert en redaction de CV professionnels. "
                 + "Ecris un resume professionnel de 3-4 phrases pour un CV francophone. "
                 + "REGLES: "
+                + AiPromptRules.GRAMMAR_RULE
                 + AiPromptRules.FRANCOPHONE_MARKET_RULE
                 + AiPromptRules.ANTI_CLICHES_RULE
                 + AiPromptRules.GROUNDING_RULE
@@ -39,7 +42,7 @@ public class ResumeGeneratorServiceImpl implements IResumeGeneratorService {
         // Exceptions IA propagees au GlobalExceptionHandler (plus de fallback silencieux)
         String result = aiClient.complete(prompt, 500).strip();
         boolean fallback = aiClient.isFallbackResult();
-        result = result.replaceAll("^\"|\"$", "");
+        result = qualityService.clean(result.replaceAll("^\"|\"$", ""));
         return Map.of(
                 "resume", result,
                 "aiGenerated", !fallback,

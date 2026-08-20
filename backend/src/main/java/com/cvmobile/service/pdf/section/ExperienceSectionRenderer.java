@@ -19,7 +19,7 @@ public final class ExperienceSectionRenderer implements PdfSectionRenderer {
         for (CvResponse.ExperienceDto experience : experiences) {
             Paragraph title = new Paragraph();
             if (experience.getPoste() != null) {
-                title.add(new Chunk(experience.getPoste(), context.fonts().item()));
+                title.add(new Chunk(PdfRenderUtils.clean(experience.getPoste()), context.fonts().item()));
             }
             if (experience.getEntreprise() != null) {
                 title.add(new Chunk("  —  " + experience.getEntreprise(), context.fonts().body()));
@@ -34,7 +34,8 @@ public final class ExperienceSectionRenderer implements PdfSectionRenderer {
             String details = PdfRenderUtils.joinNonBlank("  |  ", period, experience.getLieu());
             if (details != null) context.add(new Paragraph(details, context.fonts().sub()));
             if (experience.getDescription() != null && !experience.getDescription().isBlank()) {
-                Paragraph description = new Paragraph(experience.getDescription(), context.fonts().body());
+                Paragraph description = new Paragraph(
+                        PdfRenderUtils.clean(experience.getDescription()), context.fonts().body());
                 description.setIndentationLeft(8);
                 description.setSpacingAfter(9);
                 context.add(description);

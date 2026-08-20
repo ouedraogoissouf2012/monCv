@@ -77,6 +77,8 @@ class JobMatchServiceImplTest {
 
         lenient().when(cvOwnershipService.requireOwnedCv(22L, 7L)).thenReturn(cv);
         lenient().when(cvQualityService.findReviewWarnings(org.mockito.ArgumentMatchers.any())).thenReturn(List.of());
+        lenient().when(cvQualityService.clean(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

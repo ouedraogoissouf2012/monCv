@@ -1,6 +1,8 @@
 package com.cvmobile.service;
 
 import com.cvmobile.model.*;
+import com.cvmobile.service.pdf.PdfRenderUtils;
+import com.cvmobile.service.quality.CvTextCleaner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
@@ -22,6 +24,7 @@ public class DocxGenerationService {
     private static final String BLUE = "2563EB";
     private static final String GREY = "6B7280";
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM/yyyy");
+    private final CvTextCleaner textCleaner = new CvTextCleaner();
 
     public byte[] generate(Cv cv) throws IOException {
         try (XWPFDocument doc = new XWPFDocument()) {
@@ -33,7 +36,7 @@ public class DocxGenerationService {
 
             // ── TITRE POSTE ──
             if (info != null && info.getTitrePoste() != null) {
-                addParagraph(doc, info.getTitrePoste(), 14, true, BLUE);
+                addParagraph(doc, textCleaner.clean(info.getTitrePoste()), 14, true, BLUE);
             }
 
             // ── CONTACT ──
@@ -60,16 +63,16 @@ public class DocxGenerationService {
             if (info != null && info.getResumeProfessionnel() != null
                     && !info.getResumeProfessionnel().isBlank()) {
                 addSectionTitle(doc, "PROFIL");
-                addParagraph(doc, info.getResumeProfessionnel(), 11, false, "000000");
+                addParagraph(doc, textCleaner.clean(info.getResumeProfessionnel()), 11, false, "000000");
             }
 
             // ── COMPETENCES ──
             if (!cv.getSkills().isEmpty()) {
                 addSectionTitle(doc, "COMPETENCES");
                 StringBuilder skills = new StringBuilder();
-                for (Skill s : cv.getSkills()) {
+                for (Skill s : PdfRenderUtils.limitSkills(cv.getSkills())) {
                     if (!skills.isEmpty()) skills.append("  -  ");
-                    skills.append(s.getNom());
+                    skills.append(textCleaner.clean(s.getNom()));
                     if (s.getNiveau() != null) {
                         skills.append(" (").append(skillLevelLabel(s.getNiveau())).append(")");
                     }
@@ -94,7 +97,7 @@ public class DocxGenerationService {
                 for (Experience exp : cv.getExperiences()) {
                     // Poste + dates
                     String dates = formatDateRange(exp);
-                    addJobTitle(doc, exp.getPoste(), dates);
+                    addJobTitle(doc, textCleaner.clean(exp.getPoste()), dates);
                     // Entreprise + lieu
                     String sub = exp.getEntreprise();
                     if (exp.getLieu() != null) sub += ", " + exp.getLieu();
@@ -105,9 +108,9 @@ public class DocxGenerationService {
                             String trimmed = line.trim();
                             if (trimmed.isEmpty()) continue;
                             if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-                                addBulletPoint(doc, trimmed.substring(2));
+                                addBulletPoint(doc, textCleaner.clean(trimmed.substring(2)));
                             } else {
-                                addParagraph(doc, trimmed, 11, false, "000000");
+                                addParagraph(doc, textCleaner.clean(trimmed), 11, false, "000000");
                             }
                         }
                     }
@@ -149,7 +152,7 @@ public class DocxGenerationService {
                         addParagraph(doc, proj.getTechnologies(), 10, false, GREY);
                     }
                     if (proj.getDescription() != null) {
-                        addParagraph(doc, proj.getDescription(), 11, false, "000000");
+                        addParagraph(doc, textCleaner.clean(proj.getDescription()), 11, false, "000000");
                     }
                 }
             }

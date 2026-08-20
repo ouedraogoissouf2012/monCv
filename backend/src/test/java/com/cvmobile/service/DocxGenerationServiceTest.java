@@ -82,4 +82,25 @@ class DocxGenerationServiceTest {
             assertThat(pageSize.getH()).isEqualTo(BigInteger.valueOf(16_838));
         }
     }
+
+    @Test
+    void limiteLesCompetencesADixEtRetireLeMarkdown() throws Exception {
+        List<Skill> skills = new java.util.ArrayList<>();
+        skills.add(Skill.builder().nom("**Java**").niveau(5).build());
+        for (int index = 2; index <= 12; index++) {
+            skills.add(Skill.builder().nom("Skill" + index).niveau(3).build());
+        }
+        Cv cv = Cv.builder()
+                .personalInfo(PersonalInfo.builder().prenom("Awa").nom("Kone").build())
+                .skills(skills)
+                .build();
+
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(service.generate(cv)))) {
+            String text = document.getParagraphs().stream()
+                    .map(paragraph -> paragraph.getText())
+                    .reduce("", (left, right) -> left + "\n" + right);
+            assertThat(text).contains("Java").contains("Skill10")
+                    .doesNotContain("Skill11").doesNotContain("**");
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.cvmobile.service.pdf.section;
 
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.service.pdf.PdfRenderContext;
+import com.cvmobile.service.pdf.PdfRenderUtils;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Paragraph;
@@ -15,7 +16,7 @@ public final class SkillSectionRenderer implements PdfSectionRenderer {
 
     @Override
     public void render(PdfRenderContext context) throws DocumentException {
-        List<CvResponse.SkillDto> skills = context.cv().getSkills();
+        List<CvResponse.SkillDto> skills = PdfRenderUtils.limitSkills(context.cv().getSkills());
         if (skills == null || skills.isEmpty()) return;
         SectionTitleRenderer.render(context, "COMPÉTENCES");
         PdfPTable table = new PdfPTable(2);
@@ -26,7 +27,9 @@ public final class SkillSectionRenderer implements PdfSectionRenderer {
             cell.setBorder(Rectangle.NO_BORDER);
             cell.setPaddingBottom(5);
             Paragraph line = new Paragraph();
-            if (skill.getNom() != null) line.add(new Chunk(skill.getNom(), context.fonts().body()));
+            if (skill.getNom() != null) {
+                line.add(new Chunk(PdfRenderUtils.clean(skill.getNom()), context.fonts().body()));
+            }
             if (skill.getNiveau() != null) {
                 int level = Math.max(0, Math.min(5, skill.getNiveau()));
                 line.add(new Chunk("  " + level + "/5", context.fonts().sub()));
