@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
 import java.util.List;
@@ -73,6 +74,27 @@ class PublicCvAccessServiceTest {
         assertThat(result).isSameAs(expected);
         verify(cvRepository).incrementViewCount(12L);
         verify(notificationService).notifyViewMilestone(cv);
+        assertThat(cv.getViewCount()).isEqualTo(8);
+    }
+
+    @Test
+    void notificationDedupDoesNotHideThePortfolio() {
+        String token = tokenCodec.generate();
+        Cv cv = cv();
+        PublicCvResponse expected = response();
+        when(cvRepository.findByPublicTokenHash(tokenCodec.digest(token)))
+                .thenReturn(Optional.of(cv));
+        when(publicCvMapper.toResponse(cv, null)).thenReturn(expected);
+        when(identifierHasher.hash("public-view", "203.0.113.7"))
+                .thenReturn("visitor-hash");
+        when(cvRepository.incrementViewCount(12L)).thenReturn(1);
+        org.mockito.Mockito.doThrow(new DataIntegrityViolationException("dup"))
+                .when(notificationService).notifyViewMilestone(cv);
+
+        PublicCvResponse result = service(false).getPortfolio(token, "203.0.113.7");
+
+        assertThat(result).isSameAs(expected);
+        verify(cvRepository).incrementViewCount(12L);
         assertThat(cv.getViewCount()).isEqualTo(8);
     }
 

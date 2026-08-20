@@ -113,10 +113,18 @@ public class PublicCvAccessService {
             int previousCount = cv.getViewCount();
             if (cvRepository.incrementViewCount(cv.getId()) == 1) {
                 cv.setViewCount(previousCount + 1);
-                notificationService.notifyViewMilestone(cv);
+                notifyMilestoneQuietly(cv);
             }
         } catch (RuntimeException exception) {
             log.warn("Comptage de vue ignore pour cvId={}", cv.getId());
+        }
+    }
+
+    private void notifyMilestoneQuietly(Cv cv) {
+        try {
+            notificationService.notifyViewMilestone(cv);
+        } catch (RuntimeException exception) {
+            log.warn("Notification palier de vues ignoree pour cvId={}", cv.getId());
         }
     }
 

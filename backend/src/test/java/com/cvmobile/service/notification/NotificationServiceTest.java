@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDateTime;
 import java.util.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -44,6 +45,19 @@ class NotificationServiceTest {
 
         verify(gateway).send(eq("token"), anyString(), contains("10"), argThat(data -> data.get("route").equals("/cvs/8")));
         verify(deliveries).save(argThat(d -> d.getDeduplicationKey().equals("views:8:10")));
+    }
+
+    @Test void collisionDeDedupNEstPasPropagee() {
+        when(preferences.findById(1L)).thenReturn(Optional.empty());
+        when(deliveries.existsByDeduplicationKey("views:8:10")).thenReturn(false);
+        when(tokens.findByUserId(1L)).thenReturn(List.of(
+            DeviceToken.builder().token("token").user(user).build()));
+        when(gateway.send(eq("token"), anyString(), anyString(), anyMap())).thenReturn(true);
+        when(deliveries.save(any())).thenThrow(new DataIntegrityViolationException("dup"));
+
+        service.notifyViewMilestone(cv);
+
+        verify(gateway).send(eq("token"), anyString(), contains("10"), anyMap());
     }
 
     @Test void neNotifiePasAvantLeSeuil() {
