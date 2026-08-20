@@ -6,9 +6,11 @@ import com.cvmobile.model.*;
 import com.cvmobile.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.util.*;
@@ -126,7 +128,7 @@ public class NotificationService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifyViewMilestone(Cv cv) {
         if (cv.getViewCount() < 10 || cv.getViewCount() % 10 != 0) return;
         if (!getPreferences(cv.getUser()).cvViewsEnabled()) return;
@@ -156,8 +158,13 @@ public class NotificationService {
         for (DeviceToken token : tokens.findByUserId(user.getId())) {
             sent |= gateway.send(token.getToken(), title, body, data);
         }
-        if (sent) deliveries.save(NotificationDelivery.builder().user(user).cv(cv)
-            .notificationType(type).deduplicationKey(key).build());
+        if (!sent) return;
+        try {
+            deliveries.save(NotificationDelivery.builder().user(user).cv(cv)
+                .notificationType(type).deduplicationKey(key).build());
+        } catch (DataIntegrityViolationException ignored) {
+            log.debug("Notification deja enregistree pour {}", key);
+        }
     }
 
     private NotificationDtos.Preferences toDto(NotificationPreference p) {
