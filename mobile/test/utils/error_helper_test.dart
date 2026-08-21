@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, {Size size = const Size(400, 800)}) async {
-    await tester.binding.setSurfaceSize(size);
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -39,6 +41,11 @@ void main() {
     expect(find.textContaining('Identifiants incorrects'), findsOneWidget);
     expect(find.text('Reessayer'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    final snack = tester.widget<SnackBar>(find.byType(SnackBar));
+    final wide = snack.margin! as EdgeInsets;
+    expect(wide.left, closeTo(410, 0.5));
+    expect(wide.right, closeTo(410, 0.5));
   });
 
   testWidgets('snackbar s empile sur petit ecran', (tester) async {
@@ -49,5 +56,10 @@ void main() {
     expect(find.textContaining('Identifiants incorrects'), findsOneWidget);
     expect(find.text('Reessayer'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    final snack = tester.widget<SnackBar>(find.byType(SnackBar));
+    final narrow = snack.margin! as EdgeInsets;
+    expect(narrow.left, 16);
+    expect(narrow.right, 16);
   });
 }
