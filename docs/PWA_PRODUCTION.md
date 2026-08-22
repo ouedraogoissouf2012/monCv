@@ -79,6 +79,12 @@ ALLOWED_ORIGINS=https://app.moncv.com,https://www.moncv.com
 Le conteneur web fourni sert le bundle et relaie `/api` vers le backend. Il applique CSP,
 HSTS, les protections anti-framing et une politique de cache adaptee au service worker.
 
+Le bundle Flutter n'est versionne par aucun hash de nom de fichier : `main.dart.js` et
+`flutter_bootstrap.js` gardent la meme URL d'un build a l'autre. Les reponses sont donc
+servies avec `Cache-Control: no-cache`, qui conserve la copie locale mais impose une
+revalidation. nginx repond `304` sans corps tant que le contenu n'a pas change, et sert
+la nouvelle version des le deploiement suivant, sans delai d'expiration.
+
 ## Fichiers PWA attendus
 
 Apres le build, verifier la presence de :
