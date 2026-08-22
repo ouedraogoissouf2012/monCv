@@ -66,3 +66,17 @@ replay_pid*.log
 
 # Android APK served from the site
 downloads/*.apk
+
+# ========================
+# Runbooks d'infrastructure
+# ========================
+# Le depot est public. Ces documents decrivent l'infrastructure de production :
+# adresse du serveur, utilisateur SSH, nom de la cle attendue, ports internes,
+# console d'administration et configuration du reverse proxy. Sans secret en clair,
+# l'ensemble forme une cartographie directement exploitable. Ils restent locaux.
+docs/GUIDE_DEPLOIEMENT_VPS*.md
+
+# PDF generes depuis les .md de docs/ : binaires derives, hors versionnement.
+# Portee limitee a docs/ : mobile/test/golden/pdf/*.pdf sont des goldens suivis.
+docs/*.pdf
+
