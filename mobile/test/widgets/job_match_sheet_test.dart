@@ -7,8 +7,7 @@ import 'package:cv_mobile/features/ai/domain/entities/job_match.dart';
 import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/l10n/app_localizations.dart';
 import 'package:cv_mobile/providers/ai_status_provider.dart';
-import 'package:cv_mobile/repositories/cv_repository.dart';
-import 'package:cv_mobile/usecases/cv/create_variant_usecase.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_writer.dart';
 import 'package:cv_mobile/widgets/ai_button.dart';
 import 'package:cv_mobile/widgets/job_match_sheet.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +17,13 @@ import 'package:provider/provider.dart';
 
 class _MockAiRepo extends Mock implements AiRepository {}
 
-class _MockCvRepo extends Mock implements CvRepository {}
+class _MockCvWriter extends Mock implements CvWriter {}
 
 class _MockGetAiStatus extends Mock implements GetAiStatusUseCase {}
 
 void main() {
   late _MockAiRepo aiRepo;
-  late _MockCvRepo cvRepo;
+  late _MockCvWriter cvWriter;
   late _MockGetAiStatus getAiStatus;
 
   setUpAll(() => registerFallbackValue(const NoParams()));
@@ -32,19 +31,19 @@ void main() {
   // La sheet (orchestrateur G4) resout ses use cases via le service locator.
   setUp(() {
     aiRepo = _MockAiRepo();
-    cvRepo = _MockCvRepo();
+    cvWriter = _MockCvWriter();
     getAiStatus = _MockGetAiStatus();
     // refresh() du provider est declenche par onAiError : on stubbe un echec
     // (le provider le gere gracieusement en gardant le dernier status).
     when(() => getAiStatus(any()))
         .thenAnswer((_) async => const Result.failure(NetworkException()));
     sl.registerFactory<MatchJobUseCase>(() => MatchJobUseCase(aiRepo));
-    sl.registerFactory<CreateVariantUseCase>(
-        () => CreateVariantUseCase(cvRepo));
+    // La sheet depend du port d'ecriture CV, plus d'un use case (#501).
+    sl.registerFactory<CvWriter>(() => cvWriter);
   });
   tearDown(() {
     sl.unregister<MatchJobUseCase>();
-    sl.unregister<CreateVariantUseCase>();
+    sl.unregister<CvWriter>();
   });
 
   Widget testApp() => MultiProvider(

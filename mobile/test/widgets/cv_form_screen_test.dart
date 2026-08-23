@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/features/cv/presentation/controllers/cv_list_controller.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_store.dart';
-import 'package:cv_mobile/repositories/cv_repository.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_writer.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_wizard_draft_store.dart';
 import 'package:cv_mobile/screens/cv/cv_form_screen.dart';
@@ -21,7 +21,7 @@ import 'package:cv_mobile/features/cv/domain/repositories/profile_photo_reposito
 
 class MockCvListController extends Mock implements CvListController {}
 
-class MockCvRepository extends Mock implements CvRepository {}
+class MockCvWriter extends Mock implements CvWriter {}
 
 class _MockPhotoRepo extends Mock implements ProfilePhotoRepository {}
 
@@ -126,9 +126,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final listController = MockCvListController();
-    final repository = MockCvRepository();
+    final writer = MockCvWriter();
     final controller = CvFormController(
-      repository: repository,
+      writer: writer,
       fallbackTitle: 'Mon CV',
     );
     addTearDown(controller.dispose);
@@ -152,14 +152,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     final listController = MockCvListController();
-    final repository = MockCvRepository();
+    final writer = MockCvWriter();
     final controller = CvFormController(
-      repository: repository,
+      writer: writer,
       fallbackTitle: 'Mon CV',
     );
     addTearDown(controller.dispose);
-    when(() => listController.load()).thenAnswer((_) async {});
-    when(() => repository.createCv(any())).thenAnswer(
+    when(() => writer.create(any())).thenAnswer(
       (invocation) async =>
           Result.success(invocation.positionalArguments.first as Cv),
     );
@@ -192,13 +191,16 @@ void main() {
     await tester.tap(find.text('Enregistrer le CV'));
     await tester.pumpAndSettle();
 
-    verify(() => repository.createCv(any(
+    verify(() => writer.create(any(
           that: isA<Cv>().having(
             (cv) => cv.personalInfo?.prenom,
             'prenom',
             'Smoke',
           ),
         ))).called(1);
+    // #501 : la reconciliation vient du port, plus d'un rechargement pilote
+    // par la vue. Ce verifyNever verrouille la suppression du refetch.
+    verifyNever(() => listController.load());
     expect(find.text('Ouvrir le formulaire'), findsOneWidget);
   });
 }
