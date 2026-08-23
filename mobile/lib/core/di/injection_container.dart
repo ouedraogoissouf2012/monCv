@@ -70,6 +70,7 @@ import '../../features/cv/presentation/controllers/cv_editor_controller.dart';
 import '../../features/cv/presentation/controllers/cv_list_controller.dart';
 import '../../features/cv/presentation/controllers/cv_style_controller.dart' as cvp;
 import '../../features/cv/presentation/cv_store.dart';
+import '../../features/cv/presentation/cv_writer.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../features/applications/application/delete_application.dart';
@@ -247,6 +248,8 @@ Future<void> initDependencies() async {
             repository: sl<CvRepository>(),
             store: sl<CvStore>(),
           ));
+  // Port d'ecriture CV (#501) : les consommateurs dependent de l'interface.
+  sl.registerLazySingleton<CvWriter>(() => sl<CvEditorController>());
   sl.registerLazySingleton<cvp.CvDetailController>(
       () => cvp.CvDetailController(
             getCvById: sl<GetCvByIdUseCase>(),

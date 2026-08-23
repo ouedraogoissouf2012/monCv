@@ -12,13 +12,18 @@ import '../../application/state/cv_operation_state.dart';
 import '../../data/cv_cache_codec.dart';
 import '../cv_presentation_model.dart';
 import '../cv_store.dart';
+import '../cv_writer.dart';
 
 /// Ecritures sur les CV (create/update/delete/duplicate/variant, style IA)
 /// appliquees au [CvStore] partage (issue #240).
 ///
 /// Quand l'appareil est hors ligne, create/update sont mis en file d'attente
 /// ([SyncQueue]) avec un id temporaire negatif ; l'etat passe en pendingSync.
-class CvEditorController {
+///
+/// Implementation de production du port [CvWriter] (issue #501) : c'est la
+/// seule voie par laquelle l'UI ecrit un CV, ce qui garantit que la liste et le
+/// CV courant restent alignes sur la version persistee sans rechargement.
+class CvEditorController implements CvWriter {
   final CreateCvUseCase _createCv;
   final UpdateCvUseCase _updateCv;
   final DeleteCvUseCase _deleteCv;
@@ -51,7 +56,8 @@ class CvEditorController {
 
   int get _pendingCount => _syncQueue?.pendingCount ?? 0;
 
-  Future<bool> create(Cv cv) async {
+  @override
+  Future<Result<Cv>> create(Cv cv) async {
     _store.setState(const CvOperationState.loading());
 
     if (_store.isOffline && _syncQueue != null) {
@@ -66,7 +72,9 @@ class CvEditorController {
         createdAt: DateTime.now(),
       ));
       _store.setState(CvOperationState.pendingSync(_pendingCount));
-      return true;
+      // Mise en file acquittee localement : l'appelant recoit le CV porteur de
+      // l'id temporaire, deja present dans le store.
+      return Success(offlineCv);
     }
 
     final result = await _createCv(cv);
@@ -74,14 +82,14 @@ class CvEditorController {
       case Success(:final data):
         _store.addCv(data, makeCurrent: true);
         _store.setState(const CvOperationState.success());
-        return true;
       case Failure(:final exception):
         _store.setState(CvOperationState.failure(exception.message));
-        return false;
     }
+    return result;
   }
 
-  Future<bool> update(int id, Cv cv) async {
+  @override
+  Future<Result<Cv>> update(int id, Cv cv) async {
     _store.setState(const CvOperationState.loading());
 
     if (_store.isOffline && _syncQueue != null) {
@@ -94,7 +102,8 @@ class CvEditorController {
         createdAt: DateTime.now(),
       ));
       _store.setState(CvOperationState.pendingSync(_pendingCount));
-      return true;
+      // Mise en file acquittee localement : le store porte deja cette version.
+      return Success(cv);
     }
 
     final result = await _updateCv(UpdateCvParams(id: id, cv: cv));
@@ -102,11 +111,10 @@ class CvEditorController {
       case Success(:final data):
         _store.replaceCv(id, data);
         _store.setState(const CvOperationState.success());
-        return true;
       case Failure(:final exception):
         _store.setState(CvOperationState.failure(exception.message));
-        return false;
     }
+    return result;
   }
 
   Future<bool> delete(int id) async {
@@ -137,7 +145,8 @@ class CvEditorController {
     }
   }
 
-  Future<Cv?> createVariant(int cvId, String jobDescription,
+  @override
+  Future<Result<Cv>> createVariant(int cvId, String jobDescription,
       {String? label}) async {
     _store.setState(const CvOperationState.loading());
     final result = await _createVariant(CreateVariantParams(
@@ -149,11 +158,10 @@ class CvEditorController {
       case Success(:final data):
         _store.addCv(data);
         _store.setState(const CvOperationState.success());
-        return data;
       case Failure(:final exception):
         _store.setState(CvOperationState.failure(exception.message));
-        return null;
     }
+    return result;
   }
 
   Future<bool> applyAiEnhancements(int cvId, Map<String, dynamic> result) async {

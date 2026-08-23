@@ -2,19 +2,25 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/error/result.dart';
 import '../../../features/cv/presentation/cv_presentation_model.dart';
+import '../../../features/cv/presentation/cv_writer.dart';
 import '../../../models/cv_style.dart';
-import '../../../repositories/cv_repository.dart';
 import '../validators/cv_form_validator.dart';
 
 typedef CvTitleBuilder = String Function(String firstName, String lastName);
 
+/// Etat du formulaire CV multi-etapes et sauvegarde.
+///
+/// La persistance passe par le port [CvWriter] (issue #501), jamais par un
+/// `CvRepository` : c'est ce qui garantit qu'apres [save] la liste et le CV
+/// courant refletent la version persistee. Ce controller ne connait donc ni le
+/// store ni la couche transport.
 class CvFormController extends ChangeNotifier {
   CvFormController({
-    required CvRepository repository,
+    required CvWriter writer,
     Cv? initialCv,
     required String fallbackTitle,
     CvTitleBuilder? titleBuilder,
-  })  : _repository = repository,
+  })  : _writer = writer,
         _initialCv = initialCv,
         _fallbackTitle = fallbackTitle,
         _titleBuilder = titleBuilder,
@@ -26,7 +32,7 @@ class CvFormController extends ChangeNotifier {
         _certifications = List.of(initialCv?.certifications ?? const []),
         _projects = List.of(initialCv?.projects ?? const []);
 
-  final CvRepository _repository;
+  final CvWriter _writer;
   final Cv? _initialCv;
   final String _fallbackTitle;
   final CvTitleBuilder? _titleBuilder;
@@ -168,9 +174,11 @@ class CvFormController extends ChangeNotifier {
     notifyListeners();
 
     final cv = currentCv;
+    // Le port reconcilie l'etat partage : au retour, la liste et le CV courant
+    // portent deja la version persistee, sans rechargement a la charge de la vue.
     final Result<Cv> result = isEditing
-        ? await _repository.updateCv(_initialCv!.id!, cv)
-        : await _repository.createCv(cv);
+        ? await _writer.update(_initialCv!.id!, cv)
+        : await _writer.create(cv);
 
     _isLoading = false;
     switch (result) {

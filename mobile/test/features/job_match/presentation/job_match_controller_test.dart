@@ -5,18 +5,17 @@ import 'package:cv_mobile/features/ai/domain/repositories/ai_repository.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
 import 'package:cv_mobile/features/job_match/domain/job_score_snapshot.dart';
 import 'package:cv_mobile/features/job_match/presentation/job_match_controller.dart';
-import 'package:cv_mobile/repositories/cv_repository.dart';
-import 'package:cv_mobile/usecases/cv/create_variant_usecase.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_writer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockAiRepo extends Mock implements AiRepository {}
 
-class _MockCvRepo extends Mock implements CvRepository {}
+class _MockCvWriter extends Mock implements CvWriter {}
 
 void main() {
   late _MockAiRepo repo;
-  late _MockCvRepo cvRepo;
+  late _MockCvWriter cvWriter;
 
   // Horloge deterministe pour l'historique.
   DateTime fixedClock() => DateTime(2026, 1, 1, 12);
@@ -24,14 +23,14 @@ void main() {
   JobMatchController controller({JobScoreHistory? history}) => JobMatchController(
         cvId: 42,
         matchJob: MatchJobUseCase(repo),
-        createVariant: CreateVariantUseCase(cvRepo),
+        cvWriter: cvWriter,
         clock: fixedClock,
         history: history,
       );
 
   setUp(() {
     repo = _MockAiRepo();
-    cvRepo = _MockCvRepo();
+    cvWriter = _MockCvWriter();
   });
 
   const okReport = JobMatch(score: 78, aiGenerated: true);
@@ -113,7 +112,7 @@ void main() {
       final c = JobMatchController(
         cvId: 42,
         matchJob: MatchJobUseCase(repo),
-        createVariant: CreateVariantUseCase(cvRepo),
+        cvWriter: cvWriter,
         clock: fixedClock,
         onAiError: (e) => received = e,
       )
@@ -165,11 +164,11 @@ void main() {
       final c = controller();
       expect(c.canCreateVariant, isFalse);
       await c.createVariant();
-      verifyNever(() => cvRepo.createVariant(any(), any(), label: any(named: 'label')));
+      verifyNever(() => cvWriter.createVariant(any(), any(), label: any(named: 'label')));
     });
 
     test('succes -> variante exposee (label) + variantCreated', () async {
-      when(() => cvRepo.createVariant(42, any(), label: any(named: 'label')))
+      when(() => cvWriter.createVariant(42, any(), label: any(named: 'label')))
           .thenAnswer((_) async => Result.success(variantCv));
       final c = await analyzed();
 
@@ -183,7 +182,7 @@ void main() {
     });
 
     test('invariant "une seule fois" : 2e appel sans effet', () async {
-      when(() => cvRepo.createVariant(42, any(), label: any(named: 'label')))
+      when(() => cvWriter.createVariant(42, any(), label: any(named: 'label')))
           .thenAnswer((_) async => Result.success(variantCv));
       final c = await analyzed();
 
@@ -191,13 +190,13 @@ void main() {
       await c.createVariant();
 
       // Le use case n'est appele qu'une fois malgre deux invocations.
-      verify(() => cvRepo.createVariant(42, any(), label: any(named: 'label')))
+      verify(() => cvWriter.createVariant(42, any(), label: any(named: 'label')))
           .called(1);
       expect(c.canCreateVariant, isFalse, reason: 'verrouille apres succes');
     });
 
     test('echec -> erreur TYPEE exposee, pas de variante, rejouable', () async {
-      when(() => cvRepo.createVariant(42, any(), label: any(named: 'label')))
+      when(() => cvWriter.createVariant(42, any(), label: any(named: 'label')))
           .thenAnswer((_) async => const Result.failure(NetworkException()));
       final c = await analyzed();
 
@@ -213,13 +212,13 @@ void main() {
     test('erreur IA typee -> onAiError notifie', () async {
       const aiError =
           AiException(code: 'AI_PROVIDER_DOWN', message: 'indisponible');
-      when(() => cvRepo.createVariant(42, any(), label: any(named: 'label')))
+      when(() => cvWriter.createVariant(42, any(), label: any(named: 'label')))
           .thenAnswer((_) async => const Result.failure(aiError));
       AiException? received;
       final c2 = JobMatchController(
         cvId: 42,
         matchJob: MatchJobUseCase(repo),
-        createVariant: CreateVariantUseCase(cvRepo),
+        cvWriter: cvWriter,
         clock: fixedClock,
         onAiError: (e) => received = e,
       )

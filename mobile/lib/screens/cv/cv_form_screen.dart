@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import '../../core/di/injection_container.dart';
 import '../../features/cv/domain/policies/cv_validation_thresholds.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/cv/presentation/cv_presentation_model.dart';
-import '../../features/cv/presentation/controllers/cv_list_controller.dart';
-import '../../features/cv/presentation/cv_store.dart';
-import '../../repositories/cv_repository.dart';
+import '../../features/cv/presentation/cv_writer.dart';
 import '../../utils/constants.dart';
 import '../../widgets/cv_preview.dart';
 import 'controllers/cv_form_controller.dart';
@@ -77,7 +74,7 @@ class _CvFormScreenState extends State<CvFormScreen> {
         (widget.controller == null && draft.hasDraft ? draft.cv : null);
     _controller = widget.controller ??
         CvFormController(
-          repository: sl<CvRepository>(),
+          writer: sl<CvWriter>(),
           initialCv: initial,
           fallbackTitle: l.myCv,
           titleBuilder: l.cvDefaultTitle,
@@ -160,14 +157,10 @@ class _CvFormScreenState extends State<CvFormScreen> {
 
     if (success) {
       sl<CvWizardDraftStore>().clear();
-      final saved = controller.savedCv;
-      if (saved != null && controller.isEditing && saved.id != null) {
-        sl<CvStore>().replaceCv(saved.id!, saved);
-      } else if (saved != null) {
-        sl<CvStore>().addCv(saved, makeCurrent: true);
-      }
-      await context.read<CvListController>().load();
-      if (!mounted) return;
+      // Aucune reconciliation ici : le port CvWriter a deja aligne la liste et
+      // le CV courant sur la version persistee (issue #501). Un rechargement
+      // reseau serait redondant, et manipuler le store depuis la vue rendrait
+      // la regle facultative donc reintroductible.
       router.pop();
       messenger.showSnackBar(
         SnackBar(

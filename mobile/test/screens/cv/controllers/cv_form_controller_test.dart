@@ -1,24 +1,24 @@
 import 'package:cv_mobile/core/error/result.dart';
 import 'package:cv_mobile/features/cv/presentation/cv_presentation_model.dart';
-import 'package:cv_mobile/repositories/cv_repository.dart';
+import 'package:cv_mobile/features/cv/presentation/cv_writer.dart';
 import 'package:cv_mobile/screens/cv/controllers/cv_form_controller.dart';
 import 'package:cv_mobile/screens/cv/validators/cv_form_validator.dart';
 import 'package:cv_mobile/services/cv_readiness_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockCvRepository extends Mock implements CvRepository {}
+class MockCvWriter extends Mock implements CvWriter {}
 
 void main() {
-  late MockCvRepository repository;
+  late MockCvWriter writer;
   late CvFormController controller;
 
   setUpAll(() => registerFallbackValue(Cv(titre: 'Fallback')));
 
   setUp(() {
-    repository = MockCvRepository();
+    writer = MockCvWriter();
     controller = CvFormController(
-      repository: repository,
+      writer: writer,
       fallbackTitle: 'Mon CV',
       titleBuilder: (firstName, lastName) => 'CV de $firstName $lastName',
     );
@@ -65,13 +65,13 @@ void main() {
     expect(controller.currentStep, 1);
   });
 
-  test('creation sauvegardee via repository injecte', () async {
+  test('creation sauvegardee via le port injecte', () async {
     controller.updatePersonalInfo(const PersonalInfo(
       prenom: 'Awa',
       nom: 'Kone',
       email: 'awa@example.com',
     ));
-    when(() => repository.createCv(any())).thenAnswer(
+    when(() => writer.create(any())).thenAnswer(
       (invocation) async => Result.success(
         (invocation.positionalArguments.first as Cv).copyWith(id: 42),
       ),
@@ -80,11 +80,11 @@ void main() {
     expect(await controller.save(), true);
     expect(controller.savedCv?.id, 42);
     expect(controller.error, isNull);
-    verify(() => repository.createCv(any())).called(1);
+    verify(() => writer.create(any())).called(1);
   });
 
-  test('erreur repository exposee au formulaire', () async {
-    when(() => repository.createCv(any())).thenAnswer(
+  test('erreur du port exposee au formulaire', () async {
+    when(() => writer.create(any())).thenAnswer(
       (_) async => const Result.failure(
         NetworkException(message: 'Connexion indisponible'),
       ),
@@ -99,17 +99,17 @@ void main() {
     final initial = Cv(id: 7, titre: 'CV Senior');
     controller.dispose();
     controller = CvFormController(
-      repository: repository,
+      writer: writer,
       initialCv: initial,
       fallbackTitle: 'Mon CV',
     );
-    when(() => repository.updateCv(7, any())).thenAnswer(
+    when(() => writer.update(7, any())).thenAnswer(
       (invocation) async =>
           Result.success(invocation.positionalArguments[1] as Cv),
     );
 
     expect(await controller.save(), true);
-    verify(() => repository.updateCv(7, any())).called(1);
+    verify(() => writer.update(7, any())).called(1);
     expect(controller.currentCv.titre, 'CV Senior');
     expect(controller.currentCv.style, initial.style);
   });

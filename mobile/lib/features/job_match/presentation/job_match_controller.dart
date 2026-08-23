@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/error/result.dart';
-import '../../../usecases/cv/create_variant_usecase.dart';
-import '../../cv/presentation/cv_store.dart';
+import '../../cv/presentation/cv_writer.dart';
 import '../../ai/application/match_job_usecase.dart';
 import '../../ai/domain/entities/job_match.dart';
 import '../domain/job_score_snapshot.dart';
@@ -33,14 +32,13 @@ class JobMatchController extends ChangeNotifier {
   JobMatchController({
     required int cvId,
     required MatchJobUseCase matchJob,
-    required CreateVariantUseCase createVariant,
-    this.store,
+    required CvWriter cvWriter,
     this.onAiError,
     DateTime Function()? clock,
     JobScoreHistory? history,
   })  : _cvId = cvId,
         _matchJob = matchJob,
-        _createVariant = createVariant,
+        _cvWriter = cvWriter,
         _clock = clock ?? DateTime.now,
         _history = history ?? JobScoreHistory();
 
@@ -49,8 +47,11 @@ class JobMatchController extends ChangeNotifier {
 
   final int _cvId;
   final MatchJobUseCase _matchJob;
-  final CreateVariantUseCase _createVariant;
-  final CvStore? store;
+
+  /// Port d'ecriture CV (issue #501). Dependance OBLIGATOIRE : elle etait
+  /// auparavant un `CvStore?` alimente par un `sl.isRegistered(...)`, si bien
+  /// qu'une variante creee pouvait n'etre ajoutee nulle part, silencieusement.
+  final CvWriter _cvWriter;
   final DateTime Function() _clock;
   final JobScoreHistory _history;
 
@@ -166,14 +167,15 @@ class JobMatchController extends ChangeNotifier {
     _variantError = null;
     notifyListeners();
 
-    final outcome = await _createVariant(CreateVariantParams(
-      cvId: _cvId,
-      jobDescription: _jobDescription.trim(),
-    ));
+    // Le port ajoute lui-meme la variante a l'etat partage : sans cela, elle
+    // n'apparaissait pas dans la liste des CV.
+    final outcome = await _cvWriter.createVariant(
+      _cvId,
+      _jobDescription.trim(),
+    );
 
     switch (outcome) {
       case Success(:final data):
-        store?.addCv(data);
         _variant = JobVariantOutcome(
           label: data.varianteLabel,
           refusedNotes: data.fidelityNotes,

@@ -50,9 +50,9 @@ void main() {
       when(() => create(any()))
           .thenAnswer((_) async => Success(cv(10, titre: 'Nouveau')));
 
-      final ok = await editor.create(cv(0, titre: 'Nouveau'));
+      final result = await editor.create(cv(0, titre: 'Nouveau'));
 
-      expect(ok, isTrue);
+      expect(result.isSuccess, isTrue);
       expect(store.cvs.single.id, 10);
       expect(store.currentCv?.id, 10);
       expect(store.state, isA<CvSuccess>());
@@ -62,9 +62,9 @@ void main() {
       when(() => create(any())).thenAnswer(
           (_) async => const Failure(NetworkException(message: 'offline')));
 
-      final ok = await editor.create(cv(0));
+      final result = await editor.create(cv(0));
 
-      expect(ok, isFalse);
+      expect(result.isFailure, isTrue);
       expect(store.cvs, isEmpty);
       expect(store.state.errorMessage, 'offline');
     });
@@ -77,9 +77,9 @@ void main() {
       when(() => update(any()))
           .thenAnswer((_) async => Success(cv(1, titre: 'maj')));
 
-      final ok = await editor.update(1, cv(1, titre: 'maj'));
+      final result = await editor.update(1, cv(1, titre: 'maj'));
 
-      expect(ok, isTrue);
+      expect(result.isSuccess, isTrue);
       expect(store.cvs.single.titre, 'maj');
       expect(store.currentCv?.titre, 'maj');
     });
@@ -114,7 +114,7 @@ void main() {
 
       final result = await editor.createVariant(1, 'offre');
 
-      expect(result?.id, 3);
+      expect(result.getOrThrow().id, 3);
       expect(store.cvs.length, 2);
     });
 
@@ -124,7 +124,7 @@ void main() {
 
       final result = await editor.createVariant(1, 'offre');
 
-      expect(result, isNull);
+      expect(result.isFailure, isTrue);
       expect(store.state.errorMessage, 'IA indisponible');
     });
 
@@ -233,9 +233,12 @@ void main() {
       );
       store.setOffline(true);
 
-      final ok = await offlineEditor.create(cv(0, titre: 'CV Offline'));
+      final result = await offlineEditor.create(cv(0, titre: 'CV Offline'));
 
-      expect(ok, isTrue);
+      expect(result.isSuccess, isTrue);
+      // Le port doit rendre le CV effectivement mis en file, donc porteur de
+      // l'id temporaire, et non le CV d'entree sans id (issue #501).
+      expect(result.getOrThrow().id, lessThan(0));
       expect(store.cvs.single.id, lessThan(0));
       expect(syncQueue.hasPending, isTrue);
       expect(syncQueue.pendingCount, 1);
