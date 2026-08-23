@@ -49,8 +49,10 @@ public class CvController {
     private final CvWebMapper cvWebMapper;
     private final CvResponseAssembler cvResponseAssembler;
 
-    // Partage public et variantes : encore portes par le service historique
-    // (dependances non migrees) — cf. tranches 255-C+/255-E.
+    // Partage public, variantes, import et exports : portes par les services
+    // historiques. Frontiere FIGEE, pas une migration en attente (ADR 004) :
+    // toute nouvelle capacite CV s'implemente en use case dans le module cv/,
+    // et ICvService n'accueille plus de methode supplementaire.
     private final com.cvmobile.service.cv.ICvService cvService;
     private final PdfGenerationService pdfGenerationService;
     private final DocxGenerationService docxGenerationService;

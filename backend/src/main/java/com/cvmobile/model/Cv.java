@@ -1,5 +1,6 @@
 package com.cvmobile.model;
 
+import com.cvmobile.cv.domain.model.CvStyle;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -108,17 +109,20 @@ public class Cv {
     @Column(name = "share_count", nullable = false)
     private int shareCount = 0;
 
+    // Valeurs par defaut reprises du domaine (CvStyle), source unique : voir
+    // ADR 004. La dependance va de la persistance vers le domaine, jamais
+    // l'inverse.
     @Builder.Default
     @Column(name = "style_template_id", nullable = false, length = 50)
-    private String styleTemplateId = "moderne";
+    private String styleTemplateId = CvStyle.DEFAULT_TEMPLATE_ID;
 
     @Builder.Default
     @Column(name = "style_primary_color", nullable = false)
-    private Long stylePrimaryColor = 4280648683L;
+    private Long stylePrimaryColor = CvStyle.DEFAULT_PRIMARY_COLOR;
 
     @Builder.Default
     @Column(name = "style_font_family", nullable = false, length = 100)
-    private String styleFontFamily = "Roboto";
+    private String styleFontFamily = CvStyle.DEFAULT_FONT_FAMILY;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

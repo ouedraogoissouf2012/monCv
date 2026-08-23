@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
  * est donc construite depuis l'entite JPA rechargee via le mapper existant, et
  * non depuis l'agregat de domaine.
  *
- * <p>Dette tracee (#255) : cette relecture disparaitra lorsque la sortie web
- * sera entierement pilotee par le module CV (255-E et suivants).
+ * <p>Choix assume, non transitoire (ADR 004) : ecriture par le domaine, lecture
+ * par un chemin direct. Les jetons de partage, horodatages et nombre de
+ * variantes sont des preoccupations de presentation et d'infrastructure ; les
+ * faire entrer dans l'agregat l'alourdirait sans rien proteger de metier.
  */
 @Component
 public class CvResponseAssembler {

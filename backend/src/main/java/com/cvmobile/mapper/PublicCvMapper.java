@@ -1,5 +1,6 @@
 package com.cvmobile.mapper;
 
+import com.cvmobile.cv.domain.model.CvStyle;
 import com.cvmobile.dto.CvResponse;
 import com.cvmobile.dto.PublicCvResponse;
 import com.cvmobile.model.Certification;
@@ -25,6 +26,9 @@ import static com.cvmobile.dto.CvValidationLimits.*;
 @Component
 @RequiredArgsConstructor
 public final class PublicCvMapper {
+    /** Valeur maximale d'une couleur ARGB 32 bits (0xFFFFFFFF). */
+    private static final long MAX_ARGB = 4294967295L;
+
     private static final Set<String> TEMPLATES = Set.of(
             "moderne", "classique", "minimaliste", "creatif", "executive", "ats");
     private static final Set<String> FONTS = Set.of(
@@ -154,12 +158,12 @@ public final class PublicCvMapper {
 
     private PublicCvResponse.Style style(CvResponse.StyleDto value) {
         String template = value != null && TEMPLATES.contains(value.getTemplateId())
-                ? value.getTemplateId() : "moderne";
+                ? value.getTemplateId() : CvStyle.DEFAULT_TEMPLATE_ID;
         String font = value != null && FONTS.contains(value.getFontFamily())
-                ? value.getFontFamily() : "Roboto";
+                ? value.getFontFamily() : CvStyle.DEFAULT_FONT_FAMILY;
         Long color = value == null || value.getPrimaryColor() == null
-                || value.getPrimaryColor() < 0 || value.getPrimaryColor() > 4294967295L
-                ? 4280648683L : value.getPrimaryColor();
+                || value.getPrimaryColor() < 0 || value.getPrimaryColor() > MAX_ARGB
+                ? CvStyle.DEFAULT_PRIMARY_COLOR : value.getPrimaryColor();
         return new PublicCvResponse.Style(template, color, font);
     }
 
