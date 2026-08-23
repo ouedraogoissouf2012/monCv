@@ -2,6 +2,8 @@ package com.cvmobile.controller;
 
 import com.cvmobile.dto.SuggestResponse;
 import com.cvmobile.exception.GlobalExceptionHandler;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import com.cvmobile.service.ai.AiStatusService;
 import com.cvmobile.service.ai.IApplicationMessageService;
 import com.cvmobile.service.ai.IEnhancementService;
@@ -20,9 +22,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -112,6 +121,80 @@ class AiConsentWebGuardTest {
         // fournisseur IA : c'est l'objet meme de la barriere RGPD.
         verifyNoInteractions(suggestionService, resumeGeneratorService,
                 enhancementService, jobMatchService, applicationMessageService);
+    }
+
+    /// Verifie la regle sur TOUS les endpoints, y compris ceux qui n'existent
+    /// pas encore (issue #530).
+    ///
+    /// Les tests MockMvc ci-dessus prouvent le comportement HTTP reel, mais ne
+    /// couvrent que les endpoints enumeres : un endpoint ajoute plus tard leur
+    /// echappait, et c'est exactement l'oubli contre lequel ils existent.
+    /// Mesure avant ce test : un sixieme `@PostMapping` sans `@Valid` laissait
+    /// la suite au vert (BUILD SUCCESS).
+    ///
+    /// Ce controle ne s'appuie sur aucune liste : il interroge le controleur.
+    @Test
+    void toutEndpointIa_exigeValidationEtChampDeConsentement() {
+        List<String> manquants = new ArrayList<>();
+
+        for (Method methode : AiController.class.getDeclaredMethods()) {
+            if (!methode.isAnnotationPresent(PostMapping.class)) continue;
+
+            Parameter corps = corpsDeRequete(methode);
+            if (corps == null) {
+                manquants.add(methode.getName() + " : aucun @RequestBody");
+                continue;
+            }
+            if (!corps.isAnnotationPresent(Valid.class)) {
+                manquants.add(methode.getName()
+                        + " : @RequestBody sans @Valid, la validation du DTO"
+                        + " n'est jamais declenchee");
+                continue;
+            }
+            if (!declareConsentementObligatoire(corps.getType())) {
+                manquants.add(methode.getName() + " : le DTO "
+                        + corps.getType().getSimpleName()
+                        + " n'a pas de champ aiConsentAccepted annote @AssertTrue");
+            }
+        }
+
+        assertThat(manquants)
+                .as("Tout endpoint IA doit imposer le consentement RGPD avant"
+                        + " de transmettre des donnees utilisateur au fournisseur."
+                        + " Endpoints non conformes")
+                .isEmpty();
+    }
+
+    private static Parameter corpsDeRequete(Method methode) {
+        for (Parameter parametre : methode.getParameters()) {
+            if (parametre.isAnnotationPresent(RequestBody.class)) return parametre;
+        }
+        return null;
+    }
+
+    private static boolean declareConsentementObligatoire(Class<?> dto) {
+        try {
+            return dto.getDeclaredField("aiConsentAccepted")
+                    .isAnnotationPresent(AssertTrue.class);
+        } catch (NoSuchFieldException absent) {
+            return false;
+        }
+    }
+
+    /// Garantit que l'enumeration `endpointsIa()` reste exhaustive : sans cela,
+    /// un endpoint conforme mais absent de la liste ne serait jamais exerce au
+    /// niveau HTTP, et les garanties fines (400, champ nomme, aucun service
+    /// sollicite) ne vaudraient que pour une partie du controleur.
+    @Test
+    void lEnumerationCouvreTousLesEndpointsDuControleur() {
+        long endpointsDeclares = Stream.of(AiController.class.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(PostMapping.class))
+                .count();
+
+        assertThat(endpointsIa().count())
+                .as("Un @PostMapping a ete ajoute a AiController sans etre ajoute"
+                        + " a endpointsIa() : ses garanties HTTP ne sont pas testees")
+                .isEqualTo(endpointsDeclares);
     }
 
     /// Contre-epreuve : le meme corps, consentement accorde, passe la validation
