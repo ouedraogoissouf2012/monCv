@@ -18,10 +18,6 @@ public interface ICvService {
 
     CvResponse createCv(CvRequest request, Long userId);
 
-    CvResponse updateCv(Long cvId, CvRequest request, Long userId);
-
-    CvResponse duplicateCv(Long cvId, Long userId);
-
     CvResponse generateShareToken(Long cvId, Long userId);
 
     CvResponse regenerateShareToken(Long cvId, Long userId);
@@ -29,8 +25,6 @@ public interface ICvService {
     CvResponse deactivateShare(Long cvId, Long userId);
 
     CvResponse updateShareSettings(Long cvId, PublicShareSettingsRequest request, Long userId);
-
-    void deleteCv(Long cvId, Long userId);
 
     CvResponse createVariant(Long parentCvId, String jobDescription, String label, Long userId);
 

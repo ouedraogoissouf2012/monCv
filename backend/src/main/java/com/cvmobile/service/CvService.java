@@ -10,7 +10,6 @@ import com.cvmobile.model.Cv;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
-import com.cvmobile.service.cv.CvCollectionMerger;
 import com.cvmobile.service.cv.CvFinder;
 import com.cvmobile.service.cv.CvShareService;
 import com.cvmobile.service.cv.CvVariantService;
@@ -26,13 +25,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Service CRUD des CVs et facade du contrat {@link ICvService} (issue #254).
+ * Facade du contrat {@link ICvService} (issue #254).
  *
- * Porte les operations CRUD (lecture, creation, mise a jour, duplication,
- * suppression) et delegue les responsabilites specialisees : partage a
- * {@link CvShareService}, variantes IA a {@link CvVariantService}, fusion des
- * collections a {@link CvCollectionMerger}. Les frontieres transactionnelles
- * restent portees ici, sur les methodes publiques.
+ * Porte la lecture et la creation, et delegue les responsabilites
+ * specialisees : partage a {@link CvShareService}, variantes IA a
+ * {@link CvVariantService}. Les frontieres transactionnelles restent portees
+ * ici, sur les methodes publiques.
+ *
+ * La mise a jour, la duplication et la suppression appartiennent au module
+ * {@code com.cvmobile.cv} (UpdateCvUseCase, DuplicateCvUseCase,
+ * DeleteCvUseCase) : les implementations historiques, sans appelant depuis la
+ * migration, ont ete supprimees (issue #504, ADR 004).
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +47,6 @@ public class CvService implements ICvService {
     private final CvMapper cvMapper;
     private final BusinessMetrics businessMetrics;
     private final CvFinder cvFinder;
-    private final CvCollectionMerger collectionMerger;
     private final CvShareService shareService;
     private final CvVariantService variantService;
 
@@ -110,66 +112,6 @@ public class CvService implements ICvService {
         log.info("CV cree: id={}, titre='{}', userId={}", cv.getId(), cv.getTitre(), userId);
         businessMetrics.recordCvCreated(resolveTemplateTag(request));
         return cvMapper.toResponse(cv);
-    }
-
-    @Override
-    @Transactional
-    public CvResponse updateCv(Long cvId, CvRequest request, Long userId) {
-        Cv cv = cvFinder.findByIdAndUserId(cvId, userId);
-
-        cv.setTitre(request.getTitre());
-        applyStyle(cv, request.getStyle());
-
-        if (request.getPersonalInfo() != null) {
-            cv.setPersonalInfo(cvMapper.toPersonalInfo(request.getPersonalInfo()));
-        }
-
-        collectionMerger.mergeCollections(cv, request);
-
-        cv = cvRepository.save(cv);
-        log.info("CV mis a jour: id={}, userId={}", cvId, userId);
-        return cvMapper.toResponse(cv);
-    }
-
-    @Override
-    @Transactional
-    public CvResponse duplicateCv(Long cvId, Long userId) {
-        Cv original = cvFinder.findByIdAndUserId(cvId, userId);
-        User user = userService.findById(userId);
-
-        Cv copy = Cv.builder()
-                .titre("Copie de " + original.getTitre())
-                .user(user)
-                .styleTemplateId(original.getStyleTemplateId())
-                .stylePrimaryColor(original.getStylePrimaryColor())
-                .styleFontFamily(original.getStyleFontFamily())
-                .build();
-
-        if (original.getPersonalInfo() != null) {
-            copy.setPersonalInfo(cvMapper.clonePersonalInfo(original.getPersonalInfo()));
-        }
-
-        Cv savedCopy = cvRepository.save(copy);
-
-        original.getEducations().forEach(e -> savedCopy.addEducation(cvMapper.cloneEducation(e)));
-        original.getExperiences().forEach(e -> savedCopy.addExperience(cvMapper.cloneExperience(e)));
-        original.getSkills().forEach(s -> savedCopy.addSkill(cvMapper.cloneSkill(s)));
-        original.getLanguages().forEach(l -> savedCopy.addLanguage(cvMapper.cloneLanguage(l)));
-        original.getCertifications().forEach(c -> savedCopy.addCertification(cvMapper.cloneCertification(c)));
-        original.getProjects().forEach(p -> savedCopy.addProject(cvMapper.cloneProject(p)));
-
-        Cv saved = cvRepository.save(savedCopy);
-        log.info("CV duplique: original={}, copie={}, userId={}", cvId, saved.getId(), userId);
-        return cvMapper.toResponse(saved);
-    }
-
-    @Override
-    @Transactional
-    public void deleteCv(Long cvId, Long userId) {
-        if (cvRepository.softDelete(cvId, userId, java.time.LocalDateTime.now()) == 0) {
-            throw new ResourceNotFoundException("CV", "id", cvId);
-        }
-        log.info("CV mis a la corbeille: id={}, userId={}", cvId, userId);
     }
 
     // ── Variantes (deleguees) ─────────────────────────────────────

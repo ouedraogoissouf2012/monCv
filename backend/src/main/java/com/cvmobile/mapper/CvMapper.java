@@ -94,30 +94,11 @@ public interface CvMapper {
 
     // ── Request DTO -> Entity existant (update in-place) ─────────
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    @Mapping(target = "actuel", defaultValue = "false")
-    void updateExperience(CvRequest.ExperienceDto dto, @MappingTarget Experience experience);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    void updateEducation(CvRequest.EducationDto dto, @MappingTarget Education education);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    void updateSkill(CvRequest.SkillDto dto, @MappingTarget Skill skill);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    void updateLanguage(CvRequest.LanguageDto dto, @MappingTarget Language language);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    void updateCertification(CvRequest.CertificationDto dto, @MappingTarget Certification certification);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "cv", ignore = true)
-    void updateProject(CvRequest.ProjectDto dto, @MappingTarget Project project);
 
     // ── Entity -> Entity (duplication deep copy, sans id ni cv) ──
 
