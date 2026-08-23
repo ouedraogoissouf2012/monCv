@@ -16,9 +16,22 @@ import java.util.Objects;
  */
 public record CvStyle(String templateId, Long primaryColor, String fontFamily) {
 
-    private static final String DEFAULT_TEMPLATE_ID = "moderne";
-    private static final long DEFAULT_PRIMARY_COLOR = 4280648683L;
-    private static final String DEFAULT_FONT_FAMILY = "Roboto";
+    /**
+     * Modele de mise en page applique a defaut.
+     *
+     * <p>Ces trois valeurs sont publiques parce que le domaine en est la source
+     * unique : l'entite de persistance et les mappers web les reprennent au lieu
+     * de les redeclarer (issue #503, ADR 004). Elles etaient auparavant
+     * dupliquees a l'identique dans trois fichiers, avec le risque qu'une
+     * evolution n'en corrige qu'une partie.
+     */
+    public static final String DEFAULT_TEMPLATE_ID = "moderne";
+
+    /** Couleur primaire par defaut, encodee en ARGB 32 bits. */
+    public static final long DEFAULT_PRIMARY_COLOR = 4280648683L;
+
+    /** Famille de police par defaut. */
+    public static final String DEFAULT_FONT_FAMILY = "Roboto";
 
     /**
      * Style par defaut applique a tout nouveau CV.
