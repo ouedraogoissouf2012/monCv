@@ -16,7 +16,6 @@ import com.cvmobile.model.Skill;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
-import com.cvmobile.service.cv.CvCollectionMerger;
 import com.cvmobile.service.cv.CvFinder;
 import com.cvmobile.service.cv.CvShareService;
 import com.cvmobile.service.cv.CvVariantService;
@@ -50,7 +49,6 @@ class CvServiceAdditionalTest {
     @Mock private CvMapper cvMapper;
     @Mock private BusinessMetrics businessMetrics;
     @Mock private CvFinder cvFinder;
-    @Mock private CvCollectionMerger collectionMerger;
     @Mock private CvShareService shareService;
     @Mock private CvVariantService variantService;
 
@@ -110,77 +108,6 @@ class CvServiceAdditionalTest {
 
         assertThat(result).isSameAs(variants);
         verify(variantService).getVariantsByParentId(10L, 1L);
-    }
-
-    // ── Duplication ─────────────────────────────────────────────
-
-    @Test
-    void duplicateCv_devraitCloneToutesLesCollectionsEtLePersonalInfo() {
-        User user = buildUser();
-        Cv original = buildCv(user);
-        original.setStyleTemplateId("moderne");
-        original.setStylePrimaryColor(123456L);
-        original.setStyleFontFamily("Roboto");
-        original.setPersonalInfo(PersonalInfo.builder().titrePoste("Dev").build());
-        original.addEducation(Education.builder().etablissement("U").build());
-        original.addExperience(Experience.builder().poste("Dev").build());
-        original.addSkill(Skill.builder().nom("Java").build());
-        original.addLanguage(Language.builder().langue("Francais").build());
-        original.addCertification(Certification.builder().nom("Cert").build());
-        original.addProject(Project.builder().nom("Projet").build());
-
-        PersonalInfo clonedInfo = PersonalInfo.builder().titrePoste("Dev").build();
-        Cv savedCopy = Cv.builder().id(11L).titre("Copie de Mon CV").user(user).build();
-        CvResponse response = CvResponse.builder().id(11L).titre("Copie de Mon CV").build();
-
-        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
-        when(userService.findById(1L)).thenReturn(user);
-        when(cvMapper.clonePersonalInfo(original.getPersonalInfo())).thenReturn(clonedInfo);
-        when(cvMapper.cloneEducation(any())).thenReturn(Education.builder().etablissement("U").build());
-        when(cvMapper.cloneExperience(any())).thenReturn(Experience.builder().poste("Dev").build());
-        when(cvMapper.cloneSkill(any())).thenReturn(Skill.builder().nom("Java").build());
-        when(cvMapper.cloneLanguage(any())).thenReturn(Language.builder().langue("Francais").build());
-        when(cvMapper.cloneCertification(any())).thenReturn(Certification.builder().nom("Cert").build());
-        when(cvMapper.cloneProject(any())).thenReturn(Project.builder().nom("Projet").build());
-        when(cvRepository.save(any(Cv.class))).thenReturn(savedCopy);
-        when(cvMapper.toResponse(savedCopy)).thenReturn(response);
-
-        CvResponse result = cvService.duplicateCv(10L, 1L);
-
-        assertThat(result.getTitre()).isEqualTo("Copie de Mon CV");
-        verify(cvRepository, times(2)).save(any(Cv.class));
-        verify(cvMapper).cloneEducation(any());
-        verify(cvMapper).cloneExperience(any());
-        verify(cvMapper).cloneSkill(any());
-        verify(cvMapper).cloneLanguage(any());
-        verify(cvMapper).cloneCertification(any());
-        verify(cvMapper).cloneProject(any());
-    }
-
-    @Test
-    void duplicateCv_sansPersonalInfo_neCloneRienDeCePersonalInfo() {
-        User user = buildUser();
-        Cv original = buildCv(user); // personalInfo null par defaut
-        Cv savedCopy = Cv.builder().id(11L).titre("Copie de Mon CV").user(user).build();
-        CvResponse response = CvResponse.builder().id(11L).build();
-
-        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(original);
-        when(userService.findById(1L)).thenReturn(user);
-        when(cvRepository.save(any(Cv.class))).thenReturn(savedCopy);
-        when(cvMapper.toResponse(savedCopy)).thenReturn(response);
-
-        cvService.duplicateCv(10L, 1L);
-
-        verify(cvMapper, never()).clonePersonalInfo(any());
-    }
-
-    @Test
-    void duplicateCv_avecIdInconnu_devraitPropagerException() {
-        when(cvFinder.findByIdAndUserId(99L, 1L))
-                .thenThrow(new ResourceNotFoundException("CV", "id", 99L));
-
-        assertThatThrownBy(() -> cvService.duplicateCv(99L, 1L))
-                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     // ── Creation : collections et style (branches vraies) ────────

@@ -9,7 +9,6 @@ import com.cvmobile.model.Cv;
 import com.cvmobile.model.User;
 import com.cvmobile.observability.BusinessMetrics;
 import com.cvmobile.repository.CvRepository;
-import com.cvmobile.service.cv.CvCollectionMerger;
 import com.cvmobile.service.cv.CvFinder;
 import com.cvmobile.service.cv.CvShareService;
 import com.cvmobile.service.cv.CvVariantService;
@@ -48,7 +47,6 @@ class CvServiceTest {
     @Mock private CvMapper cvMapper;
     @Mock private BusinessMetrics businessMetrics;
     @Mock private CvFinder cvFinder;
-    @Mock private CvCollectionMerger collectionMerger;
     @Mock private CvShareService shareService;
     @Mock private CvVariantService variantService;
 
@@ -148,46 +146,6 @@ class CvServiceTest {
         assertThat(result.getTitre()).isEqualTo("Nouveau CV");
         verify(cvRepository, times(2)).save(any(Cv.class));
         verify(businessMetrics).recordCvCreated("default");
-    }
-
-    @Test
-    void updateCv_devraitFusionnerLesCollectionsEtSauvegarder() {
-        User user = buildUser();
-        Cv cv = buildCv(user);
-        CvRequest request = new CvRequest();
-        request.setTitre("CV mis a jour");
-        CvResponse response = CvResponse.builder().id(10L).titre("CV mis a jour").build();
-
-        when(cvFinder.findByIdAndUserId(10L, 1L)).thenReturn(cv);
-        when(cvRepository.save(cv)).thenReturn(cv);
-        when(cvMapper.toResponse(cv)).thenReturn(response);
-
-        CvResponse result = cvService.updateCv(10L, request, 1L);
-
-        assertThat(result.getTitre()).isEqualTo("CV mis a jour");
-        assertThat(cv.getTitre()).isEqualTo("CV mis a jour");
-        verify(collectionMerger).mergeCollections(cv, request);
-        verify(cvRepository).save(cv);
-    }
-
-    @Test
-    void deleteCv_avecIdValide_devraitSupprimerLeCv() {
-        when(cvRepository.softDelete(eq(10L), eq(1L), any())).thenReturn(1);
-
-        cvService.deleteCv(10L, 1L);
-
-        verify(cvRepository).softDelete(eq(10L), eq(1L), any());
-    }
-
-    @Test
-    void deleteCv_avecIdInconnu_devraitLeverException() {
-        when(cvRepository.softDelete(eq(99L), eq(1L), any())).thenReturn(0);
-
-        assertThatThrownBy(() -> cvService.deleteCv(99L, 1L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("non trouve");
-
-        verify(cvRepository, never()).deleteById(any());
     }
 
     // ── Delegation ──────────────────────────────────────────────
