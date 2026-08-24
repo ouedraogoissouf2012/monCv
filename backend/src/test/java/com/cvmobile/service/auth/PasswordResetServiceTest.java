@@ -171,6 +171,38 @@ class PasswordResetServiceTest {
     }
 
     @Test
+    void resetPassword_jetonValide_revoqueLesSessionsExistantes() {
+        // Issue #505 : reprendre la main sur son compte doit ejecter l'attaquant.
+        // Changer de generation invalide tous les jetons deja emis (access + refresh).
+        User user = User.builder().id(4L).password("ancien").tokenVersion(2).build();
+        PasswordResetToken token = PasswordResetToken.builder().userId(4L)
+                .expiresAt(Instant.now().plus(Duration.ofMinutes(10))).build();
+        when(tokens.findByTokenHash(anyString())).thenReturn(Optional.of(token));
+        when(users.findById(4L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("NouveauMotDePasse1")).thenReturn("hash-bcrypt");
+
+        service.resetPassword("raw-token", "NouveauMotDePasse1");
+
+        // La generation persistee change dans la meme transaction que le mot de passe.
+        verify(users).save(argThat(saved -> saved.getTokenVersion() == 3));
+    }
+
+    @Test
+    void resetPassword_jetonInvalide_neRevoqueRien() {
+        // Un echec ne doit pas offrir un levier de deconnexion gratuit a un tiers.
+        User user = User.builder().id(4L).tokenVersion(2).build();
+        PasswordResetToken expired = PasswordResetToken.builder().userId(4L)
+                .expiresAt(Instant.now().minus(Duration.ofMinutes(1))).build();
+        when(tokens.findByTokenHash(anyString())).thenReturn(Optional.of(expired));
+
+        assertThatThrownBy(() -> service.resetPassword("raw", "NouveauMotDePasse1"))
+                .isInstanceOf(BusinessException.class);
+
+        assertThat(user.getTokenVersion()).isEqualTo(2);
+        verify(users, never()).save(any());
+    }
+
+    @Test
     void resetPassword_jetonExpire_estRejete() {
         PasswordResetToken expired = PasswordResetToken.builder().userId(4L)
                 .expiresAt(Instant.now().minus(Duration.ofMinutes(1))).build();

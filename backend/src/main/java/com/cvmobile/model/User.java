@@ -58,11 +58,29 @@ public class User implements UserDetails {
     @Builder.Default
     private List<Cv> cvs = new ArrayList<>();
 
+    /**
+     * Generation de sessions du compte (issue #505). Chaque JWT emis porte cette
+     * valeur en claim ; changer de generation invalide instantanement tous les
+     * jetons deja emis, access comme refresh.
+     */
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Revoque toutes les sessions existantes du compte en changeant de
+     * generation : les jetons deja emis portent l'ancienne valeur et seront
+     * rejetes des la prochaine requete. Point de mutation unique — deconnexion
+     * et reinitialisation de mot de passe passent tous deux par ici.
+     */
+    public void revokeSessions() {
+        tokenVersion++;
+    }
 
     @PrePersist
     protected void onCreate() {

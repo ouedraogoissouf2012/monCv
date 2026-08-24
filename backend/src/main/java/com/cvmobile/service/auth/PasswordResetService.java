@@ -38,6 +38,10 @@ import java.util.concurrent.RejectedExecutionException;
  * existe ou non. Apres commit, il garantit que le jeton est deja persiste et donc
  * utilisable quand l'utilisateur clique le lien (aucune course entre l'envoi et le
  * commit qui rendrait {@link #resetPassword} incapable de retrouver le jeton).
+ *
+ * Revocation de session (issue #505) : {@link #resetPassword} change de generation
+ * de sessions, ce qui invalide immediatement tous les jetons deja emis pour le
+ * compte. Reprendre la main sur son compte ejecte donc reellement l'attaquant.
  */
 @Slf4j
 @Service
@@ -134,11 +138,15 @@ public class PasswordResetService {
                 .orElseThrow(() -> new BusinessException(INVALID_CODE, INVALID_MESSAGE));
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        // Reprendre la main sur son compte doit ejecter l'attaquant : sans cela, un
+        // refresh token vole survit a la reinitialisation et regenere des access
+        // tokens pendant toute sa duree de vie (7 jours en production) — issue #505.
+        user.revokeSessions();
         users.save(user);
 
         token.setUsedAt(Instant.now());
         tokens.save(token);
-        log.info("Mot de passe reinitialise pour userId={}", user.getId());
+        log.info("Mot de passe reinitialise et sessions revoquees pour userId={}", user.getId());
     }
 
     private String generateToken() {

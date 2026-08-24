@@ -133,6 +133,9 @@ class AuthServiceGoogleEdgeTest {
         when(jwtTokenProvider.getEmailFromToken("refresh-old"))
                 .thenReturn("user@example.com");
         when(userService.findByEmail("user@example.com")).thenReturn(user);
+        // Le refresh appartient a la generation de sessions courante (#505).
+        when(jwtTokenProvider.matchesTokenVersion("refresh-old", user.getTokenVersion()))
+                .thenReturn(true);
         stubTokens(user);
 
         AuthResponse response = authService.refreshToken("refresh-old");
@@ -152,8 +155,9 @@ class AuthServiceGoogleEdgeTest {
     }
 
     private void stubTokens(User user) {
-        when(jwtTokenProvider.generateToken(user.getEmail())).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(user.getEmail()))
+        when(jwtTokenProvider.generateToken(user.getEmail(), user.getTokenVersion()))
+                .thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getTokenVersion()))
                 .thenReturn("refresh-token");
     }
 }

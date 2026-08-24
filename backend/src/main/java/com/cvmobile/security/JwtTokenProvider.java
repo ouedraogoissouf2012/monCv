@@ -3,8 +3,6 @@ package com.cvmobile.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
@@ -20,8 +18,12 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String TOKEN_VERSION_CLAIM = "token_version";
     private static final String ACCESS_TOKEN = "access";
     private static final String REFRESH_TOKEN = "refresh";
+
+    /** Generation pretee aux jetons emis avant l'introduction du claim (#505). */
+    private static final int LEGACY_TOKEN_VERSION = 0;
 
     static final int MIN_SECRET_LENGTH = 64;
     static final double MIN_SECRET_ENTROPY = 4.0;
@@ -70,35 +72,62 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return generateToken(userDetails.getUsername());
+    /**
+     * Emet un access token pour la generation de sessions {@code tokenVersion}
+     * du compte (issue #505). Aucune surcharge sans generation n'est exposee :
+     * un jeton non revocable ne doit pas pouvoir etre emis par inadvertance.
+     */
+    public String generateToken(String email, int tokenVersion) {
+        return buildToken(email, ACCESS_TOKEN, tokenVersion, jwtExpiration);
     }
 
-    public String generateToken(String email) {
+    /** Emet un refresh token pour la generation de sessions {@code tokenVersion}. */
+    public String generateRefreshToken(String email, int tokenVersion) {
+        return buildToken(email, REFRESH_TOKEN, tokenVersion, refreshExpiration);
+    }
+
+    private String buildToken(String email, String tokenType, int tokenVersion, long lifetimeMillis) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
                 .subject(email)
-                .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN)
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
+                .claim(TOKEN_VERSION_CLAIM, tokenVersion)
                 .issuedAt(now)
-                .expiration(expiryDate)
+                .expiration(new Date(now.getTime() + lifetimeMillis))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public String generateRefreshToken(String email) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + refreshExpiration);
+    /**
+     * Verifie que le jeton appartient encore a la generation de sessions courante
+     * du compte (issue #505). Implementation unique de la regle de revocation :
+     * {@link JwtAuthenticationFilter} l'applique aux access tokens, et
+     * {@code AuthService#refreshToken} aux refresh tokens — ces derniers
+     * n'empruntent pas le filtre puisque {@code /api/auth/refresh} est permitAll.
+     *
+     * <p>Un jeton emis avant la migration V19 ne porte pas le claim : on lui prete
+     * la generation 0, valeur initiale de tout compte. La garantie de revocation
+     * reste entiere, toute revocation portant le compte a une generation &gt;= 1 —
+     * ces jetons anterieurs sont donc rejetes des la premiere revocation. Cette
+     * branche de compatibilite pourra tomber une fois ecoulee la duree de vie des
+     * refresh tokens apres deploiement (7 jours en production).
+     *
+     * @param token          jeton signe a verifier
+     * @param currentVersion generation de sessions actuellement persistee pour le compte
+     * @return {@code true} si le jeton est exploitable pour ce compte
+     */
+    public boolean matchesTokenVersion(String token, int currentVersion) {
+        Claims claims = parseClaims(token);
+        if (claims == null) {
+            return false;
+        }
 
-        return Jwts.builder()
-                .subject(email)
-                .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN)
-                .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
-                .compact();
+        Object tokenVersion = claims.get(TOKEN_VERSION_CLAIM);
+        if (tokenVersion == null) {
+            return currentVersion == LEGACY_TOKEN_VERSION;
+        }
+        return tokenVersion instanceof Number version && version.intValue() == currentVersion;
     }
 
     public String getEmailFromToken(String token) {

@@ -68,6 +68,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/logout")
+    @Operation(summary = "Deconnexion : revoque tous les jetons du compte")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal User user) {
+        // Route authentifiee (aucune entree dans la liste permitAll de SecurityConfig) :
+        // un compte ne peut revoquer que ses propres sessions, jamais celles d'un autre.
+        authService.logout(user);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/forgot-password")
     @Operation(summary = "Demander un lien de reinitialisation de mot de passe")
     public ResponseEntity<Void> forgotPassword(
