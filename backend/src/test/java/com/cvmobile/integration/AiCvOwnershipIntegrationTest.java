@@ -173,7 +173,7 @@ class AiCvOwnershipIntegrationTest extends PostgresIntegrationTest {
     }
 
     private String token(User user) {
-        return jwtTokenProvider.generateToken(user.getEmail());
+        return jwtTokenProvider.generateToken(user.getEmail(), user.getTokenVersion());
     }
 
     private User saveUser(String email, User.Role role) {

@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -75,8 +76,8 @@ class AuthServiceTest {
         when(userMapper.toUser(request)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
         when(userService.save(any(User.class))).thenReturn(savedUser);
-        when(jwtTokenProvider.generateToken(anyString())).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(jwtTokenProvider.generateToken(anyString(), anyInt())).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(anyString(), anyInt())).thenReturn("refresh-token");
         when(userMapper.toUserDto(savedUser)).thenReturn(buildUserDto());
 
         var response = authService.register(request);
@@ -99,8 +100,8 @@ class AuthServiceTest {
         when(userMapper.toUser(request)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
         when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(jwtTokenProvider.generateToken(anyString())).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(jwtTokenProvider.generateToken(anyString(), anyInt())).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(anyString(), anyInt())).thenReturn("refresh-token");
         when(userMapper.toUserDto(any(User.class))).thenReturn(buildUserDto());
 
         authService.register(request);
@@ -143,7 +144,7 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(DuplicateEmailException.class);
 
-        verify(jwtTokenProvider, never()).generateToken(anyString());
+        verify(jwtTokenProvider, never()).generateToken(anyString(), anyInt());
     }
 
     @Test
@@ -161,8 +162,8 @@ class AuthServiceTest {
 
         Authentication auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         when(authenticationManager.authenticate(any())).thenReturn(auth);
-        when(jwtTokenProvider.generateToken(any(Authentication.class))).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken(anyString())).thenReturn("refresh-token");
+        when(jwtTokenProvider.generateToken(anyString(), anyInt())).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(anyString(), anyInt())).thenReturn("refresh-token");
         when(userMapper.toUserDto(user)).thenReturn(buildUserDto());
 
         var response = authService.login(request);
@@ -188,7 +189,7 @@ class AuthServiceTest {
                 .isInstanceOf(InvalidTokenException.class);
 
         verify(userService, never()).findByEmail(anyString());
-        verify(jwtTokenProvider, never()).generateToken(anyString());
+        verify(jwtTokenProvider, never()).generateToken(anyString(), anyInt());
     }
 
     @Test
@@ -202,8 +203,8 @@ class AuthServiceTest {
         when(userService.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0); user.setId(9L); return user;
         });
-        when(jwtTokenProvider.generateToken("user@gmail.com")).thenReturn("access-token");
-        when(jwtTokenProvider.generateRefreshToken("user@gmail.com")).thenReturn("refresh-token");
+        when(jwtTokenProvider.generateToken("user@gmail.com", 0)).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken("user@gmail.com", 0)).thenReturn("refresh-token");
         when(userMapper.toUserDto(any(User.class))).thenReturn(buildUserDto());
 
         AuthResponse response = authService.loginWithGoogle("credential");

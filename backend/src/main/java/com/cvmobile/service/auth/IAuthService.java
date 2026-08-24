@@ -19,4 +19,12 @@ public interface IAuthService {
     AuthResponse linkGoogle(User user, String credential);
 
     AuthResponse refreshToken(String refreshToken);
+
+    /**
+     * Revoque toutes les sessions du compte : les access et refresh tokens deja
+     * emis deviennent inexploitables (issue #505).
+     *
+     * @param user compte authentifie a deconnecter
+     */
+    void logout(User user);
 }

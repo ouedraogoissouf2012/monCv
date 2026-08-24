@@ -137,6 +137,16 @@ class AuthControllerTest {
     }
 
     @Test
+    void logout_delegueLaRevocationEtRetourne204() {
+        User user = User.builder().id(1L).email("user@example.com").build();
+
+        ResponseEntity<Void> response = authController.logout(user);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(authService).logout(user);
+    }
+
+    @Test
     void forgotPassword_delegueEtRetourne200() {
         ResponseEntity<Void> response =
                 authController.forgotPassword(new ForgotPasswordRequest("a@b.c"));

@@ -13,6 +13,7 @@ import com.cvmobile.service.auth.GoogleIdentity;
 import com.cvmobile.service.auth.GoogleIdentityVerifier;
 import com.cvmobile.service.user.IUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,12 +21,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
+
+    private static final String INVALID_REFRESH_TOKEN = "Token de rafraichissement invalide";
 
     private final IUserService userService;
     private final PasswordEncoder passwordEncoder;
@@ -55,10 +60,7 @@ public class AuthService implements IAuthService {
             throw new DuplicateEmailException(request.getEmail());
         }
 
-        String accessToken = jwtTokenProvider.generateToken(user.getEmail());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
-
-        return buildAuthResponse(user, accessToken, refreshToken);
+        return issueTokens(user);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -69,12 +71,25 @@ public class AuthService implements IAuthService {
                 )
         );
 
-        User user = (User) authentication.getPrincipal();
+        return issueTokens((User) authentication.getPrincipal());
+    }
 
-        String accessToken = jwtTokenProvider.generateToken(authentication);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
-
-        return buildAuthResponse(user, accessToken, refreshToken);
+    /**
+     * Deconnexion : revoque toutes les sessions du compte (issue #505). Le compte
+     * est relu dans la transaction pour incrementer la generation persistee, et non
+     * celle — potentiellement perimee — portee par le principal de la requete.
+     *
+     * <p>Deux deconnexions simultanees peuvent lire la meme generation et n'en
+     * produire qu'une : sans consequence, puisque la propriete recherchee est que
+     * la generation <em>change</em>, et que tout jeton anterieur est alors rejete.
+     */
+    @Override
+    @Transactional
+    public void logout(User user) {
+        User account = userService.findByEmail(user.getEmail());
+        account.revokeSessions();
+        userService.save(account);
+        log.info("Sessions revoquees a la deconnexion pour userId={}", account.getId());
     }
 
     @Override
@@ -133,34 +148,37 @@ public class AuthService implements IAuthService {
         }
     }
 
+    /**
+     * Point d'emission unique des jetons : access et refresh portent toujours la
+     * generation de sessions courante du compte (issue #505), de sorte qu'aucun
+     * chemin d'authentification ne puisse produire un jeton non revocable.
+     */
     private AuthResponse issueTokens(User user) {
-        return buildAuthResponse(
-                user,
-                jwtTokenProvider.generateToken(user.getEmail()),
-                jwtTokenProvider.generateRefreshToken(user.getEmail()));
-    }
-
-    public AuthResponse refreshToken(String refreshToken) {
-        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
-            throw new InvalidTokenException("Token de rafraichissement invalide");
-        }
-
-        String email = jwtTokenProvider.getEmailFromToken(refreshToken);
-        User user = userService.findByEmail(email);
-
-        String newAccessToken = jwtTokenProvider.generateToken(email);
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(email);
-
-        return buildAuthResponse(user, newAccessToken, newRefreshToken);
-    }
-
-    private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
         return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(jwtTokenProvider.generateToken(user.getEmail(), user.getTokenVersion()))
+                .refreshToken(jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getTokenVersion()))
                 .tokenType("Bearer")
                 .expiresIn(jwtExpiration / 1000)
                 .user(userMapper.toUserDto(user))
                 .build();
+    }
+
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
+            throw new InvalidTokenException(INVALID_REFRESH_TOKEN);
+        }
+
+        User user = userService.findByEmail(jwtTokenProvider.getEmailFromToken(refreshToken));
+
+        // Un refresh emis avant une revocation (deconnexion, reinitialisation de mot
+        // de passe) porte l'ancienne generation et ne doit plus rien pouvoir re-emettre.
+        // /api/auth/refresh etant permitAll, ce controle ne peut pas vivre dans le
+        // filtre : c'est neanmoins la meme et unique regle, celle du provider.
+        // Message identique au cas precedent : aucun oracle sur la cause du rejet.
+        if (!jwtTokenProvider.matchesTokenVersion(refreshToken, user.getTokenVersion())) {
+            throw new InvalidTokenException(INVALID_REFRESH_TOKEN);
+        }
+
+        return issueTokens(user);
     }
 }
