@@ -7,7 +7,9 @@ import com.cvmobile.exception.ai.AiQuotaExceededException;
 import com.cvmobile.exception.ai.AiTimeoutException;
 import com.cvmobile.observability.CorrelationIdSupport;
 import com.cvmobile.service.ai.AiProviderLabel;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -113,6 +115,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleDuplicateEmail(DuplicateEmailException ex) {
         return buildResponse(HttpStatus.CONFLICT, "DUPLICATE_EMAIL",
                 ex.getMessage(), null);
+    }
+
+    /**
+     * Conflit d'edition concurrente detecte par le verrou optimiste (issue #506).
+     *
+     * <p>Deux ecritures parties de la meme revision : la premiere validee gagne,
+     * la seconde est refusee au lieu d'ecraser silencieusement la premiere. Ce
+     * n'est pas une panne serveur (jamais 500) mais un conflit que l'appelant
+     * resout en rechargeant puis en rejouant sa modification, d'ou le 409.
+     *
+     * <p>Les deux types sont couverts : Spring traduit normalement l'echec
+     * Hibernate en {@link OptimisticLockingFailureException}, mais une
+     * {@link OptimisticLockException} JPA peut remonter non traduite selon le
+     * point de flush.
+     */
+    @ExceptionHandler({OptimisticLockingFailureException.class, OptimisticLockException.class})
+    public ResponseEntity<Map<String, Object>> handleConcurrentModification(Exception ex) {
+        log.warn("Conflit de modification concurrente [correlationId={}] ({})",
+                CorrelationIdSupport.current(), ex.getClass().getSimpleName());
+        return buildResponse(HttpStatus.CONFLICT, "CONCURRENT_MODIFICATION",
+                "Ce contenu a ete modifie entre-temps. Rechargez-le puis reappliquez vos changements.",
+                null);
     }
 
     @ExceptionHandler(InvalidTokenException.class)

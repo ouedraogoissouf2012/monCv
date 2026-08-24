@@ -1,0 +1,16 @@
+-- Verrou optimiste sur les CV (issue #506).
+--
+-- Deux PUT /cvs/{id} concurrents sur le meme CV se recouvraient en silence :
+-- chaque requete lisait l'etat, remplacait les sections (orphanRemoval) puis
+-- ecrivait ; la derniere transaction a valider effacait les ajouts de l'autre
+-- sans qu'aucune erreur ne soit levee (last-write-wins destructif).
+--
+-- Cette colonne porte le compteur de revision d'@Version : Hibernate ajoute
+-- "AND version = ?" a chaque UPDATE de l'agregat. Une transaction partie d'une
+-- revision perimee ne met plus a jour aucune ligne : la perte de donnees
+-- devient une erreur explicite (409 CONCURRENT_MODIFICATION) au lieu d'un
+-- ecrasement silencieux.
+--
+-- DEFAULT 0 : les CV existants demarrent a la revision 0 ; NOT NULL est exige
+-- par Hibernate, qui valorise toujours la colonne a l'insertion.
+ALTER TABLE cvs ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;

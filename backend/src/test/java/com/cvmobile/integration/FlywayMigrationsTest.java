@@ -38,8 +38,8 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
         long versionedMigrations = Arrays.stream(flyway.info().applied())
                 .filter(info -> info.getVersion() != null)
                 .count();
-        // V1..V19 (V19 = users.token_version pour la revocation de session, #505).
-        assertThat(versionedMigrations).isEqualTo(19);
+        // V1..V20 (V20 = cvs.version pour le verrou optimiste, #506).
+        assertThat(versionedMigrations).isEqualTo(20);
 
         try (Connection connection = DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())) {
@@ -53,6 +53,7 @@ class FlywayMigrationsTest extends PostgresIntegrationTest {
             assertThat(columnExists(connection, SCHEMA, "cvs", "public_token_hash")).isTrue();
             assertThat(columnExists(connection, SCHEMA, "cvs", "deleted_at")).isTrue();
             assertThat(columnExists(connection, SCHEMA, "users", "token_version")).isTrue();
+            assertThat(columnExists(connection, SCHEMA, "cvs", "version")).isTrue();
         }
     }
 
