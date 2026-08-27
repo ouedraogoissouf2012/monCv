@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +53,7 @@ class CvControllerTest {
     @Mock private com.cvmobile.service.DocxGenerationService docxGenerationService;
     @Mock private com.cvmobile.service.cv.CvOwnershipService cvOwnershipService;
     @Mock private com.cvmobile.service.import_.ICvImportService cvImportService;
+    @Mock private com.cvmobile.service.import_.ImportedCvRequestValidator importedCvRequestValidator;
     @Mock private com.cvmobile.observability.BusinessMetrics businessMetrics;
 
     private CvController cvController;
@@ -62,7 +64,7 @@ class CvControllerTest {
                 createCvUseCase, updateCvUseCase, deleteCvUseCase,
                 duplicateCvUseCase, cvWebMapper, cvResponseAssembler,
                 cvService, pdfGenerationService, docxGenerationService,
-                cvOwnershipService, cvImportService, businessMetrics);
+                cvOwnershipService, cvImportService, importedCvRequestValidator, businessMetrics);
     }
 
     private User buildUser() {
@@ -79,9 +81,11 @@ class CvControllerTest {
     @Test
     void getAllCvs_devraitRetourner200AvecListe() {
         User user = buildUser();
-        when(cvResponseAssembler.assembleAll(1L)).thenReturn(List.of(buildCvResponse()));
+        when(cvResponseAssembler.assembleAll(eq(1L), any()))
+                .thenReturn(List.of(buildCvResponse()));
 
-        ResponseEntity<List<CvResponse>> response = cvController.getAllCvs(user);
+        ResponseEntity<List<CvResponse>> response =
+                cvController.getAllCvs(user, org.springframework.data.domain.PageRequest.of(0, 50));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);

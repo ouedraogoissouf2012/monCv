@@ -1576,6 +1576,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajoutez vos candidatures pour suivre les relances et les prochaines actions.';
 
   @override
+  String get noApplicationsForFilter => 'Aucune candidature avec ce statut';
+
+  @override
+  String get noApplicationsForFilterHint =>
+      'Tes candidatures sont dans Toutes ou un autre statut. Les filtres ne creent pas de candidature.';
+
+  @override
   String followUpsDue(int count) {
     return '$count relance(s) a effectuer aujourd\'hui';
   }

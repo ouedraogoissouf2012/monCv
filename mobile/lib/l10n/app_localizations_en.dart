@@ -1559,6 +1559,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your applications to track follow-ups and next actions.';
 
   @override
+  String get noApplicationsForFilter => 'No applications with this status';
+
+  @override
+  String get noApplicationsForFilterHint =>
+      'Your applications are under All or another status. Filters do not create applications.';
+
+  @override
   String followUpsDue(int count) {
     return '$count follow-up(s) due today';
   }

@@ -527,6 +527,8 @@
   "all": "Toutes",
   "noApplications": "Aucune candidature",
   "noApplicationsDescription": "Ajoutez vos candidatures pour suivre les relances et les prochaines actions.",
+  "noApplicationsForFilter": "Aucune candidature avec ce statut",
+  "noApplicationsForFilterHint": "Tes candidatures sont dans Toutes ou un autre statut. Les filtres ne creent pas de candidature.",
   "followUpsDue": "{count} relance(s) a effectuer aujourd'hui",
   "@followUpsDue": { "placeholders": { "count": { "type": "int" } } },
   "nextFollowUp": "Prochaine relance",

@@ -2954,6 +2954,18 @@ abstract class AppLocalizations {
   /// **'Ajoutez vos candidatures pour suivre les relances et les prochaines actions.'**
   String get noApplicationsDescription;
 
+  /// No description provided for @noApplicationsForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune candidature avec ce statut'**
+  String get noApplicationsForFilter;
+
+  /// No description provided for @noApplicationsForFilterHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes candidatures sont dans Toutes ou un autre statut. Les filtres ne creent pas de candidature.'**
+  String get noApplicationsForFilterHint;
+
   /// No description provided for @followUpsDue.
   ///
   /// In fr, this message translates to:

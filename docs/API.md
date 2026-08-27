@@ -34,7 +34,8 @@ Authorization: Bearer <access_token>
 
 ### CV
 
-- `GET /api/cvs`
+- `GET /api/cvs` (`page`, `size` max 100)
+- `GET /api/applications` (`page`, `size` max 100)
 - `GET /api/cvs/{id}`
 - `POST /api/cvs`
 - `PUT /api/cvs/{id}`

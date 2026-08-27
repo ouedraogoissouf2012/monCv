@@ -57,6 +57,8 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
   }
 
   Future<void> _openForm([JobApplication? initial]) async {
+    await context.read<CvListController>().load();
+    if (!mounted) return;
     final result = await showModalBottomSheet<JobApplication>(
       context: context,
       isScrollControlled: true,

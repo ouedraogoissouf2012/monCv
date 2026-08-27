@@ -7,6 +7,7 @@ import com.cvmobile.repository.CvRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +64,14 @@ public class CvResponseAssembler {
      */
     @Transactional(readOnly = true)
     public List<CvResponse> assembleAll(long ownerId) {
-        var entities = cvRepository.findByUserIdWithDetails(ownerId);
+        return assembleAll(ownerId, org.springframework.data.domain.Pageable.unpaged());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CvResponse> assembleAll(long ownerId, Pageable pageable) {
+        var entities = pageable == null || pageable.isUnpaged()
+                ? cvRepository.findByUserIdWithDetails(ownerId)
+                : cvRepository.findByUserIdWithDetails(ownerId, pageable);
         List<CvResponse> responses = entities.stream()
                 .map(cvMapper::toResponse)
                 .collect(Collectors.toList());
