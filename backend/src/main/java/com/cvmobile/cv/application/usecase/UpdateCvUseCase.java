@@ -50,7 +50,9 @@ public class UpdateCvUseCase {
 
         current.rename(changes.getTitre());
         current.changeStyle(changes.getStyle());
-        current.changePersonalInfo(changes.getPersonalInfo());
+        if (changes.getPersonalInfo() != null) {
+            current.changePersonalInfo(changes.getPersonalInfo());
+        }
 
         current.replaceExperiences(changes.getExperiences());
         current.replaceEducations(changes.getEducations());

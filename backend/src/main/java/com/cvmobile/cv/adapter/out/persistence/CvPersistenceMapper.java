@@ -72,7 +72,13 @@ public class CvPersistenceMapper {
         target.setStylePrimaryColor(style.primaryColor());
         target.setStyleFontFamily(style.fontFamily());
 
-        target.setPersonalInfo(PersonalInfoPersistenceMapper.toEntity(domain.getPersonalInfo()));
+        if (domain.getPersonalInfo() != null) {
+            target.setPersonalInfo(
+                    PersonalInfoPersistenceMapper.toEntity(domain.getPersonalInfo()));
+        } else if (target.getPersonalInfo() == null) {
+            target.setPersonalInfo(new com.cvmobile.model.PersonalInfo());
+        }
+        target.setUpdatedAt(java.time.LocalDateTime.now());
 
         applyCollections(domain, target);
     }

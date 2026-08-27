@@ -37,10 +37,10 @@ final class PersonalInfoPersistenceMapper {
                 .build();
     }
 
-    /** Domaine -> JPA. Retourne {@code null} si la source est absente. */
+    /** Domaine -> JPA. Jamais null : afficher_infos_sensibles est NOT NULL. */
     static com.cvmobile.model.PersonalInfo toEntity(PersonalInfo domain) {
         if (domain == null) {
-            return null;
+            return new com.cvmobile.model.PersonalInfo();
         }
         return com.cvmobile.model.PersonalInfo.builder()
                 .nom(domain.nom())
