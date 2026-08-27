@@ -19,6 +19,9 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     @Query("SELECT c FROM Cv c WHERE c.user.id = :userId AND c.deletedAt IS NULL ORDER BY c.updatedAt DESC")
     List<Cv> findByUserIdWithDetails(@Param("userId") Long userId);
 
+    @Query("SELECT c FROM Cv c WHERE c.user.id = :userId AND c.deletedAt IS NULL ORDER BY c.updatedAt DESC")
+    List<Cv> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
+
     @Query("SELECT c FROM Cv c WHERE c.user.id = :userId AND c.deletedAt IS NULL")
     List<Cv> findByUserId(@Param("userId") Long userId);
 

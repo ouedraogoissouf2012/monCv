@@ -5,6 +5,7 @@ import com.cvmobile.exception.ResourceNotFoundException;
 import com.cvmobile.model.*;
 import com.cvmobile.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +21,18 @@ public class JobApplicationService {
     @Transactional(readOnly = true)
     public List<JobApplicationResponse> list(
             Long userId, JobApplicationStatus status, LocalDate fromDate, LocalDate toDate) {
-        return applications.findForUser(userId, status, fromDate, toDate).stream()
-                .map(this::toResponse)
-                .toList();
+        return list(userId, status, fromDate, toDate, Pageable.unpaged());
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobApplicationResponse> list(
+            Long userId, JobApplicationStatus status, LocalDate fromDate, LocalDate toDate,
+            Pageable pageable) {
+        var stream = applications.findForUser(userId, status, fromDate, toDate).stream();
+        if (pageable != null && pageable.isPaged()) {
+            stream = stream.skip(pageable.getOffset()).limit(pageable.getPageSize());
+        }
+        return stream.map(this::toResponse).toList();
     }
 
     @Transactional
@@ -56,6 +66,12 @@ public class JobApplicationService {
         value.setPosition(request.getPosition().trim());
         value.setOfferUrl(trimToNull(request.getOfferUrl()));
         value.setStatus(request.getStatus());
+        if (request.getSentDate() != null && request.getNextFollowUp() != null
+                && request.getNextFollowUp().isBefore(request.getSentDate())) {
+            throw new com.cvmobile.exception.BusinessException(
+                    "VALIDATION_ERROR",
+                    "La relance ne peut pas preceder la date d'envoi");
+        }
         value.setSentDate(request.getSentDate());
         value.setNextFollowUp(request.getNextFollowUp());
         value.setNotes(trimToNull(request.getNotes()));

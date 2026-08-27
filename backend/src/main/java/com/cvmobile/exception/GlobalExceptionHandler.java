@@ -8,6 +8,7 @@ import com.cvmobile.exception.ai.AiTimeoutException;
 import com.cvmobile.observability.CorrelationIdSupport;
 import com.cvmobile.service.ai.AiProviderLabel;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,18 @@ public class GlobalExceptionHandler {
                         (a, b) -> a
                 ));
 
+        return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
+                "Erreur de validation", fieldErrors);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(
+            ConstraintViolationException ex) {
+        Map<String, String> fieldErrors = ex.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        v -> v.getPropertyPath().toString(),
+                        v -> v.getMessage() != null ? v.getMessage() : "Invalide",
+                        (a, b) -> a));
         return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
                 "Erreur de validation", fieldErrors);
     }

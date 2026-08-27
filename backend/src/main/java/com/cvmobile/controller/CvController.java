@@ -18,11 +18,15 @@ import com.cvmobile.service.DocxGenerationService;
 import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.pdf.PdfGenerationService;
 import com.cvmobile.service.import_.ICvImportService;
+import com.cvmobile.service.import_.ImportedCvRequestValidator;
+import com.cvmobile.web.PageLimits;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -58,12 +62,16 @@ public class CvController {
     private final DocxGenerationService docxGenerationService;
     private final CvOwnershipService cvOwnershipService;
     private final ICvImportService cvImportService;
+    private final ImportedCvRequestValidator importedCvRequestValidator;
     private final BusinessMetrics businessMetrics;
 
     @GetMapping
     @Operation(summary = "Obtenir tous les CV de l'utilisateur connecte")
-    public ResponseEntity<List<CvResponse>> getAllCvs(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(cvResponseAssembler.assembleAll(user.getId()));
+    public ResponseEntity<List<CvResponse>> getAllCvs(
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = PageLimits.DEFAULT) Pageable pageable) {
+        return ResponseEntity.ok(
+                cvResponseAssembler.assembleAll(user.getId(), PageLimits.cap(pageable)));
     }
 
     @GetMapping("/{id}")
@@ -214,9 +222,14 @@ public class CvController {
     @Operation(summary = "Lister les variantes d'un CV")
     public ResponseEntity<List<CvResponse>> getVariants(
             @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = PageLimits.DEFAULT) Pageable pageable) {
         List<CvResponse> variants = cvService.getVariantsByParentId(id, user.getId());
-        return ResponseEntity.ok(variants);
+        Pageable cap = PageLimits.cap(pageable);
+        return ResponseEntity.ok(variants.stream()
+                .skip(cap.getOffset())
+                .limit(cap.getPageSize())
+                .toList());
     }
 
     // ── Import ──────────────────────────────────────────────────
@@ -229,6 +242,7 @@ public class CvController {
         String format = detectImportFormat(file);
         try {
             CvRequest parsed = cvImportService.importCv(file);
+            importedCvRequestValidator.requireValid(parsed);
             CvResponse created = cvService.createCv(parsed, user.getId());
             businessMetrics.recordImport(format, true);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);

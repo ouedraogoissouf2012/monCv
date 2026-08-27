@@ -6,6 +6,9 @@ import com.cvmobile.model.User;
 import com.cvmobile.service.JobApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.cvmobile.web.PageLimits;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,8 +28,9 @@ public class JobApplicationController {
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) JobApplicationStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return service.list(user.getId(), status, from, to);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @PageableDefault(size = PageLimits.DEFAULT) Pageable pageable) {
+        return service.list(user.getId(), status, from, to, PageLimits.cap(pageable));
     }
 
     @PostMapping

@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +58,7 @@ class CvControllerAdditionalOperationsTest {
     @Mock private com.cvmobile.service.DocxGenerationService docxGenerationService;
     @Mock private com.cvmobile.service.cv.CvOwnershipService cvOwnershipService;
     @Mock private com.cvmobile.service.import_.ICvImportService cvImportService;
+    @Mock private com.cvmobile.service.import_.ImportedCvRequestValidator importedCvRequestValidator;
     @Mock private com.cvmobile.observability.BusinessMetrics businessMetrics;
 
     private CvController cvController;
@@ -66,7 +69,7 @@ class CvControllerAdditionalOperationsTest {
                 createCvUseCase, updateCvUseCase, deleteCvUseCase,
                 duplicateCvUseCase, cvWebMapper, cvResponseAssembler,
                 cvService, pdfGenerationService, docxGenerationService,
-                cvOwnershipService, cvImportService, businessMetrics);
+                cvOwnershipService, cvImportService, importedCvRequestValidator, businessMetrics);
     }
 
     private User buildUser() {
@@ -197,7 +200,9 @@ class CvControllerAdditionalOperationsTest {
         List<CvResponse> variants = List.of(buildCvResponse());
         when(cvService.getVariantsByParentId(10L, 1L)).thenReturn(variants);
 
-        assertThat(cvController.getVariants(10L, user).getBody()).isSameAs(variants);
+        assertThat(cvController.getVariants(10L, user,
+                org.springframework.data.domain.PageRequest.of(0, 50)).getBody())
+                .containsExactlyElementsOf(variants);
     }
 
     @Test
@@ -215,6 +220,24 @@ class CvControllerAdditionalOperationsTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isSameAs(created);
         verify(businessMetrics).recordImport(eq("pdf"), eq(true));
+        verify(importedCvRequestValidator).requireValid(parsed);
+    }
+
+    @Test
+    void importCv_invalide_neCreePasLeCv() {
+        User user = buildUser();
+        MultipartFile file = new MockMultipartFile(
+                "file", "cv.pdf", "application/pdf", "contenu".getBytes());
+        CvRequest parsed = new CvRequest();
+        when(cvImportService.importCv(file)).thenReturn(parsed);
+        doThrow(new jakarta.validation.ConstraintViolationException("invalide", java.util.Set.of()))
+                .when(importedCvRequestValidator).requireValid(parsed);
+
+        assertThatThrownBy(() -> cvController.importCv(file, user))
+                .isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+
+        verify(cvService, never()).createCv(any(), any());
+        verify(businessMetrics).recordImport(eq("pdf"), eq(false));
     }
 
     @Test
