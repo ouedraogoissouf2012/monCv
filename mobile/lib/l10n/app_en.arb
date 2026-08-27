@@ -495,6 +495,8 @@
   "all": "All",
   "noApplications": "No applications",
   "noApplicationsDescription": "Add your applications to track follow-ups and next actions.",
+  "noApplicationsForFilter": "No applications with this status",
+  "noApplicationsForFilterHint": "Your applications are under All or another status. Filters do not create applications.",
   "followUpsDue": "{count} follow-up(s) due today",
   "@followUpsDue": { "placeholders": { "count": { "type": "int" } } },
   "nextFollowUp": "Next follow-up",

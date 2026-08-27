@@ -51,7 +51,8 @@ class ApplicationsListView extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           if (state.items.isEmpty)
-            ApplicationsEmptyState(onAdd: onAdd)
+            ApplicationsEmptyState(
+                onAdd: onAdd, filtered: state.filter != null)
           else
             ...state.items.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),

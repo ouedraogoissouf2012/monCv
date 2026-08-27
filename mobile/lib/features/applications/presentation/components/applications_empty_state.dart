@@ -4,9 +4,14 @@ import '../../../../l10n/app_localizations.dart';
 
 /// Etat vide de la liste des candidatures (issue #246, A6a).
 class ApplicationsEmptyState extends StatelessWidget {
-  const ApplicationsEmptyState({super.key, required this.onAdd});
+  const ApplicationsEmptyState({
+    super.key,
+    required this.onAdd,
+    this.filtered = false,
+  });
 
   final VoidCallback onAdd;
+  final bool filtered;
 
   @override
   Widget build(BuildContext context) {
@@ -22,23 +27,29 @@ class ApplicationsEmptyState extends StatelessWidget {
                 size: 56,
                 color: colorScheme.onSurface.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
-            Text(l.noApplications,
+            Text(
+                filtered ? l.noApplicationsForFilter : l.noApplications,
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
-            Text(l.noApplicationsDescription,
+            Text(
+                filtered
+                    ? l.noApplicationsForFilterHint
+                    : l.noApplicationsDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.6))),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add),
-              label: Text(l.addApplication),
-            ),
+            if (!filtered) ...[
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add),
+                label: Text(l.addApplication),
+              ),
+            ],
           ],
         ),
       ),

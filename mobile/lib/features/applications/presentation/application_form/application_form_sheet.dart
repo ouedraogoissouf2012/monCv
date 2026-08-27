@@ -163,16 +163,27 @@ class _ApplicationFormSheetState extends State<ApplicationFormSheet> {
                   child: _DateField(
                       label: l.sentDate,
                       value: _model.sentDate,
-                      onChanged: (d) => setState(
-                          () => _model = _model.copyWith(sentDate: d)))),
+                      onChanged: (d) => setState(() {
+                            _model = _model.copyWith(sentDate: d);
+                            _validation = _model.validate();
+                          }))),
               const SizedBox(width: 10),
               Expanded(
                   child: _DateField(
                       label: l.nextFollowUp,
                       value: _model.nextFollowUp,
-                      error: _errorText(l, ApplicationFormField.followUp),
-                      onChanged: (d) => setState(
-                          () => _model = _model.copyWith(nextFollowUp: d)))),
+                      firstDate: _model.sentDate,
+                      error: _errorText(l, ApplicationFormField.followUp) ??
+                          (_model.sentDate != null &&
+                                  _model.nextFollowUp != null &&
+                                  _model.nextFollowUp!
+                                      .isBefore(_model.sentDate!)
+                              ? l.followUpBeforeSent
+                              : null),
+                      onChanged: (d) => setState(() {
+                            _model = _model.copyWith(nextFollowUp: d);
+                            _validation = _model.validate();
+                          }))),
             ]),
             const SizedBox(height: 12),
             TextField(
@@ -213,7 +224,8 @@ class _CvDropdown extends StatelessWidget {
       initialValue: selected ?? -1,
       decoration: InputDecoration(
           labelText: l.linkedCv,
-          prefixIcon: const Icon(Icons.description_outlined)),
+          prefixIcon: const Icon(Icons.description_outlined),
+          helperText: cvs.isEmpty ? l.noLinkedCv : null),
       items: [
         DropdownMenuItem<int>(value: -1, child: Text(l.noLinkedCv)),
         ...cvs.where((cv) => cv.id != null).map((cv) => DropdownMenuItem<int>(
@@ -233,12 +245,14 @@ class _DateField extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.error,
+    this.firstDate,
   });
 
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime?> onChanged;
   final String? error;
+  final DateTime? firstDate;
 
   @override
   Widget build(BuildContext context) {
@@ -246,19 +260,28 @@ class _DateField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .labelMedium
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 4),
         OutlinedButton.icon(
           onPressed: () async {
+            final min = firstDate ?? DateTime(2000);
+            var initial = value ?? DateTime.now();
+            if (initial.isBefore(min)) initial = min;
             final selected = await showDatePicker(
               context: context,
-              initialDate: value ?? DateTime.now(),
-              firstDate: DateTime(2000),
+              initialDate: initial,
+              firstDate: min,
               lastDate: DateTime(2100),
             );
             if (selected != null) onChanged(selected);
           },
           icon: const Icon(Icons.calendar_today_outlined, size: 17),
           label: Text(
-              value == null ? label : DateFormat.yMd(locale).format(value!),
+              value == null ? '—' : DateFormat.yMd(locale).format(value!),
               overflow: TextOverflow.ellipsis),
         ),
         if (error != null)
