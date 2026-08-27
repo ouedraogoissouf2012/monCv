@@ -43,6 +43,18 @@ public interface CvRepository extends JpaRepository<Cv, Long> {
     @Query("UPDATE Cv c SET c.viewCount = c.viewCount + 1 WHERE c.id = :cvId")
     int incrementViewCount(@Param("cvId") Long cvId);
 
+    /**
+     * Compteur de vues courant, en projection (issue #507).
+     *
+     * <p>Appele juste apres {@link #incrementViewCount} pour connaitre la valeur
+     * <em>reellement</em> produite par cet increment : l'instance chargee en
+     * memoire date du debut de la transaction et deux consultations simultanees
+     * en deduiraient le meme palier. L'increment detient le verrou de la ligne
+     * jusqu'au commit, donc cette relecture est isolee des vues concurrentes.
+     */
+    @Query("SELECT c.viewCount FROM Cv c WHERE c.id = :cvId")
+    Optional<Integer> findViewCountById(@Param("cvId") Long cvId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Cv c SET c.downloadCount = c.downloadCount + 1 "
             + "WHERE c.id = :cvId AND c.publicDownloadsEnabled = true")

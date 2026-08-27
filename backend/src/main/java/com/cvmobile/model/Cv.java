@@ -24,6 +24,25 @@ public class Cv {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Revision de l'agregat, gere par Hibernate (issue #506).
+     *
+     * <p>Chaque UPDATE de ce CV porte {@code AND version = ?} et incremente la
+     * colonne. Une transaction concurrente partie d'une revision perimee ne met
+     * a jour aucune ligne : Hibernate leve alors une erreur de verrou optimiste
+     * (traduite en 409 par le gestionnaire global) plutot que d'ecraser en
+     * silence le travail de l'autre editeur.
+     *
+     * <p>Le compteur couvre l'agregat entier, sections comprises : une
+     * modification des collections filles suffit a l'incrementer.
+     *
+     * <p>Null tant que le CV n'est pas persiste ; Hibernate valorise la colonne
+     * a l'insertion.
+     */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @NotBlank
     private String titre;
 
