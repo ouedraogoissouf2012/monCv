@@ -8,6 +8,7 @@ import re
 from dataclasses import dataclass
 
 from playwright.sync_api import Locator, Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from .smoke_api import SmokeApi
 
@@ -15,7 +16,11 @@ from .smoke_api import SmokeApi
 @dataclass(frozen=True)
 class SmokeIdentity:
     email: str
-    password: str = "Test1234!"
+    # Au moins 12 caracteres, hors liste des mots de passe courants : le smoke
+    # cree un compte via l'API reelle, donc soumis a @StrongPassword (#511).
+    # L'ancienne valeur "Test1234!" en faisait 9 et faisait echouer l'inscription,
+    # puis toutes les assertions Playwright qui en dependaient.
+    password: str = "Test1234!Smoke"
     first_name: str = "Smoke"
     last_name: str = "Codex"
     cv_title: str = "Architecte QA Web"
@@ -27,6 +32,11 @@ class SmokeIdentity:
 
 
 class BrowserSmokeFlow:
+    """Drives the full CV creation journey through a real browser."""
+
+    #: fill -> commit -> verify cycles attempted on an autocomplete field.
+    _SUGGESTION_ATTEMPTS = 3
+
     def __init__(self, page: Page, api: SmokeApi) -> None:
         self.page = page
         self.api = api
@@ -191,25 +201,52 @@ class BrowserSmokeFlow:
             expect(self._field(label)).to_have_value(value, timeout=3_000)
 
     def _select_suggestion(self, label: str, value: str) -> None:
-        # Reuse the retrying _fill primitive: the Flutter Autocomplete field
-        # keeps an internal controller that re-syncs on rebuild, so a bare
-        # fill + immediate assertion is racy and fails intermittently.
-        target = self._fill(self._field(label), value)
+        # Committing a Flutter Autocomplete suggestion rebuilds the form, and
+        # the field's internal controller re-syncs on that rebuild: a commit
+        # landing mid-rebuild leaves the field empty (#308, #309, #543).
+        # No single step is reliable on its own, so retry the whole
+        # fill -> commit -> verify sequence rather than its last assertion.
+        last_error: Exception | None = None
+        for _ in range(self._SUGGESTION_ATTEMPTS):
+            try:
+                self._fill(self._field(label), value)
+                self._commit_suggestion(label, value)
+                expect(self._field(label)).to_have_value(value, timeout=3_000)
+                return
+            except (AssertionError, PlaywrightTimeoutError) as error:
+                last_error = error
+                self.page.wait_for_timeout(500)
+        raise AssertionError(
+            f"Unable to select {value!r} in the {label!r} autocomplete after "
+            f"{self._SUGGESTION_ATTEMPTS} attempts"
+        ) from last_error
 
+    def _commit_suggestion(self, label: str, value: str) -> None:
+        """Validate the suggestion, preferring a real click on the option.
+
+        Waits for the dropdown to actually render instead of probing it with a
+        non-blocking ``count()``: pressing ArrowDown/Enter on a menu that has
+        not opened yet clears the field instead of validating it.
+        """
         option = self.page.get_by_text(value, exact=True)
-        if option.count() and option.first.is_visible():
-            option.first.click()
-        else:
-            focused = self.page.locator("input:focus, textarea:focus")
-            focused_label = (
-                focused.first.get_attribute("aria-label")
-                if focused.count()
-                else None
-            )
-            if focused_label == label:
+        try:
+            expect(option.first).to_be_visible(timeout=5_000)
+        except AssertionError:
+            # The dropdown never opened. Only fall back to the keyboard while
+            # the field still holds focus, otherwise the keystrokes would land
+            # on another widget of the form.
+            if self._focused_label() == label:
                 self.page.keyboard.press("ArrowDown")
                 self.page.keyboard.press("Enter")
-        expect(self._field(label)).to_have_value(value)
+            return
+        option.first.click(timeout=5_000)
+
+    def _focused_label(self) -> str | None:
+        """Accessible name of the focused input, or None when none has focus."""
+        focused = self.page.locator("input:focus, textarea:focus")
+        if not focused.count():
+            return None
+        return focused.first.get_attribute("aria-label")
 
     def _button(self, label: str) -> Locator:
         target = self.page.get_by_role("button", name=label, exact=True).first

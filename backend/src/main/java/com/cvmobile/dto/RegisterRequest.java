@@ -1,5 +1,6 @@
 package com.cvmobile.dto;
 
+import com.cvmobile.validation.StrongPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,8 +20,9 @@ public class RegisterRequest {
     @Size(max = 255, message = "L'email ne doit pas depasser 255 caracteres")
     private String email;
 
+    // Politique centralisee (issue #511) : voir StrongPassword.
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 6, max = 100, message = "Le mot de passe doit contenir entre 6 et 100 caracteres")
+    @StrongPassword
     private String password;
 
     @NotBlank(message = "Le nom est obligatoire")

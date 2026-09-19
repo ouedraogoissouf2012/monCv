@@ -25,8 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 public final class IntegrationAuth {
 
-    /** Mot de passe conforme a la contrainte (6-100 caracteres) du DTO. */
-    public static final String PASSWORD = "Test1234!";
+    /**
+     * Mot de passe conforme a la politique {@code @StrongPassword} : au moins
+     * 12 caracteres, hors liste des mots de passe courants (issue #511).
+     *
+     * <p>L'ancienne valeur, {@code Test1234!}, ne faisait que 9 caracteres :
+     * elle satisfaisait l'ancien minimum de 6 mais serait desormais rejetee a
+     * l'inscription.
+     */
+    public static final String PASSWORD = "Test1234!Integration";
 
     private final MockMvc mvc;
     private final ObjectMapper mapper;
