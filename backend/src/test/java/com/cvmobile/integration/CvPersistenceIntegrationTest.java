@@ -1,5 +1,6 @@
 package com.cvmobile.integration;
 
+import com.cvmobile.integration.support.IntegrationAuth;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,9 @@ class CvPersistenceIntegrationTest extends PostgresIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(Map.of(
                                 "email", email,
-                                "password", "Test1234!",
+                                // Constante partagee : la politique de mot de
+                                // passe evolue en un seul endroit (#511).
+                                "password", IntegrationAuth.PASSWORD,
                                 "prenom", "Test",
                                 "nom", "Persistence"))))
                 .andExpect(status().isCreated())

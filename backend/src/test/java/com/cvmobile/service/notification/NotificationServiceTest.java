@@ -135,14 +135,19 @@ class NotificationServiceTest {
         verify(deliveries).save(argThat(d -> d.getNotificationType().equals("APPLICATION_FOLLOW_UP")));
     }
 
+    /**
+     * Le service delegue desormais la reconciliation a la base (issue #511) :
+     * il n'y a plus de lecture prealable a simuler, donc plus d'intervalle
+     * pendant lequel une requete concurrente pouvait inserer le meme jeton.
+     * Le comportement sous concurrence est couvert par
+     * {@code DeviceTokenUpsertIntegrationTest}, sur PostgreSQL reel.
+     */
     @Test void enregistreUnNouvelAppareilPourLUtilisateur() {
-        when(tokens.findByToken("device-token")).thenReturn(Optional.empty());
-
         service.registerDevice(user,
             new NotificationDtos.DeviceTokenRequest("device-token", "android"));
 
-        verify(tokens).save(argThat(d ->
-            d.getToken().equals("device-token") && d.getUser() == user));
+        verify(tokens).upsertToken(1L, "device-token", "android");
+        verify(tokens, never()).save(any());
     }
 
     @Test void desenregistreUnAppareilParTokenEtUtilisateur() {

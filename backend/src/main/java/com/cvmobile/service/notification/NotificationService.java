@@ -30,13 +30,14 @@ public class NotificationService {
     private final PushGateway gateway;
     private final NotificationProperties notificationProperties;
 
+    /**
+     * Enregistre l'appareil, ou le rattache au compte courant s'il etait deja
+     * connu. L'operation est idempotente et sans course : la reconciliation est
+     * faite par la base, cf. {@code DeviceTokenRepository#upsertToken} (#511).
+     */
     @Transactional
     public void registerDevice(User user, NotificationDtos.DeviceTokenRequest request) {
-        DeviceToken device = tokens.findByToken(request.token()).orElseGet(DeviceToken::new);
-        device.setUser(user);
-        device.setToken(request.token());
-        device.setPlatform(request.platform());
-        tokens.save(device);
+        tokens.upsertToken(user.getId(), request.token(), request.platform());
     }
 
     @Transactional
