@@ -3,10 +3,12 @@ package com.cvmobile.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -64,6 +66,7 @@ public class User implements UserDetails {
      * jetons deja emis, access comme refresh.
      */
     @Column(name = "token_version", nullable = false)
+    @Setter(AccessLevel.NONE)
     private int tokenVersion;
 
     @Column(name = "created_at")
@@ -75,8 +78,13 @@ public class User implements UserDetails {
     /**
      * Revoque toutes les sessions existantes du compte en changeant de
      * generation : les jetons deja emis portent l'ancienne valeur et seront
-     * rejetes des la prochaine requete. Point de mutation unique — deconnexion
-     * et reinitialisation de mot de passe passent tous deux par ici.
+     * rejetes des la prochaine requete.
+     *
+     * <p>Seul point de mutation de {@code tokenVersion}, et le compilateur le
+     * garantit : {@code @Setter(AccessLevel.NONE)} supprime le setter que
+     * {@code @Data} generait, lequel permettait un {@code setTokenVersion(0)}
+     * reactivant tous les jetons revoques (issue #535). Deconnexion et
+     * reinitialisation de mot de passe passent donc necessairement par ici.
      */
     public void revokeSessions() {
         tokenVersion++;
