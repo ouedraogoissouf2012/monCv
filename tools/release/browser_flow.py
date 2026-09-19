@@ -15,7 +15,11 @@ from .smoke_api import SmokeApi
 @dataclass(frozen=True)
 class SmokeIdentity:
     email: str
-    password: str = "Test1234!"
+    # Au moins 12 caracteres, hors liste des mots de passe courants : le smoke
+    # cree un compte via l'API reelle, donc soumis a @StrongPassword (#511).
+    # L'ancienne valeur "Test1234!" en faisait 9 et faisait echouer l'inscription,
+    # puis toutes les assertions Playwright qui en dependaient.
+    password: str = "Test1234!Smoke"
     first_name: str = "Smoke"
     last_name: str = "Codex"
     cv_title: str = "Architecte QA Web"
