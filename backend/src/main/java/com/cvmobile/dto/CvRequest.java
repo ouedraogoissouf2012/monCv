@@ -1,6 +1,7 @@
 package com.cvmobile.dto;
 
 import com.cvmobile.model.Language;
+import com.cvmobile.validation.OnUpdate;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,13 @@ public class CvRequest {
     @Size(max = MAX_MEDIUM_TEXT_LENGTH, message = "Le titre ne doit pas depasser 200 caracteres")
     private String titre;
 
+    /**
+     * Identite du CV. Obligatoire en mise a jour uniquement (issue #537) : un
+     * {@code PUT} remplace la ressource entiere, alors qu'une creation sans
+     * identite recoit un {@code PersonalInfo} vide par defaut a la persistance.
+     */
+    @NotNull(groups = OnUpdate.class,
+            message = "Les informations personnelles sont obligatoires")
     @Valid
     private PersonalInfoDto personalInfo;
 
