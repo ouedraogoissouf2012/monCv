@@ -19,11 +19,13 @@ import com.cvmobile.service.cv.CvOwnershipService;
 import com.cvmobile.service.pdf.PdfGenerationService;
 import com.cvmobile.service.import_.ICvImportService;
 import com.cvmobile.service.import_.ImportedCvRequestValidator;
+import com.cvmobile.validation.OnUpdate;
 import com.cvmobile.web.PageLimits;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -32,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -98,7 +101,7 @@ public class CvController {
     @Operation(summary = "Mettre a jour un CV")
     public ResponseEntity<CvResponse> updateCv(
             @PathVariable Long id,
-            @Valid @RequestBody CvRequest request,
+            @Validated({Default.class, OnUpdate.class}) @RequestBody CvRequest request,
             @AuthenticationPrincipal User user) {
         Cv changes = cvWebMapper.toDomain(request, user.getId());
         updateCvUseCase.update(id, user.getId(), changes);
